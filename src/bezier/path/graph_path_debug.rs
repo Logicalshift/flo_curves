@@ -32,7 +32,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
                 start_point.x(), start_point.y(),
                 end_point.x(), end_point.y(),
                 cp1.x(), cp1.y(),
-                cp2.x(), cp2.y());
+                cp2.x(), cp2.y()).unwrap();
 
             let start_point = (start_point - offset)*scale;
             let end_point   = (end_point - offset)*scale;
@@ -51,16 +51,16 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
                 cp1.x(), cp1.y(),
                 cp2.x(), cp2.y(),
                 end_point.x(), end_point.y(),
-                kind);
-            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />\n", end_point.x(), end_point.y());
-            write!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>\n", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index);
+                kind).unwrap();
+            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />\n", end_point.x(), end_point.y()).unwrap();
+            write!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>\n", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index).unwrap();
 
             index += 1;
         }
     }
 
     for (p1, p2) in rays {
-        write!(result, "<!-- Ray (Coord2({}, {}), Coord2({}, {})) -->\n", p1.x(), p1.y(), p2.x(), p2.y());
+        write!(result, "<!-- Ray (Coord2({}, {}), Coord2({}, {})) -->\n", p1.x(), p1.y(), p2.x(), p2.y()).unwrap();
         let collisions = path.ray_collisions(&(p1, p2));
 
         let p1 = (p1 - offset) * scale;
@@ -72,11 +72,11 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
 
         write!(result, "<path d=\"M {} {} L {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"red\" />\n",
             p1.x(), p1.y(),
-            p2.x(), p2.y());
+            p2.x(), p2.y()).unwrap();
 
         for (_collision, _curve_t, _line_t, pos) in collisions {
             let pos = (pos - offset)*scale;
-            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y());
+            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
         }
     }
 
