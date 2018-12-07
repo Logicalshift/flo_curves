@@ -28,7 +28,7 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> Vec<f64>
     };
 
     // Clip to 0/1 for small ranges outside
-    for mut root in roots.iter_mut() {
+    for root in roots.iter_mut() {
         if *root < 0.0 && *root > -0.001 { *root = 0.0 }
         if *root > 1.0 && *root < 1.001 { *root = 1.0 }
     }
