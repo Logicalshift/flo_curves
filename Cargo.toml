@@ -7,6 +7,7 @@ repository      = "https://github.com/Logicalshift/flo_curves"
 description     = "Library for manipulating Bezier curves"
 documentation   = "http://docs.rs/flo_curves/"
 readme          = "README.md"
+edition         = "2018"
 
 [dependencies]
 itertools   = "0.7"
