@@ -9,6 +9,9 @@ documentation   = "http://docs.rs/flo_curves/"
 readme          = "README.md"
 edition         = "2018"
 
+keywords        = ["bezier", "geometry", "graphics"]
+categories      = ["algorithms","rendering"]
+
 [dependencies]
 itertools   = "0.7"
 roots       = "0.0.4"
