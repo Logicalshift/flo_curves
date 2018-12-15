@@ -13,5 +13,5 @@ keywords        = ["bezier", "geometry", "graphics"]
 categories      = ["algorithms","rendering"]
 
 [dependencies]
-itertools   = "0.7"
+itertools   = "0.8"
 roots       = "0.0.4"
