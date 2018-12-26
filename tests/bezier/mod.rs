@@ -1,8 +1,10 @@
 use flo_curves::*;
 use flo_curves::bezier;
 
-mod basis;
 mod path;
+mod algorithms;
+
+mod basis;
 mod section;
 mod subdivide;
 mod derivative;
