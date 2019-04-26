@@ -24,6 +24,7 @@ mod consts;
 pub mod bezier;
 pub mod line;
 pub mod arc;
+pub mod debug;
 
 pub mod coordinate;
 pub use self::coordinate::*;
