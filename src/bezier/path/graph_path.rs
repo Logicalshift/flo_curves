@@ -941,7 +941,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     pub fn combine_overlapping_points(&mut self, accuracy: f64) {
         // Find collisions using a hashmap
         let multiplier      = 1.0 / accuracy;
-        let mut collisions  = HashMap::<(i64, i64), HashSet<usize>>::new();
+        let mut collisions  = HashMap::new();
 
         // Build up a hash set of the possible collisions
         for (point_idx, point) in self.points.iter().enumerate() {
@@ -968,7 +968,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             });
 
         // TODO: actually combine any collided points
-        if collided_points.count() > 0 {
+        let collided_points = collided_points.collect::<Vec<_>>();
+        if collided_points.len() > 0 {
+            println!("{:?}", collided_points);
             panic!("Some collided points!");
         }
     }
