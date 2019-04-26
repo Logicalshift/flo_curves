@@ -88,7 +88,6 @@ fn remove_interior_points_1() {
     assert!(with_points_removed.len() > 0);
 }
 
-
 #[test]
 fn remove_interior_points_1_without_failing_section() {
     // Complicated curve found in FlowBetween that produces 0 points when interior points are removed, variant with the section that was causing a failure removed
