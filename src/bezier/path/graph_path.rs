@@ -976,8 +976,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             // Move the forward edges and 'connected' from list from the other points
             for collided_with in collision {
-                // Add to the remapped hashset
-                remapped_points.insert(collided_with, new_point_id);
+                // Add to the remapped hashmap
+                remapped_points.insert(collided_with, (new_point_id, self.points[new_point_id].forward_edges.len()));
 
                 // Move the forward edges and connected from values into the original point
                 let mut forward_edges   = vec![];
@@ -997,15 +997,15 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             for point in self.points.iter_mut() {
                 // Remap the edges
                 for edge in point.forward_edges.iter_mut() {
-                    // TODO: following_edge_idx will be wrong!
-                    if let Some(remapped_point) = remapped_points.get(&edge.end_idx) {
-                        edge.end_idx = *remapped_point;
+                    if let Some((remapped_point, following_edge_idx_offset)) = remapped_points.get(&edge.end_idx) {
+                        edge.end_idx            = *remapped_point;
+                        edge.following_edge_idx += *following_edge_idx_offset;
                     }
                 }
 
                 // Remap the 'connected from' points
                 for connected_from in point.connected_from.iter_mut() {
-                    if let Some(remapped_point) = remapped_points.get(connected_from) {
+                    if let Some((remapped_point, _following_edge_idx_offset)) = remapped_points.get(connected_from) {
                         *connected_from = *remapped_point;
                     }
                 }
