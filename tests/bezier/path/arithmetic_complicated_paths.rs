@@ -1,4 +1,5 @@
 use flo_curves::*;
+use flo_curves::debug::*;
 use flo_curves::bezier::path::*;
 
 use super::svg::*;
@@ -64,6 +65,16 @@ fn remove_interior_points_1() {
         .curve_to((Coord2(562.89306640625, 669.4701538085938), Coord2(563.1842041015625, 669.1715698242188)), Coord2(562.8291015625, 669.4080810546875))
         .curve_to((Coord2(562.6779174804688, 669.4080810546875), Coord2(562.442626953125, 669.45654296875)), Coord2(562.085693359375, 669.44482421875))
         .build();
+
+    // Create the graph path from the source side
+    let mut merged_path = GraphPath::new();
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(PathSource::Path1, PathDirection::from(path))))));
+
+    // Collide the path with itself to find the intersections
+    merged_path.self_collide(0.01);
+    merged_path.set_exterior_by_removing_interior_points();
+    merged_path.heal_exterior_gaps();
+    println!("{}", graph_path_svg_string(&merged_path, vec![]));
 
     println!("{:?}", svg_path_string(&curve));
     let with_points_removed: Vec<SimpleBezierPath> = path_remove_interior_points(&vec![curve], 0.01);
