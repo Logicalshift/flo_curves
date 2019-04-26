@@ -181,6 +181,7 @@ fn add_two_doughnuts() {
 
     println!("{:?}", combined_circles.len());
     println!("{:?}", combined_circles);
+    println!("{:?}", combined_circles.iter().map(|path| svg_path_string(path)).collect::<Vec<_>>());
     assert!(combined_circles.len() == 4);
 }
 
