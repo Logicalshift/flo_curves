@@ -1,7 +1,6 @@
-use super::graph_path::*;
-use super::super::curve::*;
-use super::super::super::geo::*;
-use super::super::super::coordinate::*;
+use super::super::bezier::*;
+use super::super::bezier::path::*;
+use super::super::coordinate::*;
 
 use std::fmt::Write;
 

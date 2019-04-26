@@ -25,7 +25,6 @@ mod path_builder;
 mod graph_path;
 mod is_clockwise;
 mod arithmetic;
-pub mod graph_path_debug;
 pub mod algorithms;
 
 pub use self::path::*;
