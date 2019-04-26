@@ -12,10 +12,10 @@ pub fn bezier_path_to_rust_definition<C: Coordinate+Coordinate2D, P: BezierPath<
     let mut rust_code = String::new();
 
     let start = path.start_point();
-    write!(&mut rust_code, "BezierPathBuilder::<SimpleBezierPath>::start(({}, {}))", start.x(), start.y()).unwrap();
+    write!(&mut rust_code, "BezierPathBuilder::<SimpleBezierPath>::start(Coord2({}, {}))", start.x(), start.y()).unwrap();
 
     for (cp1, cp2, endpoint) in path.points() {
-        write!(&mut rust_code, "\n    .curve_to((({}, {}), ({}, {})), ({}, {}))", cp1.x(), cp1.y(), cp2.x(), cp2.y(), endpoint.x(), endpoint.y()).unwrap();
+        write!(&mut rust_code, "\n    .curve_to((Coord2({}, {}), Coord2({}, {})), Coord2({}, {}))", cp1.x(), cp1.y(), cp2.x(), cp2.y(), endpoint.x(), endpoint.y()).unwrap();
     }
     write!(&mut rust_code, "\n    .build()").unwrap();
 
