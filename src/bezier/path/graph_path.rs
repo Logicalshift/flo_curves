@@ -967,11 +967,49 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
             });
 
-        // TODO: actually combine any collided points
-        let collided_points = collided_points.collect::<Vec<_>>();
-        if collided_points.len() > 0 {
-            println!("{:?}", collided_points);
-            panic!("Some collided points!");
+        // Combine any collided points into a single point
+        let mut remapped_points = HashMap::new();
+        for collision in collided_points {
+            // The first point is the new point (ordering doesn't matter, we just consider these points the same)
+            let mut collision   = collision.into_iter();
+            let new_point_id    = collision.next().unwrap();
+
+            // Move the forward edges and 'connected' from list from the other points
+            for collided_with in collision {
+                // Add to the remapped hashset
+                remapped_points.insert(collided_with, new_point_id);
+
+                // Move the forward edges and connected from values into the original point
+                let mut forward_edges   = vec![];
+                let mut connected_from  = vec![];
+
+                mem::swap(&mut self.points[collided_with].forward_edges, &mut forward_edges);
+                mem::swap(&mut self.points[collided_with].connected_from, &mut connected_from);
+
+                self.points[new_point_id].forward_edges.extend(forward_edges.into_iter());
+                self.points[new_point_id].connected_from.extend(connected_from.into_iter());
+            }
+        }
+
+        // If any points were remapped, then also remap edges and connected_from values in other points
+        if remapped_points.len() > 0 {
+            // Need to update all of the points
+            for point in self.points.iter_mut() {
+                // Remap the edges
+                for edge in point.forward_edges.iter_mut() {
+                    // TODO: following_edge_idx will be wrong!
+                    if let Some(remapped_point) = remapped_points.get(&edge.end_idx) {
+                        edge.end_idx = *remapped_point;
+                    }
+                }
+
+                // Remap the 'connected from' points
+                for connected_from in point.connected_from.iter_mut() {
+                    if let Some(remapped_point) = remapped_points.get(connected_from) {
+                        *connected_from = *remapped_point;
+                    }
+                }
+            }
         }
     }
 
