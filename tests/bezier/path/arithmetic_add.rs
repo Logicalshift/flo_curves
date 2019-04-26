@@ -177,7 +177,7 @@ fn add_two_doughnuts() {
     println!("{}", svg_path_string(&inner_circle2));
 
     // Combine them
-    let combined_circles = path_add::<_, _, _, SimpleBezierPath>(&vec![circle1, inner_circle1], &vec![circle2, inner_circle2], 0.1);
+    let combined_circles = path_add::<_, _, _, SimpleBezierPath>(&vec![circle1, inner_circle1], &vec![circle2, inner_circle2], 0.09);
 
     println!("{:?}", combined_circles.len());
     println!("{:?}", combined_circles);
