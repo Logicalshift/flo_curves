@@ -7,6 +7,8 @@ use super::svg::*;
 #[test]
 fn remove_interior_points_1() {
     // Complicated curve found in FlowBetween that produces 0 points when interior points are removed
+    // It appears this has three curves that converge on a single point, which generates two points in the output, 
+    // which in turn produces a spurious edge, which prevents us from being able to follow the path all the way around.
     let curve = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(562.0692138671875, 669.944580078125))
         .curve_to((Coord2(562.0692138671875, 669.944580078125), Coord2(562.0692138671875, 669.944580078125)), Coord2(562.0692138671875, 669.944580078125))
         .curve_to((Coord2(562.4200439453125, 669.9562377929688), Coord2(562.6718139648438, 670.0160522460938)), Coord2(562.8291015625, 670.0160522460938))

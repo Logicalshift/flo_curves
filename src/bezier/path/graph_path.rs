@@ -10,6 +10,7 @@ use super::super::super::coordinate::*;
 use std::fmt;
 use std::mem;
 use std::ops::Range;
+use std::collections::{HashMap, HashSet};
 
 /// Maximum number of edges to traverse when 'healing' gaps found in an external path
 const MAX_HEAL_DEPTH: usize = 3;
@@ -929,6 +930,46 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     #[cfg(not(debug_assertions))]
     fn check_following_edge_consistency(&self) {
 
+    }
+
+    ///
+    /// Finds any points that have approximately the same coordinates and combines them
+    /// 
+    /// Accuracy indicates the maximum difference in the x or y coordinate for two points to be considered the same.
+    ///
+    pub fn combine_overlapping_points(&mut self, accuracy: f64) {
+        // Find collisions using a hashmap
+        let multiplier      = 1.0 / accuracy;
+        let mut collisions  = HashMap::<(i64, i64), HashSet<usize>>::new();
+
+        // Build up a hash set of the possible collisions
+        for (point_idx, point) in self.points.iter().enumerate() {
+            // Convert the position to an integer using the accuracy value
+            let (pos_x, pos_y) = (point.position.x(), point.position.y());
+            let (pos_x, pos_y) = (pos_x * multiplier, pos_y * multiplier);
+            let (pos_x, pos_y) = (pos_x.round(), pos_y.round());
+            let (pos_x, pos_y) = (pos_x as i64, pos_y as i64);
+
+            // Store in the collision hash map
+            collisions.entry((pos_x, pos_y))
+                .or_insert_with(|| HashSet::new())
+                .insert(point_idx);
+        }
+
+        // Find the collided points
+        let collided_points = collisions.into_iter()
+            .filter_map(|(_point, collisions)| {
+                if collisions.len() > 1 {
+                    Some(collisions)
+                } else {
+                    None
+                }
+            });
+
+        // TODO: actually combine any collided points
+        if collided_points.count() > 0 {
+            panic!("Some collided points!");
+        }
     }
 
     ///
