@@ -826,9 +826,12 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for src_idx in collide_from {
             for src_edge_idx in 0..self.points[src_idx].forward_edges.len() {
                 // Only visit target points that have not already been visited as a source point (assume that collide_to is always a higher range than collide_from)
-                let tgt_start   = collide_to.start.max(src_idx+1);
-                let tgt_end     = collide_to.end.max(src_idx+1);
-                let collide_to  = tgt_start..tgt_end;
+                let tgt_start       = collide_to.start.max(src_idx+1);
+                let tgt_end         = collide_to.end.max(src_idx+1);
+                let collide_to      = tgt_start..tgt_end;
+
+                let src_curve       = GraphEdge::new(self, GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false });
+                let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
 
                 // Compare to each point in the collide_to range
                 for tgt_idx in collide_to.into_iter() {
@@ -837,11 +840,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                         if src_idx == tgt_idx && src_edge_idx == tgt_edge_idx { continue; }
 
                         // Create edge objects for each side
-                        let src_curve               = GraphEdge::new(self, GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false });
                         let tgt_curve               = GraphEdge::new(self, GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false });
 
                         // Quickly reject edges with non-overlapping bounding boxes
-                        let src_edge_bounds         = src_curve.fast_bounding_box::<Bounds<_>>();
                         let tgt_edge_bounds         = tgt_curve.fast_bounding_box::<Bounds<_>>();
                         if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
 
