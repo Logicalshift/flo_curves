@@ -1,6 +1,7 @@
 use super::ray::*;
 use super::path::*;
 use super::super::curve::*;
+use super::super::bounds::*;
 use super::super::intersection::*;
 use super::super::super::geo::*;
 use super::super::super::line::*;
@@ -9,6 +10,7 @@ use super::super::super::coordinate::*;
 
 use std::fmt;
 use std::mem;
+use std::cell::*;
 use std::ops::Range;
 use std::collections::{HashMap, HashSet};
 
@@ -67,7 +69,7 @@ pub struct GraphEdgeRef {
 ///
 /// Enum representing an edge in a graph path
 /// 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 struct GraphPathEdge<Point, Label> {
     /// The label attached to this edge
     label: Label,
@@ -85,7 +87,10 @@ struct GraphPathEdge<Point, Label> {
     cp2: Point,
 
     /// The index of the target point
-    end_idx: usize
+    end_idx: usize,
+
+    /// The bounding box of this edge, if it has been calculated
+    bbox: RefCell<Option<(Point, Point)>>
 }
 
 ///
@@ -245,7 +250,7 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     #[inline]
     fn new(kind: GraphPathEdgeKind, (cp1, cp2): (Point, Point), end_idx: usize, label: Label, following_edge_idx: usize) -> GraphPathEdge<Point, Label> {
         GraphPathEdge {
-            label, kind, cp1, cp2, end_idx, following_edge_idx
+            label, kind, cp1, cp2, end_idx, following_edge_idx, bbox: RefCell::new(None)
         }
     }
 
@@ -831,7 +836,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let collide_to      = tgt_start..tgt_end;
 
                 let src_curve       = GraphEdge::new(self, GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false });
-                let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
+                let src_edge_bounds = src_curve.bounding_box::<Bounds<_>>();
 
                 // Compare to each point in the collide_to range
                 for tgt_idx in collide_to.into_iter() {
@@ -843,7 +848,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                         let tgt_curve               = GraphEdge::new(self, GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false });
 
                         // Quickly reject edges with non-overlapping bounding boxes
-                        let tgt_edge_bounds         = tgt_curve.fast_bounding_box::<Bounds<_>>();
+                        let tgt_edge_bounds         = tgt_curve.bounding_box::<Bounds<_>>();
                         if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
 
                         // Find the collisions between these two edges
@@ -1567,6 +1572,52 @@ impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> BezierCurve for GraphEdge<'a, Poi
             (edge.cp2.clone(), edge.cp1.clone())
         } else {
             (edge.cp1.clone(), edge.cp2.clone())
+        }
+    }
+    
+    ///
+    /// Faster but less accurate bounding box for a curve
+    /// 
+    /// This will produce a bounding box that contains the curve but which may be larger than necessary
+    /// 
+    #[inline]
+    fn fast_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+        let edge            = self.edge();
+
+        let start           = self.graph.points[self.edge.start_idx].position;
+        let end             = self.graph.points[edge.end_idx].position;
+        let control_points  = (edge.cp1, edge.cp2);
+
+        let min             = Self::Point::from_smallest_components(start, end);
+        let min             = Self::Point::from_smallest_components(min, control_points.0);
+        let min             = Self::Point::from_smallest_components(min, control_points.1);
+
+        let max             = Self::Point::from_biggest_components(start, end);
+        let max             = Self::Point::from_biggest_components(max, control_points.0);
+        let max             = Self::Point::from_biggest_components(max, control_points.1);
+
+        Bounds::from_min_max(min, max)
+    }
+
+    ///
+    /// Computes the bounds of this bezier curve
+    /// 
+    #[inline]
+    fn bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+        let edge        = self.edge();
+        let mut bbox    = edge.bbox.borrow_mut();
+
+        if let Some((ref min, ref max)) = *bbox {
+            Bounds::from_min_max(*min, *max)
+        } else {
+            let start       = self.graph.points[self.edge.start_idx].position;
+            let end         = self.graph.points[edge.end_idx].position;
+            let (cp1, cp2)  = (edge.cp1, edge.cp2);
+
+            let bounds: Bounds = bounding_box4(start, cp1, cp2, end);
+
+            *bbox = Some((bounds.min(), bounds.max()));
+            bounds
         }
     }
 }
