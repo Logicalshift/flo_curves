@@ -43,6 +43,19 @@ fn add_two_overlapping_circles() {
     assert!(num_points_on_both == 2);
 }
 
+
+#[test]
+fn add_series_of_circles() {
+    // Two overlapping circles
+    let circles             = (0..4).into_iter()
+        .map(|idx| Circle::new(Coord2(5.0 + (idx as f64)*2.0, 4.0), 4.0).to_path::<SimpleBezierPath>())
+        .map(|circle| PathCombine::Path(vec![circle]));
+    let combine             = PathCombine::Add(circles.collect());
+    let combined_circles    = path_combine::<_, _, SimpleBezierPath>(combine, 0.01);
+
+    assert!(combined_circles.len() == 1);
+}
+
 #[test]
 fn add_circle_inside_circle() {
     // Two overlapping circles

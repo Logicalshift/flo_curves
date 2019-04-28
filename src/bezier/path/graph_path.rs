@@ -1101,6 +1101,20 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Updates the labels and kinds of all edges in this path
+    ///
+    pub (crate) fn update_all_edge_labels<UpdateFn>(&mut self, update_fn: UpdateFn)
+    where UpdateFn: Fn(Label, GraphPathEdgeKind) -> (Label, GraphPathEdgeKind) {
+        for point_idx in 0..(self.points.len()) {
+            for edge in self.points[point_idx].forward_edges.iter_mut() {
+                let (new_label, new_kind) = update_fn(edge.label, edge.kind);
+                edge.label  = new_label;
+                edge.kind   = new_kind;
+            }
+        }
+    }
+
+    ///
     /// Sets the kind of an edge and any connected edge where there are no intersections (only one edge)
     ///
     pub fn set_edge_kind_connected(&mut self, edge: GraphEdgeRef, kind: GraphPathEdgeKind) {
