@@ -1054,9 +1054,13 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Remove any edges marked as interior
     ///
-    pub fn remove_interior_edges(&mut self) {
+    pub (crate) fn remove_interior_edges(&mut self) {
         for point_idx in 0..(self.points.len()) {
             self.points[point_idx].forward_edges.retain(|edge| edge.kind != GraphPathEdgeKind::Interior);
+
+            // Assuming we've marked a coherent set of exterior edges, the following edge is always 0 for any surviving edges
+            // TODO: if the edges reverse direction, this following edge won't exist...
+            self.points[point_idx].forward_edges.iter_mut().for_each(|edge| edge.following_edge_idx = 0);
         }
     }
 
