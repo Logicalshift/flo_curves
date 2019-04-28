@@ -848,7 +848,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let collide_to      = tgt_start..tgt_end;
 
                 let src_curve       = GraphEdge::new(self, GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false });
-                let src_edge_bounds = src_curve.bounding_box::<Bounds<_>>();
+                let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
 
                 // Compare to each point in the collide_to range
                 for tgt_idx in collide_to.into_iter() {
@@ -860,7 +860,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                         let tgt_curve               = GraphEdge::new(self, GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false });
 
                         // Quickly reject edges with non-overlapping bounding boxes
-                        let tgt_edge_bounds         = tgt_curve.bounding_box::<Bounds<_>>();
+                        let tgt_edge_bounds         = tgt_curve.fast_bounding_box::<Bounds<_>>();
                         if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
 
                         // Find the collisions between these two edges
@@ -1594,21 +1594,30 @@ impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> BezierCurve for GraphEdge<'a, Poi
     /// 
     #[inline]
     fn fast_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
-        let edge            = self.edge();
+        let edge                = self.edge();
 
-        let start           = self.graph.points[self.edge.start_idx].position;
-        let end             = self.graph.points[edge.end_idx].position;
-        let control_points  = (edge.cp1, edge.cp2);
+        let mut bbox            = edge.bbox.borrow_mut();
 
-        let min             = Self::Point::from_smallest_components(start, end);
-        let min             = Self::Point::from_smallest_components(min, control_points.0);
-        let min             = Self::Point::from_smallest_components(min, control_points.1);
+        if let Some((ref min, ref max)) = *bbox {
+            Bounds::from_min_max(*min, *max)
+        } else {
+            let start           = self.graph.points[self.edge.start_idx].position;
+            let end             = self.graph.points[edge.end_idx].position;
+            let control_points  = (edge.cp1, edge.cp2);
 
-        let max             = Self::Point::from_biggest_components(start, end);
-        let max             = Self::Point::from_biggest_components(max, control_points.0);
-        let max             = Self::Point::from_biggest_components(max, control_points.1);
+            let min             = Self::Point::from_smallest_components(start, end);
+            let min             = Self::Point::from_smallest_components(min, control_points.0);
+            let min             = Self::Point::from_smallest_components(min, control_points.1);
 
-        Bounds::from_min_max(min, max)
+            let max             = Self::Point::from_biggest_components(start, end);
+            let max             = Self::Point::from_biggest_components(max, control_points.0);
+            let max             = Self::Point::from_biggest_components(max, control_points.1);
+
+            let bounds          = Bounds::from_min_max(min, max);
+
+            *bbox = Some((bounds.min(), bounds.max()));
+            bounds
+        }
     }
 
     ///
@@ -1617,20 +1626,14 @@ impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> BezierCurve for GraphEdge<'a, Poi
     #[inline]
     fn bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
         let edge        = self.edge();
-        let mut bbox    = edge.bbox.borrow_mut();
 
-        if let Some((ref min, ref max)) = *bbox {
-            Bounds::from_min_max(*min, *max)
-        } else {
-            let start       = self.graph.points[self.edge.start_idx].position;
-            let end         = self.graph.points[edge.end_idx].position;
-            let (cp1, cp2)  = (edge.cp1, edge.cp2);
+        let start       = self.graph.points[self.edge.start_idx].position;
+        let end         = self.graph.points[edge.end_idx].position;
+        let (cp1, cp2)  = (edge.cp1, edge.cp2);
 
-            let bounds: Bounds = bounding_box4(start, cp1, cp2, end);
+        let bounds: Bounds = bounding_box4(start, cp1, cp2, end);
 
-            *bbox = Some((bounds.min(), bounds.max()));
-            bounds
-        }
+        bounds
     }
 }
 
