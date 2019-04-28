@@ -264,6 +264,14 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
         self.end_idx            = end_idx;
         self.following_edge_idx = next_edge_idx;
     }
+
+    ///
+    /// Invalidates the cache for this edge
+    ///
+    #[inline]
+    fn invalidate_cache(&self) {
+        (*self.bbox.borrow_mut()) = None;
+    }
 }
 
 ///
@@ -759,6 +767,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let edge2_end_idx       = self.points[edge2_idx].forward_edges[edge2_edge_idx].end_idx;
         let edge1_following_idx = self.points[edge1_idx].forward_edges[edge1_edge_idx].following_edge_idx;
         let edge2_following_idx = self.points[edge2_idx].forward_edges[edge2_edge_idx].following_edge_idx;
+
+        // Invalidate the cached bounding boxes
+        self.points[edge1_idx].forward_edges[edge1_edge_idx].invalidate_cache();
+        self.points[edge2_idx].forward_edges[edge2_edge_idx].invalidate_cache();
 
         // List of edges we've added to the collision point (in the form of the edge that's divided, the position it was divided at and the index on the collision point)
         let mut new_edges       = vec![];
