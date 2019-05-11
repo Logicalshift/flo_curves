@@ -211,36 +211,44 @@ fn crossing_and_collinear_collisions<P: Coordinate+Coordinate2D, Path: RayPath<P
     for (edge_ref, edge) in all_edges(path) {
         let intersection_type = ray_can_intersect(&edge, ray_coeffs);
 
-        if intersection_type == RayCanIntersect::CrossesRay {
-            // This edge may intersect the ray
-            for (curve_t, line_t, collide_pos) in curve_intersects_ray(&edge, ray) {
-                // Store in the list of raw collisions
-                raw_collisions.push((edge_ref, curve_t, line_t, collide_pos));
-            }
-        } else if intersection_type == RayCanIntersect::Collinear {
-            // There are usually no collinear collisions, so only allocate our array if we find some
-            let section_with_point = section_with_point.get_or_insert_with(|| vec![None; path.num_points()]);
-
-            // This edge is collinear with the ray
-            let start_idx   = path.edge_start_point_idx(edge_ref);
-            let end_idx     = path.edge_end_point_idx(edge_ref);
-
-            if let Some(start_section) = section_with_point[start_idx] {
-                if let Some(_end_section) = section_with_point[end_idx] {
-                    // Already seen an edge between these points
-                } else {
-                    // end_idx is new
-                    collinear_sections[start_section].push(end_idx);
+        match intersection_type {
+            RayCanIntersect::CrossesRay => {
+                // This edge may intersect the ray
+                for (curve_t, line_t, collide_pos) in curve_intersects_ray(&edge, ray) {
+                    // Store in the list of raw collisions
+                    raw_collisions.push((edge_ref, curve_t, line_t, collide_pos));
                 }
-            } else if let Some(end_section) = section_with_point[end_idx] {
-                // start_idx is new
-                collinear_sections[end_section].push(start_idx);
-            } else {
-                // New section
-                let new_section = collinear_sections.len();
-                collinear_sections.push(vec![start_idx, end_idx]);
-                section_with_point[start_idx]   = Some(new_section);
-                section_with_point[end_idx]     = Some(new_section);
+            }
+
+            RayCanIntersect::Collinear => {
+                // There are usually no collinear collisions, so only allocate our array if we find some
+                let section_with_point = section_with_point.get_or_insert_with(|| vec![None; path.num_points()]);
+
+                // This edge is collinear with the ray
+                let start_idx   = path.edge_start_point_idx(edge_ref);
+                let end_idx     = path.edge_end_point_idx(edge_ref);
+
+                if let Some(start_section) = section_with_point[start_idx] {
+                    if let Some(_end_section) = section_with_point[end_idx] {
+                        // Already seen an edge between these points
+                    } else {
+                        // end_idx is new
+                        collinear_sections[start_section].push(end_idx);
+                    }
+                } else if let Some(end_section) = section_with_point[end_idx] {
+                    // start_idx is new
+                    collinear_sections[end_section].push(start_idx);
+                } else {
+                    // New section
+                    let new_section = collinear_sections.len();
+                    collinear_sections.push(vec![start_idx, end_idx]);
+                    section_with_point[start_idx]   = Some(new_section);
+                    section_with_point[end_idx]     = Some(new_section);
+                }
+            }
+
+            RayCanIntersect::WrongSide => { 
+                // Ray does not intersect the curve
             }
         }
     }
