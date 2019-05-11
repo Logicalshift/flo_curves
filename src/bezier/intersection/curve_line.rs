@@ -3,6 +3,7 @@ use super::super::basis::*;
 use super::super::super::line::*;
 use super::super::super::coordinate::*;
 
+use smallvec::*;
 use roots::{find_roots_cubic, Roots};
 
 ///
@@ -11,7 +12,7 @@ use roots::{find_roots_cubic, Roots};
 /// Return value is a vector of (curve_t, line_t, intersection_point) values. The `line_t` value can be outside the
 /// original line, so this will return all the points on the curve that lie on a line of infinite length.
 /// 
-pub fn curve_intersects_ray<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> Vec<(f64, f64, C::Point)>
+pub fn curve_intersects_ray<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
 where C::Point: Coordinate2D {
     // Based upon https://www.particleincell.com/2013/cubic-line-intersection/
 
@@ -22,7 +23,7 @@ where C::Point: Coordinate2D {
     let c           = p1.x()*(p1.y()-p2.y()) + p1.y()*(p2.x()-p1.x());
 
     if a == 0.0 && b == 0.0 {
-        return vec![];
+        return smallvec![];
     }
 
     // Bezier coefficients
@@ -38,13 +39,13 @@ where C::Point: Coordinate2D {
         a*bx.3+b*by.3+c
     );
 
-    let roots       = find_roots_cubic(p.0, p.1, p.2, p.3);
-    let roots       = match roots {
-        Roots::No(_)    => vec![],
-        Roots::One(r)   => r.to_vec(),
-        Roots::Two(r)   => r.to_vec(),
-        Roots::Three(r) => r.to_vec(),
-        Roots::Four(r)  => r.to_vec()
+    let roots                       = find_roots_cubic(p.0, p.1, p.2, p.3);
+    let roots: SmallVec<[f64; 4]>   = match roots {
+        Roots::No(_)    => smallvec![],
+        Roots::One(r)   => SmallVec::from_slice(&r),
+        Roots::Two(r)   => SmallVec::from_slice(&r),
+        Roots::Three(r) => SmallVec::from_slice(&r),
+        Roots::Four(r)  => SmallVec::from_buf(r)
     };
 
     roots.into_iter()
@@ -104,10 +105,10 @@ where C::Point: Coordinate2D {
 ///
 /// Return value is a vector of (curve_t, line_t, intersection_point) values
 /// 
-pub fn curve_intersects_line<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> Vec<(f64, f64, C::Point)>
+pub fn curve_intersects_line<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
 where C::Point: Coordinate2D {
     let mut ray_interections = curve_intersects_ray(curve, line);
-    ray_interections.retain(|(_t, s, _pos)| s >= &0.0 && s <= &1.0);
+    ray_interections.retain(|(_t, s, _pos)| s >= &mut 0.0 && s <= &mut 1.0);
 
     ray_interections
 }
