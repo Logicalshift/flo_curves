@@ -967,6 +967,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// 
     /// Accuracy indicates the maximum difference in the x or y coordinate for two points to be considered the same.
     ///
+    #[inline(never)]
     pub fn combine_overlapping_points(&mut self, accuracy: f64) {
         // Find collisions using a hashmap
         let multiplier      = 1.0 / accuracy;
