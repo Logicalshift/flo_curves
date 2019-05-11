@@ -197,6 +197,7 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
 /// The first set is crossing collisions. These are places where the ray met and edge at an angle and crossed it.
 /// The second set is collinear collisions. These occur on straight edges that follow the same path as the ray.
 ///
+#[inline(never)]
 fn crossing_and_collinear_collisions<P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>>(path: &Path, ray: &L) -> (SmallVec<[(GraphEdgeRef, f64, f64, P); 32]>, SmallVec<[(GraphEdgeRef, f64, f64, P); 8]>) {
     let mut raw_collisions                                  = smallvec![];
 
