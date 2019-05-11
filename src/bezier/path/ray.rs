@@ -77,7 +77,7 @@ fn curve_is_collinear<P: Coordinate+Coordinate2D, Edge: BezierCurve<Point=P>>(ed
     let end_point   = edge.end_point();
     let (cp1, cp2)  = edge.control_points();
 
-    // The curve is collinear if all of the points lie on the 
+    // The curve is collinear if all of the points lie on the ray
     if (start_point.x()*a + start_point.y()*b + c).abs() < SMALL_DISTANCE
     && (end_point.x()*a + end_point.y()*b + c).abs() < SMALL_DISTANCE
     && (cp1.x()*a + cp1.y()*b + c).abs() < SMALL_DISTANCE
