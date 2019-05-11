@@ -1364,6 +1364,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Array of points visited on a path that we've added to the result
         let mut visited = vec![false; self.points.len()];
 
+        let mut previous_point                      = vec![None; self.points.len()];
+        let mut points_to_check: SmallVec<[_; 16]>  = smallvec![];
+
         for point_idx in 0..(self.points.len()) {
             // Ignore this point if we've already visited it as part of a path
             if visited[point_idx] {
@@ -1374,8 +1377,12 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // This allows for loops or other constructs to exist within the edges, which can happen with sufficiently complicated arithmetic operations
             // The result will sometimes be incorrect for these situations.
             // (Ideally we'd try to find a path that visits some points multiple times when this happens)
-            let mut previous_point                      = vec![None; self.points.len()];
-            let mut points_to_check: SmallVec<[_; 16]>  = smallvec![(point_idx, point_idx)];
+            for p in previous_point.iter_mut() {
+                *p = None;
+            }
+
+            points_to_check.clear();
+            points_to_check.push((point_idx, point_idx));
 
             // Loop until we find a previous point for the initial point (indicating we've got a loop of points)
             while previous_point[point_idx].is_none() {
