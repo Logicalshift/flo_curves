@@ -5,6 +5,7 @@ use super::super::super::line::*;
 use super::super::super::consts::*;
 use super::super::super::coordinate::*;
 
+use smallvec::*;
 use std::cmp::Ordering;
 
 ///
@@ -196,12 +197,12 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
 /// The first set is crossing collisions. These are places where the ray met and edge at an angle and crossed it.
 /// The second set is collinear collisions. These occur on straight edges that follow the same path as the ray.
 ///
-fn crossing_and_collinear_collisions<P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>>(path: &Path, ray: &L) -> (Vec<(GraphEdgeRef, f64, f64, P)>, Vec<(GraphEdgeRef, f64, f64, P)>) {
-    let mut raw_collisions          = vec![];
+fn crossing_and_collinear_collisions<P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>>(path: &Path, ray: &L) -> (SmallVec<[(GraphEdgeRef, f64, f64, P); 32]>, SmallVec<[(GraphEdgeRef, f64, f64, P); 8]>) {
+    let mut raw_collisions                                  = smallvec![];
 
     // If there are multiple collinear sections grouped together, these give them each a common identifier
-    let mut section_with_point: Vec<Option<usize>>  = vec![];
-    let mut collinear_sections: Vec<Vec<_>>         = vec![];
+    let mut section_with_point: Option<Vec<Option<usize>>>  = None;
+    let mut collinear_sections: SmallVec<[Vec<_>; 8]>       = smallvec![];
 
     // The coefficients are used to determine if a particular edge can collide with the curve and if it's collinear or not
     let ray_coeffs = ray.coefficients();
@@ -217,9 +218,7 @@ fn crossing_and_collinear_collisions<P: Coordinate+Coordinate2D, Path: RayPath<P
             }
         } else if intersection_type == RayCanIntersect::Collinear {
             // There are usually no collinear collisions, so only allocate our array if we find some
-            if section_with_point.len() == 0 {
-                section_with_point = vec![None; path.num_points()];
-            }
+            let section_with_point = section_with_point.get_or_insert_with(|| vec![None; path.num_points()]);
 
             // This edge is collinear with the ray
             let start_idx   = path.edge_start_point_idx(edge_ref);
