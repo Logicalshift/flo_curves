@@ -104,10 +104,10 @@ struct GraphPathPoint<Point, Label> {
     position: Point,
 
     /// The edges attached to this point
-    forward_edges: Vec<GraphPathEdge<Point, Label>>,
+    forward_edges: SmallVec<[GraphPathEdge<Point, Label>; 2]>,
 
     /// The points with edges connecting to this point
-    connected_from: Vec<usize>
+    connected_from: SmallVec<[usize; 2]>
 }
 
 ///
@@ -240,7 +240,7 @@ impl<Point, Label> GraphPathPoint<Point, Label> {
     ///
     /// Creates a new graph path point
     ///
-    fn new(position: Point, forward_edges: Vec<GraphPathEdge<Point, Label>>, connected_from: Vec<usize>) -> GraphPathPoint<Point, Label> {
+    fn new(position: Point, forward_edges: SmallVec<[GraphPathEdge<Point, Label>; 2]>, connected_from: SmallVec<[usize; 2]>) -> GraphPathPoint<Point, Label> {
         GraphPathPoint { position, forward_edges, connected_from }
     }
 }
@@ -314,7 +314,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         // Push the start point (with an open path)
         let start_point = path.start_point();
-        points.push(GraphPathPoint::new(start_point, vec![], vec![]));
+        points.push(GraphPathPoint::new(start_point, smallvec![], smallvec![]));
 
         // We'll add edges to the previous point
         let mut last_point_pos  = start_point;
@@ -331,7 +331,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             }
 
             // Push the points
-            points.push(GraphPathPoint::new(end_point, vec![], vec![]));
+            points.push(GraphPathPoint::new(end_point, smallvec![], smallvec![]));
 
             // Add an edge from the last point to the next point
             points[last_point_idx].forward_edges.push(GraphPathEdge::new(GraphPathEdgeKind::Uncategorised, (cp1, cp2), next_point_idx, label, 0));
@@ -584,7 +584,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
 
         // Any other edge coming into next_point_idx needs to be updated
-        let mut new_connected_from = vec![edge_ref.start_idx];
+        let mut new_connected_from = smallvec![edge_ref.start_idx];
 
         // Iterate over all the previous items
         for previous_idx in self.points[next_point_idx].connected_from.clone() {
@@ -677,7 +677,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
 
         // Take the old edges and append them to the new point
-        let mut old_point_edges = vec![];
+        let mut old_point_edges = smallvec![];
         mem::swap(&mut self.points[old_point_idx].forward_edges, &mut old_point_edges);
 
         self.points[new_point_idx].forward_edges.extend(old_point_edges);
@@ -750,7 +750,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             // Add to this list of points
             let mid_point_idx = self.points.len();
-            self.points.push(GraphPathPoint::new(mid_point, vec![], vec![]));
+            self.points.push(GraphPathPoint::new(mid_point, smallvec![], smallvec![]));
 
             // New point is the mid-point
             mid_point_idx
@@ -1000,8 +1000,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 remapped_points.insert(collided_with, (new_point_id, self.points[new_point_id].forward_edges.len()));
 
                 // Move the forward edges and connected from values into the original point
-                let mut forward_edges   = vec![];
-                let mut connected_from  = vec![];
+                let mut forward_edges   = smallvec![];
+                let mut connected_from  = smallvec![];
 
                 mem::swap(&mut self.points[collided_with].forward_edges, &mut forward_edges);
                 mem::swap(&mut self.points[collided_with].connected_from, &mut connected_from);
