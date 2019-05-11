@@ -1374,8 +1374,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // This allows for loops or other constructs to exist within the edges, which can happen with sufficiently complicated arithmetic operations
             // The result will sometimes be incorrect for these situations.
             // (Ideally we'd try to find a path that visits some points multiple times when this happens)
-            let mut previous_point  = vec![None; self.points.len()];
-            let mut points_to_check = vec![(point_idx, point_idx)];
+            let mut previous_point                      = vec![None; self.points.len()];
+            let mut points_to_check: SmallVec<[_; 16]>  = smallvec![(point_idx, point_idx)];
 
             // Loop until we find a previous point for the initial point (indicating we've got a loop of points)
             while previous_point[point_idx].is_none() {
@@ -1384,18 +1384,18 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     break;
                 }
 
-                let mut next_points_to_check = vec![];
+                let mut next_points_to_check: SmallVec<[_; 16]> = smallvec![];
 
                 // Check all of the points we found last time (ie, breadth-first search of the graph)
                 for (previous_point_idx, current_point_idx) in points_to_check {
                     let mut edges = if current_point_idx == point_idx {
                         // For the first point, only search forward
-                        self.reverse_edges_for_point(current_point_idx).collect::<Vec<_>>()
+                        self.reverse_edges_for_point(current_point_idx).collect::<SmallVec<[_; 8]>>()
                     } else {
                         // For all other points, search all edges
                         self.edges_for_point(current_point_idx)
                             .chain(self.reverse_edges_for_point(current_point_idx))
-                            .collect::<Vec<_>>()
+                            .collect::<SmallVec<[_; 8]>>()
                     };
 
                     // Only follow exterior edges...
