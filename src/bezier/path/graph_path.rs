@@ -396,7 +396,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     fn recalculate_reverse_connections(&mut self) {
         // Reset the list of connections to be empty
         for point_idx in 0..(self.points.len()) {
-            self.points[point_idx].connected_from = vec![];
+            self.points[point_idx].connected_from.clear();
         }
 
         // Add a reverse connection for every edge
