@@ -44,14 +44,18 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     /// if it represents a point outside of the shape.
     ///
     pub fn set_edge_kinds_by_ray_casting<FnIsInside: Fn(i32, i32) -> bool>(&mut self, is_inside: FnIsInside) {
-        loop {
-            // Cast a ray at the next uncategorised edge
-            let next_point = self.all_edges()
-                .filter(|edge| edge.kind() == GraphPathEdgeKind::Uncategorised)
-                .map(|edge| (edge.point_at_pos(0.5), edge.normal_at_pos(0.5), edge.into()))
-                .nth(0);
+        for point_idx in 0..self.num_points() {
+            for next_edge in self.edge_refs_for_point(point_idx) {
+                // Only process edges that have not yet been categorised
+                if self.edge_kind(next_edge) != GraphPathEdgeKind::Uncategorised {
+                    continue;
+                }
 
-            if let Some((next_point, next_normal, next_edge)) = next_point {
+                // Cast a ray at this edge
+                let real_edge   = self.get_edge(next_edge);
+                let next_point  = real_edge.point_at_pos(0.5);
+                let next_normal = real_edge.normal_at_pos(0.5);
+
                 // Mark the next edge as visited (this prevents an infinite loop in the event the edge we're aiming at has a length of 0 and thus will always be an intersection)
                 self.set_edge_kind(next_edge, GraphPathEdgeKind::Visited);
 
@@ -113,9 +117,6 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 
                 // The ray should exit and enter the path an even number of times
                 debug_assert!(path1_crossings == 0 && path2_crossings == 0);
-            } else {
-                // All edges are categorised
-                break;
             }
         }
     }

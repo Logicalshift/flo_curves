@@ -461,6 +461,15 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Returns the edge refs for a particular point
+    ///
+    pub fn edge_refs_for_point(&self, point_num: usize) -> impl Iterator<Item=GraphEdgeRef> {
+        (0..(self.points[point_num].forward_edges.len()))
+            .into_iter()
+            .map(move |edge_idx| GraphEdgeRef { start_idx: point_num, edge_idx: edge_idx, reverse: false })
+    }
+
+    ///
     /// Returns the position of a particular point
     ///
     #[inline]
