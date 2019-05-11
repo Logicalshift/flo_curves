@@ -4,6 +4,8 @@ use super::super::solve::*;
 use super::super::super::geo::*;
 use super::super::super::bezier::*;
 
+use smallvec::*;
+
 ///
 /// Determines the length of a curve's hull as a sum of squares
 /// 
@@ -100,7 +102,7 @@ where C::Point: 'a+Coordinate2D {
 ///
 /// Given a set of intersections found on a left and right curve, joins them in a way that eliminates duplicates
 /// 
-fn join_subsections<'a, C: BezierCurve>(curve1: &CurveSection<'a, C>, left: Vec<(f64, f64)>, right: Vec<(f64, f64)>, accuracy_squared: f64) -> Vec<(f64, f64)> 
+fn join_subsections<'a, C: BezierCurve>(curve1: &CurveSection<'a, C>, left: SmallVec<[(f64, f64); 8]>, right: SmallVec<[(f64, f64); 8]>, accuracy_squared: f64) -> SmallVec<[(f64, f64); 8]> 
 where C::Point: Coordinate2D {
     if left.len() == 0 {
         // No further work to do
@@ -148,7 +150,7 @@ where C::Point: Coordinate2D {
 ///
 /// Determines the points at which two curves intersect using the Bezier clipping algorithm
 /// 
-fn curve_intersects_curve_clip_inner<'a, C: BezierCurve>(curve1: CurveSection<'a, C>, curve2: CurveSection<'a, C>, accuracy_squared: f64) -> Vec<(f64, f64)>
+fn curve_intersects_curve_clip_inner<'a, C: BezierCurve>(curve1: CurveSection<'a, C>, curve2: CurveSection<'a, C>, accuracy_squared: f64) -> SmallVec<[(f64, f64); 8]>
 where C::Point: 'a+Coordinate2D {
     // Overlapping curves should be treated separately (the clipping algorithm will just match all of the points)
     let overlaps = overlapping_region(&curve1, &curve2);
@@ -161,10 +163,10 @@ where C::Point: 'a+Coordinate2D {
 
         if c1_t1 == c1_t2 || c2_t1 == c2_t2 {
             // Overlapped at a single point, so only one intersection
-            return vec![(c1_t1, c2_t1)];
+            return smallvec![(c1_t1, c2_t1)];
         } else {
             // Overlapping curves cross at both points
-            return vec![(c1_t1, c2_t1), (c1_t2, c2_t2)];
+            return smallvec![(c1_t1, c2_t1), (c1_t2, c2_t2)];
         }
     }
 
@@ -177,8 +179,8 @@ where C::Point: 'a+Coordinate2D {
     let mut curve2_last_len = curve_hull_length_sq(&curve2);
 
     // Edge case: 0-length curves have no match
-    if curve1_last_len == 0.0 { return vec![]; }
-    if curve2_last_len == 0.0 { return vec![]; }
+    if curve1_last_len == 0.0 { return smallvec![]; }
+    if curve2_last_len == 0.0 { return smallvec![]; }
 
     // Iterate to refine the match
     loop {
@@ -186,7 +188,7 @@ where C::Point: 'a+Coordinate2D {
             // Clip curve2 against curve1
             let clip_t  = clip(&curve2, &curve1);
             let clip_t  = match clip_t {
-                ClipResult::None                    => { return vec![]; },
+                ClipResult::None                    => { return smallvec![]; },
                 ClipResult::Some(clip_t)            => clip_t,
                 ClipResult::SecondCurveIsLinear     => { 
                     return intersections_with_linear_section(&curve1, &curve2)
@@ -208,7 +210,7 @@ where C::Point: 'a+Coordinate2D {
             // Clip curve1 against curve2
             let clip_t  = clip(&curve1, &curve2);
             let clip_t  = match clip_t {
-                ClipResult::None                    => { return vec![]; },
+                ClipResult::None                    => { return smallvec![]; },
                 ClipResult::Some(clip_t)            => clip_t,
                 ClipResult::SecondCurveIsLinear     => { 
                     return intersections_with_linear_section(&curve2, &curve1)
@@ -232,10 +234,10 @@ where C::Point: 'a+Coordinate2D {
                 let (t_min1, t_max1) = curve1.original_curve_t_values();
                 let (t_min2, t_max2) = curve2.original_curve_t_values();
 
-                return vec![((t_min1+t_max1)*0.5, (t_min2+t_max2)*0.5)];
+                return smallvec![((t_min1+t_max1)*0.5, (t_min2+t_max2)*0.5)];
             } else {
                 // Clipping algorithm found a point, but the two curves do not actually overlap, so reject them
-                return vec![];
+                return smallvec![];
             }
         }
 
@@ -268,7 +270,7 @@ where C::Point: 'a+Coordinate2D {
 /// Determines the points at which two curves intersect using the Bezier clipping
 /// algorihtm
 /// 
-pub fn curve_intersects_curve_clip<'a, C: BezierCurve>(curve1: &'a C, curve2: &'a C, accuracy: f64) -> Vec<(f64, f64)>
+pub fn curve_intersects_curve_clip<'a, C: BezierCurve>(curve1: &'a C, curve2: &'a C, accuracy: f64) -> SmallVec<[(f64, f64); 8]>
 where C::Point: 'a+Coordinate2D {
     // Start with the entire span of both curves
     let curve1 = curve1.section(0.0, 1.0);
