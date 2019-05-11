@@ -48,13 +48,14 @@ where C::Point: Coordinate2D {
         Roots::Four(r)  => SmallVec::from_buf(r)
     };
 
-    roots.into_iter()
-        .map(|t| {
-            // Allow a small amount of 'slop' for items at the start/end as the root finding is not exact
+    let mut result = smallvec![];
+    for t in roots.into_iter() {
+        // Allow a small amount of 'slop' for items at the start/end as the root finding is not exact
+        let t =
             if t < 0.0 && t > -0.01 {
                 let factor      = (a*a + b*b).sqrt();
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
-                let start_point = curve.start_point();
+                let start_point = &w1;
                 
                 if (start_point.x()*a + start_point.y()*b + c).abs() < 0.00001 {
                     0.0 
@@ -64,19 +65,19 @@ where C::Point: Coordinate2D {
             } else if t > 1.0 && t < 1.01 { 
                 let factor      = (a*a + b*b).sqrt();
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
-                let end_point   = curve.end_point();
+                let end_point   = &w4;
 
                 if (end_point.x()*a + end_point.y()*b + c).abs() < 0.00001 {
                     1.0
                 } else {
                     t
                 }
-            } else { t }
-        })
-        .map(|t| {
-            (t, de_casteljau4(t, w1, w2, w3, w4))
-        })
-        .map(|(t, pos)| {
+            } else { t };
+
+        if t >= 0.0 && t <= 1.0 {
+            // Calculate the position on the curve
+            let pos = de_casteljau4(t, w1, w2, w3, w4);
+
             // Coordinates on the curve
             let x   = pos.x();
             let y   = pos.y();
@@ -91,13 +92,11 @@ where C::Point: Coordinate2D {
             debug_assert!(!s.is_nan());
             debug_assert!(!s.is_infinite());
 
-            (t, s, pos)
-        })
-        .filter(|(t, _s, _pos)| {
-            // Point must be within the bounds of the line and the curve
-            (t >= &0.0 && t <= &1.0)
-        })
-        .collect()
+            result.push((t, s, pos));
+        }
+    }
+
+    result
 }
 
 ///
