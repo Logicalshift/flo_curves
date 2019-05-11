@@ -28,12 +28,12 @@ pub (crate) trait RayPath {
     ///
     /// Returns references to the edges that arrive at the specified point
     ///
-    fn reverse_edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef>;
+    fn reverse_edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]>;
 
     ///
     /// Returns references to the edges that leave the specified point
     ///
-    fn edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef>;
+    fn edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]>;
 
     ///
     /// Maps an edge ref to an edge

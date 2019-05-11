@@ -7,6 +7,8 @@ use super::super::normal::*;
 use super::super::super::geo::*;
 use super::super::super::coordinate::*;
 
+use smallvec::*;
+
 ///
 /// Represents a curve that can be represented either forwards or backwards
 ///
@@ -62,16 +64,16 @@ where Curve::Point: Coordinate2D {
         1
     }
 
-    #[inline] fn reverse_edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef> {
+    #[inline] fn reverse_edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]> {
         if point_idx == 0 {
-            vec![GraphEdgeRef { start_idx: self.len()-1, edge_idx: 0, reverse: true }]
+            smallvec![GraphEdgeRef { start_idx: self.len()-1, edge_idx: 0, reverse: true }]
         } else {
-            vec![GraphEdgeRef { start_idx: point_idx-1, edge_idx: 0, reverse: true }]
+            smallvec![GraphEdgeRef { start_idx: point_idx-1, edge_idx: 0, reverse: true }]
         }
     }
 
-    #[inline] fn edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef> {
-        vec![GraphEdgeRef { start_idx: point_idx, edge_idx: 0, reverse: false }]
+    #[inline] fn edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]> {
+        smallvec![GraphEdgeRef { start_idx: point_idx, edge_idx: 0, reverse: false }]
     }
 
     #[inline] fn get_edge(&self, edge: GraphEdgeRef) -> Self::Curve {

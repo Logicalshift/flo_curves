@@ -8,6 +8,8 @@ use super::super::super::line::*;
 use super::super::super::consts::*;
 use super::super::super::coordinate::*;
 
+use smallvec::*;
+
 use std::fmt;
 use std::mem;
 use std::cell::*;
@@ -1783,14 +1785,14 @@ where   Point: Coordinate+Coordinate2D,
 
     #[inline] fn num_edges(&self, point_idx: usize) -> usize { self.points[point_idx].forward_edges.len() }
 
-    #[inline] fn edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef> {
+    #[inline] fn edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]> {
         let num_edges = self.points[point_idx].forward_edges.len();
         (0..num_edges).into_iter()
             .map(move |edge_idx| GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
             .collect()
     }
 
-    #[inline] fn reverse_edges_for_point(&self, point_idx: usize) -> Vec<GraphEdgeRef> {
+    #[inline] fn reverse_edges_for_point(&self, point_idx: usize) -> SmallVec<[GraphEdgeRef; 8]> {
         self.points[point_idx].connected_from.iter()
             .flat_map(|connected_point_idx| {
                 let num_edges = self.points[*connected_point_idx].forward_edges.len();
