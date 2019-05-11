@@ -15,3 +15,4 @@ categories      = ["algorithms","rendering"]
 [dependencies]
 itertools   = "0.8"
 roots       = "0.0.4"
+smallvec    = "0.6"
