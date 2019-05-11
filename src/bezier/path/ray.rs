@@ -98,7 +98,6 @@ enum RayCanIntersect {
 ///
 /// Given the coefficients of a ray, returns whether or not an edge can intersect it
 ///
-#[inline(never)]
 fn ray_can_intersect<P: Coordinate+Coordinate2D, Edge: BezierCurve<Point=P>>(edge: &Edge, (a, b, c): (f64, f64, f64)) -> RayCanIntersect {
     // Fetch the points of the curve
     let start_point = edge.start_point();
