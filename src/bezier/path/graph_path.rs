@@ -14,7 +14,7 @@ use std::fmt;
 use std::mem;
 use std::cell::*;
 use std::ops::Range;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 /// Maximum number of edges to traverse when 'healing' gaps found in an external path
 const MAX_HEAL_DEPTH: usize = 3;
@@ -983,8 +983,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             // Store in the collision hash map
             collisions.entry((pos_x, pos_y))
-                .or_insert_with(|| HashSet::new())
-                .insert(point_idx);
+                .or_insert_with(|| SmallVec::<[_; 2]>::new())
+                .push(point_idx);
         }
 
         // Find the collided points
