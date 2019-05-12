@@ -32,6 +32,8 @@ where P::Point : Coordinate+Coordinate2D {
 ///
 pub fn path_combine<Point, P: BezierPathFactory<Point=Point>>(operation: PathCombine<P>, accuracy: f64) -> Vec<P>
 where Point: Coordinate+Coordinate2D {
+    // TODO: it's probably possible to combine add, subtract and intersect into a single ray-casting operation using a similar technique to how path_add_chain works
+
     match operation {
         PathCombine::Path(result)               => result,
         PathCombine::RemoveInteriorPoints(path) => path_remove_interior_points(&path, accuracy),
