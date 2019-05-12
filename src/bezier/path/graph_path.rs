@@ -1095,19 +1095,6 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
-    /// Remove any edges marked as interior
-    ///
-    pub (crate) fn remove_interior_edges(&mut self) {
-        for point_idx in 0..(self.points.len()) {
-            self.points[point_idx].forward_edges.retain(|edge| edge.kind != GraphPathEdgeKind::Interior);
-
-            // Assuming we've marked a coherent set of exterior edges, the following edge is always 0 for any surviving edges
-            // TODO: if the edges reverse direction, this following edge won't exist...
-            self.points[point_idx].forward_edges.iter_mut().for_each(|edge| edge.following_edge_idx = 0);
-        }
-    }
-
-    ///
     /// Returns the GraphEdge for an edgeref
     ///
     #[inline]
@@ -1145,20 +1132,6 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     #[inline]
     pub fn edge_label(&self, edge: GraphEdgeRef) -> Label {
         self.points[edge.start_idx].forward_edges[edge.edge_idx].label
-    }
-
-    ///
-    /// Updates the labels and kinds of all edges in this path
-    ///
-    pub (crate) fn update_all_edge_labels<UpdateFn>(&mut self, update_fn: UpdateFn)
-    where UpdateFn: Fn(Label, GraphPathEdgeKind) -> (Label, GraphPathEdgeKind) {
-        for point_idx in 0..(self.points.len()) {
-            for edge in self.points[point_idx].forward_edges.iter_mut() {
-                let (new_label, new_kind) = update_fn(edge.label, edge.kind);
-                edge.label  = new_label;
-                edge.kind   = new_kind;
-            }
-        }
     }
 
     ///
