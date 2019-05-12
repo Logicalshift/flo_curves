@@ -1602,3 +1602,41 @@ fn ray_cast_at_tiny_line_6() {
     assert!((collisions.len()&1) == 0);
     assert!(collisions.len() == 4);
 }
+
+#[test]
+fn ray_cast_grazing_circle_produces_0_hits() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(20.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    // Collide them into a graphpath
+    let path = GraphPath::from_path(&circle1, ());
+    let path = path.collide(GraphPath::from_path(&circle2, ()), 0.01);
+
+    // Ray cast upwards, grazing the first circle
+    let collisions = path.ray_collisions(&(Coord2(24.0, 0.0), Coord2(24.0, 1.0)));
+
+    // Should not actually hit the circle
+    assert!(collisions.len() != 2);         // 2 collisions would produce no bug
+    assert!(collisions.len() != 1);
+    assert!(collisions.len() == 0);
+}
+
+#[test]
+fn ray_cast_close_to_circle_produces_2_hits() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(20.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    // Collide them into a graphpath
+    let path = GraphPath::from_path(&circle1, ());
+    let path = path.collide(GraphPath::from_path(&circle2, ()), 0.01);
+
+    // Ray cast upwards, grazing the first circle
+    let collisions = path.ray_collisions(&(Coord2(23.99, 0.0), Coord2(23.99, 1.0)));
+
+    // Should not actually hit the circle
+    assert!(collisions.len() != 0);
+    assert!(collisions.len() != 1);
+    assert!(collisions.len() == 2);
+}
