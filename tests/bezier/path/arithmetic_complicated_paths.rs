@@ -70,7 +70,7 @@ fn remove_interior_points_1() {
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(PathSource::Path1, PathDirection::from(path))))));
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
 
     // Collide the path with itself to find the intersections
     merged_path.self_collide(0.01);
@@ -280,7 +280,7 @@ fn remove_interior_points_2() {
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(PathSource::Path1, PathDirection::from(path))))));
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
 
     // Collide the path with itself to find the intersections
     merged_path.self_collide(0.01);

@@ -9,7 +9,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
     pub fn set_exterior_by_subtracting(&mut self) {
         // Use an even-odd winding rule (all edges are considered 'external')
-        self.set_edge_kinds_by_ray_casting(|path1_crossings, path2_crossings| (path1_crossings&1) != 0 && (path2_crossings&1) == 0);
+        self.set_edge_kinds_by_ray_casting(|path_crossings| (path_crossings[0]&1) != 0 && (path_crossings[1]&1) == 0);
     }
 }
 
@@ -34,10 +34,10 @@ where   Point: Coordinate+Coordinate2D {
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(PathSource::Path1, PathDirection::from(path))))));
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
 
     // Collide with the target side to generate a full path
-    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(PathSource::Path2, PathDirection::from(path))))), accuracy);
+    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
 
     // Set the exterior edges using the 'subtract' algorithm
     merged_path.set_exterior_by_subtracting();

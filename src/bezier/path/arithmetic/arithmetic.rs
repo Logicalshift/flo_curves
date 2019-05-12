@@ -5,14 +5,11 @@ use super::super::super::curve::*;
 use super::super::super::normal::*;
 use super::super::super::super::coordinate::*;
 
-/// Source of a path in the graphpath
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum PathSource {
-    Path1,
-    Path2
-}
+use smallvec::*;
 
-/// Target of a path in the graphpath
+///
+/// Winding direction of a particular path
+///  
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum PathDirection {
     Clockwise,
@@ -31,9 +28,13 @@ where P::Point: Coordinate2D {
     }
 }
 
+///
 /// Label attached to a path used for arithmetic
+/// 
+/// The parameters are the path number (counting from 0) and the winding direction of the path
+/// 
 #[derive(Clone, Copy, Debug)]
-pub struct PathLabel(pub PathSource, pub PathDirection);
+pub struct PathLabel(pub u32, pub PathDirection);
 
 impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
@@ -43,7 +44,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     /// path 1 and path 2. It should return true if this number of crossings represents a point inside the final shape, or false
     /// if it represents a point outside of the shape.
     ///
-    pub fn set_edge_kinds_by_ray_casting<FnIsInside: Fn(i32, i32) -> bool>(&mut self, is_inside: FnIsInside) {
+    pub fn set_edge_kinds_by_ray_casting<FnIsInside: Fn(&SmallVec<[i32; 8]>) -> bool>(&mut self, is_inside: FnIsInside) {
         for point_idx in 0..self.num_points() {
             for next_edge in self.edge_refs_for_point(point_idx) {
                 // Only process edges that have not yet been categorised
@@ -61,8 +62,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 
                 // The 'total direction' indicates how often we've crossed an edge moving in a particular direction
                 // We're inside the path when it's non-zero
-                let mut path1_crossings = 0;
-                let mut path2_crossings = 0;
+                let mut path_crossings: SmallVec<[i32; 8]> = smallvec![0, 0];
 
                 // Cast a ray at the target edge
                 let ray             = (next_point - next_normal, next_point);
@@ -76,7 +76,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                     let is_intersection = collision.is_intersection();
                     let edge            = collision.edge();
 
-                    let PathLabel(path, direction) = self.edge_label(edge);
+                    let PathLabel(path_number, direction) = self.edge_label(edge);
 
                     // The relative direction of the tangent to the ray indicates the direction we're crossing in
                     let normal  = self.get_edge(edge).normal_at_pos(curve_t);
@@ -87,19 +87,16 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         PathDirection::Anticlockwise    => { -side }
                     };
 
-                    let was_inside = is_inside(path1_crossings, path2_crossings);
+                    // Extend the path_crossings vector
+                    while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
+
+                    let was_inside = is_inside(&path_crossings);
                     if side < 0 {
-                        match path {
-                            PathSource::Path1 => { path1_crossings -= 1 },
-                            PathSource::Path2 => { path2_crossings -= 1 }
-                        }
+                        path_crossings[path_number as usize] -= 1;
                     } else if side > 0 {
-                        match path {
-                            PathSource::Path1 => { path1_crossings += 1 },
-                            PathSource::Path2 => { path2_crossings += 1 }
-                        }
+                        path_crossings[path_number as usize] += 1;
                     }
-                    let is_inside = is_inside(path1_crossings, path2_crossings);
+                    let is_inside = is_inside(&path_crossings);
 
                     // If this isn't an intersection, set whether or not the edge is exterior
                     let edge_kind = self.edge_kind(edge);
@@ -116,7 +113,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 }
 
                 // The ray should exit and enter the path an even number of times
-                debug_assert!(path1_crossings == 0 && path2_crossings == 0);
+                debug_assert!(path_crossings.into_iter().all(|crossing_count| crossing_count == 0));
             }
         }
     }

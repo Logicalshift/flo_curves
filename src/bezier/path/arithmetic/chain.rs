@@ -49,13 +49,13 @@ where   Point: Coordinate+Coordinate2D {
         match operation {
             Path(paths)                 => {
                 GraphPath::from_merged_paths(paths.iter()
-                    .map(|path| (path, PathLabel(PathSource::Path2, PathDirection::from(path)))))
+                    .map(|path| (path, PathLabel(1, PathDirection::from(path)))))
             },
 
             RemoveInteriorPoints(paths) => {
                 // Create the graph path from the source side
                 let mut merged_path = GraphPath::from_merged_paths(paths.iter()
-                    .map(|path| (path, PathLabel(PathSource::Path1, PathDirection::from(path)))));
+                    .map(|path| (path, PathLabel(0, PathDirection::from(path)))));
 
                 // Collide the path with itself to find the intersections
                 merged_path.self_collide(accuracy);
@@ -75,11 +75,11 @@ where   Point: Coordinate+Coordinate2D {
                 loop {
                     if let Some(to_add) = ops.next() {
                         // Prepare to add the next path
-                        result.prepare_for_next_operation(PathSource::Path1);
+                        result.prepare_for_next_operation(0);
 
                         // Generate the path to add in
                         let mut to_add = GraphPath::combine(to_add, accuracy);
-                        to_add.prepare_for_next_operation(PathSource::Path2);
+                        to_add.prepare_for_next_operation(1);
 
                         // Add in the next path to build up the result
                         result = result.collide(to_add, accuracy);
@@ -102,11 +102,11 @@ where   Point: Coordinate+Coordinate2D {
                 loop {
                     if let Some(to_subtract) = ops.next() {
                         // Prepare to subtract the next path
-                        result.prepare_for_next_operation(PathSource::Path1);
+                        result.prepare_for_next_operation(0);
 
                         // Generate the path to subtract
                         let mut to_subtract = GraphPath::combine(to_subtract, accuracy);
-                        to_subtract.prepare_for_next_operation(PathSource::Path2);
+                        to_subtract.prepare_for_next_operation(1);
 
                         // Subtract the next path to build up the result
                         result = result.collide(to_subtract, accuracy);
@@ -129,11 +129,11 @@ where   Point: Coordinate+Coordinate2D {
                 loop {
                     if let Some(to_intersect) = ops.next() {
                         // Prepare to intersect the next path
-                        result.prepare_for_next_operation(PathSource::Path1);
+                        result.prepare_for_next_operation(0);
 
                         // Generate the path to intersect
                         let mut to_intersect = GraphPath::combine(to_intersect, accuracy);
-                        to_intersect.prepare_for_next_operation(PathSource::Path2);
+                        to_intersect.prepare_for_next_operation(1);
 
                         // Intersect the next path to build up the result
                         result = result.collide(to_intersect, accuracy);
@@ -152,7 +152,7 @@ where   Point: Coordinate+Coordinate2D {
     ///
     /// Prepares an existing graph path for the next operation on it, by setting all labels to Path1 and removing any interior points
     ///
-    fn prepare_for_next_operation(&mut self, source: PathSource) {
+    fn prepare_for_next_operation(&mut self, source: u32) {
         // Remove any interior edges from this path
         self.heal_exterior_gaps();
         self.remove_interior_edges();
