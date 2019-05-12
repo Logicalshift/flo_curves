@@ -10,6 +10,8 @@
 //! any type for which the `Coordinate2D` trait is defined.
 //!
 
+use smallvec::*;
+
 use std::ops::*;
 
 ///
@@ -92,6 +94,9 @@ pub trait Coordinate : Sized+Copy+Add<Self, Output=Self>+Mul<f64, Output=Self>+S
         }
     }
 
+    ///
+    /// Returns true if this coordinate has a NaN component
+    ///
     #[inline]
     fn is_nan(&self) -> bool {
         for component in 0..Self::len() {
@@ -101,6 +106,23 @@ pub trait Coordinate : Sized+Copy+Add<Self, Output=Self>+Mul<f64, Output=Self>+S
         }
 
         return false;
+    }
+
+    ///
+    /// Round this coordinate so that it is accurate to a certain precision
+    ///
+    #[inline]
+    fn round(self, accuracy: f64) -> Self {
+        let mut new_components: SmallVec<[_; 4]> = smallvec![];
+
+        for component in 0..Self::len() {
+            let unrounded_value = self.get(component);
+            let rounded_value   = (unrounded_value/accuracy).round() * accuracy;
+
+            new_components.push(rounded_value);
+        }
+
+        Self::from_components(&new_components)
     }
 
     ///
