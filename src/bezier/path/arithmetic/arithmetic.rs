@@ -4,7 +4,6 @@ use super::super::is_clockwise::*;
 use super::super::super::curve::*;
 use super::super::super::normal::*;
 use super::super::super::super::geo::*;
-use super::super::super::super::debug::*;
 
 use smallvec::*;
 
@@ -46,8 +45,6 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     /// if it represents a point outside of the shape.
     ///
     pub fn set_edge_kinds_by_ray_casting<FnIsInside: Fn(&SmallVec<[i32; 8]>) -> bool>(&mut self, is_inside: FnIsInside) {
-        let ray_direction = Point::from_components(&[0.0, 1.0]);
-
         for point_idx in 0..self.num_points() {
             for next_edge in self.edge_refs_for_point(point_idx) {
                 // Only process edges that have not yet been categorised
@@ -68,14 +65,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 let mut path_crossings: SmallVec<[i32; 8]> = smallvec![0, 0];
 
                 // Cast a ray at the target edge
-                let ray             = (next_point - ray_direction, next_point);
+                let ray             = (next_point - next_normal, next_point);
                 let ray_direction   = ray.1 - ray.0;
                 let collisions      = self.ray_collisions(&ray);
 
                 // There should always be an even number of collisions on a particular ray cast through a closed shape
-                if (collisions.len()&1) != 0 {
-                    println!("{}", graph_path_svg_string(self, vec![ray]));
-                }
                 debug_assert!((collisions.len()&1) == 0);
 
                 for (collision, curve_t, _line_t, _pos) in collisions {
