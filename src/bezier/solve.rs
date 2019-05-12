@@ -1,6 +1,6 @@
 use super::curve::*;
+use super::super::geo::*;
 use super::super::consts::*;
-use super::super::coordinate::*;
 
 use roots::{find_roots_cubic, Roots};
 

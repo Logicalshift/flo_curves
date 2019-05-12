@@ -1,5 +1,5 @@
 use super::path::*;
-use super::super::super::coordinate::*;
+use super::super::super::geo::*;
 
 use itertools::*;
 

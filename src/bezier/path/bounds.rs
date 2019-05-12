@@ -2,7 +2,6 @@ use super::path::*;
 use super::to_curves::*;
 use super::super::curve::*;
 use super::super::super::geo::*;
-use super::super::super::coordinate::*;
 
 use itertools::*;
 

@@ -5,7 +5,6 @@ use super::graph_path::*;
 use super::super::curve::*;
 use super::super::normal::*;
 use super::super::super::geo::*;
-use super::super::super::coordinate::*;
 
 use smallvec::*;
 

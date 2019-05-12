@@ -1,7 +1,7 @@
 use super::arithmetic::*;
 use super::super::path::*;
 use super::super::graph_path::*;
-use super::super::super::super::coordinate::*;
+use super::super::super::super::geo::*;
 
 //
 // This uses a simple ray casting algorithm to perform the addition

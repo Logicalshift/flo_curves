@@ -1,6 +1,5 @@
 use super::basis::*;
 use super::super::geo::*;
-use super::super::coordinate::*;
 
 ///
 /// Finds the t values of the extremities of a curve (these are the points at which

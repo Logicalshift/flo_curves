@@ -1,6 +1,5 @@
 use super::coefficients::*;
 use super::super::geo::*;
-use super::super::coordinate::*;
 
 ///
 /// Represents a straight line

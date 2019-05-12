@@ -1,7 +1,7 @@
 use super::super::curve::*;
 use super::super::basis::*;
+use super::super::super::geo::*;
 use super::super::super::line::*;
-use super::super::super::coordinate::*;
 
 use smallvec::*;
 use roots::{find_roots_cubic, Roots};

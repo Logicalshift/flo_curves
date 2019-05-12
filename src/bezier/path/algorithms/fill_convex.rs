@@ -1,7 +1,7 @@
 use super::fill_options::*;
 use super::super::*;
 use super::super::super::*;
-use super::super::super::super::coordinate::*;
+use super::super::super::super::geo::*;
 
 use std::f64;
 

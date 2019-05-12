@@ -1,6 +1,6 @@
 use super::curve::*;
 use super::basis::*;
-use super::super::coordinate::*;
+use super::super::geo::*;
 
 /// Maximum number of iterations to perform when trying to improve the curve fit
 const MAX_ITERATIONS: usize = 4;

@@ -23,9 +23,6 @@ pub mod line;
 pub mod arc;
 pub mod debug;
 
-pub mod coordinate;
-pub use self::coordinate::*;
-
 pub mod geo;
 pub use self::geo::*;
 

@@ -1,4 +1,4 @@
-use super::super::coordinate::*;
+use super::super::geo::*;
 
 ///
 /// Computes the bezier coefficients (A, B, C, D) for a bezier curve

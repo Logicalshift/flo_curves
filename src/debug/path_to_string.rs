@@ -1,4 +1,4 @@
-use super::super::coordinate::*;
+use super::super::geo::*;
 use super::super::bezier::path::*;
 
 use std::fmt::*;

@@ -1,5 +1,5 @@
 use super::line::*;
-use super::super::coordinate::*;
+use super::super::geo::*;
 
 ///
 /// Returns the point at which two lines intersect (if they intersect)

@@ -1,4 +1,4 @@
-use flo_curves::coordinate::*;
+use flo_curves::geo::*;
 use flo_curves::bezier::path::*;
 
 use std::fmt::Write;

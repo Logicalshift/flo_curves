@@ -1,7 +1,7 @@
 use super::super::curve::*;
+use super::super::super::geo::*;
 use super::super::super::line::*;
 use super::super::super::consts::*;
-use super::super::super::coordinate::*;
 
 use std::f64;
 

@@ -1,5 +1,5 @@
 use super::geo::*;
-use super::super::coordinate::*;
+use super::coordinate::*;
 
 ///
 /// Trait implemented by things representing axis-aligned bounding boxes

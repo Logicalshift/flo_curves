@@ -1,8 +1,8 @@
 use super::curve::*;
 use super::section::*;
+use super::super::geo::*;
 use super::super::line::*;
 use super::super::consts::*;
-use super::super::coordinate::*;
 
 ///
 /// If `curve2` overlaps `curve1`, returns two sets of `t` values (those for `curve1` and those for `curve2`)

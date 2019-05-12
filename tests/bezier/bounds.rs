@@ -1,7 +1,7 @@
 use flo_curves::bezier::{BezierCurve, BezierCurveFactory};
 use flo_curves::bezier;
-use flo_curves::Coord2;
-use flo_curves::Coordinate;
+use flo_curves::geo::Coord2;
+use flo_curves::geo::Coordinate;
 
 #[test]
 fn get_straight_line_bounds() {

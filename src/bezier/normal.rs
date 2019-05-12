@@ -1,7 +1,7 @@
 use super::curve::*;
 use super::basis::*;
 use super::derivative::*;
-use super::super::coordinate::*;
+use super::super::geo::*;
 
 // TODO: normalize should be a trait associated with coordinate rather than bezier curves (move outwards)
 

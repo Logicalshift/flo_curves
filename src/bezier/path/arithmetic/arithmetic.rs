@@ -3,7 +3,7 @@ use super::super::graph_path::*;
 use super::super::is_clockwise::*;
 use super::super::super::curve::*;
 use super::super::super::normal::*;
-use super::super::super::super::coordinate::*;
+use super::super::super::super::geo::*;
 
 use smallvec::*;
 

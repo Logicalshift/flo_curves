@@ -1,7 +1,7 @@
 use super::arithmetic::*;
 use super::super::path::*;
 use super::super::graph_path::*;
-use super::super::super::super::coordinate::*;
+use super::super::super::super::geo::*;
 
 ///
 /// Adds multiple paths in a single operation

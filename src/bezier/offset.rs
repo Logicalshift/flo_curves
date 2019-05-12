@@ -2,8 +2,8 @@ use super::curve::*;
 use super::normal::*;
 use super::deform::*;
 use super::section::*;
+use super::super::geo::*;
 use super::super::line::*;
-use super::super::coordinate::*;
 
 use std::cmp::Ordering;
 

@@ -1,9 +1,9 @@
 use super::graph_path::*;
 use super::super::curve::*;
 use super::super::intersection::*;
+use super::super::super::geo::*;
 use super::super::super::line::*;
 use super::super::super::consts::*;
-use super::super::super::coordinate::*;
 
 use smallvec::*;
 use std::cmp::Ordering;

@@ -1,6 +1,5 @@
 use super::super::bezier::*;
 use super::super::bezier::path::*;
-use super::super::coordinate::*;
 
 use std::fmt::Write;
 

@@ -6,7 +6,6 @@ use super::bounds::*;
 use super::subdivide::*;
 
 use super::super::geo::*;
-use super::super::coordinate::*;
 
 const LENGTH_SUBDIVISIONS: usize = 16;
 

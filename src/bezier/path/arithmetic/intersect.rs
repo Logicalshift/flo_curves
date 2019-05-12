@@ -1,7 +1,7 @@
 use super::arithmetic::*;
 use super::super::path::*;
 use super::super::graph_path::*;
-use super::super::super::super::coordinate::*;
+use super::super::super::super::geo::*;
 
 impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///

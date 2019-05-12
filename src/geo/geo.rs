@@ -1,4 +1,4 @@
-use super::super::coordinate::*;
+use super::coordinate::*;
 
 ///
 /// Simple base trait implemented by things representing geometry

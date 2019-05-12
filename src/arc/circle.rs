@@ -1,4 +1,3 @@
-use super::super::coordinate::*;
 use super::super::bezier::*;
 use super::super::bezier::path::*;
 
