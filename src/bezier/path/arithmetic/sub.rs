@@ -38,6 +38,7 @@ where   Point: Coordinate+Coordinate2D {
 
     // Collide with the target side to generate a full path
     merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path.round(accuracy);
 
     // Set the exterior edges using the 'subtract' algorithm
     merged_path.set_exterior_by_subtracting();

@@ -16,6 +16,8 @@ where   Point: Coordinate+Coordinate2D {
         merged_path     = merged_path.collide(GraphPath::from_merged_paths(path.into_iter().map(|path| (path, PathLabel(path_idx, PathDirection::from(path))))), accuracy);
     }
 
+    merged_path.round(accuracy);
+
     // Set the exterior edges using the 'add' algorithm (all edges are considered 'external' here)
     merged_path.set_edge_kinds_by_ray_casting(|path_crossings| {
         for count in path_crossings.iter() {
