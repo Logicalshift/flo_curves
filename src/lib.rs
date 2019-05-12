@@ -1,6 +1,6 @@
 //!
 //! ```toml
-//! flo_curves = "0.2"
+//! flo_curves = "0.3"
 //! ```
 //! 
 //! flo_curves
