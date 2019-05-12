@@ -1,5 +1,6 @@
 use super::graph_path::*;
 use super::super::curve::*;
+use super::super::normal::*;
 use super::super::intersection::*;
 use super::super::super::geo::*;
 use super::super::super::line::*;
@@ -377,13 +378,16 @@ fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPat
 /// Removes collisions that do not appear to enter the shape
 ///
 #[inline]
-fn remove_glancing_collisions<'a, P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
-    let (a, b, c) = ray.coefficients();
+fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
+    let (a, b, c)   = ray.coefficients();
+    let ray_vector  = (ray.point_at_pos(1.0) - ray.point_at_pos(0.0)).to_unit_vector();
 
     collisions
         .into_iter()
         .filter(move |(collision, curve_t, _line_t, _position)| {
             if *curve_t <= 0.000 {
+                // Hit a point: might be a corner that moves away from the ray
+
                 // Find the edge before this one
                 let edge            = path.get_edge(*collision);
                 let previous_edge   = path.reverse_edges_for_point(collision.start_idx)
@@ -406,7 +410,22 @@ fn remove_glancing_collisions<'a, P: Coordinate+Coordinate2D, Path: RayPath<Poin
 
                 side_in != side_out
             } else {
-                true
+                // Check if we've hit a tangent
+                let edge            = path.get_edge(*collision);
+
+                // Get the curve tangent at this position
+                let tangent         = edge.tangent_at_pos(*curve_t).to_unit_vector();
+
+                // Test if it's going the same way as the ray
+                let dot_product     = ray_vector.dot(&tangent);
+                let dot_product_mag = dot_product.abs() - 1.0;
+
+                // Dot product of two unit vectors will be 1.0 or -1.0 for a glancing collision
+                if dot_product_mag > -0.00000001 && dot_product_mag < 0.00000001 {
+                    false
+                } else {
+                    true
+                }
             }
         })
 }
