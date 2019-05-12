@@ -1066,6 +1066,20 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Rounds all of the points in this path to a particular accuracy level
+    ///
+    pub fn round(&mut self, accuracy: f64) {
+        for point_idx in 0..(self.num_points()) {
+            self.points[point_idx].position.round(accuracy);
+
+            for edge_idx in 0..(self.points[point_idx].forward_edges.len()) {
+                self.points[point_idx].forward_edges[edge_idx].cp1.round(accuracy);
+                self.points[point_idx].forward_edges[edge_idx].cp2.round(accuracy);
+            }
+        }
+    }
+
+    ///
     /// Finds any collisions between existing points in the graph path
     ///
     pub fn self_collide(&mut self, accuracy: f64) {
