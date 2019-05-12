@@ -50,7 +50,7 @@ fn add_two_overlapping_circles_via_combination_chain() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_combine::<_, _, SimpleBezierPath>(PathCombine::Add(vec![PathCombine::Path(vec![circle1]), PathCombine::Path(vec![circle2])]), 0.01);
+    let combined_circles = path_combine::<_, SimpleBezierPath>(PathCombine::Add(vec![PathCombine::Path(vec![circle1]), PathCombine::Path(vec![circle2])]), 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -89,7 +89,7 @@ fn add_series_of_circles_via_combination_chain() {
         .map(|idx| Circle::new(Coord2(5.0 + (idx as f64)*2.0, 4.0), 4.0).to_path::<SimpleBezierPath>())
         .map(|circle| PathCombine::Path(vec![circle]));
     let combine             = PathCombine::Add(circles.collect());
-    let combined_circles    = path_combine::<_, _, SimpleBezierPath>(combine, 0.01);
+    let combined_circles    = path_combine::<_, SimpleBezierPath>(combine, 0.01);
 
     assert!(combined_circles.len() == 1);
 }
