@@ -59,6 +59,14 @@ fn crossing_figure_of_8_intersection_from_inside() {
         .map(|point_idx| graph_path.edges_for_point(point_idx).count())
         .filter(|num_edges_for_point| num_edges_for_point == &1)
         .count() == 4);
+
+    // Also test the ray travelling the other way
+    let collisions = graph_path.ray_collisions(&(Coord2(-2.0, 2.0), Coord2(-1.0, 2.0)));
+
+    assert!(collisions.len() != 3);
+    assert!((collisions.len()&1) == 0);
+
+    assert!(collisions.len() == 4 || collisions.len() == 2);
 }
 
 #[test]
