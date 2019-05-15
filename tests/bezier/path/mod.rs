@@ -10,3 +10,4 @@ mod arithmetic_add;
 mod arithmetic_chain_add;
 mod arithmetic_sub;
 mod arithmetic_complicated_paths;
+mod rays;
