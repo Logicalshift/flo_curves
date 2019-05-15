@@ -85,3 +85,30 @@ fn crossing_figure_of_8_intersection_from_outside() {
 
     assert!(collisions.len() == 0 || collisions.len() == 2);
 }
+
+#[test]
+fn ray_entering_triangle_through_apex() {
+    // 
+    // +
+    // | \
+    // |   +  <--- RAY
+    // | /
+    // +
+    // 
+    // As the 'same' point here should always generate 1 intersection as the ray enters the shape at this point (or leaves
+    // in the reverse direction)
+    //
+
+    let left_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    let graph_path = GraphPath::from_path(&left_triangle, ());
+
+    let collisions = graph_path.ray_collisions(&(Coord2(8.0, 2.0), Coord2(7.0, 2.0)));
+
+    assert!((collisions.len()&1) == 0);
+    assert!(collisions.len() == 2);
+}
