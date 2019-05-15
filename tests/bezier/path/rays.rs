@@ -49,4 +49,15 @@ fn crossing_figure_of_8_intersection() {
     assert!((collisions.len()&1) == 0);
 
     assert!(collisions.len() == 4 || collisions.len() == 2);
+
+    // The intersection point should be an actual intersection
+    assert!((0..(graph_path.num_points())).into_iter()
+        .map(|point_idx| graph_path.edges_for_point(point_idx).count())
+        .filter(|num_edges_for_point| num_edges_for_point == &2)
+        .count() == 1);
+    assert!((0..(graph_path.num_points())).into_iter()
+        .map(|point_idx| graph_path.edges_for_point(point_idx).count())
+        .filter(|num_edges_for_point| num_edges_for_point == &1)
+        .count() == 4);
 }
+
