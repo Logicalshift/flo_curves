@@ -95,9 +95,24 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             collision_count += side;
 
             let pos = (pos - offset)*scale;
-            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
 
-            write!(result, "<text style=\"font-size: 6pt\", dx=\"{}\" dy=\"{}\">C{} ({})</text>", pos.x() + 2.0, pos.y()+3.0, collision_count, side).unwrap();
+            let edge        = path.get_edge(edge);
+            let start_point = edge.start_point();
+            let end_point   = edge.end_point();
+            let (cp1, cp2)  = edge.control_points();
+            let start_point = (start_point - offset)*scale;
+            let end_point   = (end_point - offset)*scale;
+            let cp1         = (cp1 - offset)*scale;
+            let cp2         = (cp2 - offset)*scale;
+            write!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />\n",
+                start_point.x(), start_point.y(),
+                cp1.x(), cp1.y(),
+                cp2.x(), cp2.y(),
+                end_point.x(), end_point.y(),
+                "cyan").unwrap();
+
+            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
+            write!(result, "<text style=\"font-size: 6pt\" dx=\"{}\" dy=\"{}\">C{} ({})</text>", pos.x() + 2.0, pos.y()+3.0, collision_count, side).unwrap();
         }
     }
 
