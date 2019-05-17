@@ -95,7 +95,39 @@ fn crossing_figure_of_8_intersection_from_outside() {
 }
 
 #[test]
-fn ray_entering_triangle_through_apex() {
+fn crossing_intersection_with_collinear_edge() {
+    //
+    // +       +
+    // | \   /   \
+    // |   + ----- + <--- RAY
+    // | /  
+    // +    
+    //
+
+    let left_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let right_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(3.0, 2.0))
+        .line_to(Coord2(7.0, 2.0))
+        .line_to(Coord2(5.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .build();
+
+    let graph_path = GraphPath::from_path(&left_triangle, ());
+    let graph_path = graph_path.collide(GraphPath::from_path(&right_triangle, ()), 0.01);
+
+    let collisions = graph_path.ray_collisions(&(Coord2(8.0, 2.0), Coord2(7.0, 2.0)));
+
+    assert!(collisions.len() != 3);
+    assert!((collisions.len()&1) == 0);
+
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_entering_triangle_through_apex_1() {
     // 
     // +
     // | \
@@ -119,4 +151,47 @@ fn ray_entering_triangle_through_apex() {
 
     assert!((collisions.len()&1) == 0);
     assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_entering_triangle_through_apex_2() {
+    // 
+    // +
+    // | \
+    // |   +  ---> RAY
+    // | /
+    // +
+    // 
+    // As the 'same' point here should always generate 1 intersection as the ray enters the shape at this point (or leaves
+    // in the reverse direction)
+    //
+
+    let left_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    let graph_path = GraphPath::from_path(&left_triangle, ());
+
+    let collisions = graph_path.ray_collisions(&(Coord2(0.0, 2.0), Coord2(1.0, 2.0)));
+
+    assert!((collisions.len()&1) == 0);
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_hitting_tangent_at_point() {
+    let tangent_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 3.0))
+        .curve_to((Coord2(3.0, 3.0), Coord2(3.0, 3.0)), Coord2(3.0, 2.0))
+        .curve_to((Coord2(3.0, 1.0), Coord2(3.0, 1.0)), Coord2(1.0, 1.0))
+        .build();
+
+    let graph_path = GraphPath::from_path(&tangent_triangle, ());
+
+    let collisions = graph_path.ray_collisions(&(Coord2(3.0, 0.0), Coord2(3.0, 1.0)));
+
+    assert!((collisions.len()&1) == 0);
+    assert!(collisions.len() == 0);
 }
