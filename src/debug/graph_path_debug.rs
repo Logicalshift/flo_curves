@@ -6,7 +6,7 @@ use std::fmt::Write;
 ///
 /// Writes out the graph path as an SVG string
 ///
-pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &GraphPath<P, Label>, rays: Vec<(P, P)>) -> String {
+pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, PathLabel>, rays: Vec<(P, P)>) -> String {
     let mut result = String::new();
 
     let bounds      = path.all_edges().fold(Bounds::empty(), |a, b| a.union_bounds(b.bounding_box()));;
@@ -51,7 +51,10 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
                 end_point.x(), end_point.y(),
                 kind).unwrap();
             write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />\n", end_point.x(), end_point.y()).unwrap();
+
+            /*
             write!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>\n", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index).unwrap();
+            */
 
             index += 1;
         }
@@ -60,6 +63,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
     for (p1, p2) in rays {
         write!(result, "<!-- Ray (Coord2({}, {}), Coord2({}, {})) -->\n", p1.x(), p1.y(), p2.x(), p2.y()).unwrap();
         let collisions = path.ray_collisions(&(p1, p2));
+        write!(result, "<!-- {} collisions -->", collisions.len()).unwrap();
 
         let p1 = (p1 - offset) * scale;
         let p2 = (p2 - offset) * scale;
@@ -72,9 +76,28 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D, Label: Copy>(path: &Gra
             p1.x(), p1.y(),
             p2.x(), p2.y()).unwrap();
 
-        for (_collision, _curve_t, _line_t, pos) in collisions {
+        let ray_direction       = p2-p1;
+        let mut collision_count = 0;
+
+        for (collision, curve_t, _line_t, pos) in collisions {
+            // Determine which direction the ray is crossing
+            let edge                                = collision.edge();
+            let PathLabel(_path_number, direction)  = path.edge_label(edge);
+            let normal                              = path.get_edge(edge).normal_at_pos(curve_t);
+
+            let side                                = ray_direction.dot(&normal).signum() as i32;
+            let side                                = match direction {
+                PathDirection::Clockwise        => { side },
+                PathDirection::Anticlockwise    => { -side }
+            };
+
+            // Update the collision count
+            collision_count += side;
+
             let pos = (pos - offset)*scale;
             write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
+
+            write!(result, "<text style=\"font-size: 6pt\", dx=\"{}\" dy=\"{}\">C{} ({})</text>", pos.x() + 2.0, pos.y()+3.0, collision_count, side).unwrap();
         }
     }
 
