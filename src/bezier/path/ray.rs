@@ -309,7 +309,16 @@ fn remove_collisions_before_or_after_collinear_section<'a, P: Coordinate+Coordin
 fn move_collisions_at_end_to_beginning<'a, P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
     collisions.into_iter()
         .map(move |(collision, curve_t, line_t, position)| {
-            if curve_t > 0.99999 {
+            let distance_sq = if curve_t >= 0.9 {
+                let edge        = path.get_edge(collision);
+                let start_point = edge.end_point();
+                let pos_vec     = position - start_point;
+                pos_vec.dot(&pos_vec)
+            } else {
+                1.0
+            };
+
+            if curve_t > 0.99999 || distance_sq < 0.0001*0.0001 {
                 // Collisions at the very end of the curve should be considered to be at the start of the following curve
                 // (as a ray intersecting a point will collide with both the previous and next curve)
                 let next_point_idx  = path.edge_end_point_idx(collision);
