@@ -48,7 +48,7 @@ fn crossing_figure_of_8_intersection_from_inside() {
     assert!(collisions.len() != 3);
     assert!((collisions.len()&1) == 0);
 
-    assert!(collisions.len() == 4 || collisions.len() == 2);
+    assert!(collisions.len() == 4);
 
     // The intersection point should be an actual intersection
     assert!((0..(graph_path.num_points())).into_iter()
@@ -98,7 +98,7 @@ fn crossing_figure_of_8_intersection_from_inside_reversed() {
     assert!(collisions.len() != 3);
     assert!((collisions.len()&1) == 0);
 
-    assert!(collisions.len() == 4 || collisions.len() == 2);
+    assert!(collisions.len() == 4);
 
     // The intersection point should be an actual intersection
     assert!((0..(graph_path.num_points())).into_iter()
@@ -151,16 +151,6 @@ fn crossing_figure_of_8_intersection_from_inside_nearby() {
 
         assert!(collisions.len() == 4 || collisions.len() == 2);
 
-        // The intersection point should be an actual intersection
-        assert!((0..(graph_path.num_points())).into_iter()
-            .map(|point_idx| graph_path.edges_for_point(point_idx).count())
-            .filter(|num_edges_for_point| num_edges_for_point == &2)
-            .count() == 1);
-        assert!((0..(graph_path.num_points())).into_iter()
-            .map(|point_idx| graph_path.edges_for_point(point_idx).count())
-            .filter(|num_edges_for_point| num_edges_for_point == &1)
-            .count() == 4);
-
         // Also test the ray travelling the other way
         let collisions = graph_path.ray_collisions(&(Coord2(-2.0, *y), Coord2(-1.0, *y)));
 
@@ -169,6 +159,42 @@ fn crossing_figure_of_8_intersection_from_inside_nearby() {
 
         assert!(collisions.len() == 4);
     }
+}
+
+#[test]
+fn crossing_figure_of_8_intersection_collinear() {
+    //
+    //                 Ray
+    //               /
+    //             /
+    //           L
+    // +       +
+    // | \   / |
+    // |   +   |
+    // | /   \ |
+    // +       +
+    // 
+
+    let left_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let right_triangle = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 3.0))
+        .line_to(Coord2(3.0, 2.0))
+        .line_to(Coord2(5.0, 1.0))
+        .build();
+
+    let graph_path = GraphPath::from_path(&left_triangle, ());
+    let graph_path = graph_path.collide(GraphPath::from_path(&right_triangle, ()), 0.01);
+
+    let collisions = graph_path.ray_collisions(&(Coord2(1.0, 1.0), Coord2(3.0, 2.0)));
+
+    assert!(collisions.len() != 3);
+    assert!((collisions.len()&1) == 0);
+
+    assert!(collisions.len() == 0);
 }
 
 #[test]
