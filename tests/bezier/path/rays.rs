@@ -363,9 +363,12 @@ fn ray_hitting_intersection_bad() {
     let edge2   = Curve::from_points(Coord2(613.4901123046875, 904.6159057617188), (Coord2(613.6087646484375, 904.5118408203125), Coord2(613.736328125, 904.388427734375)), Coord2(613.873291015625, 904.2447509765625));
     let edge3   = Curve::from_points(Coord2(613.1998901367188, 904.267822265625), (Coord2(613.2864379882813, 904.4163818359375), Coord2(613.3829956054688, 904.5339965820313)), Coord2(613.4901123046875, 904.6159057617188));
 
-    println!("Ray1: {:?}", curve_intersects_ray(&edge1, &ray));
-    println!("Ray2: {:?}", curve_intersects_ray(&edge2, &ray));
-    println!("Ray3: {:?}", curve_intersects_ray(&edge3, &ray));
+    let ray1 = curve_intersects_ray(&edge1, &ray);
+    let ray2 = curve_intersects_ray(&edge2, &ray);
+    let ray3 = curve_intersects_ray(&edge3, &ray);
 
     // Ray1 produces a collision at the end that I think doesn't get merged by the appropriate step
+    assert!(ray1.len() == 1);
+    assert!(ray2.len() == 1);
+    assert!(ray3.len() == 1);
 }
