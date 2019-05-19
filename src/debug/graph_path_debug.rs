@@ -78,11 +78,12 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
 
         let ray_direction       = p2-p1;
         let mut collision_count = 0;
+        let mut collision_num   = 0;
 
         for (collision, curve_t, _line_t, pos) in collisions {
             // Determine which direction the ray is crossing
             let edge                                = collision.edge();
-            let PathLabel(_path_number, direction)  = path.edge_label(edge);
+            let PathLabel(path_number, direction)   = path.edge_label(edge);
             let normal                              = path.get_edge(edge).normal_at_pos(curve_t);
 
             let side                                = ray_direction.dot(&normal).signum() as i32;
@@ -93,6 +94,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
 
             // Update the collision count
             collision_count += side;
+            collision_num   += 1;
 
             let pos = (pos - offset)*scale;
 
@@ -104,6 +106,13 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let end_point   = (end_point - offset)*scale;
             let cp1         = (cp1 - offset)*scale;
             let cp2         = (cp2 - offset)*scale;
+
+            write!(result, "<!-- Collision {} ({}): Curve::from_points(Coord2({}, {}), Coord2({}, {}), Coord2({}, {}), Coord2({}, {})) -->\n", 
+                collision_num, path_number,
+                start_point.x(), start_point.y(),
+                end_point.x(), end_point.y(),
+                cp1.x(), cp1.y(),
+                cp2.x(), cp2.y()).unwrap();
             write!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />\n",
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),
@@ -112,7 +121,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
                 "cyan").unwrap();
 
             write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
-            write!(result, "<text style=\"font-size: 6pt\" dx=\"{}\" dy=\"{}\">C{} ({})</text>", pos.x() + 2.0, pos.y()+3.0, collision_count, side).unwrap();
+            write!(result, "<text style=\"font-size: 6pt\" dx=\"{}\" dy=\"{}\">{}: C{} ({})</text>\n", pos.x() + 2.0, pos.y()+3.0, collision_num, collision_count, side).unwrap();
         }
     }
 
