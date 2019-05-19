@@ -57,7 +57,7 @@ where C::Point: Coordinate2D {
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let start_point = &w1;
                 
-                if (start_point.x()*a + start_point.y()*b + c).abs() < 0.00001 {
+                if (start_point.x()*a + start_point.y()*b + c).abs() < 0.00000001 {
                     0.0 
                 } else {
                     t
@@ -67,7 +67,7 @@ where C::Point: Coordinate2D {
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let end_point   = &w4;
 
-                if (end_point.x()*a + end_point.y()*b + c).abs() < 0.00001 {
+                if (end_point.x()*a + end_point.y()*b + c).abs() < 0.00000001 {
                     1.0
                 } else {
                     t
