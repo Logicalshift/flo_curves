@@ -25,12 +25,12 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let end_point   = edge.end_point();
             let (cp1, cp2)  = edge.control_points();
 
-            write!(result, "<!-- {}: Curve::from_points(Coord2({}, {}), Coord2({}, {}), Coord2({}, {}), Coord2({}, {})) -->\n", 
+            write!(result, "<!-- {}: Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->\n", 
                 index, 
                 start_point.x(), start_point.y(),
-                end_point.x(), end_point.y(),
                 cp1.x(), cp1.y(),
-                cp2.x(), cp2.y()).unwrap();
+                cp2.x(), cp2.y(),
+                end_point.x(), end_point.y()).unwrap();
 
             let start_point = (start_point - offset)*scale;
             let end_point   = (end_point - offset)*scale;
@@ -102,17 +102,19 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let start_point = edge.start_point();
             let end_point   = edge.end_point();
             let (cp1, cp2)  = edge.control_points();
+
+            write!(result, "<!-- Collision {} ({}): Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->\n", 
+                collision_num, path_number,
+                start_point.x(), start_point.y(),
+                cp1.x(), cp1.y(),
+                cp2.x(), cp2.y(),
+                end_point.x(), end_point.y()).unwrap();
+
             let start_point = (start_point - offset)*scale;
             let end_point   = (end_point - offset)*scale;
             let cp1         = (cp1 - offset)*scale;
             let cp2         = (cp2 - offset)*scale;
 
-            write!(result, "<!-- Collision {} ({}): Curve::from_points(Coord2({}, {}), Coord2({}, {}), Coord2({}, {}), Coord2({}, {})) -->\n", 
-                collision_num, path_number,
-                start_point.x(), start_point.y(),
-                end_point.x(), end_point.y(),
-                cp1.x(), cp1.y(),
-                cp2.x(), cp2.y()).unwrap();
             write!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />\n",
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),

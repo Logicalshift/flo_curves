@@ -1,4 +1,5 @@
 use flo_curves::*;
+use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 
 #[test]
@@ -351,4 +352,20 @@ fn ray_hitting_tangent_at_point() {
 
     assert!((collisions.len()&1) == 0);
     assert!(collisions.len() == 0);
+}
+
+#[test]
+fn ray_hitting_intersection_bad() {
+    // These three edges form an intersection that has a known bad intersection with the specified ray
+    // edge2 here generates 2 collisions at the intersection for some reason, which seems to be what's causing a bug
+    let ray     = (Coord2(614.1064453125, 904.1033935546875), Coord2(614.3379516601563, 903.910888671875));
+    let edge1   = Curve::from_points(Coord2(612.35302734375, 902.1972045898438), (Coord2(611.9544677734375, 904.4937744140625), Coord2(612.1427001953125, 905.798828125)), Coord2(613.4901123046875, 904.6159057617188));
+    let edge2   = Curve::from_points(Coord2(613.4901123046875, 904.6159057617188), (Coord2(613.6087646484375, 904.5118408203125), Coord2(613.736328125, 904.388427734375)), Coord2(613.873291015625, 904.2447509765625));
+    let edge3   = Curve::from_points(Coord2(613.1998901367188, 904.267822265625), (Coord2(613.2864379882813, 904.4163818359375), Coord2(613.3829956054688, 904.5339965820313)), Coord2(613.4901123046875, 904.6159057617188));
+
+    println!("Ray1: {:?}", curve_intersects_ray(&edge1, &ray));
+    println!("Ray2: {:?}", curve_intersects_ray(&edge2, &ray));
+    println!("Ray3: {:?}", curve_intersects_ray(&edge3, &ray));
+
+    // Ray1 produces a collision at the end that I think doesn't get merged by the appropriate step
 }
