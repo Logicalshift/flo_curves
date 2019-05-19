@@ -442,10 +442,14 @@ fn remove_duplicate_collisions_at_start<'a, P: Coordinate+Coordinate2D, Path: Ra
     collisions
         .into_iter()
         .filter(move |(collision, curve_t, _line_t, position)| {
-            let edge        = path.get_edge(*collision);
-            let start_point = edge.start_point();
-            let pos_vec     = *position - start_point;
-            let distance_sq = pos_vec.dot(&pos_vec);
+            let distance_sq = if *curve_t <= 0.1 {
+                let edge        = path.get_edge(*collision);
+                let start_point = edge.start_point();
+                let pos_vec     = *position - start_point;
+                pos_vec.dot(&pos_vec)
+            } else {
+                1.0
+            };
 
             if *curve_t <= 0.000 || distance_sq < 0.0001*0.0001 {
                 let visited_start = visited_start.get_or_insert_with(|| vec![None; path.num_points()]);
