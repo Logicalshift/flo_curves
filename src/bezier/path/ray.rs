@@ -393,10 +393,10 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
 
     collisions
         .into_iter()
-        .filter(move |(collision, curve_t, _line_t, position)| {
+        .filter(move |(collision, curve_t, _line_t, _position)| {
             let edge            = path.get_edge(*collision);
 
-            if *curve_t <= 0.000 || (*curve_t < 0.01 && position.is_near_to(&edge.start_point(), SMALL_DISTANCE)) {
+            if *curve_t <= 0.000 {
                 // Hit a point: might be a corner that moves away from the ray
 
                 // Find the edge before this one
