@@ -528,3 +528,21 @@ fn ray_crossing_and_glancing() {
 
     assert!(collisions.len()&1 == 0);
 }
+
+#[test]
+fn ray_glancing_1() {
+    let ray         = (Coord2(798.2357788085938, 783.7974853515625), Coord2(798.6553344726563, 782.6351928710938));
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 677.4369506835938))
+        .line_to(Coord2(839.3995361328125, 677.4369506835938))
+        .curve_to((Coord2(839.6207275390625, 674.3713989257813), Coord2(838.3349609375, 674.1100463867188)), Coord2(837.8158569335938, 674.1475830078125))
+        .curve_to((Coord2(838.1270141601563, 674.0364990234375), Coord2(838.5419311523438, 673.8883056640625)), Coord2(838.8530883789063, 673.7772216796875))
+        .line_to(Coord2(838.8530883789063, 1.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    let graph_path  = GraphPath::from_path(&path, ());
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len()&1 == 0);
+}
