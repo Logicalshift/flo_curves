@@ -432,7 +432,15 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
                 let side_in         = if side_in.abs() < 0.001 { 0.0 } else { side_in.signum() };
                 let side_out        = if side_out.abs() < 0.001 { 0.0 } else { side_out.signum() };
 
-                side_in != side_out
+                if side_in != side_out {
+                    // The ray enters the shape, ie: this is not a glancing collision
+                    return true;
+                }
+
+                // The ray appears to have hit a corner without entering the shape. 
+                // It's possible there is a nearby collision on the preceding edge, indicating the collision is not actually a glancing one 
+                // at all and has been rounded to the start of an edge by mistake
+                false
             } else {
                 // Check if we've hit a tangent
                 let edge            = path.get_edge(*collision);
