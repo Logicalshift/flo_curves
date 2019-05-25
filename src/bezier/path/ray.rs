@@ -304,6 +304,13 @@ fn remove_collisions_before_or_after_collinear_section<'a, P: Coordinate+Coordin
 
 ///
 /// Given a list of collisions, finds the collisions that occurred at the end of an edge and move them to the beginning of the next edge
+/// 
+/// We test closeness against a threshold here: collisions are solved using numerical methods that mean collisions 
+/// very close to the start or end of an edge could appear in a different position on the preceding edge, so we assume
+/// that all collisions that are near to the end or start actually just hit the start of the following edge.
+/// 
+/// The case where such a collision does not enter the shape is dealt with by `remove_glancing_collisions`, and 
+/// `remove_duplicate_collisions_at_start` eliminates double collisions where the ray does enter the shape.
 ///
 #[inline]
 fn move_collisions_at_end_to_beginning<'a, P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
@@ -344,6 +351,9 @@ fn move_collisions_at_end_to_beginning<'a, P: Coordinate+Coordinate2D, Path: Ray
 
 ///
 /// Given a list of collisions, finds any that are on a collinear line and moves them to the end of the collinear section
+/// 
+/// Collinear edges have the property that a ray collides with them on all points. We treat these as a collision at the start
+/// of the following section, as this is the point where the line could enter or leave a shape.
 ///
 #[inline]
 fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
@@ -376,6 +386,19 @@ fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPat
 
 ///
 /// Removes collisions that do not appear to enter the shape
+/// 
+/// A glancing collision is one that generates exactly one collision at a corner without actually crossing 
+/// into the shape (or which happens to hit a curve exactly on a tangent).
+/// 
+/// Corner collisions are found by looking for collisions at the start of an edge (we assume that the 
+/// filtering in `move_collisions_at_end_to_beginning` has been applied) and checking if the following edge
+/// crosses the array. If it does not, it's probably a glancing collision.
+/// 
+/// Tangent collisions are found just by looking at the tangent of the curve at the point of collision: if
+/// it's collinear with the ray, then the ray presumably does not cross the edge.
+/// 
+/// As we use numerical methods to find line/curve collisions, it's possible for errors to result in a ray
+/// that hits a corner and the other edge, so we finish up by filtering for this condition.
 ///
 #[inline]
 fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
