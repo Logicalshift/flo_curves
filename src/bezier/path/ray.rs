@@ -318,7 +318,7 @@ fn move_collisions_at_end_to_beginning<'a, P: Coordinate+Coordinate2D, Path: Ray
                 1.0
             };
 
-            if curve_t > 0.99999 || distance_sq < 0.0001*0.0001 {
+            if curve_t > 0.99999 || distance_sq < CLOSE_DISTANCE*CLOSE_DISTANCE {
                 // Collisions at the very end of the curve should be considered to be at the start of the following curve
                 // (as a ray intersecting a point will collide with both the previous and next curve)
                 let next_point_idx  = path.edge_end_point_idx(collision);
