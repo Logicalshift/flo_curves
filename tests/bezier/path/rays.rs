@@ -508,3 +508,23 @@ fn ray_hitting_start_and_end_of_curve_2() {
 
     assert!(collisions.len() == 2);
 }
+
+#[test]
+fn ray_crossing_and_glancing() {
+    // This is a ray that scores a crossing collision followed by a glancing collision along a very short curve that is almost but not quite
+    // collinear. We should remove the glancing collision but we do not for some reason
+    let ray         = (Coord2(694.1428833007813, 884.8551025390625), Coord2(692.2153930664063, 883.697509765625));
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(632.3152465820313, 838.1866455078125))
+        .curve_to((Coord2(634.3826904296875, 844.4097290039063), Coord2(635.91357421875, 849.9752807617188)), Coord2(635.8788452148438, 849.8710327148438))
+        .curve_to((Coord2(635.9103393554688, 849.8935546875), Coord2(635.9293212890625, 849.9025268554688)), Coord2(635.9400634765625, 849.9002075195313))
+        .curve_to((Coord2(635.97216796875, 850.158447265625), Coord2(635.9955444335938, 850.357666015625)), Coord2(636.0320434570313, 850.4244384765625))
+        .line_to(Coord2(635.97216796875, 1.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    let graph_path  = GraphPath::from_path(&path, ());
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len()&1 == 0);
+}
