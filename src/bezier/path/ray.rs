@@ -279,7 +279,7 @@ fn remove_collisions_before_or_after_collinear_section<'a, P: Coordinate+Coordin
                 let end_point       = path.point_position(end_point_idx);
 
                 // If any following edge is collinear, remove this collision
-                if position.is_near_to(&end_point, SMALL_DISTANCE) && path.edges_for_point(end_point_idx).into_iter().map(|edge| path.get_edge(edge)).any(|next| curve_is_collinear(&next, ray_coeffs)) {
+                if position.is_near_to(&end_point, CLOSE_DISTANCE) && path.edges_for_point(end_point_idx).into_iter().map(|edge| path.get_edge(edge)).any(|next| curve_is_collinear(&next, ray_coeffs)) {
                     false
                 } else {
                     true
@@ -289,7 +289,7 @@ fn remove_collisions_before_or_after_collinear_section<'a, P: Coordinate+Coordin
                 let start_point     = path.point_position(start_point_idx);
 
                 // If any preceding edge is collinear, remove this collision
-                if position.is_near_to(&start_point, SMALL_DISTANCE) && path.reverse_edges_for_point(start_point_idx).into_iter().map(|edge| path.get_edge(edge)).any(|previous| curve_is_collinear(&previous, ray_coeffs)) {
+                if position.is_near_to(&start_point, CLOSE_DISTANCE) && path.reverse_edges_for_point(start_point_idx).into_iter().map(|edge| path.get_edge(edge)).any(|previous| curve_is_collinear(&previous, ray_coeffs)) {
                     // Collisions crossing collinear sections are taken care of during the collinear collision phase
                     false
                 } else {
