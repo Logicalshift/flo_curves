@@ -440,7 +440,7 @@ fn ray_hitting_start_and_end_of_line_3() {
         .line_to(Coord2(3.0, 1.0))
         .line_to(Coord2(3.0, 3.0))
         .line_to(Coord2(2.0, 3.0))
-        .line_to(Coord2(2.0001, 2.0))
+        .line_to(Coord2(2.000999, 2.0))
         .line_to(Coord2(1.0, 2.0))
         .build();
     let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
