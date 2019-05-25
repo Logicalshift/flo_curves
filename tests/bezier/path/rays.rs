@@ -454,6 +454,26 @@ fn ray_hitting_start_and_end_of_line_3() {
 }
 
 #[test]
+fn ray_hitting_start_and_end_of_line_4() {
+    // Moving one of the other points
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(1.999, 3.0))
+        .line_to(Coord2(2.0, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
+
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    println!("{:?}", collisions);
+    assert!(collisions.len()&1 == 0);
+    assert!(collisions.len() == 2);
+}
+
+#[test]
 fn ray_hitting_start_and_end_of_curve_1() {
     // As above, but curve bowing outwards
     let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
