@@ -374,36 +374,117 @@ fn ray_hitting_intersection_bad() {
 }
 
 #[test]
-fn ray_misses_end_by_small_margin() {
-    let ray         = (Coord2(848.5234985351563, 797.486328125), Coord2(848.4642944335938, 797.4795532226563));
-    let edges       = vec![
-            Curve::from_points(Coord2(848.4671020507813, 797.462646484375), (Coord2(848.46630859375, 797.459228515625), Coord2(848.4619140625, 797.49755859375)), Coord2(848.4624633789063, 797.5032348632813)),
-            Curve::from_points(Coord2(848.4624633789063, 797.5032348632813), (Coord2(848.3275146484375, 797.4852294921875), Coord2(848.57958984375, 797.7412719726563)), Coord2(848.715576171875, 797.7614135742188)),
-            Curve::from_points(Coord2(848.715576171875, 797.7614135742188), (Coord2(848.7601928710938, 797.739501953125), Coord2(848.8429565429688, 797.6612548828125)), Coord2(848.9512939453125, 797.535400390625)),
-            Curve::from_points(Coord2(850.2943725585938, 795.3328247070313), (Coord2(851.0455932617188, 793.9050903320313), Coord2(852.1541748046875, 792.0202026367188)), Coord2(853.2625122070313, 789.974609375)),
-            Curve::from_points(Coord2(853.2625122070313, 789.974609375), (Coord2(855.5187377929688, 785.8296508789063), Coord2(858.1968383789063, 781.510986328125)), Coord2(859.6488037109375, 779.812255859375)),
-            Curve::from_points(Coord2(859.6488037109375, 779.812255859375), (Coord2(859.3439331054688, 779.5526123046875), Coord2(858.9374389648438, 779.2064208984375)), Coord2(858.632568359375, 778.94677734375)),
-            Curve::from_points(Coord2(858.632568359375, 778.94677734375), (Coord2(857.1051025390625, 780.74658203125), Coord2(854.6322021484375, 785.4913330078125)), Coord2(852.4514770507813, 789.53515625)),
-            Curve::from_points(Coord2(852.4514770507813, 789.53515625), (Coord2(851.3413696289063, 791.583984375), Coord2(850.4099731445313, 793.5748291015625)), Coord2(849.6604614257813, 794.999267578125)),
-            Curve::from_points(Coord2(849.6604614257813, 794.999267578125), (Coord2(848.7610473632813, 796.5136108398438), Coord2(848.5972290039063, 797.339599609375)), Coord2(848.715576171875, 797.2513427734375)),
-            Curve::from_points(Coord2(848.715576171875, 797.2513427734375), (Coord2(848.8153686523438, 797.266357421875), Coord2(848.9803466796875, 797.4114379882813)), Coord2(849.001953125, 797.4755249023438)),
-            Curve::from_points(Coord2(848.9655151367188, 797.5032348632813), (Coord2(848.9658203125, 797.50537109375), Coord2(848.9645385742188, 797.5181884765625)), Coord2(848.96337890625, 797.5213623046875)),
-            Curve::from_points(Coord2(848.9614868164063, 797.5369873046875), (Coord2(848.9580078125, 797.5364379882813), Coord2(848.95458984375, 797.535888671875)), Coord2(848.9512939453125, 797.535400390625)),
-            Curve::from_points(Coord2(848.9512939453125, 797.535400390625), (Coord2(848.9552612304688, 797.53076171875), Coord2(848.959228515625, 797.5260620117188)), Coord2(848.96337890625, 797.5213623046875)),
-            Curve::from_points(Coord2(848.9512939453125, 797.535400390625), (Coord2(848.6336059570313, 797.4876708984375), Coord2(848.7899780273438, 797.51123046875)), Coord2(848.4671020507813, 797.462646484375)),
-            Curve::from_points(Coord2(848.96337890625, 797.5213623046875), (Coord2(848.9678955078125, 797.5159912109375), Coord2(848.9724731445313, 797.5105590820313)), Coord2(848.9771728515625, 797.5051879882813)),
-            Curve::from_points(Coord2(848.96337890625, 797.5213623046875), (Coord2(848.9624633789063, 797.5344848632813), Coord2(848.9616088867188, 797.53955078125)), Coord2(848.9614868164063, 797.5369873046875)),
-            Curve::from_points(Coord2(848.9771728515625, 797.5051879882813), (Coord2(848.9853515625, 797.49560546875), Coord2(848.9935913085938, 797.4857177734375)), Coord2(849.001953125, 797.4755249023438)),
-            Curve::from_points(Coord2(848.9771728515625, 797.5051879882813), (Coord2(848.9735717773438, 797.5043334960938), Coord2(848.9697265625, 797.50390625)), Coord2(848.9655151367188, 797.5032348632813)),
-            Curve::from_points(Coord2(849.001953125, 797.4755249023438), (Coord2(849.3349609375, 797.0731811523438), Coord2(849.86474609375, 796.28857421875)), Coord2(850.2943725585938, 795.3328247070313)),
-            Curve::from_points(Coord2(849.001953125, 797.4755249023438), (Coord2(849.00830078125, 797.494384765625), Coord2(849.001953125, 797.5062255859375)), Coord2(848.9771728515625, 797.5051879882813))
-        ];
-    let collisions = edges.into_iter()
-        .map(|edge| {
-            (edge, curve_intersects_ray(&edge, &ray))
-        })
-        .collect::<Vec<_>>();
+fn ray_hitting_start_and_end_of_line_1() {
+    //
+    //     + --- +
+    //     |     |
+    //     |     |     Should produce two collisions, even though the ray effectively hits both the start and end
+    // +---+     |     points.
+    // |         |
+    // |         |
+    // +---------+
+    //     ^
+    //     |
+    //    Ray
+    // 
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(2.0, 3.0))
+        .line_to(Coord2(2.0, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
 
-    println!("{:?} (total {} collisions)", collisions, collisions.iter().map(|(_, c)| c.len()).sum::<usize>());
-    assert!(false);
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_hitting_start_and_end_of_line_2() {
+    //
+    //     + --- +
+    //     |     |
+    //     |     |     Should produce two collisions, even though the ray effectively hits both the start and end
+    // +---+     |     points. Here we move the point very slightly so the ray crosses the line instead of exactly
+    // |         |     hitting the center point
+    // |         |
+    // +---------+
+    //     ^
+    //     |
+    //    Ray
+    // 
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(2.0, 3.0))
+        .line_to(Coord2(2.001, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
+
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    println!("{:?}", collisions);
+    assert!(collisions.len()&1 == 0);
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_hitting_start_and_end_of_line_3() {
+    // As above but crossing even closer
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(2.0, 3.0))
+        .line_to(Coord2(2.0001, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
+
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    println!("{:?}", collisions);
+    assert!(collisions.len()&1 == 0);
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_hitting_start_and_end_of_curve_1() {
+    // As above, but curve bowing outwards
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(2.0, 3.0))
+        .curve_to((Coord2(1.0, 3.0), Coord2(1.0, 2.0)), Coord2(2.0, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
+
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn ray_hitting_start_and_end_of_curve_2() {
+    // As above, but curve bowing inwards
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(3.0, 1.0))
+        .line_to(Coord2(3.0, 3.0))
+        .line_to(Coord2(2.0, 3.0))
+        .curve_to((Coord2(3.0, 3.0), Coord2(3.0, 2.0)), Coord2(2.0, 2.0))
+        .line_to(Coord2(1.0, 2.0))
+        .build();
+    let ray         = (Coord2(2.0, 0.0), Coord2(2.0, 1.0));
+    let graph_path  = GraphPath::from_path(&path, ());
+
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len() == 2);
 }
