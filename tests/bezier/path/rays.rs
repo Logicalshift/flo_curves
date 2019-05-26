@@ -564,3 +564,22 @@ fn ray_glancing_2() {
 
     assert!(collisions.len()&1 == 0);
 }
+
+#[test]
+fn ray_glancing_2_reversed() {
+    let ray         = (Coord2(576.3092041015625, 854.6082153320313), Coord2(576.0201416015625, 854.5975341796875));
+    let path        = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 854.7772216796875))
+        .line_to(Coord2(580.010986328125, 854.7772216796875))
+        .curve_to((Coord2(580.0106201171875, 854.7659301757813), Coord2(580.01025390625, 854.7548828125)), Coord2(580.0098266601563, 854.7442016601563))
+        .curve_to((Coord2(580.0198974609375, 854.7529296875), Coord2(580.0298461914063, 854.761474609375)), Coord2(580.0394897460938, 854.7695922851563))
+        .line_to(Coord2(580.0394897460938, 1.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let path        = path.reversed::<SimpleBezierPath>();
+
+    let graph_path  = GraphPath::from_path(&path, ());
+    let collisions  = graph_path.ray_collisions(&ray);
+
+    assert!(collisions.len()&1 == 0);
+}
