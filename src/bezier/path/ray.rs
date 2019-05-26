@@ -438,7 +438,6 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
                 }
 
                 // The ray appears to have hit a corner without entering the shape.
-                return false;
                 // 
                 // It's possible there is a nearby collision on the preceding edge, indicating the collision is not actually a glancing one 
                 // at all and has been rounded to the start of an edge by mistake
