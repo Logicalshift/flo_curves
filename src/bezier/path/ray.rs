@@ -447,28 +447,27 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
                 // 
                 // However, glancing collisions are very rare in practice so we can justify re-casting the ray at the preceding edge.
                 // Choosing a ray and path that generates a lot of glancing collisions will be very inefficient
+                let edge_collisions         = curve_intersects_ray(&edge, ray);
                 let preceding_collisions    = curve_intersects_ray(&previous_edge, ray);
-                let collision_point         = previous_edge.end_point();
+                let collision_point         = edge.start_point();
 
-                if preceding_collisions.len() == 0 {
+                if preceding_collisions.len() == 0 || edge_collisions.len() == 0 {
                     // Ray is parallel to previous edge: never crosses it so must be a glancing collision
                     return false;
                 }
 
-                // Glancing collisions should always have a collision at curve_t = 1.0 or close enough to the glancing vertex we'd 
-                // consider it the same (a glancing collision means both edges cross the ray at their start/end vertex)
-                for (curve_t, _line_t, position) in preceding_collisions {
-                    if curve_t >= 1.000 {
-                        // Is a glancing collision
-                        return false;
-                    } else if position.is_near_to(&collision_point, SMALL_DISTANCE) {
-                        // Will be rounded down into a glancing collision
-                        return false;
-                    }
-                }
+                // Both the edge and the preceding edge must have a collision at the end or close enough to the end for this to be a glancing collision
+                // (If there is no such collision, the ray will have crossed over very close to the end of one edge and not close enough to the other)
+                let edge_has_glancing       = edge_collisions.into_iter().any(|(curve_t, _line_t, position)| curve_t >= 1.000 || position.is_near_to(&collision_point, SMALL_DISTANCE));
+                let preceding_has_glancing  = preceding_collisions.into_iter().any(|(curve_t, _line_t, position)| curve_t >= 1.000 || position.is_near_to(&collision_point, SMALL_DISTANCE));
 
-                // Only a glancing collision at the main edge
-                true
+                if edge_has_glancing && preceding_has_glancing {
+                    // Must be a glancing collision
+                    false
+                } else {
+                    // One edge does not have a collision at its start/end point: must be a crossing collision
+                    true
+                }
             } else {
                 // Check if we've hit a tangent
                 let edge            = path.get_edge(*collision);
