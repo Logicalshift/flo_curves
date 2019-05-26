@@ -463,6 +463,8 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
 
                 if edge_has_glancing && preceding_has_glancing {
                     // Must be a glancing collision
+                    // TODO: argh, if the preceding collision was the one that mapped to curve_t = 0.0, then we need to map it back onto the 
+                    // preceding edge (move_end_to_beginning really only does the right thing if the ray is clearly crossing the edge)
                     false
                 } else {
                     // One edge does not have a collision at its start/end point: must be a crossing collision
