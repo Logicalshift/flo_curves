@@ -385,7 +385,7 @@ fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPat
 }
 
 ///
-/// Removes collisions that do not appear to enter the shape
+/// Removes collisions that do not appear to enter the shape because they hit a corner
 /// 
 /// A glancing collision is one that generates exactly one collision at a corner without actually crossing 
 /// into the shape (or which happens to hit a curve exactly on a tangent).
@@ -401,7 +401,7 @@ fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPat
 /// that hits a corner and the other edge, so we finish up by filtering for this condition.
 ///
 #[inline]
-fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
+fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
     let (a, b, c)   = ray.coefficients();
     let ray_vector  = (ray.point_at_pos(1.0) - ray.point_at_pos(0.0)).to_unit_vector();
 
@@ -437,10 +437,38 @@ fn remove_glancing_collisions<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<P
                     return true;
                 }
 
-                // The ray appears to have hit a corner without entering the shape. 
+                // The ray appears to have hit a corner without entering the shape.
+                // 
                 // It's possible there is a nearby collision on the preceding edge, indicating the collision is not actually a glancing one 
                 // at all and has been rounded to the start of an edge by mistake
-                false
+                //
+                // The collisions with the previous edge should already be in the list, but they're not conveniently accessible from
+                // this function (they're either ahead or behind in the iterator, and it's not sorted)
+                // 
+                // However, glancing collisions are very rare in practice so we can justify re-casting the ray at the preceding edge.
+                // Choosing a ray and path that generates a lot of glancing collisions will be very inefficient
+                let preceding_collisions    = curve_intersects_ray(&previous_edge, ray);
+                let collision_point         = previous_edge.end_point();
+
+                if preceding_collisions.len() == 0 {
+                    // Ray is parallel to previous edge: never crosses it so must be a glancing collision
+                    return false;
+                }
+
+                // Glancing collisions should always have a collision at curve_t = 1.0 or close enough to the glancing vertex we'd 
+                // consider it the same (a glancing collision means both edges cross the ray at their start/end vertex)
+                for (curve_t, _line_t, position) in preceding_collisions {
+                    if curve_t >= 1.000 {
+                        // Is a glancing collision
+                        return false;
+                    } else if position.is_near_to(&collision_point, SMALL_DISTANCE) {
+                        // Will be rounded down into a glancing collision
+                        return false;
+                    }
+                }
+
+                // Only a glancing collision at the main edge
+                true
             } else {
                 // Check if we've hit a tangent
                 let edge            = path.get_edge(*collision);
