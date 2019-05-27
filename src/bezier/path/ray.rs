@@ -385,6 +385,163 @@ fn move_collinear_collisions_to_end<'a, P: Coordinate+Coordinate2D, Path: RayPat
 }
 
 ///
+/// Returns true if the collision is at the start of the specified edge
+///
+#[inline]
+fn collision_is_at_start<Path: RayPath>(path: &Path, edge: &GraphEdgeRef, curve_t: f64, position: &Path::Point) -> bool {
+    if curve_t > 0.1 {
+        false
+    } else {
+        let start_point = path.point_position(edge.start_idx);
+        start_point.is_near_to(position, SMALL_DISTANCE)
+    }
+}
+
+///
+/// Returns true if the collision is at the end of the specified edge
+///
+#[inline]
+fn collision_is_at_end<Path: RayPath>(path: &Path, edge: &GraphEdgeRef, curve_t: f64, position: &Path::Point) -> bool {
+    if curve_t < 0.9 {
+        false
+    } else {
+        let next_point_idx  = path.edge_end_point_idx(*edge);
+        let end_point       = path.point_position(next_point_idx);
+        end_point.is_near_to(position, SMALL_DISTANCE)
+    }
+}
+
+///
+/// Returns true if the 
+///
+#[inline]
+fn edges_are_glancing<Path: RayPath>(path: &Path, ray: (f64, f64, f64), previous_edge: &GraphEdgeRef, following_edge: &GraphEdgeRef) -> bool {
+    // Fetch the actual edges and take the ray apart
+    let following_edge  = path.get_edge(*following_edge);
+    let previous_edge   = path.get_edge(*previous_edge);
+    let (a, b, c)       = ray;
+
+    // A glancing collision has control points on the same side of the ray
+    let cp_in           = previous_edge.control_points().1;
+    let cp_out          = following_edge.control_points().0;
+
+    let side_in         = cp_in.x()*a + cp_in.y()*b + c;
+    let side_out        = cp_out.x()*a + cp_out.y()*b + c;
+
+    let side_in         = if side_in.abs() < 0.001 { 0.0 } else { side_in.signum() };
+    let side_out        = if side_out.abs() < 0.001 { 0.0 } else { side_out.signum() };
+
+    // A glancing collision has both edges on the same side of the ray
+    side_in != side_out
+}
+
+///
+/// Removes extra collisions found near vertices
+/// 
+/// When a ray crosses at a vertex it will generate a collision at the end of one edge and the beginning 
+/// of another. If this occurs, we should remove one of those collisions. As we use numerical methods to
+/// solve for the collision point, it's possible to see only the 'end' or the 'start' collision.
+/// 
+/// It's possible for a ray to hit a vertex and not actually enter the shape. These are 'glancing' 
+/// collisions. A glancing collision is one that generates exactly one collision at a corner without 
+/// actually crossing into the shape (or which happens to hit a curve exactly on a tangent).
+/// 
+/// Corner collisions are found by looking for collisions at the start of an edge (we assume that the 
+/// filtering in `move_collisions_at_end_to_beginning` has been applied) and checking if the following edge
+/// crosses the array. If it does not, it's probably a glancing collision.
+/// 
+/// Tangent collisions are found just by looking at the tangent of the curve at the point of collision: if
+/// it's collinear with the ray, then the ray presumably does not cross the edge.
+/// 
+/// As we use numerical methods to find line/curve collisions, it's possible for errors to result in a ray
+/// that hits a corner and the other edge, so we finish up by filtering for this condition.
+/// 
+/// We need to filter these both in the same place as the choice of filter depends on whether or not a
+/// particular collision is a glancing collision or a crossing collision.
+///
+fn filter_collisions_near_vertices<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
+    let (a, b, c)           = ray.coefficients();
+    let mut visited_start   = None;
+
+    collisions.into_iter()
+        .filter_map(move |(edge, curve_t, line_t, position)| {
+            // This only applies to collisions at the end or start of an edge
+            let is_at_start = collision_is_at_start(path, &edge, curve_t, &position);
+            let is_at_end   = !is_at_start && collision_is_at_end(path, &edge, curve_t, &position);
+
+            if is_at_start || is_at_end {
+                // Collision might be crossing or glancing: get the two edges on the collision
+                let (preceding_edge, following_edge) = if is_at_start {
+                    let previous_edge   = path.reverse_edges_for_point(edge.start_idx)
+                        .into_iter()
+                        .map(|previous_edge| previous_edge.reversed())
+                        .filter(|previous_edge| path.edge_following_edge_idx(*previous_edge) == edge.edge_idx)
+                        .nth(0)
+                        .expect("Previous edge for a collision at");
+
+                    (previous_edge, edge)
+                } else {
+                    let (next_edge, _) = path.get_next_edge(edge);
+
+                    (edge, next_edge)
+                };
+
+                if edges_are_glancing(path, (a, b, c), &preceding_edge, &following_edge) {
+                
+                    // Ray hits close to a vertex between two edges that both face away from it (ie, may be a glancing collision)
+                    // There must also be a glancing collision on the 'other' edge (we can afford this expensive check as glancing collisions are rare)
+                    let both_glancing = if is_at_start {
+                        // Must be a point close to the end of the preceding edge too
+                        let edge            = path.get_edge(preceding_edge);
+                        let collisions      = curve_intersects_ray(&edge, ray);
+
+                        collisions.into_iter().any(|(curve_t, _line_t, position)| collision_is_at_end(path, &preceding_edge, curve_t, &position))
+                    } else {
+                        // Must be a point close to the start of the following edge too
+                        let edge            = path.get_edge(following_edge);
+                        let collisions      = curve_intersects_ray(&edge, ray);
+
+                        collisions.into_iter().any(|(curve_t, _line_t, position)| collision_is_at_start(path, &following_edge, curve_t, &position))
+                    };
+
+                    if both_glancing {
+                        // Remove both sides of a glancing collision
+                        None
+                    } else {
+                        // Ray only gets close to the end of one of the edges: must be a crossing collision
+                        Some((edge, curve_t, line_t, position))
+                    }
+                
+                } else {
+
+                    // Ray crosses exactly on the vertex: report it exactly once (as the beginning of the curve)
+                    let visited_start = visited_start.get_or_insert_with(|| vec![None; path.num_points()]);
+
+                    // At the start of the curve
+                    let was_visited = visited_start[following_edge.start_idx]
+                        .as_ref()
+                        .map(|collisions: &SmallVec<[_; 2]>| collisions.contains(&following_edge.edge_idx))
+                        .unwrap_or(false);
+
+                    if !was_visited {
+                        visited_start[following_edge.start_idx].get_or_insert_with(|| smallvec![]).push(following_edge.edge_idx);
+                    }
+
+                    if !was_visited {
+                        Some((following_edge, 0.0, line_t, position))
+                    } else {
+                        None
+                    }
+
+                }
+            } else {
+                // In the middle: not glancing or crossing
+                Some((edge, curve_t, line_t, position))
+            }
+        })
+}
+
+///
 /// Removes collisions that do not appear to enter the shape because they hit a corner
 /// 
 /// A glancing collision is one that generates exactly one collision at a corner without actually crossing 
@@ -571,10 +728,11 @@ pub (crate) fn ray_collisions<P: Coordinate+Coordinate2D, Path: RayPath<Point=P>
     let collisions = collinear_collisions.chain(crossing_collisions);
 
     // Filter for accuracy
-    let collisions = move_collisions_at_end_to_beginning(path, collisions);
+    //let collisions = move_collisions_at_end_to_beginning(path, collisions);
     let collisions = move_collinear_collisions_to_end(path, ray, collisions);
-    let collisions = remove_glancing_collisions(path, ray, collisions);
-    let collisions = remove_duplicate_collisions_at_start(path, collisions);
+    //let collisions = remove_glancing_collisions(path, ray, collisions);
+    //let collisions = remove_duplicate_collisions_at_start(path, collisions);
+    let collisions = filter_collisions_near_vertices(path, ray, collisions);
     let collisions = flag_collisions_at_intersections(path, collisions);
 
     // Convert to a vec and sort by ray position

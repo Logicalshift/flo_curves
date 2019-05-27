@@ -55,7 +55,7 @@ pub enum GraphPathEdgeKind {
 ///
 /// Reference to a graph edge
 ///
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GraphEdgeRef {
     /// The index of the point this edge starts from
     pub (crate) start_idx: usize,
