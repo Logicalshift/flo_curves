@@ -892,20 +892,16 @@ mod test {
         assert!(collisions.len() == 2);
 
         // Filter for accuracy
-        let collisions = move_collisions_at_end_to_beginning(&gp, collisions).collect::<Vec<_>>();
-        assert!(collisions.len() == 2);
         let collisions = move_collinear_collisions_to_end(&gp, &ray, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 2);
-        let collisions = remove_glancing_collisions(&gp, &ray, collisions).collect::<Vec<_>>();
-        assert!(collisions.len() == 2);
-        let collisions = remove_duplicate_collisions_at_start(&gp, collisions).collect::<Vec<_>>();
+        let collisions = filter_collisions_near_vertices(&gp, &ray, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 2);
         let collisions = flag_collisions_at_intersections(&gp, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 2);
     }
 
     #[test]
-    fn interior_point_produces_two_collisions() {
+    fn interior_point_produces_four_collisions() {
         let with_interior_point = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
             .line_to(Coord2(5.0, 1.0))
             .line_to(Coord2(5.0, 5.0))
@@ -928,15 +924,11 @@ mod test {
         assert!(collisions.len() == 4);
 
         // Filter for accuracy
-        let collisions = move_collisions_at_end_to_beginning(&with_interior_point, collisions).collect::<Vec<_>>();
-        assert!(collisions.len() == 4);
         let collisions = move_collinear_collisions_to_end(&with_interior_point, &ray, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 4);
-        let collisions = remove_glancing_collisions(&with_interior_point, &ray, collisions).collect::<Vec<_>>();
+        let collisions = filter_collisions_near_vertices(&with_interior_point, &ray, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 4);
         println!("{:?}", collisions);
-        let collisions = remove_duplicate_collisions_at_start(&with_interior_point, collisions).collect::<Vec<_>>();
-        assert!(collisions.len() == 4);
         let collisions = flag_collisions_at_intersections(&with_interior_point, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 4);
     }
