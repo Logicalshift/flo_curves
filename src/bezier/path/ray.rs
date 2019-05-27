@@ -478,7 +478,7 @@ where L: Line<Point=Path::Point> {
                         .map(|previous_edge| previous_edge.reversed())
                         .filter(|previous_edge| path.edge_following_edge_idx(*previous_edge) == edge.edge_idx)
                         .nth(0)
-                        .expect("Previous edge for a collision at");
+                        .expect("Previous edge for a collision at start");
 
                     (previous_edge, edge)
                 } else {
@@ -538,6 +538,35 @@ where L: Line<Point=Path::Point> {
             } else {
                 // In the middle: not glancing or crossing
                 Some((edge, curve_t, line_t, position))
+            }
+        })
+}
+
+///
+/// Removes any collision that manages to hit an edge exactly on a tangent
+///
+#[inline]
+fn remove_tangent_collisions<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
+where L: Line<Point=Path::Point> {
+    let ray_vector  = (ray.point_at_pos(1.0) - ray.point_at_pos(0.0)).to_unit_vector();
+
+    collisions.into_iter()
+        .filter(move |(edge, curve_t, _line_t, _position)| {
+            // Check if we've hit a tangent
+            let edge            = path.get_edge(*edge);
+
+            // Get the curve tangent at this position
+            let tangent         = edge.tangent_at_pos(*curve_t).to_unit_vector();
+
+            // Test if it's going the same way as the ray
+            let dot_product     = ray_vector.dot(&tangent);
+            let dot_product_mag = dot_product.abs() - 1.0;
+
+            // Dot product of two unit vectors will be 1.0 or -1.0 for a tangent collision
+            if dot_product_mag > -0.00000001 && dot_product_mag < 0.00000001 {
+                false
+            } else {
+                true
             }
         })
 }
@@ -729,11 +758,9 @@ pub (crate) fn ray_collisions<P: Coordinate+Coordinate2D, Path: RayPath<Point=P>
     let collisions = collinear_collisions.chain(crossing_collisions);
 
     // Filter for accuracy
-    //let collisions = move_collisions_at_end_to_beginning(path, collisions);
     let collisions = move_collinear_collisions_to_end(path, ray, collisions);
-    //let collisions = remove_glancing_collisions(path, ray, collisions);
-    //let collisions = remove_duplicate_collisions_at_start(path, collisions);
     let collisions = filter_collisions_near_vertices(path, ray, collisions);
+    let collisions = remove_tangent_collisions(path, ray, collisions);
     let collisions = flag_collisions_at_intersections(path, collisions);
 
     // Convert to a vec and sort by ray position
