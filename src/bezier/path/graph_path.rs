@@ -1688,7 +1688,8 @@ impl<Point: Coordinate2D+Coordinate+fmt::Debug, Label: Copy> fmt::Debug for Grap
 /// sections as they have a tendency to produce extra collisions due to floating point or root finding
 /// errors.
 ///
-fn remove_and_round_close_collisions<P: Coordinate+Coordinate2D, C: BezierCurve<Point=P>>(collisions: &mut SmallVec<[(f64, f64); 8]>, src: &C, tgt: &C) {
+fn remove_and_round_close_collisions<C: BezierCurve>(collisions: &mut SmallVec<[(f64, f64); 8]>, src: &C, tgt: &C)
+where C::Point: Coordinate+Coordinate2D {
     // Nothing to do if there are no collisions
     if collisions.len() == 0 {
         return;

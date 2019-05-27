@@ -7,7 +7,9 @@ use super::super::consts::*;
 ///
 /// If `curve2` overlaps `curve1`, returns two sets of `t` values (those for `curve1` and those for `curve2`)
 ///
-pub fn overlapping_region<P: Coordinate+Coordinate2D, C1: BezierCurve<Point=P>, C2: BezierCurve<Point=P>>(curve1: &C1, curve2: &C2) -> Option<((f64, f64), (f64, f64))> {
+pub fn overlapping_region<C1: BezierCurve, C2: BezierCurve>(curve1: &C1, curve2: &C2) -> Option<((f64, f64), (f64, f64))>
+where   C1::Point:  Coordinate+Coordinate2D,
+        C2:         BezierCurve<Point=C1::Point> {
     let mut c2_t1 = 0.0;
     let mut c2_t2 = 1.0;
 
@@ -70,7 +72,8 @@ pub fn overlapping_region<P: Coordinate+Coordinate2D, C1: BezierCurve<Point=P>, 
 
     // Get the control points for the two curves
     #[inline]
-    fn control_points<P: Coordinate+Coordinate2D, C: BezierCurve<Point=P>>(curve: &C, t1: f64, t2: f64) -> (P, P) {
+    fn control_points<C: BezierCurve>(curve: &C, t1: f64, t2: f64) -> (C::Point, C::Point)
+    where C::Point: Coordinate+Coordinate2D,  {
         if t2 < t1 {
             let (cp2, cp1) = curve.section(t2, t1).control_points();
             (cp1, cp2)
