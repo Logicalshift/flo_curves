@@ -459,7 +459,8 @@ fn edges_are_glancing<Path: RayPath>(path: &Path, ray: (f64, f64, f64), previous
 /// We need to filter these both in the same place as the choice of filter depends on whether or not a
 /// particular collision is a glancing collision or a crossing collision.
 ///
-fn filter_collisions_near_vertices<'a, P: 'a+Coordinate+Coordinate2D, Path: RayPath<Point=P>, L: Line<Point=P>, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, P)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, P)> {
+fn filter_collisions_near_vertices<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
+where L: Line<Point=Path::Point> {
     let (a, b, c)           = ray.coefficients();
     let mut visited_start   = None;
 
