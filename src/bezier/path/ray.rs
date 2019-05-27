@@ -432,7 +432,7 @@ fn edges_are_glancing<Path: RayPath>(path: &Path, ray: (f64, f64, f64), previous
     let side_out        = if side_out.abs() < 0.001 { 0.0 } else { side_out.signum() };
 
     // A glancing collision has both edges on the same side of the ray
-    side_in != side_out
+    side_in == side_out
 }
 
 ///
@@ -927,8 +927,8 @@ mod test {
         let collisions = move_collinear_collisions_to_end(&with_interior_point, &ray, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 4);
         let collisions = filter_collisions_near_vertices(&with_interior_point, &ray, collisions).collect::<Vec<_>>();
-        assert!(collisions.len() == 4);
         println!("{:?}", collisions);
+        assert!(collisions.len() == 4);
         let collisions = flag_collisions_at_intersections(&with_interior_point, collisions).collect::<Vec<_>>();
         assert!(collisions.len() == 4);
     }
