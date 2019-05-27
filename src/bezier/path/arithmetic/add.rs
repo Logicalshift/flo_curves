@@ -34,8 +34,10 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 /// The input vectors represent the external edges of the path to add (a single BezierPath cannot have any holes in it, so a set of them
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
-pub fn path_add<Point, P1: BezierPath<Point=Point>, P2: BezierPath<Point=Point>, POut: BezierPathFactory<Point=Point>>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
-where   Point: Coordinate+Coordinate2D {
+pub fn path_add<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
+where   P1::Point:  Coordinate+Coordinate2D,
+        P2:         BezierPath<Point=P1::Point>,
+        POut:       BezierPathFactory<Point=P1::Point> {
     // If either path is empty, short-circuit by returning the other
     if path1.len() == 0 {
         return path2.iter()
@@ -66,8 +68,9 @@ where   Point: Coordinate+Coordinate2D {
 ///
 /// Generates the path formed by removing any interior points from an existing path
 ///
-pub fn path_remove_interior_points<Point, P1: BezierPath<Point=Point>, POut: BezierPathFactory<Point=Point>>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
-where   Point: Coordinate+Coordinate2D {
+pub fn path_remove_interior_points<P1: BezierPath, POut: BezierPathFactory>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
+where   P1::Point:  Coordinate+Coordinate2D,
+        POut:       BezierPathFactory<Point=P1::Point> {
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
     merged_path         = merged_path.merge(GraphPath::from_merged_paths(path.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));

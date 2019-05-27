@@ -11,7 +11,7 @@ fn intersect_two_doughnuts() {
     let inner_circle2   = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_intersect::<_, _, _, SimpleBezierPath>(&vec![circle1, inner_circle1], &vec![circle2, inner_circle2], 0.1);
+    let combined_circles = path_intersect::<_, _, SimpleBezierPath>(&vec![circle1, inner_circle1], &vec![circle2, inner_circle2], 0.1);
 
     println!("{:?}", combined_circles.len());
     println!("{:?}", combined_circles);

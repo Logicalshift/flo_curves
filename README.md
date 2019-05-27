@@ -63,5 +63,5 @@ Path artihmetic:
 ```Rust
 use flo_curves::bezier::path::*;
 
-let rectangle_with_hole = path_sub::<_,_,_, SimpleBezierPath>(&vec![rectangle], &vec![circle])
+let rectangle_with_hole = path_sub::<_,_, SimpleBezierPath>(&vec![rectangle], &vec![circle])
 ```
