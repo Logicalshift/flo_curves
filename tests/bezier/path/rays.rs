@@ -2,6 +2,8 @@ use flo_curves::*;
 use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 
+use std::collections::HashMap;
+
 #[test]
 fn crossing_figure_of_8_intersection_from_inside() {
     //
@@ -582,6 +584,16 @@ fn ray_glancing_2() {
     let collisions  = graph_path.ray_collisions(&ray);
 
     assert!(collisions.len()&1 == 0);
+
+    let mut edge_collisions = HashMap::new();
+    for (collision, _curve_t, _line_t, _position) in collisions {
+        let edge        = collision.edge();
+
+        *(edge_collisions.entry(edge)
+            .or_insert(0)) += 1;
+    }
+
+    assert!(edge_collisions.into_iter().all(|(_, count)| count == 1));
 }
 
 #[test]
@@ -601,4 +613,14 @@ fn ray_glancing_2_reversed() {
     let collisions  = graph_path.ray_collisions(&ray);
 
     assert!(collisions.len()&1 == 0);
+
+    let mut edge_collisions = HashMap::new();
+    for (collision, _curve_t, _line_t, _position) in collisions {
+        let edge        = collision.edge();
+
+        *(edge_collisions.entry(edge)
+            .or_insert(0)) += 1;
+    }
+
+    assert!(edge_collisions.into_iter().all(|(_, count)| count == 1));
 }
