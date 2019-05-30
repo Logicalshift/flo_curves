@@ -2,6 +2,10 @@ use super::arithmetic::*;
 use super::super::path::*;
 use super::super::graph_path::*;
 use super::super::super::super::geo::*;
+use super::super::super::super::debug::*;
+
+use std::io::Write;
+use std::fs::File;
 
 //
 // This uses a simple ray casting algorithm to perform the addition
@@ -84,5 +88,25 @@ where   P1::Point:  Coordinate+Coordinate2D,
     merged_path.heal_exterior_gaps();
 
     // Produce the final result
-    merged_path.exterior_paths()
+    let result = merged_path.exterior_paths();
+
+    if result.len() == 0 && path.len() != 0 {
+        // For debugging, generate an illustration of any errors we might get
+        // TODO: remove this once we're satisfied that the bugs are no longer present
+        {
+            let mut fail_file   = File::create("interior-fail.svg").unwrap();
+            let debug_svg       = graph_path_svg_string(&merged_path, vec![]);
+            let svg_header      = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg width=\"100%\" height=\"100%\" viewBox=\"0 0 2000 2000\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:8;\">";
+
+            write!(fail_file, "{}\n{}\n</svg>\n", svg_header, debug_svg).unwrap();
+        }
+
+        println!("  /* Accuracy {} */", accuracy);
+        for (id, path) in path.iter().enumerate() {
+            println!("  /* Path {} */ {}", id, bezier_path_to_rust_definition(path));
+        }
+        panic!("Remove interior points failed to find a path");
+    }
+
+    result
 }
