@@ -402,3 +402,22 @@ fn intersection_curve_6() {
     assert!(intersections.len() != 0);
     assert!(intersections.len() == 2);
 }
+
+#[test]
+fn intersection_curve_7() {
+    // Three curves that should intersect in two places, seems to be generating a missed collision when doing a self-collide
+    // See `remove_interior_points_complex_1`: one of these curves seems to be producing only one collision, at least for the case that prompted that test
+    let curve1 = bezier::Curve::from_points(Coord2(602.1428833007813, 859.0895385742188), (Coord2(607.4638061523438, 858.4710693359375), Coord2(614.4444580078125, 855.14404296875)), Coord2(608.3931884765625, 855.6187133789063));
+    let curve2 = bezier::Curve::from_points(Coord2(608.3871459960938, 864.779541015625), (Coord2(609.6311645507813, 860.09716796875), Coord2(608.9767456054688, 852.512939453125)), Coord2(607.8642578125, 855.7709350585938));
+    let curve3 = bezier::Curve::from_points(Coord2(611.2799682617188, 862.292236328125), (Coord2(610.607666015625, 857.74365234375), Coord2(606.7666625976563, 851.5074462890625)), Coord2(606.7361450195313, 853.9833984375));
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve3, 0.01);
+    let intersections3 = bezier::curve_intersects_curve_clip(&curve1, &curve3, 0.01);
+
+    println!("{:?}\n{:?}\n{:?}\n", intersections1, intersections2, intersections3);
+
+    assert!(intersections1.len() == 2);
+    assert!(intersections2.len() == 2);
+    assert!(intersections3.len() == 2);
+}
