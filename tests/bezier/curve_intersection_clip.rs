@@ -386,3 +386,19 @@ fn intersection_curve_5() {
 
     assert!(curve2.point_at_pos(intersections[0].0).distance_to(&curve1.point_at_pos(intersections[0].1)) < 0.01);
 }
+
+#[test]
+fn intersection_curve_6() {
+    let curve1 = bezier::Curve::from_points(Coord2(608.7642211914063, 855.5934448242188), (Coord2(608.6810302734375, 855.288330078125), Coord2(608.5828857421875, 855.0850830078125)), Coord2(608.47265625, 855.011962890625));
+    let curve2 = bezier::Curve::from_points(Coord2(608.81689453125, 855.5904541015625), (Coord2(608.7009887695313, 855.386474609375), Coord2(608.5858154296875, 855.193115234375)), Coord2(608.47265625, 855.011962890625));
+    
+    let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    println!("{:?}", intersections);
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+    
+    let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
+    println!("{:?}", intersections);
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 2);
+}
