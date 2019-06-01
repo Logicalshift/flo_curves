@@ -712,6 +712,12 @@ fn remove_interior_points_complex_1() {
 
     // Self-colliding twice in a row should not produce any new edges (or points, though the same number of edges but a different number of points probably indicates that the result is fine)
     println!("{} -> {}, {} -> {}", initial_num_edges, graph_path.all_edges().count(), initial_num_points, graph_path.num_points());
+
+    // Extra collisions show up as extra points
+    for p in initial_num_points..graph_path.num_points() {
+        println!("Extra point: {:?}", graph_path.point_position(p));
+    }
+
     assert!(graph_path.all_edges().count() == initial_num_edges);
     assert!(graph_path.num_points() == initial_num_points);
 }
