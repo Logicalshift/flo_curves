@@ -420,4 +420,14 @@ fn intersection_curve_7() {
     assert!(intersections1.len() == 2);
     assert!(intersections2.len() == 2);
     assert!(intersections3.len() == 2);
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&curve3, &curve2, 0.01);
+    let intersections3 = bezier::curve_intersects_curve_clip(&curve3, &curve1, 0.01);
+
+    println!("{:?}\n{:?}\n{:?}\n", intersections1, intersections2, intersections3);
+
+    assert!(intersections1.len() == 2);
+    assert!(intersections2.len() == 2);
+    assert!(intersections3.len() == 2);
 }
