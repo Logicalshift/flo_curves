@@ -675,7 +675,21 @@ fn remove_interior_points_complex_1() {
         .curve_to((Coord2(602.8890380859375, 849.8455200195313), Coord2(597.0514526367188, 846.7515869140625)), Coord2(593.0549926757813, 843.3157958984375))
         .curve_to((Coord2(591.688232421875, 841.3230590820313), Coord2(585.3775024414063, 841.3017578125)), Coord2(589.6620483398438, 842.685791015625))
         .build();
-    let without_interior_points = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path], 0.01);
 
-    assert!(without_interior_points.len() != 0);
+    // This path has generated an error that indicates that no result path was generated (unfortunately it seems this version does not produce the error)
+    let without_interior_points = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
+    assert!(without_interior_points.len() == 1);
+
+    // Bug appears to be that not all collisions are generated (so two self-collides in a row will generate more points)
+    let mut graph_path = GraphPath::from_path(&path, ());
+    graph_path.self_collide(0.01);
+
+    let initial_num_points  = graph_path.num_points();
+    let initial_num_edges   = graph_path.all_edges().count();
+    graph_path.self_collide(0.01);
+
+    // Self-colliding twice in a row should not produce any new edges (or points, though the same number of edges but a different number of points probably indicates that the result is fine)
+    println!("{} -> {}, {} -> {}", initial_num_edges, graph_path.all_edges().count(), initial_num_points, graph_path.num_points());
+    assert!(graph_path.all_edges().count() == initial_num_edges);
+    assert!(graph_path.num_points() == initial_num_points);
 }
