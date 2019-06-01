@@ -5,7 +5,10 @@ use super::super::super::super::geo::*;
 use super::super::super::super::consts::*;
 
 use smallvec::*;
+
+use std::mem;
 use std::ops::Range;
+use std::collections::HashMap;
 
 ///
 /// Struct describing a collision between two edges
@@ -199,9 +202,95 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Organize the collisions by edge
         let collisions_by_edge  = self.organize_collisions_by_edge(all_collisions);
 
+        // 
+
         // Finish up by checking that we haven't broken consistency
+        self.recalculate_reverse_connections();
+        self.remove_all_very_short_edges();
+        self.combine_overlapping_points(accuracy);
         self.check_following_edge_consistency();
         unimplemented!()
+    }
+
+    ///
+    /// Finds any points that have approximately the same coordinates and combines them
+    /// 
+    /// Accuracy indicates the maximum difference in the x or y coordinate for two points to be considered the same.
+    ///
+    #[inline(never)]
+    pub fn combine_overlapping_points(&mut self, accuracy: f64) {
+        // Find collisions using a hashmap
+        let multiplier      = 1.0 / accuracy;
+        let mut collisions  = HashMap::new();
+
+        // Build up a hash set of the possible collisions
+        for (point_idx, point) in self.points.iter().enumerate() {
+            // Convert the position to an integer using the accuracy value
+            let (pos_x, pos_y) = (point.position.x(), point.position.y());
+            let (pos_x, pos_y) = (pos_x * multiplier, pos_y * multiplier);
+            let (pos_x, pos_y) = (pos_x.round(), pos_y.round());
+            let (pos_x, pos_y) = (pos_x as i64, pos_y as i64);
+
+            // Store in the collision hash map
+            collisions.entry((pos_x, pos_y))
+                .or_insert_with(|| SmallVec::<[_; 2]>::new())
+                .push(point_idx);
+        }
+
+        // Find the collided points
+        let collided_points = collisions.into_iter()
+            .filter_map(|(_point, collisions)| {
+                if collisions.len() > 1 {
+                    Some(collisions)
+                } else {
+                    None
+                }
+            });
+
+        // Combine any collided points into a single point
+        let mut remapped_points = HashMap::new();
+        for collision in collided_points {
+            // The first point is the new point (ordering doesn't matter, we just consider these points the same)
+            let mut collision   = collision.into_iter();
+            let new_point_id    = collision.next().unwrap();
+
+            // Move the forward edges and 'connected' from list from the other points
+            for collided_with in collision {
+                // Add to the remapped hashmap
+                remapped_points.insert(collided_with, (new_point_id, self.points[new_point_id].forward_edges.len()));
+
+                // Move the forward edges and connected from values into the original point
+                let mut forward_edges   = smallvec![];
+                let mut connected_from  = smallvec![];
+
+                mem::swap(&mut self.points[collided_with].forward_edges, &mut forward_edges);
+                mem::swap(&mut self.points[collided_with].connected_from, &mut connected_from);
+
+                self.points[new_point_id].forward_edges.extend(forward_edges.into_iter());
+                self.points[new_point_id].connected_from.extend(connected_from.into_iter());
+            }
+        }
+
+        // If any points were remapped, then also remap edges and connected_from values in other points
+        if remapped_points.len() > 0 {
+            // Need to update all of the points
+            for point in self.points.iter_mut() {
+                // Remap the edges
+                for edge in point.forward_edges.iter_mut() {
+                    if let Some((remapped_point, following_edge_idx_offset)) = remapped_points.get(&edge.end_idx) {
+                        edge.end_idx            = *remapped_point;
+                        edge.following_edge_idx += *following_edge_idx_offset;
+                    }
+                }
+
+                // Remap the 'connected from' points
+                for connected_from in point.connected_from.iter_mut() {
+                    if let Some((remapped_point, _following_edge_idx_offset)) = remapped_points.get(connected_from) {
+                        *connected_from = *remapped_point;
+                    }
+                }
+            }
+        }
     }
 
     ///
