@@ -1,4 +1,4 @@
-use super::{GraphPath, GraphEdge, GraphEdgeRef, GraphPathPoint};
+use super::{GraphPath, GraphEdge, GraphEdgeRef, GraphPathPoint, GraphPathEdge};
 use super::super::super::curve::*;
 use super::super::super::intersection::*;
 use super::super::super::super::geo::*;
@@ -8,6 +8,7 @@ use smallvec::*;
 
 use std::mem;
 use std::ops::Range;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 ///
@@ -202,14 +203,102 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Organize the collisions by edge
         let collisions_by_edge  = self.organize_collisions_by_edge(all_collisions);
 
-        // 
+        // Limit to just points with collisions
+        let collisions_by_point = collisions_by_edge.into_iter()
+            .enumerate()
+            .filter_map(|(point_idx, collisions)| collisions.map(|collisions| (point_idx, collisions)));
+
+        // Actually divide the edges by collision
+        for (point_idx, edge_collisions) in collisions_by_point {
+            for (edge_idx, mut collisions) in edge_collisions.into_iter().enumerate() {
+                // Skip edges with no collisions
+                if collisions.len() == 0 { continue; }
+
+                // Create a copy of the edge
+                let edge    = self.get_edge(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false });
+                let kind    = edge.kind();
+                let label   = edge.label();
+                let edge    = Curve::from_curve(&edge);
+
+                // Sort collisions by t value
+                collisions.sort_by(|(t1, _end_point_idx1), (t2, _end_point_idx2)| {
+                    if t1 < t2 {
+                        Ordering::Less
+                    } else if t1 > t2 {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Equal
+                    }
+                });
+
+                // We'll progressively split bits from the edge
+                let mut remaining_edge          = edge;
+                let mut remaining_t             = 1.0;
+                let final_point_idx             = self.points[point_idx].forward_edges[edge_idx].end_idx;
+                let final_following_edge_idx    = self.points[point_idx].forward_edges[edge_idx].following_edge_idx;
+                let mut last_point_idx          = point_idx;
+
+                // Iterate through the collisions (skipping any at t=0)
+                let mut collisions      = collisions.into_iter()
+                    .filter(|(t, _)| !Self::t_is_zero(*t));
+
+                // First collision is special as we need to edit the existing edge instead of adding a new one
+                if let Some((t, end_point_idx)) = collisions.next() {
+                    // Subdivide the edge
+                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t);
+                    let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
+                    let (cp1, cp2)              = next_edge.control_points();
+
+                    // Update the control points and end point index
+                    let old_edge                = &mut self.points[point_idx].forward_edges[edge_idx];
+
+                    old_edge.cp1                = cp1;
+                    old_edge.cp2                = cp2;
+                    old_edge.end_idx            = end_point_idx;
+                    old_edge.following_edge_idx = following_edge_idx;
+
+                    // Move on to the next edge
+                    remaining_t                 *= 1.0-t;
+                    remaining_edge              = new_remaining_edge;
+                    last_point_idx              = end_point_idx;
+                }
+
+                // Deal with the rest of the collisions
+                for (t, end_point_idx) in collisions {
+                    // Subdivide the remaining edge
+                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t * remaining_t);
+                    let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
+                    let (cp1, cp2)              = next_edge.control_points();
+
+                    // Add the new edge to the previous point
+                    let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
+                    self.points[last_point_idx].forward_edges.push(new_edge);
+
+                    // Move on to the next edge
+                    remaining_t                 *= 1.0-t;
+                    remaining_edge              = new_remaining_edge;
+                    last_point_idx              = end_point_idx;
+                }
+
+                // Provided there was at least one collision (ie, not just one at t=0), add the final edge
+                if last_point_idx != point_idx {
+                    // This edge ends where the original edge ended
+                    let end_point_idx       = final_point_idx;
+                    let following_edge_idx  = final_following_edge_idx;
+                    let (cp1, cp2)          = remaining_edge.control_points();
+
+                    // Add to the final point
+                    let final_edge          =  GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
+                    self.points[last_point_idx].forward_edges.push(final_edge);
+                }
+            }
+        }
 
         // Finish up by checking that we haven't broken consistency
         self.recalculate_reverse_connections();
         self.remove_all_very_short_edges();
         self.combine_overlapping_points(accuracy);
         self.check_following_edge_consistency();
-        unimplemented!()
     }
 
     ///
