@@ -85,9 +85,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                             // Remove any pairs of collisions that are too close together
                             remove_and_round_close_collisions(&mut edge_collisions, &src_curve, &tgt_curve);
 
-                            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another)
+                            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another).
+                            // For cases where we get a collision at the end of an edge, wait for the one at the beginning of the next one
                             let edge_collisions = edge_collisions.into_iter()
-                                .filter(|(src_t, tgt_t)| !((Self::t_is_one(*src_t) || Self::t_is_zero(*src_t)) && (Self::t_is_one(*tgt_t) || Self::t_is_zero(*tgt_t))))
+                                .filter(|(src_t, tgt_t)| !(Self::t_is_one(*src_t) || Self::t_is_one(*tgt_t) || (Self::t_is_zero(*src_t) && Self::t_is_zero(*tgt_t))))
                                 .map(|(src_t, tgt_t)| {
                                     Collision {
                                         edge_1:     src_curve_ref,
