@@ -52,9 +52,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
                 kind).unwrap();
             write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />\n", end_point.x(), end_point.y()).unwrap();
 
-            /*
             write!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>\n", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index).unwrap();
-            */
 
             index += 1;
         }
