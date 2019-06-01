@@ -11,7 +11,7 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     /// Creates a new graph path edge
     /// 
     #[inline]
-    fn new(kind: GraphPathEdgeKind, (cp1, cp2): (Point, Point), end_idx: usize, label: Label, following_edge_idx: usize) -> GraphPathEdge<Point, Label> {
+    pub (crate) fn new(kind: GraphPathEdgeKind, (cp1, cp2): (Point, Point), end_idx: usize, label: Label, following_edge_idx: usize) -> GraphPathEdge<Point, Label> {
         GraphPathEdge {
             label, kind, cp1, cp2, end_idx, following_edge_idx, bbox: RefCell::new(None)
         }
@@ -21,7 +21,7 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     /// Updates the control points of this edge
     /// 
     #[inline]
-    fn set_control_points(&mut self, (cp1, cp2): (Point, Point), end_idx: usize, next_edge_idx: usize) {
+    pub (crate) fn set_control_points(&mut self, (cp1, cp2): (Point, Point), end_idx: usize, next_edge_idx: usize) {
         self.cp1                = cp1;
         self.cp2                = cp2;
         self.end_idx            = end_idx;
@@ -32,7 +32,7 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     /// Invalidates the cache for this edge
     ///
     #[inline]
-    fn invalidate_cache(&self) {
+    pub (crate) fn invalidate_cache(&self) {
         (*self.bbox.borrow_mut()) = None;
     }
 }
