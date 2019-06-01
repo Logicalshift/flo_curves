@@ -14,7 +14,7 @@ use std::collections::HashMap;
 ///
 /// Struct describing a collision between two edges
 ///
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Collision {
     /// The first edge in the collision
     edge_1: GraphEdgeRef,
@@ -69,7 +69,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     for tgt_idx in collide_to.clone() {
                         for tgt_edge_idx in 0..self.points[tgt_idx].forward_edges.len() {
                             // Avoid colliding the same edge against itself
-                            if src_idx == tgt_idx && src_edge_idx == tgt_edge_idx { continue; }
+                            if src_idx == tgt_idx && src_edge_idx >= tgt_edge_idx { continue; }
 
                             // Avoid trying to collide two curves whose bounding boxes do not overlap
                             let tgt_curve_ref   = GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false };
