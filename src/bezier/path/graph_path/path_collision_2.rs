@@ -1,4 +1,4 @@
-use super::{GraphPath, GraphEdge, GraphEdgeRef};
+use super::{GraphPath, GraphEdge, GraphEdgeRef, GraphPathPoint};
 use super::super::super::curve::*;
 use super::super::super::intersection::*;
 use super::super::super::super::geo::*;
@@ -125,6 +125,37 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) {
         // Find all of the collision points
         let all_collisions = self.find_collisions(collide_from, collide_to, accuracy);
+
+        // Create new points for each collision
+        let mut collision_points = vec![];
+        collision_points.reserve(all_collisions.len());
+
+        for collision in all_collisions.iter() {
+            // Determine the index of the point where this collision occurs is
+            let point_idx = if Self::t_is_zero(collision.edge_1_t) {
+                // Re-use the existing start point for edge1
+                collision.edge_1.start_idx
+            } else if Self::t_is_zero(collision.edge_2_t) {
+                // Re-use the existing start point for edge2
+                collision.edge_2.start_idx
+            } else {
+                // Create a new point
+                let edge            = self.get_edge(collision.edge_1);
+                let new_point_pos   = edge.point_at_pos(collision.edge_1_t);
+                let new_point_idx   = self.points.len();
+
+                self.points.push(GraphPathPoint {
+                    position:       new_point_pos,
+                    forward_edges:  smallvec![],
+                    connected_from: smallvec![]
+                });
+
+                new_point_idx
+            };
+
+            // Store in the list of collision points
+            collision_points.push((collision, point_idx));
+        }
 
         unimplemented!()
     }
