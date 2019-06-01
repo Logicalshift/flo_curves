@@ -215,6 +215,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Skip edges with no collisions
                 if collisions.len() == 0 { continue; }
 
+                self.check_following_edge_consistency();
+
                 // Create a copy of the edge. Our future edges will all have the same kind and label as the edge that's being divided
                 let edge    = self.get_edge(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false });
                 let kind    = edge.kind();
@@ -297,9 +299,12 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
 
         // Finish up by checking that we haven't broken consistency
+        self.check_following_edge_consistency();
+
         self.recalculate_reverse_connections();
         self.remove_all_very_short_edges();
         self.combine_overlapping_points(accuracy);
+
         self.check_following_edge_consistency();
     }
 
