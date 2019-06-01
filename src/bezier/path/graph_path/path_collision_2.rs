@@ -89,6 +89,20 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                                         edge_1_t:   src_t,
                                         edge_2_t:   tgt_t
                                     }
+                                })
+                                .map(|mut collision| {
+                                    // If the collision is at the end of the edge, move it to the start of the following edge
+                                    if Self::t_is_one(collision.edge_1_t) {
+                                        collision.edge_1    = self.following_edge_ref(collision.edge_1);
+                                        collision.edge_1_t  = 0.0;
+                                    }
+
+                                    if Self::t_is_one(collision.edge_2_t) {
+                                        collision.edge_2    = self.following_edge_ref(collision.edge_2);
+                                        collision.edge_2_t  = 0.0;
+                                    }
+
+                                    collision
                                 });
 
                             // Add to the results
