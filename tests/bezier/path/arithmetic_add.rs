@@ -269,6 +269,28 @@ fn remove_interior_points_basic() {
 }
 
 #[test]
+fn self_collide_is_stable() {
+    let with_interior_point = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(2.0, 2.0))
+        .line_to(Coord2(4.0, 2.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    let mut graph_path      = GraphPath::from_path(&with_interior_point, ());
+
+    graph_path.self_collide(0.1);
+    let initial_num_points  = graph_path.num_points();
+    let initial_num_edges   = graph_path.all_edges().count();
+
+    graph_path.self_collide(0.1);
+    assert!(graph_path.all_edges().count() == initial_num_edges);
+    assert!(graph_path.num_points() == initial_num_points);
+}
+
+#[test]
 fn rectangle_add_graph_path() {
     // Two rectangles
     let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
