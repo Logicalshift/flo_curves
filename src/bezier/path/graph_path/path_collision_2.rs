@@ -214,7 +214,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Skip edges with no collisions
                 if collisions.len() == 0 { continue; }
 
-                // Create a copy of the edge
+                // Create a copy of the edge. Our future edges will all have the same kind and label as the edge that's being divided
                 let edge    = self.get_edge(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false });
                 let kind    = edge.kind();
                 let label   = edge.label();
@@ -256,6 +256,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     old_edge.cp2                = cp2;
                     old_edge.end_idx            = end_point_idx;
                     old_edge.following_edge_idx = following_edge_idx;
+                    old_edge.invalidate_cache();
 
                     // Move on to the next edge
                     remaining_t                 *= 1.0-t;
