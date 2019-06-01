@@ -10,6 +10,7 @@ use std::ops::Range;
 ///
 /// Struct describing a collision between two edges
 ///
+#[derive(Clone, Copy)]
 struct Collision {
     /// The first edge in the collision
     edge_1: GraphEdgeRef,
@@ -117,20 +118,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
-    /// Searches two ranges of points in this object and detects collisions between them, subdividing the edges
-    /// and creating branch points at the appropriate places.
-    /// 
-    /// collide_from must indicate indices lower than collide_to
-    /// 
-    pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) {
-        // Find all of the collision points
-        let all_collisions = self.find_collisions(collide_from, collide_to, accuracy);
-
+    /// Adds any new points that will be required to divide the edges with the specified set of collisions
+    ///
+    fn create_collision_points(&mut self, collisions: Vec<Collision>) -> Vec<(Collision, usize)> {
         // Create new points for each collision
         let mut collision_points = vec![];
-        collision_points.reserve(all_collisions.len());
+        collision_points.reserve(collisions.len());
 
-        for collision in all_collisions.iter() {
+        for collision in collisions.into_iter() {
             // Determine the index of the point where this collision occurs is
             let point_idx = if Self::t_is_zero(collision.edge_1_t) {
                 // Re-use the existing start point for edge1
@@ -157,6 +152,55 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             collision_points.push((collision, point_idx));
         }
 
+        collision_points
+    }
+
+    ///
+    /// Given a list of collisions and the point where they end, organizes them by edge
+    /// 
+    /// Return type is a vector of edges for each point, where each edge is a list of collisions, as 't' value on the edge and the
+    /// index of the end point
+    ///
+    fn organize_collisions_by_edge(&self, collisions: Vec<(Collision, usize)>) -> Vec<Option<SmallVec<[SmallVec<[(f64, usize); 2]>; 2]>>> {
+        // Initially there are no collisions for any point
+        let mut points: Vec<Option<SmallVec<[SmallVec<[(f64, usize); 2]>; 2]>>> = vec![None; self.num_points()];
+
+        // Iterate through the collisions and store them per edge. Every collision affects two edges
+        for (collision, end_point_idx) in collisions.iter() {
+            // First edge
+            let point   = points[collision.edge_1.start_idx].get_or_insert_with(|| smallvec![smallvec![]; self.points[collision.edge_1.start_idx].forward_edges.len()]);
+            let edge    = &mut point[collision.edge_1.edge_idx];
+
+            edge.push((collision.edge_1_t, *end_point_idx));
+
+            // Second edge
+            let point   = points[collision.edge_2.start_idx].get_or_insert_with(|| smallvec![smallvec![]; self.points[collision.edge_2.start_idx].forward_edges.len()]);
+            let edge    = &mut point[collision.edge_2.edge_idx];
+
+            edge.push((collision.edge_2_t, *end_point_idx));
+        }
+
+        points
+    }
+
+    ///
+    /// Searches two ranges of points in this object and detects collisions between them, subdividing the edges
+    /// and creating branch points at the appropriate places.
+    /// 
+    /// collide_from must indicate indices lower than collide_to
+    /// 
+    pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) {
+        // Find all of the collision points
+        let all_collisions      = self.find_collisions(collide_from, collide_to, accuracy);
+
+        // Add in any extra points that are required by the collisions we found
+        let all_collisions      = self.create_collision_points(all_collisions);
+
+        // Organize the collisions by edge
+        let collisions_by_edge  = self.organize_collisions_by_edge(all_collisions);
+
+        // Finish up by checking that we haven't broken consistency
+        self.check_following_edge_consistency();
         unimplemented!()
     }
 
