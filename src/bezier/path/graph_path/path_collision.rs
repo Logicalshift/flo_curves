@@ -137,6 +137,18 @@ impl CollisionList {
 }
 
 impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
+    /// 
+    /// True if the t value is effectively at the start of the curve
+    /// 
+    #[inline]
+    fn t_is_zero(t: f64) -> bool { t <= 0.0 }
+
+    ///
+    /// True if the t value is effective at the end of the curve
+    /// 
+    #[inline]
+    fn t_is_one(t: f64) -> bool { t >= 1.0 }
+
     ///
     /// Changes every edge that ends at old_point_idx to end at new_point_idx instead
     /// 
