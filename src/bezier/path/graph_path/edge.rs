@@ -18,17 +18,6 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     }
 
     ///
-    /// Updates the control points of this edge
-    /// 
-    #[inline]
-    pub (crate) fn set_control_points(&mut self, (cp1, cp2): (Point, Point), end_idx: usize, next_edge_idx: usize) {
-        self.cp1                = cp1;
-        self.cp2                = cp2;
-        self.end_idx            = end_idx;
-        self.following_edge_idx = next_edge_idx;
-    }
-
-    ///
     /// Invalidates the cache for this edge
     ///
     #[inline]
