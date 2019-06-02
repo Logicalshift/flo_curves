@@ -8,132 +8,25 @@ use smallvec::*;
 
 use std::mem;
 use std::ops::Range;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 ///
-/// Struct representing a collision in the graph path
+/// Struct describing a collision between two edges
 ///
+#[derive(Clone, Copy, Debug)]
 struct Collision {
-    idx:    usize,
-    edge:   usize,
-    t:      f64
-}
+    /// The first edge in the collision
+    edge_1: GraphEdgeRef,
 
-///
-/// Struct representing a set of collisions in the graph path
-///
-struct CollisionList {
-    /// List of collisions on the source and target side
-    collisions: Vec<(Collision, Collision)>
-}
+    /// The second edge in the collision
+    edge_2: GraphEdgeRef,
 
-impl CollisionList {
-    ///
-    /// Creates a new list of collisions
-    ///
-    fn new() -> CollisionList {
-        CollisionList { 
-            collisions: vec![]
-        }
-    }
+    /// The location on edge1 of the collision
+    edge_1_t: f64,
 
-    ///
-    /// Adds a collision to this list
-    ///
-    fn push(&mut self, collision: (Collision, Collision)) {
-        self.collisions.push(collision);
-    }
-
-    ///
-    /// Removes the last collision from this list
-    ///
-    fn pop(&mut self) -> Option<(Collision, Collision)> {
-        self.collisions.pop()
-    }
-
-    ///
-    /// For all remaining collisions, finds any that use the specified edge and change them so they are subdivided at 
-    /// the specified t value
-    ///
-    fn move_after_midpoint<Point, Label>(&mut self, graph: &mut GraphPath<Point, Label>, midpoint: usize, point_idx: usize, edge_idx: usize, t: f64, new_edge_idx: usize) {
-        // Usually new_mid_point is a new point, but it can be an existing point in the event the collision was at an existing point on the path
-        debug_assert!(midpoint < graph.points.len());
-        debug_assert!(new_edge_idx < graph.points[midpoint].forward_edges.len());
-
-        // TODO(?): this just iterates through the collisions, not clear if this will always be fast enough
-        for (ref mut collision_src, ref mut collision_tgt) in self.collisions.iter_mut() {
-            // If the src edge was divided...
-            if collision_src.idx == point_idx && collision_src.edge == edge_idx {
-                if collision_src.t < t {
-                    // Before the midpoint. Edge is the same, just needs to be modified.
-                    collision_src.t /= t;
-                } else {
-                    debug_assert!(graph.points[midpoint].forward_edges.len() > 0);
-
-                    // After the midpoint. Edge needs to be adjusted.
-                    collision_src.t     = (collision_src.t - t) / (1.0-t);
-                    collision_src.idx   = midpoint;
-                    collision_src.edge  = new_edge_idx;
-                }
-            }
-
-            // If the target edge was divided...
-            if collision_tgt.idx == point_idx && collision_tgt.edge == edge_idx {
-                if collision_tgt.t < t {
-                    // Before the midpoint. Edge is the same, just needs to be modified.
-                    collision_tgt.t /= t;
-                } else {
-                    debug_assert!(graph.points[midpoint].forward_edges.len() > 1);
-
-                    // After the midpoint. Edge needs to be adjusted.
-                    collision_tgt.t     = (collision_tgt.t - t) / (1.0-t);
-                    collision_tgt.idx   = midpoint;
-                    collision_tgt.edge  = new_edge_idx;
-                }
-            }
-        }
-    }
-
-    ///
-    /// Takes all the collisions that were originally on `original_point_idx` and changes them to `new_point_idx`.
-    /// The edges should still be in sequence, starting at `edge_idx_offset` in the new point
-    ///
-    fn move_all_edges(&mut self, original_point_idx: usize, new_point_idx: usize, edge_idx_offset: usize) {
-        if original_point_idx == new_point_idx {
-            // Edges will be unchanged
-            return;
-        }
-
-        for (ref mut collision_src, ref mut collision_tgt) in self.collisions.iter_mut() {
-            if collision_src.idx == original_point_idx {
-                collision_src.idx   = new_point_idx;
-                collision_src.edge  += edge_idx_offset;
-            }
-            if collision_tgt.idx == original_point_idx {
-                collision_tgt.idx   = new_point_idx;
-                collision_tgt.edge  += edge_idx_offset;
-            }
-        }
-    }
-
-    ///
-    /// Checks consistency of the points and edges against a graph path
-    ///
-    #[cfg(debug_assertions)]
-    fn check_consistency<Point, Label>(&self, graph: &GraphPath<Point, Label>) {
-        for (src, tgt) in self.collisions.iter() {
-            debug_assert!(src.idx < graph.points.len());
-            debug_assert!(src.edge < graph.points[src.idx].forward_edges.len());
-
-            debug_assert!(tgt.idx < graph.points.len());
-            debug_assert!(tgt.edge < graph.points[tgt.idx].forward_edges.len());
-        }
-    }
-
-    #[cfg(not(debug_assertions))]
-    #[inline]
-    fn check_consistency<Point, Label>(&self, _graph: &GraphPath<Point, Label>) {
-    }
+    /// The location on edge2 of the collision
+    edge_2_t: f64
 }
 
 impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
@@ -150,182 +43,150 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     fn t_is_one(t: f64) -> bool { t >= 1.0 }
 
     ///
-    /// Changes every edge that ends at old_point_idx to end at new_point_idx instead
-    /// 
-    /// Also moves every edge leaving old_point_idx so that it leaves new_point_idx instead
+    /// Finds any collisions that might exist between two ranges of points
     ///
-    fn change_all_edges_ending_at_point(&mut self, old_point_idx: usize, new_point_idx: usize, collisions: &mut CollisionList) {
-        // Nothing to do if the indexes are the same
-        if old_point_idx == new_point_idx { return; }
+    fn find_collisions(&self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) -> Vec<Collision> {
+        if collide_to.start < collide_from.start {
+            // collide_from must always start at a lower index
+            self.find_collisions(collide_to, collide_from, accuracy)
+        } else {
+            // Start creating the list of collisions
+            let mut collisions = vec![];
 
-        self.check_following_edge_consistency();
+            // Iterate through all of the collide_from points
+            for src_idx in collide_from {
+                // Do not re-check edges that we've already visited
+                let collide_to      = (collide_to.start.max(src_idx))..collide_to.end;
 
-        // Edges pointing at old_point_idx will be added to new_point_idx starting at this point
-        let edge_idx_offset = self.points[new_point_idx].forward_edges.len();
+                // Search all of the edges at this index
+                for src_edge_idx in 0..self.points[src_idx].forward_edges.len() {
+                    // We can quickly eliminate edges that are outside the bounds
+                    let src_curve_ref   = GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false };
+                    let src_curve       = GraphEdge::new(self, src_curve_ref);
+                    let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
 
-        // Search all of the points to find edges ending at old_point_idx and update them
-        for point_idx in 0..(self.points.len()) {
-            for edge_idx in 0..(self.points[point_idx].forward_edges.len()) {
-                let edge = &mut self.points[point_idx].forward_edges[edge_idx];
-                if edge.end_idx == old_point_idx {
-                    // Move the edge to end at the new point and have a suitable following edge index
-                    edge.end_idx            = new_point_idx;
-                    edge.following_edge_idx += edge_idx_offset;
+                    // Collide against the target edges
+                    for tgt_idx in collide_to.clone() {
+                        for tgt_edge_idx in 0..self.points[tgt_idx].forward_edges.len() {
+                            // Avoid colliding the same edge against itself
+                            if src_idx == tgt_idx && src_edge_idx >= tgt_edge_idx { continue; }
+
+                            // Avoid trying to collide two curves whose bounding boxes do not overlap
+                            let tgt_curve_ref   = GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false };
+                            let tgt_curve       = GraphEdge::new(self, tgt_curve_ref);
+                            
+                            let tgt_edge_bounds = tgt_curve.fast_bounding_box::<Bounds<_>>();
+                            if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
+
+                            // Find any collisions between the two edges (to the required accuracy)
+                            let mut edge_collisions = curve_intersects_curve_clip(&src_curve, &tgt_curve, accuracy);
+                            if edge_collisions.len() == 0 { continue; }
+
+                            // Remove any pairs of collisions that are too close together
+                            remove_and_round_close_collisions(&mut edge_collisions, &src_curve, &tgt_curve);
+
+                            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another).
+                            // For cases where we get a collision at the end of an edge, wait for the one at the beginning of the next one
+                            let edge_collisions = edge_collisions.into_iter()
+                                .filter(|(src_t, tgt_t)| !(Self::t_is_one(*src_t) || Self::t_is_one(*tgt_t) || (Self::t_is_zero(*src_t) && Self::t_is_zero(*tgt_t))))
+                                .map(|(src_t, tgt_t)| {
+                                    Collision {
+                                        edge_1:     src_curve_ref,
+                                        edge_2:     tgt_curve_ref,
+                                        edge_1_t:   src_t,
+                                        edge_2_t:   tgt_t
+                                    }
+                                })
+                                .map(|mut collision| {
+                                    // If the collision is at the end of the edge, move it to the start of the following edge
+                                    if Self::t_is_one(collision.edge_1_t) {
+                                        collision.edge_1    = self.following_edge_ref(collision.edge_1);
+                                        collision.edge_1_t  = 0.0;
+                                    }
+
+                                    if Self::t_is_one(collision.edge_2_t) {
+                                        collision.edge_2    = self.following_edge_ref(collision.edge_2);
+                                        collision.edge_2_t  = 0.0;
+                                    }
+
+                                    collision
+                                });
+
+                            // Add to the results
+                            collisions.extend(edge_collisions);
+                        }
+                    }
                 }
             }
+
+            collisions
         }
-
-        // Take the old edges and append them to the new point
-        let mut old_point_edges = smallvec![];
-        mem::swap(&mut self.points[old_point_idx].forward_edges, &mut old_point_edges);
-
-        self.points[new_point_idx].forward_edges.extend(old_point_edges);
-
-        // Move all of the collisions
-        collisions.move_all_edges(old_point_idx, new_point_idx, edge_idx_offset);
-
-        collisions.check_consistency(self);
-        self.check_following_edge_consistency();
     }
 
     ///
-    /// Joins two edges at an intersection, returning the index of the intersection point
+    /// Adds any new points that will be required to divide the edges with the specified set of collisions
+    ///
+    fn create_collision_points(&mut self, collisions: Vec<Collision>) -> Vec<(Collision, usize)> {
+        // Create new points for each collision
+        let mut collision_points = vec![];
+        collision_points.reserve(collisions.len());
+
+        for collision in collisions.into_iter() {
+            // Determine the index of the point where this collision occurs is
+            let point_idx = if Self::t_is_zero(collision.edge_1_t) {
+                // Re-use the existing start point for edge1
+                collision.edge_1.start_idx
+            } else if Self::t_is_zero(collision.edge_2_t) {
+                // Re-use the existing start point for edge2
+                collision.edge_2.start_idx
+            } else {
+                // Create a new point
+                let edge            = self.get_edge(collision.edge_1);
+                let new_point_pos   = edge.point_at_pos(collision.edge_1_t);
+                let new_point_idx   = self.points.len();
+
+                self.points.push(GraphPathPoint {
+                    position:       new_point_pos,
+                    forward_edges:  smallvec![],
+                    connected_from: smallvec![]
+                });
+
+                new_point_idx
+            };
+
+            // Store in the list of collision points
+            collision_points.push((collision, point_idx));
+        }
+
+        collision_points
+    }
+
+    ///
+    /// Given a list of collisions and the point where they end, organizes them by edge
     /// 
-    /// For t=0 or 1 the intersection point may be one of the ends of the edges, otherwise
-    /// this will divide the existing edges so that they both meet at the specified mid-point.
-    /// 
-    /// Note that the case where t=1 is the same as the case where t=0 on a following edge.
-    /// The split algorithm is simpler if only the t=0 case is considered.
-    /// 
-    #[inline]
-    fn join_edges_at_intersection(&mut self, edge1: (usize, usize), edge2: (usize, usize), t1: f64, t2: f64, collisions: &mut CollisionList) -> Option<usize> {
-        // Do nothing if the edges are the same (they're effectively already joined)
-        if edge1 == edge2 { return None; }
+    /// Return type is a vector of edges for each point, where each edge is a list of collisions, as 't' value on the edge and the
+    /// index of the end point
+    ///
+    fn organize_collisions_by_edge(&self, collisions: Vec<(Collision, usize)>) -> Vec<Option<SmallVec<[SmallVec<[(f64, usize); 2]>; 2]>>> {
+        // Initially there are no collisions for any point
+        let mut points: Vec<Option<SmallVec<[SmallVec<[(f64, usize); 2]>; 2]>>> = vec![None; self.num_points()];
 
-        // Get the edge indexes
-        let (edge1_idx, edge1_edge_idx) = edge1;
-        let (edge2_idx, edge2_edge_idx) = edge2;
+        // Iterate through the collisions and store them per edge. Every collision affects two edges
+        for (collision, end_point_idx) in collisions.iter() {
+            // First edge
+            let point   = points[collision.edge_1.start_idx].get_or_insert_with(|| smallvec![smallvec![]; self.points[collision.edge_1.start_idx].forward_edges.len()]);
+            let edge    = &mut point[collision.edge_1.edge_idx];
 
-        // Create representations of the two edges
-        let edge1 = Curve::from_curve(&GraphEdge::new(self, GraphEdgeRef { start_idx: edge1_idx, edge_idx: edge1_edge_idx, reverse: false }));
-        let edge2 = Curve::from_curve(&GraphEdge::new(self, GraphEdgeRef { start_idx: edge2_idx, edge_idx: edge2_edge_idx, reverse: false }));
+            edge.push((collision.edge_1_t, *end_point_idx));
 
-        // If we're very close to the start or end, round to the start/end
-        let p1  = edge1.point_at_pos(t1);
-        let p2  = edge2.point_at_pos(t2);
+            // Second edge
+            let point   = points[collision.edge_2.start_idx].get_or_insert_with(|| smallvec![smallvec![]; self.points[collision.edge_2.start_idx].forward_edges.len()]);
+            let edge    = &mut point[collision.edge_2.edge_idx];
 
-        let t1  = if p1.is_near_to(&edge1.start_point(), SMALL_DISTANCE) {
-            0.0
-        } else if p1.is_near_to(&edge1.end_point(), SMALL_DISTANCE) {
-            1.0
-        } else {
-            t1
-        };
-
-        let t2  = if p2.is_near_to(&edge2.start_point(), SMALL_DISTANCE) {
-            0.0
-        } else if p2.is_near_to(&edge2.end_point(), SMALL_DISTANCE) {
-            1.0
-        } else {
-            t2
-        };
-
-        // Create or choose a point to collide at
-        // (If t1 or t2 is 0 or 1 we collide on the edge1 or edge2 points, otherwise we create a new point to collide at)
-        let collision_point = if Self::t_is_zero(t1) {
-            edge1_idx
-        } else if Self::t_is_one(t1) {
-            self.points[edge1_idx].forward_edges[edge1_edge_idx].end_idx
-        } else if Self::t_is_zero(t2) {
-            edge2_idx
-        } else if Self::t_is_one(t2) {
-            self.points[edge2_idx].forward_edges[edge2_edge_idx].end_idx
-        } else {
-            // Point is a mid-point of both lines
-
-            // Work out where the mid-point is (use edge1 for this always: as this is supposed to be an intersection this shouldn't matter)
-            // Note that if we use de Casteljau's algorithm here we get a subdivision for 'free' but organizing the code around it is painful
-            let mid_point = edge1.point_at_pos(t1);
-
-            // Add to this list of points
-            let mid_point_idx = self.points.len();
-            self.points.push(GraphPathPoint::new(mid_point, smallvec![], smallvec![]));
-
-            // New point is the mid-point
-            mid_point_idx
-        };
-
-        // Subdivide the edges
-        let (edge1a, edge1b) = edge1.subdivide::<Curve<_>>(t1);
-        let (edge2a, edge2b) = edge2.subdivide::<Curve<_>>(t2);
-
-        // The new edges have the same kinds as their ancestors
-        let edge1_kind          = self.points[edge1_idx].forward_edges[edge1_edge_idx].kind;
-        let edge2_kind          = self.points[edge2_idx].forward_edges[edge2_edge_idx].kind;
-        let edge1_label         = self.points[edge1_idx].forward_edges[edge1_edge_idx].label;
-        let edge2_label         = self.points[edge2_idx].forward_edges[edge2_edge_idx].label;
-        let edge1_end_idx       = self.points[edge1_idx].forward_edges[edge1_edge_idx].end_idx;
-        let edge2_end_idx       = self.points[edge2_idx].forward_edges[edge2_edge_idx].end_idx;
-        let edge1_following_idx = self.points[edge1_idx].forward_edges[edge1_edge_idx].following_edge_idx;
-        let edge2_following_idx = self.points[edge2_idx].forward_edges[edge2_edge_idx].following_edge_idx;
-
-        // Invalidate the cached bounding boxes
-        self.points[edge1_idx].forward_edges[edge1_edge_idx].invalidate_cache();
-        self.points[edge2_idx].forward_edges[edge2_edge_idx].invalidate_cache();
-
-        // List of edges we've added to the collision point (in the form of the edge that's divided, the position it was divided at and the index on the collision point)
-        let mut new_edges       = vec![];
-
-        // The 'b' edges both extend from our mid-point to the existing end point (provided t < 1.0)
-        if !Self::t_is_one(t1) && !Self::t_is_zero(t1) {
-            // If t1 is zero or one, we're not subdividing edge1
-            // If zero, we're just adding the existing edge again to the collision point (so we do nothing)
-            let new_following_idx = self.points[collision_point].forward_edges.len();
-
-            new_edges.push((edge1_idx, edge1_edge_idx, t1, new_following_idx));
-            self.points[collision_point].forward_edges.push(GraphPathEdge::new(edge1_kind, edge1b.control_points(), edge1_end_idx, edge1_label, edge1_following_idx));
-
-            // Update edge1
-            self.points[edge1_idx].forward_edges[edge1_edge_idx].set_control_points(edge1a.control_points(), collision_point, new_following_idx);
-
-            // If t1 is zero, we're not subdividing edge1
-            // If t1 is one this should leave the edge alone
-            // If t1 is not one, then the previous step will have added the remaining part of
-            // edge1 to the collision point
+            edge.push((collision.edge_2_t, *end_point_idx));
         }
 
-        self.check_following_edge_consistency();
-        collisions.check_consistency(self);
-
-        if !Self::t_is_one(t2) && !Self::t_is_zero(t2) {
-            // If t2 is zero or one, we're not subdividing edge2
-            // If zero, we're just adding the existing edge again to the collision point (so we do nothing)
-            let new_following_idx = self.points[collision_point].forward_edges.len();
-
-            new_edges.push((edge2_idx, edge2_edge_idx, t2, new_following_idx));
-            self.points[collision_point].forward_edges.push(GraphPathEdge::new(edge2_kind, edge2b.control_points(), edge2_end_idx, edge2_label, edge2_following_idx));
-
-            // Update edge2
-            self.points[edge2_idx].forward_edges[edge2_edge_idx].set_control_points(edge2a.control_points(), collision_point, new_following_idx);
-        }
-
-        // The source and target edges will be divided at the midpoint: update any future collisions to take account of that
-        for (point_idx, edge_idx, t, new_edge_idx) in new_edges {
-            collisions.move_after_midpoint(self, collision_point, point_idx, edge_idx, t, new_edge_idx);
-        }
-
-        collisions.check_consistency(self);
-        self.check_following_edge_consistency();
-
-        if Self::t_is_one(t2) {
-            // If t2 is one, then all edges ending at edge2_end_idx should be redirected to the collision point
-            self.change_all_edges_ending_at_point(edge2_end_idx, collision_point, collisions);
-        } else if Self::t_is_zero(t2) {
-            // If t2 is zero, then all edges ending at edge2_idx should be redirected to the collision point
-            self.change_all_edges_ending_at_point(edge2_idx, collision_point, collisions);
-        }
-
-        Some(collision_point)
+        points
     }
 
     ///
@@ -335,121 +196,127 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// collide_from must indicate indices lower than collide_to
     /// 
     pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) {
-        // Vector of all of the collisions found in the graph
-        let mut collisions = CollisionList::new();
+        // Find all of the collision points
+        let all_collisions      = self.find_collisions(collide_from, collide_to, accuracy);
 
-        // TODO: for complicated paths, maybe some pre-processing for bounding boxes to eliminate trivial cases would be beneficial for performance
+        // Add in any extra points that are required by the collisions we found
+        let all_collisions      = self.create_collision_points(all_collisions);
 
-        // Iterate through the edges in the 'from' range
-        for src_idx in collide_from {
-            for src_edge_idx in 0..self.points[src_idx].forward_edges.len() {
-                // Only visit target points that have not already been visited as a source point (assume that collide_to is always a higher range than collide_from)
-                let tgt_start       = collide_to.start.max(src_idx+1);
-                let tgt_end         = collide_to.end.max(src_idx+1);
-                let collide_to      = tgt_start..tgt_end;
+        // Organize the collisions by edge
+        let collisions_by_edge  = self.organize_collisions_by_edge(all_collisions);
 
-                let src_curve       = GraphEdge::new(self, GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false });
-                let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
+        // Limit to just points with collisions
+        let collisions_by_point = collisions_by_edge.into_iter()
+            .enumerate()
+            .filter_map(|(point_idx, collisions)| collisions.map(|collisions| (point_idx, collisions)));
 
-                // Compare to each point in the collide_to range
-                for tgt_idx in collide_to.into_iter() {
-                    for tgt_edge_idx in 0..self.points[tgt_idx].forward_edges.len() {
-                        // Don't collide edges against themselves
-                        if src_idx == tgt_idx && src_edge_idx == tgt_edge_idx { continue; }
+        // Actually divide the edges by collision
+        for (point_idx, edge_collisions) in collisions_by_point {
+            for (edge_idx, mut collisions) in edge_collisions.into_iter().enumerate() {
+                // Skip edges with no collisions
+                if collisions.len() == 0 { continue; }
 
-                        // Create edge objects for each side
-                        let tgt_curve               = GraphEdge::new(self, GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false });
+                self.check_following_edge_consistency();
 
-                        // Quickly reject edges with non-overlapping bounding boxes
-                        let tgt_edge_bounds         = tgt_curve.fast_bounding_box::<Bounds<_>>();
-                        if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
+                // Create a copy of the edge. Our future edges will all have the same kind and label as the edge that's being divided
+                let edge    = self.get_edge(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false });
+                let kind    = edge.kind();
+                let label   = edge.label();
+                let edge    = Curve::from_curve(&edge);
 
-                        // Find the collisions between these two edges
-                        let mut curve_collisions    = curve_intersects_curve_clip(&src_curve, &tgt_curve, accuracy);
-
-                        // Remove any pairs of collisions that are too close together
-                        remove_and_round_close_collisions(&mut curve_collisions, &src_curve, &tgt_curve);
-
-                        // The are the points we need to divide the existing edges at and add branches
-                        let tgt_idx = tgt_idx;
-                        for (src_t, tgt_t) in curve_collisions {
-                            // A collision at t=1 is the same as a collision on t=0 on a following edge
-                            // Edge doesn't actually matter for these (as the ray will collide with all of the following edges)
-                            let (src_idx, src_edge_idx, src_t) = if Self::t_is_one(src_t) {
-                                (self.points[src_idx].forward_edges[src_edge_idx].end_idx, 0, 0.0)
-                            } else {
-                                (src_idx, src_edge_idx, src_t)
-                            };
-
-                            let (tgt_idx, tgt_edge_idx, tgt_t) = if Self::t_is_one(tgt_t) {
-                                (self.points[tgt_idx].forward_edges[tgt_edge_idx].end_idx, 0, 0.0)
-                            } else {
-                                (tgt_idx, tgt_edge_idx, tgt_t)
-                            };
-
-                            debug_assert!(src_idx < self.points.len());
-                            debug_assert!(tgt_idx < self.points.len());
-                            debug_assert!(src_edge_idx < self.points[src_idx].forward_edges.len());
-                            debug_assert!(tgt_edge_idx < self.points[tgt_idx].forward_edges.len());
-
-                            // Add this as a collision
-                            let src = Collision { idx: src_idx, edge: src_edge_idx, t: src_t };
-                            let tgt = Collision { idx: tgt_idx, edge: tgt_edge_idx, t: tgt_t };
-                            collisions.push((src, tgt));
-                        }
+                // Sort collisions by t value
+                collisions.sort_by(|(t1, _end_point_idx1), (t2, _end_point_idx2)| {
+                    if t1 < t2 {
+                        Ordering::Less
+                    } else if t1 > t2 {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Equal
                     }
+                });
+
+                // We'll progressively split bits from the edge
+                let mut remaining_edge          = edge;
+                let mut remaining_t             = 1.0;
+                let final_point_idx             = self.points[point_idx].forward_edges[edge_idx].end_idx;
+                let final_following_edge_idx    = self.points[point_idx].forward_edges[edge_idx].following_edge_idx;
+                let mut last_point_idx          = point_idx;
+
+                // Iterate through the collisions (skipping any at t=0)
+                let mut collisions      = collisions.into_iter()
+                    .filter(|(t, _)| !Self::t_is_zero(*t));
+
+                // First collision is special as we need to edit the existing edge instead of adding a new one
+                if let Some((t, end_point_idx)) = collisions.next() {
+                    // Subdivide the edge
+                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t);
+                    let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
+                    let (cp1, cp2)              = next_edge.control_points();
+
+                    debug_assert!(next_edge.start_point().is_near_to(&self.points[point_idx].position, 0.1));
+                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, 0.1));
+
+                    // Update the control points and end point index
+                    let old_edge                = &mut self.points[point_idx].forward_edges[edge_idx];
+
+                    old_edge.cp1                = cp1;
+                    old_edge.cp2                = cp2;
+                    old_edge.end_idx            = end_point_idx;
+                    old_edge.following_edge_idx = following_edge_idx;
+                    old_edge.invalidate_cache();
+
+                    // Move on to the next edge
+                    remaining_t                 = 1.0-t;
+                    remaining_edge              = new_remaining_edge;
+                    last_point_idx              = end_point_idx;
+                }
+
+                // Deal with the rest of the collisions
+                for (t, end_point_idx) in collisions {
+                    // Subdivide the remaining edge
+                    let t2                      = (t - (1.0-remaining_t))/remaining_t;
+                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t2);
+                    let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
+                    let (cp1, cp2)              = next_edge.control_points();
+
+                    debug_assert!(next_edge.start_point().is_near_to(&self.points[last_point_idx].position, CLOSE_DISTANCE));
+                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
+
+                    // Add the new edge to the previous point
+                    let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
+                    self.points[last_point_idx].forward_edges.push(new_edge);
+
+                    // Move on to the next edge
+                    remaining_t                 = 1.0-t;
+                    remaining_edge              = new_remaining_edge;
+                    last_point_idx              = end_point_idx;
+                }
+
+                // Provided there was at least one collision (ie, not just one at t=0), add the final edge
+                if last_point_idx != point_idx {
+                    // This edge ends where the original edge ended
+                    let end_point_idx       = final_point_idx;
+                    let following_edge_idx  = final_following_edge_idx;
+                    let (cp1, cp2)          = remaining_edge.control_points();
+
+                    debug_assert!(remaining_edge.start_point().is_near_to(&self.points[last_point_idx].position, 0.1));
+                    debug_assert!(remaining_edge.end_point().is_near_to(&self.points[end_point_idx].position, 0.1));
+
+                    // Add to the final point
+                    let final_edge          =  GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
+                    self.points[last_point_idx].forward_edges.push(final_edge);
                 }
             }
         }
 
-        collisions.check_consistency(self);
+        // Finish up by checking that we haven't broken consistency
         self.check_following_edge_consistency();
 
-        // Apply the divisions to the edges
-        while let Some((src, tgt)) = collisions.pop() {
-            // Join the edges
-            let _new_mid_point = self.join_edges_at_intersection((src.idx, src.edge), (tgt.idx, tgt.edge), src.t, tgt.t, &mut collisions);
-            collisions.check_consistency(self);
-
-            self.check_following_edge_consistency();
-        }
-
-        self.check_following_edge_consistency();
-
-        // Recompute the reverse connections
         self.recalculate_reverse_connections();
-
-        // Remove any very short edges that might have been generated during the collision detection
         self.remove_all_very_short_edges();
         self.combine_overlapping_points(accuracy);
+
         self.check_following_edge_consistency();
-    }
-
-    ///
-    /// Checks that the following edges are consistent
-    ///
-    #[cfg(debug_assertions)]
-    pub (crate) fn check_following_edge_consistency(&self) {
-        let mut used_edges = vec![vec![]; self.points.len()];
-
-        for point_idx in 0..(self.points.len()) {
-            let point = &self.points[point_idx];
-
-            for edge_idx in 0..(point.forward_edges.len()) {
-                let edge = &point.forward_edges[edge_idx];
-
-                debug_assert!(edge.end_idx < self.points.len());
-                debug_assert!(edge.following_edge_idx < self.points[edge.end_idx].forward_edges.len());
-                debug_assert!(!used_edges[edge.end_idx].contains(&edge.following_edge_idx));
-
-                used_edges[edge.end_idx].push(edge.following_edge_idx);
-            }
-        }
-    }
-
-    #[cfg(not(debug_assertions))]
-    pub (crate) fn check_following_edge_consistency(&self) {
-
     }
 
     ///
@@ -531,6 +398,33 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
             }
         }
+    }
+
+    ///
+    /// Checks that the following edges are consistent
+    ///
+    #[cfg(debug_assertions)]
+    pub (crate) fn check_following_edge_consistency(&self) {
+        let mut used_edges = vec![vec![]; self.points.len()];
+
+        for point_idx in 0..(self.points.len()) {
+            let point = &self.points[point_idx];
+
+            for edge_idx in 0..(point.forward_edges.len()) {
+                let edge = &point.forward_edges[edge_idx];
+
+                debug_assert!(edge.end_idx < self.points.len());
+                debug_assert!(edge.following_edge_idx < self.points[edge.end_idx].forward_edges.len());
+                debug_assert!(!used_edges[edge.end_idx].contains(&edge.following_edge_idx));
+
+                used_edges[edge.end_idx].push(edge.following_edge_idx);
+            }
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
+    pub (crate) fn check_following_edge_consistency(&self) {
+
     }
 }
 
