@@ -253,6 +253,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
                     let (cp1, cp2)              = next_edge.control_points();
 
+                    debug_assert!(next_edge.start_point().is_near_to(&self.points[point_idx].position, CLOSE_DISTANCE));
+                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
+
                     // Update the control points and end point index
                     let old_edge                = &mut self.points[point_idx].forward_edges[edge_idx];
 
@@ -275,6 +278,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
                     let (cp1, cp2)              = next_edge.control_points();
 
+                    debug_assert!(next_edge.start_point().is_near_to(&self.points[last_point_idx].position, CLOSE_DISTANCE));
+                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
+
                     // Add the new edge to the previous point
                     let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
                     self.points[last_point_idx].forward_edges.push(new_edge);
@@ -291,6 +297,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     let end_point_idx       = final_point_idx;
                     let following_edge_idx  = final_following_edge_idx;
                     let (cp1, cp2)          = remaining_edge.control_points();
+
+                    debug_assert!(remaining_edge.start_point().is_near_to(&self.points[last_point_idx].position, CLOSE_DISTANCE));
+                    debug_assert!(remaining_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
 
                     // Add to the final point
                     let final_edge          =  GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
