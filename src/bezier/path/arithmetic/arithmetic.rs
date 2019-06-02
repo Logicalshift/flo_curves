@@ -7,6 +7,10 @@ use super::super::super::super::geo::*;
 
 use smallvec::*;
 
+use super::super::super::super::debug::*;
+use std::io::Write;
+use std::fs::File;
+
 ///
 /// Winding direction of a particular path
 ///  
@@ -70,6 +74,14 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 let collisions      = self.ray_collisions(&ray);
 
                 // There should always be an even number of collisions on a particular ray cast through a closed shape
+                if collisions.len()&1 != 0 {
+                    let mut ray_fail    = File::create("ray-fail.svg").unwrap();
+
+                    let debug_svg       = graph_path_svg_string(self, vec![ray]);
+                    let svg_header      = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg width=\"100%\" height=\"100%\" viewBox=\"0 0 2000 2000\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:8;\">";
+
+                    write!(ray_fail, "{}\n{}\n</svg>\n", svg_header, debug_svg).unwrap();
+                }
                 debug_assert!((collisions.len()&1) == 0);
 
                 for (collision, curve_t, _line_t, _pos) in collisions {
