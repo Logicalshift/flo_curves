@@ -274,7 +274,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Deal with the rest of the collisions
                 for (t, end_point_idx) in collisions {
                     // Subdivide the remaining edge
-                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t * remaining_t);
+                    let t2                      = (t - (1.0-remaining_t))/remaining_t;
+                    let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t2);
                     let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
                     let (cp1, cp2)              = next_edge.control_points();
 
