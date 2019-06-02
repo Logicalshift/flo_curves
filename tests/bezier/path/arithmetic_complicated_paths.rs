@@ -415,8 +415,6 @@ fn remove_interior_points_complex_3() {
 
     // This path has generated an error that indicates that no result path was generated (unfortunately it seems this version does not produce the error)
     let without_interior_points = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
-    assert!(without_interior_points.len() != 0);
-    assert!(without_interior_points.len() == 1);
 
     // Bug appears to be that not all collisions are generated (so two self-collides in a row will generate more points)
     let mut graph_path = GraphPath::from_path(&path, ());
@@ -436,4 +434,7 @@ fn remove_interior_points_complex_3() {
 
     assert!(graph_path.all_edges().count() == initial_num_edges);
     assert!(graph_path.num_points() == initial_num_points);
+
+    assert!(without_interior_points.len() != 0);
+    assert!(without_interior_points.len() == 1);
 }
