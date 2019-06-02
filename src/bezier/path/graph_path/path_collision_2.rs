@@ -266,7 +266,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     old_edge.invalidate_cache();
 
                     // Move on to the next edge
-                    remaining_t                 *= 1.0-t;
+                    remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
                 }
@@ -287,7 +287,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     self.points[last_point_idx].forward_edges.push(new_edge);
 
                     // Move on to the next edge
-                    remaining_t                 *= 1.0-t;
+                    remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
                 }
