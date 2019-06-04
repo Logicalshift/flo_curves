@@ -1,4 +1,4 @@
-use super::{GraphEdge, GraphPathEdge, GraphPathEdgeKind};
+use super::{GraphPath, GraphEdgeRef, GraphEdge, GraphPathEdge, GraphPathEdgeKind};
 use super::super::super::curve::*;
 use super::super::super::bounds::*;
 use super::super::super::super::geo::*;
@@ -23,6 +23,77 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
     #[inline]
     pub (crate) fn invalidate_cache(&self) {
         (*self.bbox.borrow_mut()) = None;
+    }
+}
+
+impl<'a, Point: 'a, Label: 'a+Copy> GraphEdge<'a, Point, Label> {
+    ///
+    /// Creates a new graph edge (with an edge kind of 'exterior')
+    /// 
+    #[inline]
+    pub (crate) fn new(graph: &'a GraphPath<Point, Label>, edge: GraphEdgeRef) -> GraphEdge<'a, Point, Label> {
+        debug_assert!(edge.start_idx < graph.points.len());
+        debug_assert!(edge.edge_idx < graph.points[edge.start_idx].forward_edges.len());
+
+        GraphEdge {
+            graph:  graph,
+            edge:   edge
+        }
+    }
+
+    ///
+    /// Returns true if this edge is going backwards around the path
+    ///
+    #[inline]
+    pub fn is_reversed(&self) -> bool {
+        self.edge.reverse
+    }
+
+    ///
+    /// Retrieves a reference to the edge in the graph
+    ///
+    #[inline]
+    fn edge<'b>(&'b self) -> &'b GraphPathEdge<Point, Label> {
+        &self.graph.points[self.edge.start_idx].forward_edges[self.edge.edge_idx]
+    }
+
+    ///
+    /// Returns if this is an interior or an exterior edge in the path
+    /// 
+    pub fn kind(&self) -> GraphPathEdgeKind {
+        self.edge().kind
+    }
+
+    ///
+    /// Returns the index of the start point of this edge
+    /// 
+    #[inline]
+    pub fn start_point_index(&self) -> usize {
+        if self.edge.reverse {
+            self.edge().end_idx
+        } else {
+            self.edge.start_idx
+        }
+    }
+
+    ///
+    /// Returns the index of the end point of this edge
+    /// 
+    #[inline]
+    pub fn end_point_index(&self) -> usize {
+        if self.edge.reverse {
+            self.edge.start_idx
+        } else {
+            self.edge().end_idx
+        }
+    }
+
+    ///
+    /// The label attached to this edge
+    ///
+    #[inline]
+    pub fn label(&self) -> Label {
+        self.edge().label
     }
 }
 
