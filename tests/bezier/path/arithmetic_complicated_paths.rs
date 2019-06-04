@@ -423,4 +423,13 @@ fn remove_interior_points_complex_2_without_healing() {
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
     assert!(paths.len() != 0);
     assert!(paths.len() == 1);
+
+    // Must always be a following edge that's an exterior one
+    for edge in graph_path.all_edges() {
+        let end_point_idx   = edge.end_point_index();
+        let edge_ref        = edge.into();
+        if graph_path.edge_kind(edge_ref) == GraphPathEdgeKind::Exterior {
+            assert!(graph_path.edge_refs_for_point(end_point_idx).any(|edge| graph_path.edge_kind(edge) == GraphPathEdgeKind::Exterior));
+        }
+    }
 }
