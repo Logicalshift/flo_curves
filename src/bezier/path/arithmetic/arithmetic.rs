@@ -121,6 +121,12 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                             // Interior edge
                             self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
                         }
+                    } else if !is_intersection {
+                        if was_inside ^ is_inside {
+                            debug_assert!(edge_kind == GraphPathEdgeKind::Exterior);
+                        } else {
+                            debug_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                        }
                     }
                 }
 
