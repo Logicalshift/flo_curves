@@ -612,16 +612,20 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // There is more than one incoming edge
                 break;
             } else {
-                // There's a single preceding edge
+                // There's a single preceding point (but maybe more than one edge)
                 let current_point_idx   = current_edge.start_idx;
                 let previous_point_idx  = self.points[current_edge.start_idx].connected_from[0];
 
                 // Find the index of the preceding edge
-                let previous_edge_idx   = (0..(self.points[previous_point_idx].forward_edges.len()))
+                let mut previous_edges  = (0..(self.points[previous_point_idx].forward_edges.len()))
                     .into_iter()
-                    .filter(|edge_idx| self.points[previous_point_idx].forward_edges[*edge_idx].end_idx == current_point_idx)
-                    .nth(0)
-                    .expect("Previous edge");
+                    .filter(|edge_idx| self.points[previous_point_idx].forward_edges[*edge_idx].end_idx == current_point_idx);
+
+                let previous_edge_idx   = previous_edges.next().expect("Previous edge");
+                if previous_edges.next().is_some() {
+                    // There is more than one edge connecting these two points
+                    break;
+                }
 
                 // Move on to the next edge
                 current_edge = GraphEdgeRef {
