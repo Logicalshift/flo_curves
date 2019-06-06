@@ -241,6 +241,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let final_point_idx             = self.points[point_idx].forward_edges[edge_idx].end_idx;
                 let final_following_edge_idx    = self.points[point_idx].forward_edges[edge_idx].following_edge_idx;
                 let mut last_point_idx          = point_idx;
+                let mut previous_edge           = None;
 
                 // Iterate through the collisions (skipping any at t=0)
                 let mut collisions      = collisions.into_iter()
@@ -266,6 +267,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     old_edge.invalidate_cache();
 
                     // Move on to the next edge
+                    previous_edge               = Some((point_idx, edge_idx));
                     remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
@@ -273,20 +275,24 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
                 // Deal with the rest of the collisions
                 for (t, end_point_idx) in collisions {
+                    // Point the previous edge at the new edge we're adding
+                    let new_edge_idx = self.points[last_point_idx].forward_edges.len();
+                    previous_edge.map(|(point_idx, edge_idx)| self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx);
+
                     // Subdivide the remaining edge
                     let t2                      = (t - (1.0-remaining_t))/remaining_t;
                     let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t2);
-                    let following_edge_idx      = self.points[end_point_idx].forward_edges.len();
                     let (cp1, cp2)              = next_edge.control_points();
 
                     debug_assert!(next_edge.start_point().is_near_to(&self.points[last_point_idx].position, CLOSE_DISTANCE));
                     debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
 
                     // Add the new edge to the previous point
-                    let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, following_edge_idx);
+                    let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, 0);
                     self.points[last_point_idx].forward_edges.push(new_edge);
 
                     // Move on to the next edge
+                    previous_edge               = Some((last_point_idx, new_edge_idx));
                     remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
@@ -294,6 +300,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
                 // Provided there was at least one collision (ie, not just one at t=0), add the final edge
                 if last_point_idx != point_idx {
+                    // Point the previous edge at the new edge we're adding
+                    let new_edge_idx = self.points[last_point_idx].forward_edges.len();
+                    previous_edge.map(|(point_idx, edge_idx)| self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx);
+
                     // This edge ends where the original edge ended
                     let end_point_idx       = final_point_idx;
                     let following_edge_idx  = final_following_edge_idx;
