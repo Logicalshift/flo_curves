@@ -8,7 +8,7 @@ use std::f64;
 /// Possible types of a two-dimensional cubic bezier curve
 ///
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum CurveType {
+pub enum CurveCategory {
     /// The control points are all at the same position
     Point,
 
@@ -116,7 +116,7 @@ fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(canonical_end_poi
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
 /// (has inflection points), or self-intersects (has a loop)
 ///
-pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveType {
+pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveCategory {
     // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
     let b4          = to_canonical_curve(w1, w2, w3, w4);
 
@@ -130,35 +130,35 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
             if x <= 1.0 {
                 // Cusp is within the curve
-                CurveType::Cusp
+                CurveCategory::Cusp
             } else {
                 // Cusp is outside of the region of this curve
-                CurveType::Arch
+                CurveCategory::Arch
             }
         } else if delta <= 0.0 {
             // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
             if x*x - 3.0*x + 3.0*y >= 0.0 {
                 if x*x + y*y + x*y - 3.0*x >= 0.0 {
                     // Curve lies within the loop region
-                    CurveType::Loop
+                    CurveCategory::Loop
                 } else {
                     // Loop is outside of 0<=t<=1 (double point is t < 0)
-                    CurveType::Arch
+                    CurveCategory::Arch
                 }
             } else {
                 // Loop is outside of 0<=t<=1 (double point is t > 1)
-                CurveType::Arch
+                CurveCategory::Arch
             }
         } else {
             if y >= 1.0 {
-                CurveType::SingleInflectionPoint
+                CurveCategory::SingleInflectionPoint
             } else if x <= 0.0 {
-                CurveType:: DoubleInflectionPoint
+                CurveCategory:: DoubleInflectionPoint
             } else {
                 if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
-                    CurveType::Parabolic
+                    CurveCategory::Parabolic
                 } else {
-                    CurveType::Arch
+                    CurveCategory::Arch
                 }
             }
         }
@@ -168,14 +168,14 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             if w2.is_near_to(w1, SMALL_DISTANCE) {
                 if w3.is_near_to(w4, SMALL_DISTANCE) {
                     // All 4 control points at the same position
-                    CurveType::Point
+                    CurveCategory::Point
                 } else {
                     // 3 control points at the same position (makes a line)
-                    CurveType::Linear
+                    CurveCategory::Linear
                 }
             } else if w3.is_near_to(w4, SMALL_DISTANCE) {
                 // 3 control points at the same position (makes a line)
-                CurveType::Linear
+                CurveCategory::Linear
             } else {
                 // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
                 let line        = (w1.clone(), w3.clone());
@@ -184,10 +184,10 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
                 let distance    = a*w4.x() + b*w4.y() + c;
                 if distance.abs() < SMALL_DISTANCE {
                     // w1, w3 and w4 are collinear (and w2 is the same as w3)
-                    CurveType::Linear
+                    CurveCategory::Linear
                 } else {
                     // Cubic with inflections at t=0 and t=1 (both control points in the same place but start and end point in different places)
-                    CurveType::DoubleInflectionPoint
+                    CurveCategory::DoubleInflectionPoint
                 }
             }
         } else {
@@ -198,7 +198,7 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             let distance    = a*w4.x() + b*w4.y() + c;
             if distance.abs() < SMALL_DISTANCE {
                 // All 4 points are in a line
-                CurveType::Linear
+                CurveCategory::Linear
             } else {
                 // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
                 characterize_curve(w4, w3, w2, w1)
@@ -244,7 +244,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Loop);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
     }
 
     #[test]
@@ -254,7 +254,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Loop);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
     }
 
     #[test]
@@ -264,7 +264,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -274,7 +274,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -284,7 +284,7 @@ mod test {
         let w3 = Coord2(55.0, 227.0);
         let w4 = Coord2(287.0, 200.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Cusp);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Cusp);
     }
 
     #[test]
@@ -294,7 +294,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::SingleInflectionPoint);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
     }
 
     #[test]
@@ -304,7 +304,7 @@ mod test {
         let w3 = Coord2(249.0, 218.0);
         let w4 = Coord2(256.0, 181.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -314,7 +314,7 @@ mod test {
         let w3 = Coord2(23.0, 278.0);
         let w4 = Coord2(24.0, 200.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -324,7 +324,7 @@ mod test {
         let w3 = Coord2(108.0, 233.0);
         let w4 = Coord2(329.0, 129.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::DoubleInflectionPoint);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
     }
 
     #[test]
@@ -334,7 +334,7 @@ mod test {
         let w3 = Coord2(56.0, 162.0);
         let w4 = Coord2(56.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Point);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Point);
     }
 
     #[test]
@@ -344,7 +344,7 @@ mod test {
         let w3 = Coord2(72.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Linear);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -354,7 +354,7 @@ mod test {
         let w3 = Coord2(64.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Linear);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -364,7 +364,7 @@ mod test {
         let w3 = Coord2(56.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Linear);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -374,7 +374,7 @@ mod test {
         let w3 = Coord2(72.0, 172.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::DoubleInflectionPoint);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
     }
 
     #[test]
@@ -384,6 +384,6 @@ mod test {
         let w3 = Coord2(290.0, 200.0);
         let w4 = Coord2(290.0, 95.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::SingleInflectionPoint);
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
     }
 }
