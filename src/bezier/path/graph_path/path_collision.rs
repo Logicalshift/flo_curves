@@ -68,8 +68,19 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     // Collide against the target edges
                     for tgt_idx in collide_to.clone() {
                         for tgt_edge_idx in 0..self.points[tgt_idx].forward_edges.len() {
-                            // Avoid colliding the same edge against itself
-                            if src_idx == tgt_idx && src_edge_idx >= tgt_edge_idx { continue; }
+                            // Search for loops when colliding an edge against itself
+                            if src_idx == tgt_idx && src_edge_idx >= tgt_edge_idx { 
+                                if let Some((t1, t2)) = find_self_intersection_point(&src_curve, accuracy) {
+                                    collisions.push(Collision {
+                                        edge_1:     src_curve_ref,
+                                        edge_2:     src_curve_ref,
+                                        edge_1_t:   t1,
+                                        edge_2_t:   t2
+                                    });
+                                }
+
+                                continue; 
+                            }
 
                             // Avoid trying to collide two curves whose bounding boxes do not overlap
                             let tgt_curve_ref   = GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false };
