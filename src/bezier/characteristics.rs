@@ -76,6 +76,7 @@ fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3
     Point::from_components(&[x, y])
 }
 
+/*
 ///
 /// Determines the characteristic coefficients A, B, C and Delta for an arbitrary bezier curve
 /// 
@@ -92,6 +93,7 @@ fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(canonical_end_poi
 
     (a, b, c, delta)
 }
+*/
 
 ///
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
@@ -102,10 +104,9 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
     let b4                  = to_canonical_curve(w1, w2, w3, w4);
 
     // These coefficients can be used to characterise the curve
-    let (_a, _b, _c, delta)    = characteristic_coefficients(&b4);
-
     let x       = b4.x();
     let y       = b4.y();
+    let delta   = x*x - 2.0*x + 4.0*y - 3.0;
 
     if delta.abs() <= f64::EPSILON {
         // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
