@@ -278,6 +278,16 @@ mod test {
     }
 
     #[test]
+    fn cusp_1() {
+        let w1 = Coord2(55.0, 200.0);
+        let w2 = Coord2(287.0, 227.0);
+        let w3 = Coord2(55.0, 227.0);
+        let w4 = Coord2(287.0, 200.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Cusp);
+    }
+
+    #[test]
     fn single_inflection_1() {
         let w1 = Coord2(278.0, 260.0);
         let w2 = Coord2(292.0, 199.0);
