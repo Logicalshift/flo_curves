@@ -31,6 +31,7 @@ mod search;
 mod solve;
 mod overlaps;
 mod intersection;
+mod characteristics;
 
 pub mod path;
 
@@ -49,5 +50,6 @@ pub use self::search::*;
 pub use self::solve::*;
 pub use self::overlaps::*;
 pub use self::intersection::*;
+pub use self::characteristics::*;
 
 pub use super::geo::*;
