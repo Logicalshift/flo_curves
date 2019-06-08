@@ -258,6 +258,16 @@ mod test {
     }
 
     #[test]
+    fn detect_loop_3() {
+        let w1 = Coord2(205.0, 159.0);
+        let w2 = Coord2(81.0, 219.0);
+        let w3 = Coord2(287.0, 227.0);
+        let w4 = Coord2(205.0, 159.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
+    }
+
+    #[test]
     fn not_loop_1() {
         let w1 = Coord2(219.0, 173.0);
         let w2 = Coord2(292.0, 199.0);
@@ -273,6 +283,16 @@ mod test {
         let w2 = Coord2(292.0, 199.0);
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+    }
+
+    #[test]
+    fn not_loop_3() {
+        let w1 = Coord2(205.0, 159.0);
+        let w2 = Coord2(81.0, 219.0);
+        let w3 = Coord2(287.0, 227.0);
+        let w4 = Coord2(206.0, 159.0);
 
         assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
