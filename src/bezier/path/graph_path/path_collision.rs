@@ -71,12 +71,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                             // Search for loops when colliding an edge against itself
                             if src_idx == tgt_idx && src_edge_idx >= tgt_edge_idx { 
                                 if let Some((t1, t2)) = find_self_intersection_point(&src_curve, accuracy) {
-                                    collisions.push(Collision {
-                                        edge_1:     src_curve_ref,
-                                        edge_2:     src_curve_ref,
-                                        edge_1_t:   t1,
-                                        edge_2_t:   t2
-                                    });
+                                    if !(t1 <= 0.0 && t2 >= 1.0) && !(t1 >= 1.0 && t2 <= 0.0) {
+                                        collisions.push(Collision {
+                                            edge_1:     src_curve_ref,
+                                            edge_2:     src_curve_ref,
+                                            edge_1_t:   t1,
+                                            edge_2_t:   t2
+                                        });
+                                    }
                                 }
 
                                 continue; 
