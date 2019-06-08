@@ -1,8 +1,11 @@
 use super::super::geo::*;
 
+use std::f64;
+
 ///
 /// Possible types of a two-dimensional cubic bezier curve
 ///
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum CurveType {
     /// A simple curve that does not change direction or self-intersect
     Arch,
@@ -12,6 +15,9 @@ pub enum CurveType {
 
     /// A curve that changes direction twice
     DoubleInflectionPoint,
+
+    /// A curve that can be represented as a quadratic curve rather than a cubic one
+    Parabolic,
 
     /// A curve with a cusp (an abrupt change in direction)
     Cusp,
@@ -70,21 +76,74 @@ fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3
     Point::from_components(&[x, y])
 }
 
-/*
 ///
 /// Determines the characteristic coefficients A, B, C and Delta for an arbitrary bezier curve
+/// 
+/// See `A Geometric Characterization of Parametric Cubic Curves` by Stone and DeRose for a description of these values.
 ///
-fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> (f64, f64, f64, f64) {
-    let free_point  = to_canonical_curve(w1, w2, w3, w4);
+fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(canonical_end_point: &Point) -> (f64, f64, f64, f64) {
+    let x           = canonical_end_point.x();
+    let y           = canonical_end_point.y();
 
-    let a           = 9.0*(free_point.x() + free_point.y() - 3.0);
-    let b           = -9.0*(free_point.x() - 3.0);
+    let a           = 9.0*(x + y - 3.0);
+    let b           = -9.0*(x - 3.0);
     let c           = -9.0;
-    let delta       = 0.0;
+    let delta       = x*x - 2.0*x + 4.0*y - 3.0;
 
     (a, b, c, delta)
 }
-*/
+
+///
+/// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
+/// (has inflection points), or self-intersects (has a loop)
+///
+pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveType {
+    // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
+    let b4                  = to_canonical_curve(w1, w2, w3, w4);
+
+    // These coefficients can be used to characterise the curve
+    let (_a, _b, _c, delta)    = characteristic_coefficients(&b4);
+
+    let x       = b4.x();
+    let y       = b4.y();
+
+    if delta.abs() <= f64::EPSILON {
+        // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
+        if x <= 1.0 {
+            // Cusp is within the curve
+            CurveType::Cusp
+        } else {
+            // Cusp is outside of the region of this curve
+            CurveType::Arch
+        }
+    } else if delta <= 0.0 {
+        // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
+        if x*x - 3.0*x + 3.0*y >= 0.0 {
+            if x*x + y*y + x*y - 3.0*x >= 0.0 {
+                // Curve lies within the loop region
+                CurveType::Loop
+            } else {
+                // Loop is outside of 0<=t<=1 (double point is t < 0)
+                CurveType::Arch
+            }
+        } else {
+            // Loop is outside of 0<=t<=1 (double point is t > 1)
+            CurveType::Arch
+        }
+    } else {
+        if y >= 1.0 {
+            CurveType::SingleInflectionPoint
+        } else if x <= 0.0 {
+            CurveType:: DoubleInflectionPoint
+        } else {
+            if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
+                CurveType::Parabolic
+            } else {
+                CurveType::Arch
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {
@@ -92,6 +151,7 @@ mod test {
 
     #[test]
     fn canonical_curve_coeffs_are_valid_1() {
+        // Mapping the three control points via the affine transform should leave them at (0,0), (0,1) and (1,1)
         let w1                  = Coord2(1.0, 1.0);
         let w2                  = Coord2(2.0, 3.0);
         let w3                  = Coord2(5.0, 2.0);
@@ -113,5 +173,85 @@ mod test {
 
         assert!((w3_new_x-1.0).abs() < 0.0001);
         assert!((w3_new_y-1.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn detect_loop_1() {
+        let w1 = Coord2(148.0, 151.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Loop);
+    }
+
+    #[test]
+    fn detect_loop_2() {
+        let w1 = Coord2(161.0, 191.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Loop);
+    }
+
+    #[test]
+    fn not_loop_1() {
+        let w1 = Coord2(219.0, 173.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+    }
+
+    #[test]
+    fn not_loop_2() {
+        let w1 = Coord2(286.0, 101.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+    }
+
+    #[test]
+    fn single_inflection_1() {
+        let w1 = Coord2(278.0, 260.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::SingleInflectionPoint);
+    }
+
+    #[test]
+    fn arch_1() {
+        let w1 = Coord2(65.0, 146.0);
+        let w2 = Coord2(95.0, 213.0);
+        let w3 = Coord2(249.0, 218.0);
+        let w4 = Coord2(256.0, 181.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+    }
+
+    #[test]
+    fn arch_2() {
+        let w1 = Coord2(11.0, 143.0);
+        let w2 = Coord2(156.0, 261.0);
+        let w3 = Coord2(23.0, 278.0);
+        let w4 = Coord2(24.0, 200.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::Arch);
+    }
+
+    #[test]
+    fn double_inflection_1() {
+        let w1 = Coord2(56.0, 162.0);
+        let w2 = Coord2(238.0, 232.0);
+        let w3 = Coord2(108.0, 233.0);
+        let w4 = Coord2(329.0, 129.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveType::DoubleInflectionPoint);
     }
 }
