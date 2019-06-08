@@ -4,6 +4,7 @@ use super::solve::*;
 use super::search::*;
 use super::bounds::*;
 use super::subdivide::*;
+use super::characteristics::*;
 
 use super::super::geo::*;
 
@@ -209,5 +210,27 @@ impl<Coord: Coordinate> BezierCurve for Curve<Coord> {
     #[inline]
     fn control_points(&self) -> (Coord, Coord) {
         self.control_points
+    }
+}
+
+///
+/// Functions supported on 2D bezier curves
+///
+pub trait BezierCurve2D: BezierCurve {
+    ///
+    /// Finds the characteristics of this curve: for example if it has a loop or is a line
+    ///
+    fn characteristics(&self) -> CurveCategory;
+}
+
+impl<T: BezierCurve> BezierCurve2D for T
+where T::Point: Coordinate+Coordinate2D {
+    #[inline]
+    fn characteristics(&self) -> CurveCategory {
+        let start_point = self.start_point();
+        let end_point   = self.end_point();
+        let (cp1, cp2)  = self.control_points();
+
+        characterize_curve(&start_point, &cp1, &cp2, &end_point)
     }
 }

@@ -16,6 +16,7 @@ mod search;
 mod solve;
 mod overlaps;
 mod intersection;
+mod characteristics;
 mod curve_intersection_clip;
 
 pub fn approx_equal(a: f64, b: f64) -> bool {
