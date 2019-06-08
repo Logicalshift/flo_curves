@@ -31,29 +31,36 @@ pub enum CurveType {
 /// fixed at w1 = (0,0), w2 = (0, 1) and w3 = (1, 1).
 /// 
 /// Bezier curves maintain their properties when transformed so this provides a curve with equivalent properties to the input
-/// curve but only a single free point (w4)
+/// curve but only a single free point (w4). This will return 'None' for the degenerate cases: where two points overlap or
+/// where the points are collinear.
 ///
-fn canonical_curve_transform<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point) -> (f64, f64, f64, f64, f64, f64) {
+fn canonical_curve_transform<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point) -> Option<(f64, f64, f64, f64, f64, f64)> {
     // Fetch the coordinates
     let (x0, y0) = (w1.x(), w1.y());
     let (x1, y1) = (w2.x(), w2.y());
     let (x2, y2) = (w3.x(), w3.y());
 
-    // Transform is:
-    // 
-    // [ a, b, c ]   [ x ]
-    // [ d, e, f ] . [ y ]
-    // [ 0, 0, 1 ]   [ 1 ]
-    // 
-    // This will move w1 to 0,0, w2 to 0, 1 and w3 to 1, 1, which will form our canonical curve that we use for the classification algorithm
-    let a = (-(y0-y1)) / ((y2-y1)*(x0-x1)-(x2-x1)*(y0-y1));
-    let b = (-(x0-x1)) / ((x2-x1)*(y0-y1)-(y2-y1)*(x0-x1));
-    let c = -a*x0 - b*y0;
-    let d = (y1-y2) / ((x0-x1)*(y2-y1) - (x2-x1)*(y0-y1));
-    let e = (x1-x2) / ((y0-y1)*(x2-x1) - (y2-y1)*(x0-x1));
-    let f = -d*x0 - e*y0;
+    let a_divisor = (y2-y1)*(x0-x1)-(x2-x1)*(y0-y1);
+    if a_divisor.abs() > f64::EPSILON {
+        // Transform is:
+        // 
+        // [ a, b, c ]   [ x ]
+        // [ d, e, f ] . [ y ]
+        // [ 0, 0, 1 ]   [ 1 ]
+        // 
+        // This will move w1 to 0,0, w2 to 0, 1 and w3 to 1, 1, which will form our canonical curve that we use for the classification algorithm
+        let a = (-(y0-y1)) / a_divisor;
+        let b = (-(x0-x1)) / ((x2-x1)*(y0-y1)-(y2-y1)*(x0-x1));
+        let c = -a*x0 - b*y0;
+        let d = (y1-y2) / ((x0-x1)*(y2-y1) - (x2-x1)*(y0-y1));
+        let e = (x1-x2) / ((y0-y1)*(x2-x1) - (y2-y1)*(x0-x1));
+        let f = -d*x0 - e*y0;
 
-    (a, b, c, d, e, f)
+        Some((a, b, c, d, e, f))
+    } else {
+        // Is a degenerate case (points overlap or line up)
+        None
+    }
 }
 
 ///
@@ -62,18 +69,20 @@ fn canonical_curve_transform<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Po
 /// This is the curve such that w1 = (0.0), w2 = (1, 0) and w3 = (1, 1), if such a curve exists. The return value is the point w4
 /// for this curve.
 ///
-fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> Point {
+fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> Option<Point> {
     // Retrieve the affine transform for the curve
-    let (a, b, c, d, e, f) = canonical_curve_transform(w1, w2, w3);
+    if let Some((a, b, c, d, e, f)) = canonical_curve_transform(w1, w2, w3) {
+        // Calculate the free point w4 based on the transform
+        let x3  = w4.x();
+        let y3  = w4.y();
 
-    // Calculate the free point w4 based on the transform
-    let x3  = w4.x();
-    let y3  = w4.y();
+        let x   = a*x3 + b*y3 + c;
+        let y   = d*x3 + e*y3 + f;
 
-    let x   = a*x3 + b*y3 + c;
-    let y   = d*x3 + e*y3 + f;
-
-    Point::from_components(&[x, y])
+        Some(Point::from_components(&[x, y]))
+    } else {
+        None
+    }
 }
 
 /*
@@ -101,48 +110,53 @@ fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(canonical_end_poi
 ///
 pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveType {
     // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
-    let b4                  = to_canonical_curve(w1, w2, w3, w4);
+    let b4          = to_canonical_curve(w1, w2, w3, w4);
 
-    // These coefficients can be used to characterise the curve
-    let x       = b4.x();
-    let y       = b4.y();
-    let delta   = x*x - 2.0*x + 4.0*y - 3.0;
+    if let Some(b4) = b4 {
+        // These coefficients can be used to characterise the curve
+        let x       = b4.x();
+        let y       = b4.y();
+        let delta   = x*x - 2.0*x + 4.0*y - 3.0;
 
-    if delta.abs() <= f64::EPSILON {
-        // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
-        if x <= 1.0 {
-            // Cusp is within the curve
-            CurveType::Cusp
-        } else {
-            // Cusp is outside of the region of this curve
-            CurveType::Arch
-        }
-    } else if delta <= 0.0 {
-        // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
-        if x*x - 3.0*x + 3.0*y >= 0.0 {
-            if x*x + y*y + x*y - 3.0*x >= 0.0 {
-                // Curve lies within the loop region
-                CurveType::Loop
+        if delta.abs() <= f64::EPSILON {
+            // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
+            if x <= 1.0 {
+                // Cusp is within the curve
+                CurveType::Cusp
             } else {
-                // Loop is outside of 0<=t<=1 (double point is t < 0)
+                // Cusp is outside of the region of this curve
+                CurveType::Arch
+            }
+        } else if delta <= 0.0 {
+            // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
+            if x*x - 3.0*x + 3.0*y >= 0.0 {
+                if x*x + y*y + x*y - 3.0*x >= 0.0 {
+                    // Curve lies within the loop region
+                    CurveType::Loop
+                } else {
+                    // Loop is outside of 0<=t<=1 (double point is t < 0)
+                    CurveType::Arch
+                }
+            } else {
+                // Loop is outside of 0<=t<=1 (double point is t > 1)
                 CurveType::Arch
             }
         } else {
-            // Loop is outside of 0<=t<=1 (double point is t > 1)
-            CurveType::Arch
+            if y >= 1.0 {
+                CurveType::SingleInflectionPoint
+            } else if x <= 0.0 {
+                CurveType:: DoubleInflectionPoint
+            } else {
+                if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
+                    CurveType::Parabolic
+                } else {
+                    CurveType::Arch
+                }
+            }
         }
     } else {
-        if y >= 1.0 {
-            CurveType::SingleInflectionPoint
-        } else if x <= 0.0 {
-            CurveType:: DoubleInflectionPoint
-        } else {
-            if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
-                CurveType::Parabolic
-            } else {
-                CurveType::Arch
-            }
-        }
+        // Degenerate case
+        unimplemented!()
     }
 }
 
@@ -157,7 +171,7 @@ mod test {
         let w2                  = Coord2(2.0, 3.0);
         let w3                  = Coord2(5.0, 2.0);
 
-        let (a, b, c, d, e, f)  = canonical_curve_transform(&w1, &w2, &w3);
+        let (a, b, c, d, e, f)  = canonical_curve_transform(&w1, &w2, &w3).unwrap();
 
         let w1_new_x            = w1.x()*a + w1.y()*b + c;
         let w1_new_y            = w1.x()*d + w1.y()*e + f;
