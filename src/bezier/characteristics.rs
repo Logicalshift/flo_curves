@@ -4,6 +4,8 @@ use super::super::consts::*;
 
 use std::f64;
 
+const SMALL_DIVISOR: f64 = 0.0000001;
+
 ///
 /// Possible types of a two-dimensional cubic bezier curve
 ///
@@ -49,7 +51,7 @@ fn canonical_curve_transform<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Po
     let (x2, y2) = (w3.x(), w3.y());
 
     let a_divisor = (y2-y1)*(x0-x1)-(x2-x1)*(y0-y1);
-    if a_divisor.abs() > f64::EPSILON {
+    if a_divisor.abs() > SMALL_DIVISOR {
         // Transform is:
         // 
         // [ a, b, c ]   [ x ]
