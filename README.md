@@ -65,3 +65,7 @@ use flo_curves::bezier::path::*;
 
 let rectangle_with_hole = path_sub::<_,_, SimpleBezierPath>(&vec![rectangle], &vec![circle])
 ```
+
+---
+
+![flo_curves logo](./logo-small.png)
