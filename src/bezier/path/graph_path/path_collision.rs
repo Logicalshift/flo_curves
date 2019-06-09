@@ -299,8 +299,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     let (next_edge, new_remaining_edge) = remaining_edge.subdivide::<Curve<_>>(t2);
                     let (cp1, cp2)              = next_edge.control_points();
 
-                    debug_assert!(next_edge.start_point().is_near_to(&self.points[last_point_idx].position, CLOSE_DISTANCE));
-                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, CLOSE_DISTANCE));
+                    debug_assert!(next_edge.start_point().is_near_to(&self.points[last_point_idx].position, 0.1));
+                    debug_assert!(next_edge.end_point().is_near_to(&self.points[end_point_idx].position, 0.1));
 
                     // Add the new edge to the previous point
                     let new_edge                = GraphPathEdge::new(kind, (cp1, cp2), end_point_idx, label, 0);
