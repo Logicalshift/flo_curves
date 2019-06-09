@@ -81,11 +81,11 @@ fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3
     // Retrieve the affine transform for the curve
     if let Some((a, b, c, d, e, f)) = canonical_curve_transform(w1, w2, w3) {
         // Calculate the free point w4 based on the transform
-        let x3  = w4.x();
-        let y3  = w4.y();
+        let x4  = w4.x();
+        let y4  = w4.y();
 
-        let x   = a*x3 + b*y3 + c;
-        let y   = d*x3 + e*y3 + f;
+        let x   = a*x4 + b*y4 + c;
+        let y   = d*x4 + e*y4 + f;
 
         Some(Point::from_components(&[x, y]))
     } else {
@@ -137,7 +137,14 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             }
         } else if delta <= 0.0 {
             // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
-            if x*x - 3.0*x + 3.0*y >= 0.0 {
+            if x > 1.0 {
+                // Arch or inflection point
+                if y > 1.0 {
+                    CurveCategory::SingleInflectionPoint
+                } else {
+                    CurveCategory::Arch
+                }
+            } else if x*x - 3.0*x + 3.0*y >= 0.0 {
                 if x*x + y*y + x*y - 3.0*x >= 0.0 {
                     // Curve lies within the loop region
                     CurveCategory::Loop
