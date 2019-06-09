@@ -255,6 +255,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let final_following_edge_idx    = self.points[point_idx].forward_edges[edge_idx].following_edge_idx;
                 let mut last_point_idx          = point_idx;
                 let mut previous_edge           = None;
+                let mut found_collisions        = false;
 
                 // Iterate through the collisions (skipping any at t=0)
                 let mut collisions      = collisions.into_iter()
@@ -284,6 +285,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
+                    found_collisions            = true;
                 }
 
                 // Deal with the rest of the collisions
@@ -309,10 +311,11 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     remaining_t                 = 1.0-t;
                     remaining_edge              = new_remaining_edge;
                     last_point_idx              = end_point_idx;
+                    found_collisions            = true;
                 }
 
                 // Provided there was at least one collision (ie, not just one at t=0), add the final edge
-                if last_point_idx != point_idx {
+                if found_collisions {
                     // Point the previous edge at the new edge we're adding
                     let new_edge_idx = self.points[last_point_idx].forward_edges.len();
                     previous_edge.map(|(point_idx, edge_idx)| self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx);
