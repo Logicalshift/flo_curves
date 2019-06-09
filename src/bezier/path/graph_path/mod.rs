@@ -706,6 +706,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 for next_edge in self.edges_for_point(next_point_idx).chain(self.reverse_edges_for_point(next_point_idx)) {
                     let edge_end_point_idx  = next_edge.end_point_index();
                     let next_edge_ref       = GraphEdgeRef::from(&next_edge);
+                    let edge_start_idx      = next_edge_ref.start_idx;
                     let next_edge_idx       = next_edge_ref.edge_idx;
 
                     // Don't go back the way we came
@@ -720,7 +721,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     if next_edge.kind() == GraphPathEdgeKind::Exterior && !self.edge_has_gap(reversed_edge_ref) { continue; }
 
                     // Add this as a preceding edge
-                    preceding_edge[edge_end_point_idx] = Some((next_point_idx, next_edge_idx));
+                    preceding_edge[edge_end_point_idx] = Some((edge_start_idx, next_edge_idx));
 
                     // We've found a path across the gap if we find an exterior edge
                     if next_edge.kind() == GraphPathEdgeKind::Exterior {
