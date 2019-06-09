@@ -703,11 +703,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 if target_point_idx.is_some() { break; }
 
                 // Process all edges connected to this point
-                for next_edge in self.edges_for_point(next_point_idx) /*.chain(self.reverse_edges_for_point(next_point_idx))*/ {
+                for next_edge in self.edges_for_point(next_point_idx) /*.chain(self.reverse_edges_for_point(next_point_idx)) */ {
                     let edge_end_point_idx  = next_edge.end_point_index();
                     let next_edge_ref       = GraphEdgeRef::from(&next_edge);
-                    let edge_start_idx      = next_edge_ref.start_idx;
-                    let next_edge_idx       = next_edge_ref.edge_idx;
+                    let edge_start_idx      = next_edge.start_point_index();
 
                     // Don't go back the way we came
                     if edge_end_point_idx == from_point_idx { continue; }
@@ -721,7 +720,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     if next_edge.kind() == GraphPathEdgeKind::Exterior && !self.edge_has_gap(reversed_edge_ref) { continue; }
 
                     // Add this as a preceding edge
-                    preceding_edge[edge_end_point_idx] = Some((edge_start_idx, next_edge_idx));
+                    preceding_edge[edge_end_point_idx] = Some(next_edge_ref);
 
                     // We've found a path across the gap if we find an exterior edge
                     if next_edge.kind() == GraphPathEdgeKind::Exterior {
@@ -731,7 +730,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     }
 
                     // Continue searching from this point
-                    next_points_to_process.push((next_point_idx, edge_end_point_idx));
+                    next_points_to_process.push((edge_start_idx, edge_end_point_idx));
                 }
             }
 
@@ -747,13 +746,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let mut current_point_idx = target_point_idx;
 
             while current_point_idx != end_point_idx {
-                let (previous_point_idx, previous_edge_idx) = preceding_edge[current_point_idx].expect("Previous point during gap healing");
+                let previous_edge_ref = preceding_edge[current_point_idx].expect("Previous point during gap healing");
 
                 // Mark this edge as exterior
-                self.points[previous_point_idx].forward_edges[previous_edge_idx].kind = GraphPathEdgeKind::Exterior;
+                self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].kind = GraphPathEdgeKind::Exterior;
 
                 // Move to the previous point
-                current_point_idx = previous_point_idx;
+                let previous_edge = self.get_edge(previous_edge_ref);
+                current_point_idx = previous_edge.start_point_index();
             }
 
             true
