@@ -111,6 +111,13 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         }
                     } else if !is_intersection {
                         if was_inside ^ is_inside {
+                            if edge_kind != GraphPathEdgeKind::Exterior {
+                                // We've likely got a missing collision in the graph so an edge is both inside and outside
+                                // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
+                                self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
+                            }
+
+                            // This is a bug so fail in debug builds
                             debug_assert!(edge_kind == GraphPathEdgeKind::Exterior);
                         } else {
                             debug_assert!(edge_kind == GraphPathEdgeKind::Interior);
