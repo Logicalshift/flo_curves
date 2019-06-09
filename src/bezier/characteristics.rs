@@ -298,6 +298,26 @@ mod test {
     }
 
     #[test]
+    fn not_loop_4() {
+        let w1 = Coord2(215.0, 214.0);
+        let w2 = Coord2(123.0, 129.0);
+        let w3 = Coord2(72.0, 92.0);
+        let w4 = Coord2(48.0, 77.0);
+
+        assert!(characterize_curve(&w1, &w2, &w3, &w4) != CurveCategory::Loop);
+    }
+
+    #[test]
+    fn not_loop_5() {
+        let w1 = Coord2(215.0, 214.0);
+        let w2 = Coord2(123.0, 129.0);
+        let w3 = Coord2(72.0, 92.0);
+        let w4 = Coord2(48.0, 77.0);
+
+        assert!(characterize_curve(&w4, &w3, &w2, &w1) != CurveCategory::Loop);
+    }
+
+    #[test]
     fn cusp_1() {
         let w1 = Coord2(55.0, 200.0);
         let w2 = Coord2(287.0, 227.0);
