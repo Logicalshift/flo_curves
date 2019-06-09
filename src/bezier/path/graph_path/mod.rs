@@ -703,7 +703,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 if target_point_idx.is_some() { break; }
 
                 // Process all edges connected to this point
-                for next_edge in self.edges_for_point(next_point_idx).chain(self.reverse_edges_for_point(next_point_idx)) {
+                for next_edge in self.edges_for_point(next_point_idx) /*.chain(self.reverse_edges_for_point(next_point_idx))*/ {
                     let edge_end_point_idx  = next_edge.end_point_index();
                     let next_edge_ref       = GraphEdgeRef::from(&next_edge);
                     let edge_start_idx      = next_edge_ref.start_idx;
