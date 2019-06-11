@@ -263,7 +263,7 @@ fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
     } else {
         // Solve the quadratic for this curve
         let lhs = (-b)/(2.0*a);
-        let rhs = (4.0*a + b).sqrt()/(2.0*a);
+        let rhs = (4.0*a + b*b).sqrt()/(2.0*a);
 
         let t1  = lhs - rhs;
         let t2  = lhs + rhs;
@@ -418,6 +418,22 @@ mod test {
     }
 
     #[test]
+    fn detect_loop_1_feature() {
+        let w1 = Coord2(148.0, 151.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+            CurveFeatures::Loop(t1, t2) => {
+                let curve = Curve::from_points(w1, (w2, w3), w4);
+                assert!(curve.point_at_pos(t1).is_near_to(&curve.point_at_pos(t2), 0.01));
+            },
+            _ => assert!(false)
+        }
+    }
+
+    #[test]
     fn detect_loop_2() {
         let w1 = Coord2(161.0, 191.0);
         let w2 = Coord2(292.0, 199.0);
@@ -507,6 +523,43 @@ mod test {
         assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
     }
 
+    fn is_inflection_point<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point, t: f64) -> bool {
+        let a = 3.0 * (w2.x() - w1.x());
+        let b = 3.0 * (w3.x() - w2.x());
+        let c = 3.0 * (w4.x() - w3.x());
+        let u = 2.0 * (b - a);
+        let v = 2.0 * (c - b);
+
+        let d = 3.0 * (w2.y() - w1.y());
+        let e = 3.0 * (w3.y() - w2.y());
+        let f = 3.0 * (w4.y() - w3.y());
+        let w = 2.0 * (e - d);
+        let z = 2.0 * (f - e);
+
+        let bx1 = a * (1.0-t)*(1.0-t) + 2.0 * b * (1.0-t)*t + c * t*t;
+        let bx2 = u * (1.0-t) + v*t;
+        let by1 = d * (1.0-t)*(1.0-t) + 2.0 * e * (1.0-t)*t + f * t*t;
+        let by2 = w * (1.0-t) + z*t;
+
+        let curvature = bx1*by2 - by1*bx2;
+        curvature.abs() < 0.0001
+    }
+
+    #[test]
+    fn single_inflection_1_feature() {
+        let w1 = Coord2(278.0, 260.0);
+        let w2 = Coord2(292.0, 199.0);
+        let w3 = Coord2(73.0, 221.0);
+        let w4 = Coord2(249.0, 136.0);
+
+        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+            CurveFeatures::SingleInflectionPoint(t) => {
+                assert!(is_inflection_point(&w1, &w2, &w3, &w4, t));
+            },
+            _ => assert!(false)
+        }
+    }
+
     #[test]
     fn arch_1() {
         let w1 = Coord2(65.0, 146.0);
@@ -535,6 +588,22 @@ mod test {
         let w4 = Coord2(329.0, 129.0);
 
         assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
+    }
+
+    #[test]
+    fn double_inflection_1_feature() {
+        let w1 = Coord2(56.0, 162.0);
+        let w2 = Coord2(238.0, 232.0);
+        let w3 = Coord2(108.0, 233.0);
+        let w4 = Coord2(329.0, 129.0);
+
+        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+            CurveFeatures::DoubleInflectionPoint(t1, t2) => {
+                assert!(is_inflection_point(&w1, &w2, &w3, &w4, t1));
+                assert!(is_inflection_point(&w1, &w2, &w3, &w4, t2));
+            },
+            _ => assert!(false)
+        }
     }
 
     #[test]
@@ -585,6 +654,22 @@ mod test {
         let w4 = Coord2(128.0, 162.0);
 
         assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
+    }
+
+    #[test]
+    fn degenerate_cubic_curve_feature() {
+        let w1 = Coord2(56.0, 162.0);
+        let w2 = Coord2(72.0, 172.0);
+        let w3 = Coord2(72.0, 172.0);
+        let w4 = Coord2(128.0, 162.0);
+
+        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+            CurveFeatures::DoubleInflectionPoint(t1, t2) => {
+                assert!(is_inflection_point(&w1, &w2, &w3, &w4, t1));
+                assert!(is_inflection_point(&w1, &w2, &w3, &w4, t2));
+            },
+            _ => assert!(false)
+        }
     }
 
     #[test]
