@@ -221,6 +221,11 @@ pub trait BezierCurve2D: BezierCurve {
     /// Finds the characteristics of this curve: for example if it has a loop or is a line
     ///
     fn characteristics(&self) -> CurveCategory;
+
+    ///
+    /// Finds the features of this curve (the characteristics and where they occur on the curve)
+    ///
+    fn features(&self, accuracy: f64) -> CurveFeatures;
 }
 
 impl<T: BezierCurve> BezierCurve2D for T
@@ -232,5 +237,14 @@ where T::Point: Coordinate+Coordinate2D {
         let (cp1, cp2)  = self.control_points();
 
         characterize_curve(&start_point, &cp1, &cp2, &end_point)
+    }
+
+    #[inline]
+    fn features(&self, accuracy: f64) -> CurveFeatures {
+        let start_point = self.start_point();
+        let end_point   = self.end_point();
+        let (cp1, cp2)  = self.control_points();
+
+        features_for_curve(&start_point, &cp1, &cp2, &end_point, accuracy)
     }
 }
