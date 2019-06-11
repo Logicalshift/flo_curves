@@ -37,6 +37,36 @@ pub enum CurveCategory {
 }
 
 ///
+/// Describes the features of a two-dimensional cubic bezier curve
+///
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum CurveFeatures {
+    /// All control points are in the same position
+    Point,
+
+    /// The control points are in a line
+    Linear,
+
+    /// A simple curve that does not change direction or self-intersect
+    Arch,
+
+    /// A curve that changes direction once (and the t value where this occurs)
+    SingleInflectionPoint(f64),
+
+    /// A curve that changes direction twice (and the t value where this occurs)
+    DoubleInflectionPoint(f64, f64),
+
+    /// A curve that can be represented as a quadratic curve rather than a cubic one
+    Parabolic,
+
+    /// A curve with a cusp
+    Cusp,
+
+    /// A curve containing a loop and the two t values where it self-intersects
+    Loop(f64, f64)
+}
+
+///
 /// Computes an affine transform that translates from an arbitrary bezier curve to one that has the first three control points
 /// fixed at w1 = (0,0), w2 = (0, 1) and w3 = (1, 1).
 /// 
@@ -94,25 +124,6 @@ fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3
         None
     }
 }
-
-/*
-///
-/// Determines the characteristic coefficients A, B, C and Delta for an arbitrary bezier curve
-/// 
-/// See `A Geometric Characterization of Parametric Cubic Curves` by Stone and DeRose for a description of these values.
-///
-fn characteristic_coefficients<Point: Coordinate+Coordinate2D>(canonical_end_point: &Point) -> (f64, f64, f64, f64) {
-    let x           = canonical_end_point.x();
-    let y           = canonical_end_point.y();
-
-    let a           = 9.0*(x + y - 3.0);
-    let b           = -9.0*(x - 3.0);
-    let c           = -9.0;
-    let delta       = x*x - 2.0*x + 4.0*y - 3.0;
-
-    (a, b, c, delta)
-}
-*/
 
 ///
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
