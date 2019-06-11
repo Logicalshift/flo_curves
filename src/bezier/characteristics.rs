@@ -1,3 +1,5 @@
+use super::curve::*;
+use super::intersection::*;
 use super::super::geo::*;
 use super::super::line::*;
 use super::super::consts::*;
@@ -126,6 +128,60 @@ fn to_canonical_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3
 }
 
 ///
+/// Returns the category of a curve given its characteristic point in the canonical form
+///
+#[inline]
+fn characterize_from_canonical_point(b4: (f64, f64)) -> CurveCategory {
+    // These coefficients can be used to characterise the curve
+    let (x, y)  = b4;
+    let delta   = x*x - 2.0*x + 4.0*y - 3.0;
+
+    if delta.abs() <= f64::EPSILON {
+        // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
+        if x <= 1.0 {
+            // Cusp is within the curve
+            CurveCategory::Cusp
+        } else {
+            // Cusp is outside of the region of this curve
+            CurveCategory::Arch
+        }
+    } else if delta <= 0.0 {
+        // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
+        if x > 1.0 {
+            // Arch or inflection point
+            if y > 1.0 {
+                CurveCategory::SingleInflectionPoint
+            } else {
+                CurveCategory::Arch
+            }
+        } else if x*x - 3.0*x + 3.0*y >= 0.0 {
+            if x*x + y*y + x*y - 3.0*x >= 0.0 {
+                // Curve lies within the loop region
+                CurveCategory::Loop
+            } else {
+                // Loop is outside of 0<=t<=1 (double point is t < 0)
+                CurveCategory::Arch
+            }
+        } else {
+            // Loop is outside of 0<=t<=1 (double point is t > 1)
+            CurveCategory::Arch
+        }
+    } else {
+        if y >= 1.0 {
+            CurveCategory::SingleInflectionPoint
+        } else if x <= 0.0 {
+            CurveCategory:: DoubleInflectionPoint
+        } else {
+            if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
+                CurveCategory::Parabolic
+            } else {
+                CurveCategory::Arch
+            }
+        }
+    }
+}
+
+///
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
 /// (has inflection points), or self-intersects (has a loop)
 ///
@@ -134,54 +190,10 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
     let b4          = to_canonical_curve(w1, w2, w3, w4);
 
     if let Some(b4) = b4 {
-        // These coefficients can be used to characterise the curve
         let x       = b4.x();
         let y       = b4.y();
-        let delta   = x*x - 2.0*x + 4.0*y - 3.0;
 
-        if delta.abs() <= f64::EPSILON {
-            // Curve has a cusp (but we don't know if it's in the range 0<=t<=1)
-            if x <= 1.0 {
-                // Cusp is within the curve
-                CurveCategory::Cusp
-            } else {
-                // Cusp is outside of the region of this curve
-                CurveCategory::Arch
-            }
-        } else if delta <= 0.0 {
-            // Curve has a loop (but we don't know if it's in the range 0<=t<=1)
-            if x > 1.0 {
-                // Arch or inflection point
-                if y > 1.0 {
-                    CurveCategory::SingleInflectionPoint
-                } else {
-                    CurveCategory::Arch
-                }
-            } else if x*x - 3.0*x + 3.0*y >= 0.0 {
-                if x*x + y*y + x*y - 3.0*x >= 0.0 {
-                    // Curve lies within the loop region
-                    CurveCategory::Loop
-                } else {
-                    // Loop is outside of 0<=t<=1 (double point is t < 0)
-                    CurveCategory::Arch
-                }
-            } else {
-                // Loop is outside of 0<=t<=1 (double point is t > 1)
-                CurveCategory::Arch
-            }
-        } else {
-            if y >= 1.0 {
-                CurveCategory::SingleInflectionPoint
-            } else if x <= 0.0 {
-                CurveCategory:: DoubleInflectionPoint
-            } else {
-                if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
-                    CurveCategory::Parabolic
-                } else {
-                    CurveCategory::Arch
-                }
-            }
-        }
+        characterize_from_canonical_point((x, y))
     } else {
         // Degenerate case: there's no canonical form for this curve
         if w2.is_near_to(w3, SMALL_DISTANCE) {
@@ -222,6 +234,144 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             } else {
                 // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
                 characterize_curve(w4, w3, w2, w1)
+            }
+        }
+    }
+}
+
+///
+/// The inflection points for a curve
+///
+enum InflectionPoints {
+    Zero,
+    One(f64),
+    Two(f64, f64)
+}
+
+///
+/// Finds the inflection points for a curve that has been reduced to our canonical form, given the free point b4
+///
+fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
+    // Compute coefficients
+    let (x4, y4)    = b4;
+    let a           = -3.0+x4+y4;
+    let b           = 3.0-x4;
+
+    if a.abs() <= f64::EPSILON {
+        // No solution
+        InflectionPoints::Zero
+    } else {
+        // Solve the quadratic for this curve
+        let lhs = (-b)/(2.0*a);
+        let rhs = (4.0*a + b).sqrt()/(2.0*a);
+
+        let t1  = lhs - rhs;
+        let t2  = lhs + rhs;
+
+        // Want points between 0 and 1
+        if t1 < 0.0 || t1 > 1.0 {
+            if t2 < 0.0 || t2 > 1.0 {
+                InflectionPoints::Zero
+            } else {
+                InflectionPoints::One(t2)
+            }
+        } else {
+            if t2 < 0.0 || t2 > 1.0 {
+                InflectionPoints::One(t1)
+            } else {
+                InflectionPoints::Two(t1, t2)
+            }
+        }
+    }
+}
+
+impl Into<CurveFeatures> for InflectionPoints {
+    #[inline]
+    fn into(self) -> CurveFeatures {
+        match self {
+            InflectionPoints::Zero          => CurveFeatures::Arch,
+            InflectionPoints::One(t)        => CurveFeatures::SingleInflectionPoint(t),
+            InflectionPoints::Two(t1, t2)   => CurveFeatures::DoubleInflectionPoint(t1, t2)
+        }
+    }
+}
+
+///
+/// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
+/// (has inflection points), or self-intersects (has a loop)
+///
+pub fn features_for_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point, accuracy: f64) -> CurveFeatures {
+    // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
+    let b4          = to_canonical_curve(w1, w2, w3, w4);
+
+    if let Some(b4) = b4 {
+        // For the inflection points, we rely on the fact that the canonical curve is generated by an affine transform of the original
+        // (and the features are invariant in such a situation)
+        let x       = b4.x();
+        let y       = b4.y();
+
+        match characterize_from_canonical_point((x, y)) {
+            CurveCategory::Arch                     => CurveFeatures::Arch,
+            CurveCategory::Linear                   => CurveFeatures::Linear,
+            CurveCategory::Cusp                     => CurveFeatures::Cusp,
+            CurveCategory::Parabolic                => CurveFeatures::Parabolic,
+            CurveCategory::Point                    => CurveFeatures::Point,
+            CurveCategory::DoubleInflectionPoint    |
+            CurveCategory::SingleInflectionPoint    => find_inflection_points((x, y)).into(),
+            CurveCategory::Loop                     => {
+                let curve       = Curve::from_points(w1.clone(), (w2.clone(), w3.clone()), w4.clone());
+                let loop_pos    = find_self_intersection_point(&curve, accuracy);
+
+                debug_assert!(loop_pos.is_some());
+                loop_pos.map(|(t1, t2)| CurveFeatures::Loop(t1, t2))
+                    .unwrap_or(CurveFeatures::Arch)
+            }
+        }
+    } else {
+        // Degenerate case: there's no canonical form for this curve
+        if w2.is_near_to(w3, SMALL_DISTANCE) {
+            if w2.is_near_to(w1, SMALL_DISTANCE) {
+                if w3.is_near_to(w4, SMALL_DISTANCE) {
+                    // All 4 control points at the same position
+                    CurveFeatures::Point
+                } else {
+                    // 3 control points at the same position (makes a line)
+                    CurveFeatures::Linear
+                }
+            } else if w3.is_near_to(w4, SMALL_DISTANCE) {
+                // 3 control points at the same position (makes a line)
+                CurveFeatures::Linear
+            } else {
+                // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
+                let line        = (w1.clone(), w3.clone());
+                let (a, b, c)   = line_coefficients_2d(&line);
+
+                let distance    = a*w4.x() + b*w4.y() + c;
+                if distance.abs() < SMALL_DISTANCE {
+                    // w1, w3 and w4 are collinear (and w2 is the same as w3)
+                    CurveFeatures::Linear
+                } else {
+                    // Cubic with inflections at t=0 and t=1 (both control points in the same place but start and end point in different places)
+                    CurveFeatures::DoubleInflectionPoint(0.0, 1.0)
+                }
+            }
+        } else {
+            // w1, w2, w3 must be collinear (w2 and w3 are known not to overlap)
+            let line        = (w2.clone(), w3.clone());
+            let (a, b, c)   = line_coefficients_2d(&line);
+
+            let distance    = a*w4.x() + b*w4.y() + c;
+            if distance.abs() < SMALL_DISTANCE {
+                // All 4 points are in a line
+                CurveFeatures::Linear
+            } else {
+                // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
+                match features_for_curve(w4, w3, w2, w1, accuracy) {
+                    CurveFeatures::SingleInflectionPoint(t)         => CurveFeatures::SingleInflectionPoint(1.0-t),
+                    CurveFeatures::DoubleInflectionPoint(t1, t2)    => CurveFeatures::DoubleInflectionPoint(1.0-t1, 1.0-t2),
+                    CurveFeatures::Loop(t1, t2)                     => CurveFeatures::Loop(1.0-t1, 1.0-t2),
+                    other                                           => other
+                }
             }
         }
     }
