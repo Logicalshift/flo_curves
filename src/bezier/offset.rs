@@ -54,22 +54,33 @@ where Curve::Point: Coordinate2D {
 pub fn offset<Curve: BezierCurveFactory+NormalCurve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where Curve::Point: Normalize+Coordinate2D {
     // Split at the location of any features the curve might have
-    let mut sections: SmallVec<[_; 8]> = match features_for_curve(curve, 0.01) {
+    let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2) |
         CurveFeatures::Loop(t1, t2) => {
+            let t1 = if t1 > 0.9999 { 1.0 } else if t1 < 0.0001 { 0.0 } else { t1 };
+            let t2 = if t2 > 0.9999 { 1.0 } else if t2 < 0.0001 { 0.0 } else { t2 };
+
             if t2 > t1 {
-                smallvec![curve.section(0.0, t1), curve.section(t1, t2), curve.section(t2, 1.0)]
+                smallvec![(0.0, t1), (t1, t2), (t1, 1.0)]
             } else {
-                smallvec![curve.section(0.0, t2), curve.section(t2, t1), curve.section(t1, 1.0)]
+                smallvec![(0.0, t2), (t2, t1), (t2, 1.0)]
             }
         }
 
         CurveFeatures::SingleInflectionPoint(t) => {
-            smallvec![curve.section(0.0, t), curve.section(t, 1.0)]
+            if t > 0.0001 && t < 0.9999 {
+                smallvec![(0.0, t), (t, 1.0)]
+            } else {
+                smallvec![(0.0, 1.0)]
+            }
         }
 
-        _ => { smallvec![curve.section(0.0, 1.0)] }
+        _ => { smallvec![(0.0, 1.0)] }
     };
+    let mut sections                = sections.into_iter()
+        .filter(|(t1, t2)| t1 == t2)
+        .map(|(t1, t2)| curve.section(t1, t2))
+        .collect::<SmallVec<[_; 8]>>();
 
     // Split 'unsafe' sections into two until all sections are safe
     loop {
