@@ -236,7 +236,7 @@ where T::Point: Coordinate+Coordinate2D {
         let end_point   = self.end_point();
         let (cp1, cp2)  = self.control_points();
 
-        characterize_curve(&start_point, &cp1, &cp2, &end_point)
+        characterize_cubic_bezier(&start_point, &cp1, &cp2, &end_point)
     }
 
     #[inline]
@@ -245,6 +245,6 @@ where T::Point: Coordinate+Coordinate2D {
         let end_point   = self.end_point();
         let (cp1, cp2)  = self.control_points();
 
-        features_for_curve(&start_point, &cp1, &cp2, &end_point, accuracy)
+        features_for_cubic_bezier(&start_point, &cp1, &cp2, &end_point, accuracy)
     }
 }

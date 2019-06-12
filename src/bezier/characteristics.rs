@@ -182,10 +182,10 @@ fn characterize_from_canonical_point(b4: (f64, f64)) -> CurveCategory {
 }
 
 ///
-/// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
+/// Determines the characteristics of a particular bezier curve: whether or not it is an arch, or changes directions
 /// (has inflection points), or self-intersects (has a loop)
 ///
-pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveCategory {
+pub fn characterize_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point) -> CurveCategory {
     // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
     let b4          = to_canonical_curve(w1, w2, w3, w4);
 
@@ -233,14 +233,14 @@ pub fn characterize_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
                 CurveCategory::Linear
             } else {
                 // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
-                characterize_curve(w4, w3, w2, w1)
+                characterize_cubic_bezier(w4, w3, w2, w1)
             }
         }
     }
 }
 
 ///
-/// The inflection points for a curve
+/// The location of the inflection points for a curve (t-values)
 ///
 enum InflectionPoints {
     Zero,
@@ -300,7 +300,7 @@ impl Into<CurveFeatures> for InflectionPoints {
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
 /// (has inflection points), or self-intersects (has a loop)
 ///
-pub fn features_for_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point, accuracy: f64) -> CurveFeatures {
+pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point, accuracy: f64) -> CurveFeatures {
     // b4 is the end point of an equivalent curve with the other control points fixed at (0, 0), (0, 1) and (1, 1) 
     let b4          = to_canonical_curve(w1, w2, w3, w4);
 
@@ -366,7 +366,7 @@ pub fn features_for_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
                 CurveFeatures::Linear
             } else {
                 // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
-                match features_for_curve(w4, w3, w2, w1, accuracy) {
+                match features_for_cubic_bezier(w4, w3, w2, w1, accuracy) {
                     CurveFeatures::SingleInflectionPoint(t)         => CurveFeatures::SingleInflectionPoint(1.0-t),
                     CurveFeatures::DoubleInflectionPoint(t1, t2)    => CurveFeatures::DoubleInflectionPoint(1.0-t1, 1.0-t2),
                     CurveFeatures::Loop(t1, t2)                     => CurveFeatures::Loop(1.0-t1, 1.0-t2),
@@ -375,6 +375,33 @@ pub fn features_for_curve<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point
             }
         }
     }
+}
+
+///
+/// Discovers the 'character' of a particular bezier curve, returning a value indicating what kinds of features
+/// it has (for example, whether it has a loop or a cusp) 
+///
+#[inline]
+pub fn characterize_curve<C: BezierCurve>(curve: &C) -> CurveCategory
+where C::Point: Coordinate+Coordinate2D {
+    let start_point = curve.start_point();
+    let (cp1, cp2)  = curve.control_points();
+    let end_point   = curve.end_point();
+
+    characterize_cubic_bezier(&start_point, &cp1, &cp2, &end_point)
+}
+
+///
+/// Discovers what kind of features a curve has and where they are located
+///
+#[inline]
+pub fn features_for_curve<C: BezierCurve>(curve: &C, accuracy: f64) -> CurveFeatures
+where C::Point: Coordinate+Coordinate2D {
+    let start_point = curve.start_point();
+    let (cp1, cp2)  = curve.control_points();
+    let end_point   = curve.end_point();
+
+    features_for_cubic_bezier(&start_point, &cp1, &cp2, &end_point, accuracy)
 }
 
 #[cfg(test)]
@@ -414,7 +441,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
     }
 
     #[test]
@@ -424,7 +451,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+        match features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) {
             CurveFeatures::Loop(t1, t2) => {
                 let curve = Curve::from_points(w1, (w2, w3), w4);
                 assert!(curve.point_at_pos(t1).is_near_to(&curve.point_at_pos(t2), 0.01));
@@ -440,7 +467,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
     }
 
     #[test]
@@ -450,7 +477,7 @@ mod test {
         let w3 = Coord2(287.0, 227.0);
         let w4 = Coord2(205.0, 159.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Loop);
     }
 
     #[test]
@@ -460,7 +487,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -470,7 +497,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -480,7 +507,7 @@ mod test {
         let w3 = Coord2(287.0, 227.0);
         let w4 = Coord2(206.0, 159.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -490,7 +517,7 @@ mod test {
         let w3 = Coord2(72.0, 92.0);
         let w4 = Coord2(48.0, 77.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) != CurveCategory::Loop);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) != CurveCategory::Loop);
     }
 
     #[test]
@@ -500,7 +527,7 @@ mod test {
         let w3 = Coord2(72.0, 92.0);
         let w4 = Coord2(48.0, 77.0);
 
-        assert!(characterize_curve(&w4, &w3, &w2, &w1) != CurveCategory::Loop);
+        assert!(characterize_cubic_bezier(&w4, &w3, &w2, &w1) != CurveCategory::Loop);
     }
 
     #[test]
@@ -510,7 +537,7 @@ mod test {
         let w3 = Coord2(55.0, 227.0);
         let w4 = Coord2(287.0, 200.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Cusp);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Cusp);
     }
 
     #[test]
@@ -520,7 +547,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
     }
 
     fn is_inflection_point<Point: Coordinate+Coordinate2D>(w1: &Point, w2: &Point, w3: &Point, w4: &Point, t: f64) -> bool {
@@ -552,7 +579,7 @@ mod test {
         let w3 = Coord2(73.0, 221.0);
         let w4 = Coord2(249.0, 136.0);
 
-        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+        match features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) {
             CurveFeatures::SingleInflectionPoint(t) => {
                 assert!(is_inflection_point(&w1, &w2, &w3, &w4, t));
             },
@@ -567,7 +594,7 @@ mod test {
         let w3 = Coord2(249.0, 218.0);
         let w4 = Coord2(256.0, 181.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -577,7 +604,7 @@ mod test {
         let w3 = Coord2(23.0, 278.0);
         let w4 = Coord2(24.0, 200.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Arch);
     }
 
     #[test]
@@ -587,7 +614,7 @@ mod test {
         let w3 = Coord2(108.0, 233.0);
         let w4 = Coord2(329.0, 129.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
     }
 
     #[test]
@@ -597,7 +624,7 @@ mod test {
         let w3 = Coord2(108.0, 233.0);
         let w4 = Coord2(329.0, 129.0);
 
-        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+        match features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) {
             CurveFeatures::DoubleInflectionPoint(t1, t2) => {
                 assert!(is_inflection_point(&w1, &w2, &w3, &w4, t1));
                 assert!(is_inflection_point(&w1, &w2, &w3, &w4, t2));
@@ -613,7 +640,7 @@ mod test {
         let w3 = Coord2(56.0, 162.0);
         let w4 = Coord2(56.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Point);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Point);
     }
 
     #[test]
@@ -623,7 +650,7 @@ mod test {
         let w3 = Coord2(72.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -633,7 +660,7 @@ mod test {
         let w3 = Coord2(64.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -643,7 +670,7 @@ mod test {
         let w3 = Coord2(56.0, 162.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
     }
 
     #[test]
@@ -653,7 +680,7 @@ mod test {
         let w3 = Coord2(72.0, 172.0);
         let w4 = Coord2(128.0, 162.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::DoubleInflectionPoint);
     }
 
     #[test]
@@ -663,7 +690,7 @@ mod test {
         let w3 = Coord2(72.0, 172.0);
         let w4 = Coord2(128.0, 162.0);
 
-        match features_for_curve(&w1, &w2, &w3, &w4, 0.01) {
+        match features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) {
             CurveFeatures::DoubleInflectionPoint(t1, t2) => {
                 assert!(is_inflection_point(&w1, &w2, &w3, &w4, t1));
                 assert!(is_inflection_point(&w1, &w2, &w3, &w4, t2));
@@ -679,6 +706,6 @@ mod test {
         let w3 = Coord2(290.0, 200.0);
         let w4 = Coord2(290.0, 95.0);
 
-        assert!(characterize_curve(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
+        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::SingleInflectionPoint);
     }
 }
