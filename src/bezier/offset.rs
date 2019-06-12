@@ -78,7 +78,7 @@ where Curve::Point: Normalize+Coordinate2D {
         _ => { smallvec![(0.0, 1.0)] }
     };
     let mut sections                = sections.into_iter()
-        .filter(|(t1, t2)| t1 == t2)
+        .filter(|(t1, t2)| t1 != t2)
         .map(|(t1, t2)| curve.section(t1, t2))
         .collect::<SmallVec<[_; 8]>>();
 
