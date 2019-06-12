@@ -322,7 +322,7 @@ pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
                 let curve       = Curve::from_points(w1.clone(), (w2.clone(), w3.clone()), w4.clone());
                 let loop_pos    = find_self_intersection_point(&curve, accuracy);
 
-                debug_assert!(loop_pos.is_some());
+                // TODO: if we can't find the loop_pos, we could probably find a cusp position instead
                 loop_pos.map(|(t1, t2)| CurveFeatures::Loop(t1, t2))
                     .unwrap_or(CurveFeatures::Arch)
             }
