@@ -6,6 +6,8 @@ use super::characteristics::*;
 use super::super::geo::*;
 use super::super::line::*;
 
+use smallvec::*;
+
 ///
 /// Returns true if the specified bezier curve is 'safe'
 /// 
@@ -52,21 +54,21 @@ where Curve::Point: Coordinate2D {
 pub fn offset<Curve: BezierCurveFactory+NormalCurve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where Curve::Point: Normalize+Coordinate2D {
     // Split at the location of any features the curve might have
-    let mut sections = match features_for_curve(curve, 0.01) {
+    let mut sections: SmallVec<[_; 8]> = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2) |
         CurveFeatures::Loop(t1, t2) => {
             if t2 > t1 {
-                vec![curve.section(0.0, t1), curve.section(t1, t2), curve.section(t2, 1.0)]
+                smallvec![curve.section(0.0, t1), curve.section(t1, t2), curve.section(t2, 1.0)]
             } else {
-                vec![curve.section(0.0, t2), curve.section(t2, t1), curve.section(t1, 1.0)]
+                smallvec![curve.section(0.0, t2), curve.section(t2, t1), curve.section(t1, 1.0)]
             }
         }
 
         CurveFeatures::SingleInflectionPoint(t) => {
-            vec![curve.section(0.0, t), curve.section(t, 1.0)]
+            smallvec![curve.section(0.0, t), curve.section(t, 1.0)]
         }
 
-        _ => { vec![curve.section(0.0, 1.0)] }
+        _ => { smallvec![curve.section(0.0, 1.0)] }
     };
 
     // Split 'unsafe' sections into two until all sections are safe
