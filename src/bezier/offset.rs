@@ -2,10 +2,9 @@ use super::curve::*;
 use super::normal::*;
 use super::deform::*;
 use super::section::*;
+use super::characteristics::*;
 use super::super::geo::*;
 use super::super::line::*;
-
-use std::cmp::Ordering;
 
 ///
 /// Returns true if the specified bezier curve is 'safe'
@@ -52,56 +51,50 @@ where Curve::Point: Coordinate2D {
 ///
 pub fn offset<Curve: BezierCurveFactory+NormalCurve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where Curve::Point: Normalize+Coordinate2D {
-    // Cut the curve up into 'safe' sections
-    let mut sections = vec![curve.section(0.0, 1.0)];
-    
-    if !is_safe_curve(curve) {
-        // Start by splitting at the extreme points
-        let mut extremes = curve.find_extremities();
-
-        extremes.retain(|t| !t.is_nan() && !t.is_infinite() && t > &0.0 && t < &1.0);
-        extremes.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap_or(Ordering::Equal));
-
-        // Split up the curve into subsections at the extreme points
-        sections.clear();
-        let mut last_t = 0.0;
-
-        for t in extremes {
-            sections.push(curve.section(last_t, t));
-            last_t = t;
+    // Split at the location of any features the curve might have
+    let mut sections = match features_for_curve(curve, 0.01) {
+        CurveFeatures::DoubleInflectionPoint(t1, t2) |
+        CurveFeatures::Loop(t1, t2) => {
+            if t2 > t1 {
+                vec![curve.section(0.0, t1), curve.section(t1, t2), curve.section(t2, 1.0)]
+            } else {
+                vec![curve.section(0.0, t2), curve.section(t2, t1), curve.section(t1, 1.0)]
+            }
         }
 
-        if last_t < 1.0 {
-            sections.push(curve.section(last_t, 1.0));
+        CurveFeatures::SingleInflectionPoint(t) => {
+            vec![curve.section(0.0, t), curve.section(t, 1.0)]
         }
 
-        // Split 'unsafe' sections into two until all sections are safe
-        loop {
-            let mut all_safe    = true;
-            debug_assert!(sections.len() < 50);
+        _ => { vec![curve.section(0.0, 1.0)] }
+    };
 
-            // Check all of the sections
-            let mut section_idx = 0;
-            while section_idx < sections.len() {
-                // Split this section if it's not safe
-                if !is_safe_curve(&sections[section_idx]) {
-                    all_safe = false;
+    // Split 'unsafe' sections into two until all sections are safe
+    loop {
+        let mut all_safe    = true;
+        debug_assert!(sections.len() < 50);
 
-                    let left    = sections[section_idx].subsection(0.0, 0.5);
-                    let right   = sections[section_idx].subsection(0.5, 1.0);
+        // Check all of the sections
+        let mut section_idx = 0;
+        while section_idx < sections.len() {
+            // Split this section if it's not safe
+            if !is_safe_curve(&sections[section_idx]) {
+                all_safe = false;
 
-                    sections[section_idx] = left;
-                    sections.insert(section_idx+1, right);
+                let left    = sections[section_idx].subsection(0.0, 0.5);
+                let right   = sections[section_idx].subsection(0.5, 1.0);
 
-                    section_idx += 1;
-                }
+                sections[section_idx] = left;
+                sections.insert(section_idx+1, right);
 
                 section_idx += 1;
             }
 
-            // Stop once all sections are safe
-            if all_safe { break; }
+            section_idx += 1;
         }
+
+        // Stop once all sections are safe
+        if all_safe { break; }
     }
 
     // Offset the set of curves that we retrieved
