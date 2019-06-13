@@ -449,4 +449,7 @@ fn intersection_curve_8() {
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
+
+    assert!((intersections1[0].0 - intersections2[0].1).abs() < 0.001);
+    assert!((intersections1[0].1 - intersections2[0].0).abs() < 0.001);
 }
