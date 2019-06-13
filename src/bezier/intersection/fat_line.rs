@@ -9,6 +9,7 @@ use std::f64;
 /// A 'fat line' is a line with a width. It's used in bezier intersection algorithms,
 /// in particular the clipping algorithm described by Sederberg and Nishita
 /// 
+#[derive(Debug)]
 pub struct FatLine {
     /// The distance from the line to the upper part of the 'fat line'
     d_min: f64,
@@ -275,6 +276,12 @@ impl FatLine {
         let line        = (curve.start_point(), curve.end_point());
         let (cp1, cp2)  = curve.control_points();
 
+        let line = if line.0.is_near_to(&line.1, 0.0000001) {
+            (curve.start_point(), curve.start_point() + (cp2-cp1))
+        } else {
+            line
+        };
+
         Self::from_line_and_points(line, cp1, cp2)
     }
 
@@ -284,6 +291,13 @@ impl FatLine {
     pub fn from_curve_perpendicular<C: BezierCurve>(curve: &C) -> FatLine
     where C::Point: Coordinate+Coordinate2D {
         let (start_point, end_point) = (curve.start_point(), curve.end_point());
+
+        let end_point = if start_point.is_near_to(&end_point, 0.0000001) {
+            let (cp1, cp2) = curve.control_points();
+            start_point + (cp2-cp1)
+        } else {
+            end_point
+        };
 
         // Line between the start and end points of the curve
         let line            = (start_point, end_point);
