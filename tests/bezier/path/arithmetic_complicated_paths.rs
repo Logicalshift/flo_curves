@@ -4,9 +4,6 @@ use flo_curves::bezier::path::*;
 
 use super::svg::*;
 
-use std::io::*;
-use std::fs::File;
-
 #[test]
 fn remove_interior_points_1() {
     // Complicated curve found in FlowBetween that produces 0 points when interior points are removed
@@ -526,12 +523,6 @@ fn remove_interior_points_3() {
     let mut graph_path = GraphPath::from_path(&path, PathLabel(0, PathDirection::Clockwise));
     graph_path.self_collide(0.01);
     graph_path.set_exterior_by_removing_interior_points();
-
-    let mut fail_file   = File::create("remove-interior-3.svg").unwrap();
-    let debug_svg       = graph_path_svg_string(&graph_path, vec![]);
-    let svg_header      = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg width=\"100%\" height=\"100%\" viewBox=\"0 0 2000 4000\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:8;\">";
-
-    write!(fail_file, "{}\n{}\n</svg>\n", svg_header, debug_svg).unwrap();
 
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
     assert!(paths.len() != 0);
