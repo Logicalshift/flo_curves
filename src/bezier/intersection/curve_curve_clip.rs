@@ -28,7 +28,7 @@ fn curve_hull_length_sq<'a, C: BezierCurve>(curve: &CurveSection<'a, C>) -> f64 
 ///
 /// Given a line representing a linear section of a curve, finds the intersection with a curved section and returns the t values
 ///
-fn intersections_with_linear_section<'a, C: BezierCurve>(linear_section: &CurveSection<'a, C>, curved_section: &CurveSection<'a, C>) -> Vec<(f64, f64)>
+fn intersections_with_linear_section<'a, C: BezierCurve>(linear_section: &CurveSection<'a, C>, curved_section: &CurveSection<'a, C>) -> SmallVec<[(f64, f64); 4]>
 where C::Point: 'a+Coordinate2D {
     let ray                 = (linear_section.start_point(), linear_section.end_point());
     let ray_intersections   = curve_intersects_ray(curved_section, &ray);
@@ -39,7 +39,7 @@ where C::Point: 'a+Coordinate2D {
 
             linear_t.map(|linear_t| (linear_t, curved_t))
         })
-        .collect::<Vec<_>>();
+        .collect::<SmallVec<_>>();
 
     curve_intersections
 }
