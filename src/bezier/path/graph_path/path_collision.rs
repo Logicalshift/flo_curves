@@ -346,6 +346,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         self.recalculate_reverse_connections();
         self.combine_overlapping_points(accuracy);
+        self.remove_all_very_short_edges();
 
         self.check_following_edge_consistency();
     }
