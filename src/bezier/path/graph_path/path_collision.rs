@@ -477,8 +477,13 @@ where C::Point: Coordinate+Coordinate2D {
     while collision_idx+1 < collisions.len() {
         // Just remove both of these if they are too close together (as each collision crosses the curve once, removing collisions in pairs means that there'll still be at least one collision left if the curves actually end up crossing over)
         if positions[collision_idx].is_near_to(&positions[collision_idx+1], CLOSE_DISTANCE) {
-            collisions.remove(collision_idx); positions.remove(collision_idx);
-            collisions.remove(collision_idx); positions.remove(collision_idx);
+            if (collisions[collision_idx].0 - collisions[collision_idx+1].0).abs() < SMALL_T_DISTANCE
+                && (collisions[collision_idx].1 - collisions[collision_idx+1].1).abs() < SMALL_T_DISTANCE {
+                collisions.remove(collision_idx); positions.remove(collision_idx);
+                collisions.remove(collision_idx); positions.remove(collision_idx);
+            } else {
+                collision_idx += 1;
+            }
         } else {
             collision_idx += 1;
         }
