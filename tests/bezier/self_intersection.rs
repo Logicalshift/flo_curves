@@ -40,6 +40,4 @@ fn narrow_loop() {
     let (p1, p2) = (curve_with_loop.point_at_pos(t1), curve_with_loop.point_at_pos(t2));
 
     assert!(p1.is_near_to(&p2, 0.01));
-    assert!(t1 <= 0.0);
-    assert!(t2 >= 1.0);
 }
