@@ -276,6 +276,7 @@ impl FatLine {
         let line        = (curve.start_point(), curve.end_point());
         let (cp1, cp2)  = curve.control_points();
 
+        // If the start point and the end point are at the same location, use the gap between the control points to set the line direction instead
         let line = if line.0.is_near_to(&line.1, 0.0000001) {
             (curve.start_point(), curve.start_point() + (cp2-cp1))
         } else {
@@ -292,6 +293,7 @@ impl FatLine {
     where C::Point: Coordinate+Coordinate2D {
         let (start_point, end_point) = (curve.start_point(), curve.end_point());
 
+        // If the start point and the end point are at the same location, use the gap between the control points to set the line direction instead
         let end_point = if start_point.is_near_to(&end_point, 0.0000001) {
             let (cp1, cp2) = curve.control_points();
             start_point + (cp2-cp1)

@@ -496,22 +496,22 @@ where C::Point: Coordinate+Coordinate2D {
         for collision_idx in 0..collisions.len() {
             // Snap the source side
             if collisions[collision_idx].0 > 0.0 && collisions[collision_idx].0 < 1.0 {
-                if src_start.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) {
+                if src_start.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) && collisions[collision_idx].0 < SMALL_T_DISTANCE {
                     collisions[collision_idx].0 = 0.0;
                 }
 
-                if src_end.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) {
+                if src_end.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) && collisions[collision_idx].0 > 1.0-SMALL_T_DISTANCE {
                     collisions[collision_idx].0 = 1.0;
                 }
             }
 
             // Snap the target side
-            if collisions[collision_idx].1 > 0.0 && collisions[collision_idx].1 < 1.0 {
+            if collisions[collision_idx].1 > 0.0 && collisions[collision_idx].1 < 1.0 && collisions[collision_idx].1 < SMALL_T_DISTANCE {
                 if tgt_start.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) {
                     collisions[collision_idx].1 = 0.0;
                 }
 
-                if tgt_end.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) {
+                if tgt_end.is_near_to(&positions[collision_idx], CLOSE_DISTANCE) && collisions[collision_idx].1 > 1.0-SMALL_T_DISTANCE {
                     collisions[collision_idx].1 = 1.0;
                 }
             }
