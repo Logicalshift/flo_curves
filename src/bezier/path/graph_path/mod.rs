@@ -396,6 +396,85 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Removes an edge by updating the previous edge to point at its next edge
+    /// 
+    /// Control points are not updated so the shape will be distorted if the removed edge is very long
+    ///
+    fn remove_edge(&mut self, edge_ref: GraphEdgeRef) {
+        // Edge consistency is preserved provided that the edges are already consistent
+        self.check_following_edge_consistency();
+
+        // Find the next edge
+        let next_point_idx      = self.points[edge_ref.start_idx].forward_edges[edge_ref.edge_idx].end_idx;
+        let next_edge_idx       = self.points[edge_ref.start_idx].forward_edges[edge_ref.edge_idx].following_edge_idx;
+
+        // Edge shouldn't just loop around to itself
+        debug_assert!(next_point_idx != edge_ref.start_idx || next_edge_idx != edge_ref.edge_idx);
+
+        // ... and the preceding edge (by searching all of the connected points)
+        let previous_edge_ref   = self.points[edge_ref.start_idx].connected_from
+            .iter()
+            .map(|point_idx| { let point_idx = *point_idx; self.points[point_idx].forward_edges.iter().enumerate().map(move |(edge_idx, edge)| (point_idx, edge_idx, edge)) })
+            .flatten()
+            .filter_map(|(point_idx, edge_idx, edge)| {
+                if edge.end_idx == edge_ref.start_idx && edge.following_edge_idx == edge_ref.edge_idx {
+                    Some(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
+                } else {
+                    None
+                }
+            })
+            .nth(0);
+
+        debug_assert!(previous_edge_ref.is_some());
+
+        if let Some(previous_edge_ref) = previous_edge_ref {
+            debug_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].end_idx == edge_ref.start_idx);
+            debug_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].following_edge_idx == edge_ref.edge_idx);
+
+            // Reconnect the previous edge to the next edge
+            self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].end_idx              = next_point_idx;
+            self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].following_edge_idx   = next_edge_idx;
+
+            // Remove the old edge from the list
+            self.points[edge_ref.start_idx].forward_edges.remove(edge_ref.edge_idx);
+
+            // For all the connected points, update the following edge refs
+            let mut still_connected = false;
+            for connected_point_idx in self.points[edge_ref.start_idx].connected_from.clone() {
+                for edge_idx in 0..(self.points[connected_point_idx].forward_edges.len()) {
+                    let connected_edge = &mut self.points[connected_point_idx].forward_edges[edge_idx];
+
+                    // Only interested in edges on the point we just changed
+                    if connected_edge.end_idx != edge_ref.start_idx {
+                        continue;
+                    }
+
+                    // We should have eliminated the edge we're deleting when we updated the edge above
+                    debug_assert!(connected_edge.following_edge_idx != edge_ref.edge_idx);
+
+                    // Update the following edge if it was affected by the deletion
+                    if connected_edge.following_edge_idx > edge_ref.edge_idx {
+                        connected_edge.following_edge_idx -= 1;
+                    }
+
+                    // If there's another edge ending at the original point, then we're still connected
+                    if connected_edge.end_idx == edge_ref.start_idx {
+                        still_connected = true;
+                    }
+                }
+            }
+
+            // If the two points are not still connected, remove the previous point from the connected list
+            if !still_connected {
+                self.points[edge_ref.start_idx].connected_from.retain(|point_idx| *point_idx != edge_ref.start_idx);
+            }
+
+            // Edges should be consistent again
+            self.check_following_edge_consistency();
+        }
+    }
+
+    ///
     /// Removes an edge considered to be very short
     ///
     fn remove_very_short_edge(&mut self, edge_ref: GraphEdgeRef) {
@@ -477,10 +556,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Remove this edge if it's very short
                 let edge_ref = GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false };
                 if self.edge_is_very_short(edge_ref) {
-                    self.remove_very_short_edge(edge_ref);
-
-                    // TODO: fix reverse connections properly in remove_very_short_edge
-                    self.recalculate_reverse_connections();
+                    self.remove_edge(edge_ref);
                 }
 
                 // Next edge
