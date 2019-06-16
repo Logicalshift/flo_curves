@@ -362,6 +362,24 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let multiplier      = 1.0 / accuracy;
         let mut collisions  = HashMap::new();
 
+        // Move any points that are connected to an edge and very close to each other on top of each other
+        for point_idx in 0..self.points.len() {
+            for edge_idx in 0..(self.points[point_idx].forward_edges.len()) {
+                let end_point_idx   = self.points[point_idx].forward_edges[edge_idx].end_idx;
+                if end_point_idx == point_idx {
+                    // A point is always close to itself, so we don't want to try to move it in this case
+                    continue;
+                }
+
+                let start_point     = &self.points[point_idx].position;
+                let end_point       = &self.points[end_point_idx].position;
+
+                if start_point.is_near_to(end_point, accuracy) {
+                    self.points[end_point_idx].position = self.points[point_idx].position.clone();
+                }
+            }
+        }
+
         // Build up a hash set of the possible collisions
         for (point_idx, point) in self.points.iter().enumerate() {
             // Convert the position to an integer using the accuracy value
