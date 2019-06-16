@@ -393,6 +393,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let mut collision   = collision.into_iter();
             let new_point_id    = collision.next().unwrap();
 
+            // Move the first point to the center
+            let mut coords: SmallVec<[_; 4]> = smallvec![];
+            for idx in 0..(Point::len()) {
+                let x = self.points[new_point_id].position.get(idx);
+                coords.push((x * multiplier).round() / multiplier);
+            }
+            self.points[new_point_id].position = Point::from_components(&coords);
+
             // Move the forward edges and 'connected' from list from the other points
             for collided_with in collision {
                 // Add to the remapped hashmap
