@@ -5,13 +5,18 @@ flo_curves = "0.3"
 flo_curves
 ==========
 
-`flo_curves` is a library providing routines for manipulating various types of curve, particularly Bezier curves. It provides
-a grab-bag of algorithms, from the basis functions for generating points on a curve to collisions, fitting to points and even 
-path arithmetic. It is built around traits, which makes it easy to use the provided algorithms with any data structure, though 
-some defaults are provided.
+`flo_curves` is a library of routines for inspecting and manipulating curves, with a focus on cubic Bézier curves. In 
+this library, you'll find routines for computing points on curves, performing collision detection between curves and 
+lines or other curves, all the way up to routines for combining paths made up of multiple curves.
 
-`flo_curves` is designed as a support library for `flowbetween`, an animation tool I'm working on, but is also designed to work
-stand-alone.
+Anyone doing any work with Bézier curves will likely find something in this library that is of use, but its range of
+functions makes it particularly useful for collision detection or performing path arithmetic.
+
+A set of curve and coordinate types are provided by the library, as well as a set of traits that can be implemented
+on any types with suitable properties. Implementing these traits makes it possible to add the extra features of this
+library to any existing code that has its own way of representing coordinates, curves or paths.
+
+`flo_curves` was built as a support library for `flowbetween`, an animation tool I'm working on.
 
 Examples
 ========
