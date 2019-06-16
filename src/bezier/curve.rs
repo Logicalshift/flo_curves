@@ -3,6 +3,7 @@ use super::basis::*;
 use super::solve::*;
 use super::search::*;
 use super::bounds::*;
+use super::section::*;
 use super::subdivide::*;
 use super::characteristics::*;
 
@@ -169,6 +170,14 @@ pub trait BezierCurve: Geo+Clone+Sized {
         }
 
         length
+    }
+
+    ///
+    /// Create a section from this curve. Consider calling `subsection` for curves
+    /// that are already `CurveSections`.
+    /// 
+    fn section<'a>(&'a self, t_min: f64, t_max: f64) -> CurveSection<'a, Self> {
+        CurveSection::new(self, t_min, t_max)
     }
 }
 

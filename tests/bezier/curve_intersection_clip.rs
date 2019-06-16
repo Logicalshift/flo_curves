@@ -1,7 +1,6 @@
 use flo_curves::*;
 use flo_curves::line;
 use flo_curves::bezier;
-use flo_curves::bezier::BezierCurveWithSections;
 
 #[test]
 fn find_intersection_on_straight_line_not_middle() {

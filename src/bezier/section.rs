@@ -163,25 +163,3 @@ impl<'a, C: 'a+BezierCurve> BezierCurve for CurveSection<'a, C> {
         self.curve.point_at_pos(self.t_for_t(t))
     }
 }
-
-///
-/// Trait implemented by curves that can have sections taken from them
-/// 
-pub trait BezierCurveWithSections {
-    /// The type of a section of this curve
-    type SectionCurve: BezierCurve;
-
-    ///
-    /// Create a section from this curve. Consider calling `subsection` for curves
-    /// that are already `CurveSections`.
-    /// 
-    fn section(self, t_min: f64, t_max: f64) -> Self::SectionCurve;
-}
-
-impl<'a, C: 'a+BezierCurve> BezierCurveWithSections for &'a C {
-    type SectionCurve = CurveSection<'a, C>;
-
-    fn section(self, t_min: f64, t_max: f64) -> CurveSection<'a, C> {
-        CurveSection::new(self, t_min, t_max)
-    }
-}

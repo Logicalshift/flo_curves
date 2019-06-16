@@ -339,7 +339,6 @@ impl FatLine {
 #[cfg(test)]
 mod test {
     use super::*;
-    use super::super::super::super::bezier::*;
 
     impl FatLine {
         ///
