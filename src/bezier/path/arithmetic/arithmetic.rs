@@ -102,7 +102,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                     let edge_kind = self.edge_kind(edge);
                     if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
                         // Exterior edges move from inside to outside or vice-versa
-                        if curve_t > 0.01 && curve_t < 0.99 {
+                        if curve_t > 0.1 && curve_t < 0.9 {
                             if was_inside ^ is_inside {
                                 // Exterior edge
                                 self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
@@ -111,7 +111,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                                 self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
                             }
                         }
-                    } else if !is_intersection && curve_t > 0.01 && curve_t < 0.99 {
+                    } else if !is_intersection && curve_t > 0.1 && curve_t < 0.9 {
                         if was_inside ^ is_inside {
                             if edge_kind != GraphPathEdgeKind::Exterior {
                                 // We've likely got a missing collision in the graph so an edge is both inside and outside
