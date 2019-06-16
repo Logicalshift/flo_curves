@@ -488,10 +488,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let edge_ref = GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false };
                 if self.edge_is_very_short(edge_ref) {
                     self.remove_edge(edge_ref);
+                } else {
+                    // Next edge
+                    edge_idx += 1;
                 }
-
-                // Next edge
-                edge_idx += 1;
             }
         }
     }
