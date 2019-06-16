@@ -441,10 +441,6 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // For all the connected points, update the following edge refs
             let mut still_connected = false;
 
-            // Double connected from would result in us updating a edge twice, so ensure any duplicates are removed here
-            self.points[edge_ref.start_idx].connected_from.sort();
-            self.points[edge_ref.start_idx].connected_from.dedup();
-
             for connected_point_idx in self.points[edge_ref.start_idx].connected_from.clone() {
                 for edge_idx in 0..(self.points[connected_point_idx].forward_edges.len()) {
                     let connected_edge = &mut self.points[connected_point_idx].forward_edges[edge_idx];

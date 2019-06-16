@@ -423,10 +423,18 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
 
                 // Remap the 'connected from' points
+                let mut remapped = false;
                 for connected_from in point.connected_from.iter_mut() {
                     if let Some((remapped_point, _following_edge_idx_offset)) = remapped_points.get(connected_from) {
                         *connected_from = *remapped_point;
+                        remapped = true;
                     }
+                }
+
+                // If we introduced duplicates, remove them
+                if remapped {
+                    point.connected_from.sort();
+                    point.connected_from.dedup();
                 }
             }
         }
