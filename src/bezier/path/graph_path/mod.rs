@@ -125,6 +125,18 @@ pub struct GraphPath<Point, Label> {
     next_path_index: usize
 }
 
+///
+/// Indicates the result of colliding two graph paths
+///
+#[derive(Clone)]
+pub enum CollidedGraphPath<Point, Label> {
+    /// Some of the edges had collisions in them
+    Collided(GraphPath<Point, Label>),
+
+    /// None of the edges has collisions in them
+    Merged(GraphPath<Point, Label>)
+}
+
 impl<Point: Coordinate, Label> Geo for GraphPath<Point, Label> {
     type Point = Point;
 }
@@ -495,6 +507,32 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     edge_idx += 1;
                 }
             }
+        }
+    }
+
+    ///
+    /// Collides this path against another, generating a merged path
+    /// 
+    /// Anywhere this graph intersects the second graph, a point with two edges will be generated. All edges will be left as
+    /// interior or exterior depending on how they're set on the graph they originate from.
+    /// 
+    /// Working out the collision points is the first step to performing path arithmetic: the resulting graph can be altered
+    /// to specify edge types - knowing if an edge is an interior or exterior edge makes it possible to tell the difference
+    /// between a hole cut into a shape and an intersection.
+    /// 
+    /// Unlike collide(), this will indicate if any collisions were detected or if the two paths merged without collisions
+    /// 
+    pub fn collide_or_merge(mut self, collide_path: GraphPath<Point, Label>, accuracy: f64) -> CollidedGraphPath<Point, Label> {
+        // Generate a merged path with all of the edges
+        let collision_offset    = self.points.len();
+        self                    = self.merge(collide_path);
+
+        // Search for collisions between our original path and the new one
+        let total_points = self.points.len();
+        if self.detect_collisions(0..collision_offset, collision_offset..total_points, accuracy) {
+            CollidedGraphPath::Collided(self)
+        } else {
+            CollidedGraphPath::Merged(self)
         }
     }
 

@@ -214,9 +214,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// 
     /// collide_from must indicate indices lower than collide_to
     /// 
-    pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) {
+    /// Returns true if any collisions were found
+    /// 
+    pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) -> bool {
         // Find all of the collision points
         let all_collisions      = self.find_collisions(collide_from, collide_to, accuracy);
+        if all_collisions.len() == 0 {
+            return false;
+        }
 
         // Add in any extra points that are required by the collisions we found
         let all_collisions      = self.create_collision_points(all_collisions);
@@ -349,6 +354,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         self.remove_all_very_short_edges();
 
         self.check_following_edge_consistency();
+
+        true
     }
 
     ///
