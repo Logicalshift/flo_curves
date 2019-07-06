@@ -21,6 +21,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Finds all collisions between a ray and this path
     /// 
+    /// The return value is a tuple of (collision, curve_t, line_t, position)
+    /// 
     pub fn ray_collisions<L: Line<Point=Point>>(&self, ray: &L) -> Vec<(GraphRayCollision, f64, f64, Point)> {
         ray_collisions(&self, ray)
     }
