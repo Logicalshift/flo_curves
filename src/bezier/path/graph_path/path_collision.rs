@@ -220,7 +220,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Find all of the collision points
         let all_collisions      = self.find_collisions(collide_from, collide_to, accuracy);
         if all_collisions.len() == 0 {
-            return false;
+            let collided_at_point = self.combine_overlapping_points(accuracy);
+            self.remove_all_very_short_edges();
+            return collided_at_point;
         }
 
         // Add in any extra points that are required by the collisions we found
@@ -364,7 +366,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Accuracy indicates the maximum difference in the x or y coordinate for two points to be considered the same.
     ///
     #[inline(never)]
-    pub fn combine_overlapping_points(&mut self, accuracy: f64) {
+    pub fn combine_overlapping_points(&mut self, accuracy: f64) -> bool {
         // Find collisions using a hashmap
         let multiplier      = 1.0 / accuracy;
         let mut collisions  = HashMap::new();
@@ -470,6 +472,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     point.connected_from.dedup();
                 }
             }
+
+            true
+        } else {
+            false
         }
     }
 
