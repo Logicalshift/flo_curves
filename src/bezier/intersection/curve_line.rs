@@ -4,7 +4,7 @@ use super::super::super::geo::*;
 use super::super::super::line::*;
 
 use smallvec::*;
-use roots::{find_roots_cubic, Roots};
+use roots::{find_roots_cubic, find_roots_quadratic, Roots};
 
 ///
 /// Find the t values where a curve intersects a ray
@@ -39,7 +39,7 @@ where C::Point: Coordinate2D {
         a*bx.3+b*by.3+c
     );
 
-    let roots                       = find_roots_cubic(p.0, p.1, p.2, p.3);
+    let roots                       = if p.0.abs() < 0.00000001 { find_roots_quadratic(p.1, p.2, p.3) } else { find_roots_cubic(p.0, p.1, p.2, p.3) };
     let roots: SmallVec<[f64; 4]>   = match roots {
         Roots::No(_)    => smallvec![],
         Roots::One(r)   => SmallVec::from_slice(&r),
