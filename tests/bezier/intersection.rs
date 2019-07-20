@@ -275,11 +275,41 @@ fn ray_intersects_curve_1e() {
 }
 
 #[test]
-fn ray_missing_root() {
+fn ray_missing_root_1() {
     use roots::*;
 
     // Known root of a set of coefficients (which happen to be the coefficients from the failing tests above)
     let a = -0.000000000000000040410628481035;
+    let b = 0.0126298310280606;
+    let c = -0.100896606408756;
+    let d = 0.0689539597036461;
+
+    let x = 0.754710877053;
+
+    // Demonstrate that this is a root
+    assert!((a*x*x*x + b*x*x + c*x + d).abs() < 0.001);
+
+    // Try to find this root
+    let roots = find_roots_cubic(a, b, c, d);
+    let roots = match roots {
+        Roots::No(_)    => vec![],
+        Roots::One(r)   => r.to_vec(),
+        Roots::Two(r)   => r.to_vec(),
+        Roots::Three(r) => r.to_vec(),
+        Roots::Four(r)  => r.to_vec()
+    };
+
+    // Should exist a root that's close to the value above
+    println!("{:?}", roots);
+    assert!(roots.into_iter().any(|r| (r-x).abs() < 0.01));
+}
+
+#[test]
+fn ray_missing_root_2() {
+    use roots::*;
+
+    // As above but with the slightly weird coefficent a set to 0.0
+    let a = -0.0;
     let b = 0.0126298310280606;
     let c = -0.100896606408756;
     let d = 0.0689539597036461;
