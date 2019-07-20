@@ -183,6 +183,7 @@ fn ray_intersects_curve_1() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
+    assert!(intersections.len() != 0);
     assert!(intersections.len() == 1);
 }
 
@@ -194,5 +195,42 @@ fn ray_intersects_curve_1a() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+}
+
+#[test]
+fn ray_intersects_curve_1b() {
+    // Failed intersection in ring_with_offset_crossbar_ray_casting_issue (different ray: all vertical rays seem to be an issue)
+    let curve   = bezier::Curve::from_points(Coord2(0.5857864376269051, 0.5857864376269049), (Coord2(0.488017920077567, 0.683554955176243), Coord2(0.40248767198507907, 0.7889273585090868)), Coord2(0.3291956933494412, 0.899999999999999));
+    let ray     = (Coord2(0.395337879662404, 0.7560017173290998), Coord2(0.395337879662404, 1.0999999999999999));
+
+    let intersections = bezier::curve_intersects_ray(&curve, &ray);
+
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+}
+
+#[test]
+fn ray_intersects_curve_1c() {
+    // Horizontal ray to the collision point in 1a
+    let curve   = bezier::Curve::from_points(Coord2(0.5857864376269051, 0.5857864376269049), (Coord2(0.488017920077567, 0.683554955176243), Coord2(0.40248767198507907, 0.7889273585090868)), Coord2(0.3291956933494412, 0.899999999999999));
+    let ray     = (Coord2(0.7560017173290998, 0.8192109187049827), Coord2(1.0999999999999999, 0.8192109187049827));
+
+    let intersections = bezier::curve_intersects_ray(&curve, &ray);
+
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+}
+
+#[test]
+fn ray_intersects_curve_1d() {
+    // Failed intersection in ring_with_offset_crossbar_ray_casting_issue (vertical ray to the collision point from 1a)
+    let curve   = bezier::Curve::from_points(Coord2(0.5857864376269051, 0.5857864376269049), (Coord2(0.488017920077567, 0.683554955176243), Coord2(0.40248767198507907, 0.7889273585090868)), Coord2(0.3291956933494412, 0.899999999999999));
+    let ray     = (Coord2(0.38541950989400653, 0.7560017173290998), Coord2(0.38541950989400653, 1.0999999999999999));
+
+    let intersections = bezier::curve_intersects_ray(&curve, &ray);
+
+    assert!(intersections.len() != 0);
     assert!(intersections.len() == 1);
 }
