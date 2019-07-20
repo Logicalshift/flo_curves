@@ -260,3 +260,16 @@ fn ray_intersects_curve_1d() {
     assert!(intersections.len() != 0);
     assert!(intersections.len() == 1);
 }
+
+#[test]
+fn ray_intersects_curve_1e() {
+    // Same intersection but using the clipping algorithm (fails the same way as we eventually try to find via the root finder)
+    let curve   = bezier::Curve::from_points(Coord2(0.5857864376269051, 0.5857864376269049), (Coord2(0.488017920077567, 0.683554955176243), Coord2(0.40248767198507907, 0.7889273585090868)), Coord2(0.3291956933494412, 0.899999999999999));
+    let ray     = (Coord2(0.3853378796624052, 0.0), Coord2(0.385337879662404, 10.0));
+    let ray     = line::line_to_bezier(&ray);
+
+    let intersections = bezier::curve_intersects_curve_clip(&curve, &ray, 0.01);
+
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+}
