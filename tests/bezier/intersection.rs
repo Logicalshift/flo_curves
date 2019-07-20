@@ -16,6 +16,32 @@ fn find_intersection_on_straight_line() {
 }
 
 #[test]
+fn find_intersection_with_vertical_ray() {
+    // Cross that intersects at (5.0, 5.0)
+    let line    = (Coord2(5.0, 0.0), Coord2(5.0, 10.0));
+    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+
+    let intersections   = bezier::curve_intersects_line(&curve, &line);
+    assert!(intersections.len() == 1);
+
+    let intersect_point = curve.point_at_pos(intersections[0].0);
+    assert!(intersect_point.distance_to(&Coord2(5.0, 5.0)) < 0.01);
+}
+
+#[test]
+fn find_intersection_with_horizontal_ray() {
+    // Cross that intersects at (5.0, 5.0)
+    let line    = (Coord2(0.0, 5.0), Coord2(10.0, 5.0));
+    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+
+    let intersections   = bezier::curve_intersects_line(&curve, &line);
+    assert!(intersections.len() == 1);
+
+    let intersect_point = curve.point_at_pos(intersections[0].0);
+    assert!(intersect_point.distance_to(&Coord2(5.0, 5.0)) < 0.01);
+}
+
+#[test]
 fn no_intersection_if_line_does_not_cross_curve() {
     // Line moves away from the curve
     let line    = (Coord2(0.0, 0.0), Coord2(-10.0, -10.0));
