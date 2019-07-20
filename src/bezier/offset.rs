@@ -25,8 +25,8 @@ where Curve::Point: Coordinate2D {
     let side_cp1    = (a*cp1.x() + b*cp1.y() + c).signum();
     let side_cp2    = (a*cp2.x() + b*cp2.y() + c).signum();
 
-    debug_assert!(!side_cp1.is_nan());
-    debug_assert!(!side_cp2.is_nan());
+    test_assert!(!side_cp1.is_nan());
+    test_assert!(!side_cp2.is_nan());
 
     if side_cp1 != side_cp2 {
         // Control points are on different sides
@@ -84,7 +84,7 @@ where Curve::Point: Normalize+Coordinate2D {
     // Split 'unsafe' sections into two until all sections are safe
     loop {
         let mut all_safe    = true;
-        debug_assert!(sections.len() < 50);
+        test_assert!(sections.len() < 50);
 
         // Check all of the sections
         let mut section_idx = 0;

@@ -70,7 +70,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 let collisions      = self.ray_collisions(&ray);
 
                 // There should always be an even number of collisions on a particular ray cast through a closed shape
-                debug_assert!((collisions.len()&1) == 0);
+                test_assert!((collisions.len()&1) == 0);
 
                 for (collision, curve_t, _line_t, _pos) in collisions {
                     let is_intersection = collision.is_intersection();
@@ -120,15 +120,15 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                             }
 
                             // This is a bug so fail in debug builds
-                            debug_assert!(edge_kind == GraphPathEdgeKind::Exterior);
+                            test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
                         } else {
-                            debug_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                            test_assert!(edge_kind == GraphPathEdgeKind::Interior);
                         }
                     }
                 }
 
                 // The ray should exit and enter the path an even number of times
-                debug_assert!(path_crossings.into_iter().all(|crossing_count| crossing_count == 0));
+                test_assert!(path_crossings.into_iter().all(|crossing_count| crossing_count == 0));
             }
         }
     }

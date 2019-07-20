@@ -56,7 +56,7 @@ where C::Point: Coordinate+Coordinate2D {
                 return Some((left.t_for_t(0.0), right.t_for_t(1.0)));
             }
 
-            debug_assert!(intersections.len() != 0);
+            test_assert!(intersections.len() != 0);
 
             if intersections.len() == 1 {
                 // Only found a single intersection

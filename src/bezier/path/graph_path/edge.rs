@@ -32,8 +32,8 @@ impl<'a, Point: 'a, Label: 'a+Copy> GraphEdge<'a, Point, Label> {
     /// 
     #[inline]
     pub (crate) fn new(graph: &'a GraphPath<Point, Label>, edge: GraphEdgeRef) -> GraphEdge<'a, Point, Label> {
-        debug_assert!(edge.start_idx < graph.points.len());
-        debug_assert!(edge.edge_idx < graph.points[edge.start_idx].forward_edges.len());
+        test_assert!(edge.start_idx < graph.points.len());
+        test_assert!(edge.edge_idx < graph.points[edge.start_idx].forward_edges.len());
 
         GraphEdge {
             graph:  graph,

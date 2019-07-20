@@ -89,8 +89,8 @@ where C::Point: Coordinate2D {
                 (y-p1.y())/(p2.y()-p1.y())
             };
 
-            debug_assert!(!s.is_nan());
-            debug_assert!(!s.is_infinite());
+            test_assert!(!s.is_nan());
+            test_assert!(!s.is_infinite());
 
             result.push((t, s, pos));
         }

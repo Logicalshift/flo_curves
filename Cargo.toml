@@ -12,6 +12,9 @@ edition         = "2018"
 keywords        = ["bezier", "geometry", "graphics"]
 categories      = ["algorithms","rendering"]
 
+[features]
+extra_checks    = []
+
 [dependencies]
 itertools   = "0.8"
 roots       = "0.0.4"

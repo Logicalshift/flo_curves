@@ -421,7 +421,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let next_edge_idx       = self.points[edge_ref.start_idx].forward_edges[edge_ref.edge_idx].following_edge_idx;
 
         // Edge shouldn't just loop around to itself
-        debug_assert!(next_point_idx != edge_ref.start_idx || next_edge_idx != edge_ref.edge_idx);
+        test_assert!(next_point_idx != edge_ref.start_idx || next_edge_idx != edge_ref.edge_idx);
 
         // ... and the preceding edge (by searching all of the connected points)
         let previous_edge_ref   = self.points[edge_ref.start_idx].connected_from
@@ -437,11 +437,11 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             })
             .nth(0);
 
-        debug_assert!(previous_edge_ref.is_some());
+        test_assert!(previous_edge_ref.is_some());
 
         if let Some(previous_edge_ref) = previous_edge_ref {
-            debug_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].end_idx == edge_ref.start_idx);
-            debug_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].following_edge_idx == edge_ref.edge_idx);
+            test_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].end_idx == edge_ref.start_idx);
+            test_assert!(self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].following_edge_idx == edge_ref.edge_idx);
 
             // Reconnect the previous edge to the next edge
             self.points[previous_edge_ref.start_idx].forward_edges[previous_edge_ref.edge_idx].end_idx              = next_point_idx;
@@ -465,7 +465,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     }
 
                     // We should have eliminated the edge we're deleting when we updated the edge above
-                    debug_assert!(connected_edge.following_edge_idx != edge_ref.edge_idx);
+                    test_assert!(connected_edge.following_edge_idx != edge_ref.edge_idx);
 
                     // Update the following edge if it was affected by the deletion
                     if connected_edge.following_edge_idx > edge_ref.edge_idx {

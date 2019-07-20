@@ -85,7 +85,7 @@ where   P1::Point:  Coordinate+Coordinate2D,
 
     // Produce the final result
     let result = merged_path.exterior_paths();
-    debug_assert!(result.len() != 0 || path.len() == 0);
+    test_assert!(result.len() != 0 || path.len() == 0);
 
     result
 }

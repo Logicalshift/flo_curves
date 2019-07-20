@@ -22,6 +22,7 @@
 
 #![warn(bare_trait_objects)]
 
+#[macro_use] mod test_assert;
 mod consts;
 pub mod bezier;
 pub mod line;
