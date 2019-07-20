@@ -268,6 +268,28 @@ fn remove_interior_for_ring_removes_center() {
 }
 
 #[test]
+fn remove_overlapped_for_ring_does_not_remove_center() {
+    let ring1   = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2   = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+
+    let removed = path_remove_overlapped_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone()], 0.01);
+
+    assert!(removed.len() == 2);
+
+    for idx in 0..removed[0].1.len() {
+        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
+        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
+        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
+    }
+
+    for idx in 0..removed[1].1.len() {
+        assert!(removed[1].1[idx].0.distance_to(&ring2.1[idx].0) < 0.01);
+        assert!(removed[1].1[idx].1.distance_to(&ring2.1[idx].1) < 0.01);
+        assert!(removed[1].1[idx].2.distance_to(&ring2.1[idx].2) < 0.01);
+    }
+}
+
+#[test]
 fn remove_interior_points_basic() {
     let with_interior_point = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(5.0, 1.0))
