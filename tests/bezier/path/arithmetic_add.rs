@@ -1,6 +1,7 @@
 use flo_curves::*;
 use flo_curves::arc::*;
 use flo_curves::bezier::path::*;
+use flo_curves::debug::*;
 
 use super::svg::*;
 
@@ -268,6 +269,85 @@ fn remove_interior_for_ring_removes_center() {
 }
 
 #[test]
+fn remove_interior_for_ring_with_crossbar_removes_center() {
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2       = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+    let crossbar1   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.2, 1.9))
+        .line_to(Coord2(0.2, 2.1))
+        .line_to(Coord2(3.8, 2.1))
+        .line_to(Coord2(3.8, 1.9))
+        .line_to(Coord2(0.2, 1.9))
+        .build();
+
+    let removed     = path_remove_interior_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone(), crossbar1.clone()], 0.01);
+
+    assert!(removed.len() == 1);
+
+    for idx in 0..removed[0].1.len() {
+        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
+        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
+        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
+    }
+}
+
+#[test]
+fn remove_interior_for_ring_with_offset_crossbar_removes_center() {
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2       = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+    let crossbar1   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.2, 0.9))
+        .line_to(Coord2(0.2, 1.1))
+        .line_to(Coord2(3.8, 1.1))
+        .line_to(Coord2(3.8, 0.9))
+        .line_to(Coord2(0.2, 0.9))
+        .build();
+
+    // Create the graph path from the source side
+    let path = vec![ring1.clone(), ring2.clone(), crossbar1.clone()];
+    let mut merged_path = GraphPath::new();
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+
+    // Collide the path with itself to find the intersections
+    merged_path.self_collide(0.01);
+    merged_path.round(0.01);
+
+    merged_path.set_exterior_by_removing_interior_points();
+
+    println!("{}", graph_path_svg_string(&merged_path, vec![]));
+
+    // Try the actual removing operation
+    let removed     = path_remove_interior_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone(), crossbar1.clone()], 0.01);
+
+    assert!(removed.len() == 1);
+}
+
+#[test]
+fn remove_interior_for_ring_with_cross_removes_center() {
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2       = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+    let crossbar1   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.2, 1.9))
+        .line_to(Coord2(0.2, 2.1))
+        .line_to(Coord2(3.8, 2.1))
+        .line_to(Coord2(3.8, 1.9))
+        .build();
+    let crossbar2   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.9, 0.2))
+        .line_to(Coord2(2.1, 0.2))
+        .line_to(Coord2(2.1, 3.8))
+        .line_to(Coord2(1.9, 3.8))
+        .build();
+
+    let removed     = path_remove_interior_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone(), crossbar1.clone(), crossbar2.clone()], 0.01);
+
+    // Check the removed result
+    assert!(removed.len() == 1);
+
+    for idx in 0..removed[0].1.len() {
+        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
+        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
+        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
+    }
+}
+
+#[test]
 fn remove_overlapped_for_ring_does_not_remove_center() {
     let ring1   = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
     let ring2   = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
@@ -287,6 +367,39 @@ fn remove_overlapped_for_ring_does_not_remove_center() {
         assert!(removed[1].1[idx].1.distance_to(&ring2.1[idx].1) < 0.01);
         assert!(removed[1].1[idx].2.distance_to(&ring2.1[idx].2) < 0.01);
     }
+}
+
+#[test]
+fn remove_overlapped_for_ring_with_overlapping_crossbar() {
+    // Crossbar overlaps both the main ring and the center
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2       = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+    let crossbar1   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.2, 1.9))
+        .line_to(Coord2(0.2, 2.1))
+        .line_to(Coord2(3.8, 2.1))
+        .line_to(Coord2(3.8, 1.9))
+        .line_to(Coord2(0.2, 1.9))
+        .build();
+
+    let removed     = path_remove_overlapped_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone(), crossbar1.clone()], 0.01);
+
+    assert!(removed.len() == 5);
+}
+
+#[test]
+fn remove_overlapped_for_ring_with_crossbar_in_space() {
+    // Crossbar is floating in space here
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2       = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+    let crossbar1   = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.6, 0.9))
+        .line_to(Coord2(1.6, 1.1))
+        .line_to(Coord2(2.4, 1.1))
+        .line_to(Coord2(2.4, 0.9))
+        .build();
+
+    let removed     = path_remove_overlapped_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone(), crossbar1.clone()], 0.01);
+
+    assert!(removed.len() == 3);
 }
 
 #[test]
