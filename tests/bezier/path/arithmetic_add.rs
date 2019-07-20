@@ -237,6 +237,37 @@ fn add_two_doughnuts() {
 }
 
 #[test]
+fn remove_interior_from_circle_removes_nothing() {
+    let circle      = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let removed     = path_remove_interior_points::<_, SimpleBezierPath>(&vec![circle.clone()], 0.1);
+
+    assert!(removed.len() == 1);
+    assert!(removed[0].1.len() == circle.1.len());
+
+    for idx in 0..removed[0].1.len() {
+        assert!(removed[0].1[idx].0.distance_to(&circle.1[idx].0) < 0.01);
+        assert!(removed[0].1[idx].1.distance_to(&circle.1[idx].1) < 0.01);
+        assert!(removed[0].1[idx].2.distance_to(&circle.1[idx].2) < 0.01);
+    }
+}
+
+#[test]
+fn remove_interior_for_ring_removes_center() {
+    let ring1   = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let ring2   = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
+
+    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![ring1.clone(), ring2.clone()], 0.01);
+
+    assert!(removed.len() == 1);
+
+    for idx in 0..removed[0].1.len() {
+        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
+        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
+        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
+    }
+}
+
+#[test]
 fn remove_interior_points_basic() {
     let with_interior_point = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(5.0, 1.0))
