@@ -53,6 +53,7 @@ where C::Point: Coordinate2D {
         // Allow a small amount of 'slop' for items at the start/end as the root finding is not exact
         let t =
             if t < 0.0 && t > -0.01 {
+                // If the line passes close enough to the start of the curve, set t to 0
                 let factor      = (a*a + b*b).sqrt();
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let start_point = &w1;
@@ -62,7 +63,8 @@ where C::Point: Coordinate2D {
                 } else {
                     t
                 }
-            } else if t > 1.0 && t < 1.01 { 
+            } else if t > 1.0 && t < 1.01 {
+                // If the line passes close enough to the end of the curve, set t to 1 
                 let factor      = (a*a + b*b).sqrt();
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let end_point   = &w4;

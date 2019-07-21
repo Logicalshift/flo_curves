@@ -2,7 +2,7 @@ use super::curve::*;
 use super::super::geo::*;
 use super::super::consts::*;
 
-use roots::{find_roots_cubic, Roots};
+use roots::{find_roots_quadratic, find_roots_cubic, Roots};
 use smallvec::*;
 
 const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
@@ -19,7 +19,7 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
     let a = w4-w1-c-b;
 
     // Solve for p
-    let roots = find_roots_cubic(a, b, c, d);
+    let roots = if a.abs() < 0.00000001 { find_roots_quadratic(b, c, d) } else { find_roots_cubic(a, b, c, d) };
     let mut roots = match roots {
         Roots::No(_)                => smallvec![],
         Roots::One([a])             => smallvec![a],
