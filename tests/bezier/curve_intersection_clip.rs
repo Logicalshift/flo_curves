@@ -137,6 +137,24 @@ fn find_intersection_on_line_end_to_end_3() {
 }
 
 #[test]
+fn solve_for_end_1() {
+    let curve1  = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(1.0, 5.0), Coord2(3.0, 3.0)));
+    let end_pos = bezier::solve_curve_for_t(&curve1, &Coord2(3.0, 3.0));
+
+    assert!(end_pos.is_some());
+    assert!((end_pos.unwrap() - 1.0).abs() < 0.01);
+}
+
+#[test]
+fn solve_for_end_2() {
+    let curve1  = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 1.0), Coord2(3.0, 3.0)));
+    let end_pos = bezier::solve_curve_for_t(&curve1, &Coord2(3.0, 3.0));
+
+    assert!(end_pos.is_some());
+    assert!((end_pos.unwrap() - 1.0).abs() < 0.01);
+}
+
+#[test]
 fn find_intersection_on_line_end_to_start_2() {
     // Reverse of the intersection that should be found in self_collide_removes_shared_point_2 in the graph_path tests
     let curve1  = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(1.0, 5.0), Coord2(3.0, 3.0)));
