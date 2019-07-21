@@ -120,6 +120,8 @@ fn find_intersection_on_line_end_to_end_2() {
 
 #[test]
 fn find_intersection_on_line_end_to_end_3() {
+    // TODO: this fails at the moment (the issue is that as the ray is collinear we get the wrong t values for the intersection point)
+
     // Intersection that should be found in self_collide_removes_shared_point_1 in the graph_path tests
     let curve1  = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(1.0, 5.0), Coord2(3.0, 3.0)));
     let curve2  = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 1.0), Coord2(3.0, 3.0)));
