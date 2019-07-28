@@ -170,9 +170,11 @@ fn ray_intersects_collinear_line_1() {
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
-    assert!(intersections.len() == 1);
+    assert!(intersections.len() == 2);
     assert!(intersections[0].0 < 0.001);
     assert!(intersections[0].2.distance_to(&Coord2(4.0, 2.0)) < 0.01);
+    assert!((intersections[1].0-1.0).abs() < 0.001);
+    assert!(intersections[1].2.distance_to(&Coord2(8.0, 4.0)) < 0.01);
 }
 
 #[test]
@@ -196,9 +198,11 @@ fn ray_intersects_collinear_line_3() {
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
-    assert!(intersections.len() == 1);
-    assert!(intersections[0].0 < 0.001);
+    assert!(intersections.len() == 2);
+    assert!(intersections[0].0.abs() < 0.001);
     assert!(intersections[0].2.distance_to(&Coord2(8.0, 4.0)) < 0.01);
+    assert!((intersections[1].0-1.0).abs() < 0.001);
+    assert!(intersections[1].2.distance_to(&Coord2(4.0, 2.0)) < 0.01);
 }
 
 #[test]
