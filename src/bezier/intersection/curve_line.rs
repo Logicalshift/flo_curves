@@ -7,6 +7,30 @@ use smallvec::*;
 use roots::{find_roots_cubic, find_roots_quadratic, Roots};
 
 ///
+/// Solves the roots for a set of cubic coefficients
+///
+#[inline]
+fn solve_roots(p: (f64, f64, f64, f64)) -> Roots<f64> {
+    if p.0.abs() < 0.00000001 {
+        if p.1.abs() < 0.00000001 {
+            if p.2.abs() < 0.00000001 && p.3.abs() < 0.00000001 {
+                // All coefficients 0. Treat the roots as 0, 1 (curve and line are collinear, most likely)
+                Roots::Two([0.0, 1.0])
+            } else {
+                // Solve as a quadratic
+                find_roots_quadratic(p.1, p.2, p.3)
+            }
+        } else {
+            // Solve as a quadratic
+            find_roots_quadratic(p.1, p.2, p.3)
+        }
+    } else {
+        // Just solve as a cubic
+        find_roots_cubic(p.0, p.1, p.2, p.3)
+    }
+}
+
+///
 /// Find the t values where a curve intersects a ray
 ///
 /// Return value is a vector of (curve_t, line_t, intersection_point) values. The `line_t` value can be outside the
@@ -39,7 +63,7 @@ where C::Point: Coordinate2D {
         a*bx.3+b*by.3+c
     );
 
-    let roots                       = if p.0.abs() < 0.00000001 { find_roots_quadratic(p.1, p.2, p.3) } else { find_roots_cubic(p.0, p.1, p.2, p.3) };
+    let roots                       = solve_roots(p);
     let roots: SmallVec<[f64; 4]>   = match roots {
         Roots::No(_)    => smallvec![],
         Roots::One(r)   => SmallVec::from_slice(&r),
