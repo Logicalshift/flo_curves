@@ -181,13 +181,15 @@ fn ray_intersects_collinear_line_1() {
 fn ray_intersects_collinear_line_2() {
     // Intersecting a collinear line which has a point closer to the start of the ray than the start of the line
     let ray     = (Coord2(0.0, 0.0), Coord2(2.0, 1.0));
-    let line    = bezier::Curve::from_points(Coord2(4.0, 2.0), (Coord2(2.0, 1.0), Coord2(10.0, 7.0)), Coord2(8.0, 6.0)); // line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
+    let line    = bezier::Curve::from_points(Coord2(4.0, 2.0), (Coord2(2.0, 1.0), Coord2(10.0, 5.0)), Coord2(8.0, 4.0)); // line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
-    assert!(intersections.len() == 1);
+    assert!(intersections.len() == 2);
     assert!(intersections[0].0 < 0.001);
     assert!(intersections[0].2.distance_to(&Coord2(4.0, 2.0)) < 0.01);
+    assert!((intersections[1].0-1.0).abs() < 0.001);
+    assert!(intersections[1].2.distance_to(&Coord2(8.0, 4.0)) < 0.01);
 }
 
 #[test]
