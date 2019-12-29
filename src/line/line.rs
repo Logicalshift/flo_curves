@@ -60,19 +60,16 @@ pub trait Line2D {
     /// Returns the coefficients (a, b, c) for this line, such that ax+by+c = 0 for
     /// any point on the line and also such that a^2 + b^2 = 1
     /// 
-    #[inline]
     fn coefficients(&self) -> (f64, f64, f64);
 
     ///
     /// Returns the distance from a point to this line
     /// 
-    #[inline]
     fn distance_to(&self, p: &Self::Point) -> f64;
 
     ///
     /// Returns a value indicating which side of the line the specified point is on (+1, 0 or -1)
     ///
-    #[inline]
     fn which_side(&self, p: &Self::Point) -> i8;
 }
 

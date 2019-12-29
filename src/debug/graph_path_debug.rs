@@ -9,7 +9,7 @@ use std::fmt::Write;
 pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, PathLabel>, rays: Vec<(P, P)>) -> String {
     let mut result = String::new();
 
-    let bounds      = path.all_edges().fold(Bounds::empty(), |a, b| a.union_bounds(b.bounding_box()));;
+    let bounds      = path.all_edges().fold(Bounds::empty(), |a, b| a.union_bounds(b.bounding_box()));
     let offset      = bounds.min();
     let scale       = 1000.0/(bounds.max() - bounds.min()).x();
 
