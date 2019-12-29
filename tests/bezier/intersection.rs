@@ -281,8 +281,7 @@ fn ray_intersects_curve_1e() {
 }
 
 #[test]
-#[should_panic]         // this bug is external to the curves library, might be fixed in a future update of roots (we can remove our workaround then)
-fn roots_library_still_has_missing_root_bug() {
+fn roots_library_does_not_have_missing_root_bug() {
     use roots::*;
 
     // Known root of a set of coefficients (which happen to be the coefficients from the failing tests above)
