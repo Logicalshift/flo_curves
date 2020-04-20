@@ -52,7 +52,7 @@ where L::Point: Coordinate2D {
     let mut t2  = 1.0;
 
     // Clip against each of the 4 edges in turn
-    for (delta, edge) in delta.into_iter().zip(edge.into_iter()) {
+    for (delta, edge) in delta.iter().zip(edge.iter()) {
         if delta == &0.0 {
             // Line is parallel to this edge
             if edge < &0.0 {

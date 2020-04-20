@@ -69,7 +69,7 @@ impl<Coord: Coordinate2D+Coordinate> Circle<Coord> {
             start_angle + section_angle*3.0];
         
         // Convert the angles into curves
-        angles.into_iter()
+        angles.iter()
             .map(|angle| self.arc(*angle, angle+section_angle).to_bezier_curve())
             .collect()
     }

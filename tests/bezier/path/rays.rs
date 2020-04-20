@@ -146,7 +146,7 @@ fn crossing_figure_of_8_intersection_from_inside_nearby() {
     let graph_path = GraphPath::from_path(&left_triangle, ());
     let graph_path = graph_path.collide(GraphPath::from_path(&right_triangle, ()), 0.01);
 
-    for y in [1.9, 1.99, 1.999, 1.9999, 1.99999, 1.99999, 2.1, 2.01, 2.001, 2.0001, 2.00001, 2.000001, 2.0000001].into_iter() {
+    for y in [1.9, 1.99, 1.999, 1.9999, 1.99999, 1.99999, 2.1, 2.01, 2.001, 2.0001, 2.00001, 2.000001, 2.0000001].iter() {
         let collisions = graph_path.ray_collisions(&(Coord2(8.0, *y), Coord2(7.0, *y)));
 
         assert!(collisions.len() != 3);
@@ -332,7 +332,7 @@ fn ray_entering_triangle_through_apex_3() {
 
     let graph_path = GraphPath::from_path(&left_triangle, ());
 
-    for y in [1.9, 1.99, 1.999, 1.9999, 1.99999, 1.99999, 2.1, 2.01, 2.001, 2.0001, 2.00001, 2.000001, 2.0000001].into_iter() {
+    for y in [1.9, 1.99, 1.999, 1.9999, 1.99999, 1.99999, 2.1, 2.01, 2.001, 2.0001, 2.00001, 2.000001, 2.0000001].iter() {
         let collisions = graph_path.ray_collisions(&(Coord2(0.0, *y), Coord2(1.0, *y)));
 
         assert!((collisions.len()&1) == 0);
