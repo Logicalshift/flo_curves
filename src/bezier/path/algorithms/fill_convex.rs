@@ -6,6 +6,29 @@ use super::super::super::super::geo::*;
 use std::f64;
 
 ///
+/// Represents a collision between a ray and an object
+///
+#[derive(Clone)]
+pub struct RayCollision<Coord, Item>
+where Coord: Coordinate+Coordinate2D {
+    /// Where this collision occurred
+    pub position: Coord,
+
+    /// The object that this ray colided with
+    pub what: Item
+}
+
+impl<Coord, Item> RayCollision<Coord, Item>
+where Coord: Coordinate+Coordinate2D {
+    ///
+    /// Creates a new collision at a specific point
+    ///
+    pub fn new(position: Coord, what: Item) -> RayCollision<Coord, Item> {
+        RayCollision { position, what }
+    }
+}
+
+///
 /// Given a ray-casting function, traces the outline of a shape containing the specified center point 
 /// 
 /// `center` is a point known to be contained in the shape (it's the origin of the region to be filled) 
@@ -15,9 +38,9 @@ use std::f64;
 /// along this ray. If there is an intersection, the returned list should always include the closest
 /// intersection in the direction of the ray defined by the two coordinates.
 ///
-pub fn trace_outline_convex<Coord, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Vec<Coord>
+pub fn trace_outline_convex<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
 where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=Coord>,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
     // Current angle of the ray that we're casting
     let mut theta       = 0.0;
@@ -42,7 +65,7 @@ where   Coord:      Coordinate+Coordinate2D,
         let mut nearest_distance_squared    = f64::MAX;
 
         for ray_collision in ray_collisions {
-            let collision_vector    = ray_collision - center;
+            let collision_vector    = ray_collision.position - center;
 
             // Ignore collisions in the opposite direction of our ray
             let direction           = collision_vector.dot(&ray_vector);
@@ -85,16 +108,16 @@ where   Coord:      Coordinate+Coordinate2D,
 /// area is not entirely closed (from the point of view of the ray-casting function), then a line will be
 /// generated between the gaps.
 ///
-pub fn flood_fill_convex<Path, Coord, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Option<Path>
+pub fn flood_fill_convex<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Option<Path>
 where   Path:       BezierPathFactory<Point=Coord>,
         Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=Coord>,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
     // Trace where the ray casting algorithm indicates collisions with the specified center
     let collisions = trace_outline_convex(center, options, cast_ray);
 
     // Build a path using the LMS algorithm
-    let curves = fit_curve::<Curve<Coord>>(&collisions, options.fit_error);
+    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position.clone()).collect::<Vec<_>>(), options.fit_error);
 
     if let Some(curves) = curves {
         if curves.len() > 0 {

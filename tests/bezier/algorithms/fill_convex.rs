@@ -28,7 +28,9 @@ fn fill_convex_circle() {
         let yc1     = (-d*dx + dy.abs())*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
         let yc2     = (-d*dx - dy.abs())*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
 
-        vec![Coord2(xc1, yc1)+circle_center, Coord2(xc2, yc2)+circle_center]
+        vec![
+            RayCollision::new(Coord2(xc1, yc1)+circle_center, ()), RayCollision::new(Coord2(xc2, yc2)+circle_center, ())
+        ]
     };
 
     // Flood-fill this curve
