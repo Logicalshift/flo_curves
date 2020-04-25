@@ -4,6 +4,7 @@ use super::super::super::*;
 use super::super::super::super::geo::*;
 
 use std::f64;
+use std::ops::{Range};
 
 ///
 /// Represents a collision between a ray and an object
@@ -42,16 +43,30 @@ pub fn trace_outline_convex<Coord, Item, RayList, RayFn>(center: Coord, options:
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
+    trace_outline_convex_partial(center, options, (0.0)..(2.0*f64::consts::PI), cast_ray)
+}
+
+///
+/// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
+///
+fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
+where   Coord:      Coordinate+Coordinate2D,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+        RayFn:      Fn(Coord, Coord) -> RayList {
     // Current angle of the ray that we're casting
-    let mut theta       = 0.0;
+    let mut theta       = angles.start;
+
+    // The number of radians moved in the last step
     let mut last_step   = 0.1;
+
+    // The number of pixels to put between points when tracing the outline
     let step_size       = options.step;
 
     // Collisions we're including in the result
     let mut collisions  = vec![];
 
     // Cast rays until we make a complete circle
-    while theta < 2.0 * f64::consts::PI {
+    while theta < angles.end {
         // Work out the direction of the ray
         let ray_vector      = [1.0 * theta.sin(), 1.0 * theta.cos()];
         let ray_vector      = Coord::from_components(&ray_vector);
@@ -100,6 +115,7 @@ where   Coord:      Coordinate+Coordinate2D,
 
     collisions
 }
+
 
 ///
 /// Creates a Bezier path by flood-filling a convex area whose bounds can be determined by ray-casting.
