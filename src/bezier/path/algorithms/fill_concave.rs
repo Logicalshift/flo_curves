@@ -69,11 +69,24 @@ where Coord: Coordinate+Coordinate2D {
 /// were detected, and filling them in by ray-casting from there. There are cases where the resulting path can overlap itself: after
 /// fitting the curve, use `remove_interior_points` to generate a non-overlapping path.
 ///
-pub fn trace_outline_concave<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>> 
+/// Collisions generated internally will have 'None' set for the `what` field of the ray collision (this is why the field is made
+/// optional by this call)
+///
+pub fn trace_outline_concave<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Vec<RayCollision<Coord, Option<Item>>> 
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
+    // Modify the raycasting function to return concave items (so we can distinguish between edges we introduced and ones matched by the original raycasting algorithm)
+    // TODO: this just ensures we return optional items
     let cast_ray                = &cast_ray;
+    let cast_ray                = &|from, to| {
+        cast_ray(from, to).into_iter().map(|collision| {
+            RayCollision {
+                position:   collision.position,
+                what:       Some(collision.what)
+            }
+        })
+    };
 
     // The edge min length is the length of edge we need to see before we'll 'look around' a corner
     let edge_min_len            = options.step * 4.0;
