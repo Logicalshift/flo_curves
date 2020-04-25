@@ -113,7 +113,10 @@ where   Coord:      Coordinate+Coordinate2D,
                 // We ignore the first and last point as they will be the points along the existing edge (ie, will be the start and end points we already know)
 
                 // Find new long edges in the new edges
-                let new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
+                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
+
+                // Don't count the edge ending at point 0 (that's the edge we just came from)
+                new_long_edges.retain(|edge| edge.edge_index.1 != 0);
 
                 // Insert the new edges into the existing edge list (except the first and last which will be duplicates)
                 let edge_index      = next_edge.edge_index.1;
@@ -132,7 +135,6 @@ where   Coord:      Coordinate+Coordinate2D,
                 }
 
                 // Add the new long edges to the list
-                let mut new_long_edges = new_long_edges;
                 for edge in new_long_edges.iter_mut() {
                     edge.edge_index.0 += edge_index;
                     edge.edge_index.1 += edge_index;
