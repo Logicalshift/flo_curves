@@ -49,7 +49,7 @@ where   Coord:      Coordinate+Coordinate2D,
 ///
 /// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
 ///
-fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
+pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
