@@ -91,6 +91,48 @@ where   Coord:      Coordinate+Coordinate2D,
     let mut long_edges      = find_long_edges(&edges, edge_min_len_squared);
 
     // TODO: cast rays from each of the 'long' edges and update the edge list
+    let mut long_edge_index = 0;
+    while long_edge_index < long_edges.len() {
+        // Fetch the next edge to cast from
+        let next_edge = &long_edges[long_edge_index];
+
+        // Skip edges where we've already self-intersected
+        if !next_edge.ray_collided {
+            // Pick the center point
+            let center_point = (next_edge.start + next_edge.end) * 0.5;
+            let offset      = next_edge.end - next_edge.start;
+
+            // Find the angle of the next edge
+            let line_angle  = offset.x().atan2(offset.y());
+
+            // Perform raycasting over a 180 degree angle to get the next set of edges
+            // TODO: plus collide with lines we've added
+            let new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray);
+
+            if new_edges.len() > 2 {
+                // Insert the new edges into the existing edge list (except the first and last which will be duplicates)
+                let edge_index      = next_edge.edge_index.1;
+                let num_new_edges   = new_edges.len()-2;
+                edges.splice(edge_index..edge_index, new_edges.into_iter().skip(1).take(num_new_edges));
+
+                // Update the remaining long edge indexes
+                for update_idx in long_edge_index..long_edges.len() {
+                    if long_edges[update_idx].edge_index.0 >= edge_index {
+                        long_edges[update_idx].edge_index.0 += num_new_edges;
+                    }
+
+                    if long_edges[update_idx].edge_index.1 >= edge_index {
+                        long_edges[update_idx].edge_index.1 += num_new_edges;
+                    }
+                }
+
+                // TODO: Find new long edges
+            }
+        }
+
+        // Check the next edge
+        long_edge_index += 1;
+    }
 
     // The edges we retrieved are the result
     edges
