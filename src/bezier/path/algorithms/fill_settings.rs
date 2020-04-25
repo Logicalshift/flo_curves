@@ -5,7 +5,7 @@
 /// settings like this step size.
 ///
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct FillOptions {
+pub struct FillSettings {
     /// The distance between one ray and the next
     pub (crate) step: f64,
 
@@ -13,14 +13,14 @@ pub struct FillOptions {
     pub (crate) fit_error: f64
 }
 
-impl FillOptions {
+impl FillSettings {
     ///
     /// Creates a new fill options from this one by setting the step
     /// 
     /// The step size defines how accurately the flood-filled region reflects the area defined by the
     /// ray-casting function. Higher steps will result in a faster but less accurate result.
     ///
-    pub fn with_step(self, new_step: f64) -> FillOptions {
+    pub fn with_step(self, new_step: f64) -> FillSettings {
         let mut new_options = self;
         new_options.step = new_step;
         new_options
@@ -34,19 +34,19 @@ impl FillOptions {
     /// fit, which may produce a simpler (and smoother) resulting path but which will not necessarily
     /// fit the points as well.
     ///
-    pub fn with_fit_error(self, new_fit_error: f64) -> FillOptions {
+    pub fn with_fit_error(self, new_fit_error: f64) -> FillSettings {
         let mut new_options = self;
         new_options.fit_error = new_fit_error;
         new_options
     }
 }
 
-impl Default for FillOptions {
+impl Default for FillSettings {
     ///
     /// Creates the default set of fill options
     ///
-    fn default() -> FillOptions {
-        FillOptions {
+    fn default() -> FillSettings {
+        FillSettings {
             step:       2.0,
             fit_error:  1.0
         }

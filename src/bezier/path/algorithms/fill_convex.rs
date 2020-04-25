@@ -1,4 +1,4 @@
-use super::fill_options::*;
+use super::fill_settings::*;
 use super::super::*;
 use super::super::super::*;
 use super::super::super::super::geo::*;
@@ -39,7 +39,7 @@ where Coord: Coordinate+Coordinate2D {
 /// along this ray. If there is an intersection, the returned list should always include the closest
 /// intersection in the direction of the ray defined by the two coordinates.
 ///
-pub fn trace_outline_convex<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
+pub fn trace_outline_convex<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
@@ -49,7 +49,7 @@ where   Coord:      Coordinate+Coordinate2D,
 ///
 /// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
 ///
-pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
+pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
@@ -124,7 +124,7 @@ where   Coord:      Coordinate+Coordinate2D,
 /// area is not entirely closed (from the point of view of the ray-casting function), then a line will be
 /// generated between the gaps.
 ///
-pub fn flood_fill_convex<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillOptions, cast_ray: RayFn) -> Option<Path>
+pub fn flood_fill_convex<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Option<Path>
 where   Path:       BezierPathFactory<Point=Coord>,
         Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,

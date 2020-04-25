@@ -34,7 +34,7 @@ fn fill_convex_circle() {
     };
 
     // Flood-fill this curve
-    let path: Option<SimpleBezierPath> = flood_fill_convex(circle_center, &FillOptions::default(), circle_ray_cast);
+    let path: Option<SimpleBezierPath> = flood_fill_convex(circle_center, &FillSettings::default(), circle_ray_cast);
 
     assert!(path.is_some());
 
