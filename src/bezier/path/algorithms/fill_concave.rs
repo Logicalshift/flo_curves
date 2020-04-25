@@ -100,7 +100,7 @@ where   Coord:      Coordinate+Coordinate2D,
         if !next_edge.ray_collided {
             // Pick the center point
             let center_point = (next_edge.start + next_edge.end) * 0.5;
-            let offset      = next_edge.end - next_edge.start;
+            let offset      = next_edge.start - next_edge.end;
 
             // Find the angle of the next edge
             let line_angle  = offset.x().atan2(offset.y());
