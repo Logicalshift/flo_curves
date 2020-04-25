@@ -29,7 +29,7 @@ struct LongEdge<Coord> {
 ///
 /// Retrieves the 'long' edges from a set of edges returned by a raycast tracing operation
 ///
-fn find_long_edges<Coord, Item>(edges: &Vec<RayCollision<Coord, Item>>, edge_min_len_squared: f64) -> Vec<LongEdge<Coord>>
+fn find_long_edges<Coord, Item>(edges: &[RayCollision<Coord, Item>], edge_min_len_squared: f64) -> Vec<LongEdge<Coord>>
 where Coord: Coordinate+Coordinate2D {
     // Find the edges where we need to cast extra rays
     let mut long_edges      = vec![];
@@ -110,6 +110,11 @@ where   Coord:      Coordinate+Coordinate2D,
             let new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray);
 
             if new_edges.len() > 2 {
+                // We ignore the first and last point as they will be the points along the existing edge (ie, will be the start and end points we already know)
+
+                // Find new long edges in the new edges
+                let new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
+
                 // Insert the new edges into the existing edge list (except the first and last which will be duplicates)
                 let edge_index      = next_edge.edge_index.1;
                 let num_new_edges   = new_edges.len()-2;
@@ -126,7 +131,14 @@ where   Coord:      Coordinate+Coordinate2D,
                     }
                 }
 
-                // TODO: Find new long edges
+                // Add the new long edges to the list
+                let mut new_long_edges = new_long_edges;
+                for edge in new_long_edges.iter_mut() {
+                    edge.edge_index.0 += edge_index;
+                    edge.edge_index.1 += edge_index;
+                }
+
+                long_edges.splice((long_edge_index+1)..(long_edge_index+1), new_long_edges);
             }
         }
 
