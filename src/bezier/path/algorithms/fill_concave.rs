@@ -1,8 +1,10 @@
 use super::fill_convex::*;
 use super::fill_settings::*;
-use super::super::*;
-use super::super::super::*;
-use super::super::super::super::geo::*;
+
+use crate::geo::*;
+use crate::line::*;
+use crate::bezier::*;
+use crate::bezier::path::*;
 
 use std::f64;
 
@@ -89,8 +91,8 @@ where   Coord:      Coordinate+Coordinate2D,
         RayFn:      Fn(Coord, Coord) -> RayList {
     // Modify the raycasting function to return concave items (so we can distinguish between edges we introduced and ones matched by the original raycasting algorithm)
     // TODO: this just ensures we return optional items
-    let cast_ray                = &cast_ray;
-    let cast_ray                = &|from, to| {
+    let cast_ray                    = &cast_ray;
+    let cast_ray                    = &|from, to| {
         cast_ray(from, to).into_iter().map(|collision| {
             RayCollision {
                 position:   collision.position,
@@ -100,8 +102,11 @@ where   Coord:      Coordinate+Coordinate2D,
     };
 
     // The edge min length is the length of edge we need to see before we'll 'look around' a corner
-    let edge_min_len            = options.step * 4.0;
-    let edge_min_len_squared    = edge_min_len * edge_min_len;
+    let edge_min_len                = options.step * 4.0;
+    let edge_min_len_squared        = edge_min_len * edge_min_len;
+
+    // Distnace to move past a self-intersection (so we fully close the path)
+    let self_intersection_distance  = 0.5;
 
     // Perform the initial convex ray-casting
     let mut edges = trace_outline_convex(center, options, cast_ray);
@@ -132,12 +137,31 @@ where   Coord:      Coordinate+Coordinate2D,
             // Generate a version of the raycasting function that inspects the existing list of long edges
             let cast_ray_to_edges   = |from: Coord, to: Coord| {
                 // Generate the edge collisions from the main raycasting function
-                let edge_collisions = cast_ray(from.clone(), to.clone());
+                let edge_collisions     = cast_ray(from.clone(), to.clone());
 
                 // Generate the collisions with the 'long edges' where we'll be considering casting more rays later on
-                let extra_collisions = long_edges.iter()
-                    .filter_map(|edge| {
-                        None
+                let extra_collisions    = long_edges.iter()
+                    .enumerate()
+                    .filter_map(move |(edge_index, edge)| {
+                        // Create lines from the ray and the lines
+                        let ray_line    = (from.clone(), to.clone());
+                        let edge_line   = (edge.start.clone(), edge.end.clone());
+
+                        // Detect where they intersect
+                        if let Some(intersection_point) = line_intersects_line(&ray_line, &edge_line) {
+                            // Move the intersection point slightly inside the shape
+                            let length              = to.distance_to(&from);
+                            let direction           = (to-from) * (1.0/length);
+                            let intersection_point  = intersection_point + (direction * self_intersection_distance);
+
+                            // Generate a colision at this point
+                            Some(RayCollision {
+                                position:   intersection_point,
+                                what:       ConcaveItem::SelfIntersection(edge_index)
+                            })
+                        } else {
+                            None
+                        }
                     });
 
                 // Combine the two sets to generate the final set of collisions
