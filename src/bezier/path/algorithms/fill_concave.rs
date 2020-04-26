@@ -105,8 +105,9 @@ where   Coord:      Coordinate+Coordinate2D,
     let edge_min_len                = options.step * 4.0;
     let edge_min_len_squared        = edge_min_len * edge_min_len;
 
-    // Distnace to move past a self-intersection (so we fully close the path)
-    let self_intersection_distance  = 0.5;
+    // Distance to move past a self-intersection (so we fully close the path). This can be reasonably large (as we'll use the
+    // edge from the ray casting function if it's nearer)
+    let self_intersection_distance  = options.step;
 
     // Perform the initial convex ray-casting
     let mut edges = trace_outline_convex(center, options, cast_ray);
