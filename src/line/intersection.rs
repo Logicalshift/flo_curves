@@ -29,7 +29,8 @@ where L::Point: Coordinate2D {
 }
 
 ///
-/// Returns the point at which two lines intersect (if they intersect)
+/// Returns the point at which a line and a ray intersect (if they intersect). The ray is assumed to be
+/// infinitely long, but the line is not.
 /// 
 /// Only the 2-dimensional form is supported at the moment (lines are much less likely to intersect
 /// in higher dimensions)
