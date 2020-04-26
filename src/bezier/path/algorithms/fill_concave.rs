@@ -154,12 +154,17 @@ where   Coord:      Coordinate+Coordinate2D,
                             let length              = to.distance_to(&from);
                             let direction           = (to-from) * (1.0/length);
                             let intersection_point  = intersection_point + (direction * self_intersection_distance);
+                            let pos_on_line         = edge_line.pos_for_point(&intersection_point);
 
-                            // Generate a colision at this point
-                            Some(RayCollision {
-                                position:   intersection_point,
-                                what:       ConcaveItem::SelfIntersection(edge_index)
-                            })
+                            if pos_on_line >= 0.0 && pos_on_line <= 1.0 {
+                                // Generate a colision at this point
+                                Some(RayCollision {
+                                    position:   intersection_point,
+                                    what:       ConcaveItem::SelfIntersection(edge_index)
+                                })
+                            } else {
+                                None
+                            }
                         } else {
                             None
                         }
