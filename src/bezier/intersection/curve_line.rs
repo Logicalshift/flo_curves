@@ -132,8 +132,8 @@ where C::Point: Coordinate2D {
 /// 
 pub fn curve_intersects_line<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
 where C::Point: Coordinate2D {
-    let mut ray_interections = curve_intersects_ray(curve, line);
-    ray_interections.retain(|(_t, s, _pos)| s >= &mut 0.0 && s <= &mut 1.0);
+    let mut ray_intersections = curve_intersects_ray(curve, line);
+    ray_intersections.retain(|(_t, s, _pos)| s >= &mut 0.0 && s <= &mut 1.0);
 
-    ray_interections
+    ray_intersections
 }

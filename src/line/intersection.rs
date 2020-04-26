@@ -29,6 +29,32 @@ where L::Point: Coordinate2D {
 }
 
 ///
+/// Returns the point at which two lines intersect (if they intersect)
+/// 
+/// Only the 2-dimensional form is supported at the moment (lines are much less likely to intersect
+/// in higher dimensions)
+/// 
+pub fn line_intersects_ray<L: Line>(line: &L, ray: &L) -> Option<L::Point> 
+where L::Point: Coordinate2D {
+    let line_points = line.points();
+    let ray_points  = ray.points();
+
+    let ((x1, y1), (x2, y2)) = (line_points.0.coords(), line_points.1.coords());
+    let ((x3, y3), (x4, y4)) = (ray_points.0.coords(), ray_points.1.coords());
+
+    let ua = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+
+    if ua >= 0.0 && ua <= 1.0 {
+        Some(L::Point::from_components(&[
+            x1+(ua*(x2-x1)), 
+            y1+(ua*(y2-y1))
+        ]))
+    } else {
+        None
+    }
+}
+
+///
 /// Determines if a 2D line has intersected a bounding box (and returns the intersection if it exists)
 /// 
 pub fn line_clip_to_bounds<L: Line>(line: &L, bounds: &(L::Point, L::Point)) -> Option<L>
