@@ -129,9 +129,23 @@ where   Coord:      Coordinate+Coordinate2D,
             // Find the angle of the next edge
             let line_angle  = offset.x().atan2(offset.y());
 
+            // Generate a version of the raycasting function that inspects the existing list of long edges
+            let cast_ray_to_edges   = |from: Coord, to: Coord| {
+                // Generate the edge collisions from the main raycasting function
+                let edge_collisions = cast_ray(from.clone(), to.clone());
+
+                // Generate the collisions with the 'long edges' where we'll be considering casting more rays later on
+                let extra_collisions = long_edges.iter()
+                    .filter_map(|edge| {
+                        None
+                    });
+
+                // Combine the two sets to generate the final set of collisions
+                edge_collisions.into_iter().chain(extra_collisions)
+            };
+
             // Perform raycasting over a 180 degree angle to get the next set of edges
-            // TODO: plus collide with lines we've added
-            let new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray);
+            let new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray_to_edges);
 
             if new_edges.len() > 2 {
                 // We ignore the first and last point as they will be the points along the existing edge (ie, will be the start and end points we already know)
