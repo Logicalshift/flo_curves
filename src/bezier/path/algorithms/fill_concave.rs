@@ -42,7 +42,7 @@ struct LongEdge<Coord> {
 ///
 /// Retrieves the 'long' edges from a set of edges returned by a raycast tracing operation
 ///
-fn find_long_edges<Coord, Item>(edges: &[RayCollision<Coord, Item>], origin: &Coord, edge_min_len_squared: f64) -> Vec<LongEdge<Coord>>
+fn find_long_edges<Coord, Item>(edges: &[RayCollision<Coord, Item>], edge_min_len_squared: f64) -> Vec<LongEdge<Coord>>
 where Coord: Coordinate+Coordinate2D {
     // Find the edges where we need to cast extra rays
     let mut long_edges      = vec![];
@@ -59,23 +59,12 @@ where Coord: Coordinate+Coordinate2D {
 
         // Add to the list of long edges if it's long enough to need further ray-casting
         if edge_distance_squared >= edge_min_len_squared {
-            // Needs to be a close match to the ray direction for this item
-            let start           = edges[last_edge].position.clone();
-            let end             = edges[edge_num].position.clone();
-
-            let edge_direction  = end-start;
-            let ray_direction   = end-(origin.clone());
-            let angle           = (edge_direction.dot(&ray_direction) / (edge_direction.magnitude()*ray_direction.magnitude())).acos();
-
-            // Add a new long edge, provided that we're within ~1.8 degrees of the ray
-            if angle.abs() < f64::consts::PI * 0.01 {
-                long_edges.push(LongEdge { 
-                    start:          start,
-                    end:            end,
-                    edge_index:     (last_edge, edge_num),
-                    ray_collided:   false
-                })
-            }
+            long_edges.push(LongEdge { 
+                start:          edges[last_edge].position.clone(),
+                end:            edges[edge_num].position.clone(),
+                edge_index:     (last_edge, edge_num),
+                ray_collided:   false
+            })
         }
     }
 
@@ -129,7 +118,7 @@ where   Coord:      Coordinate+Coordinate2D,
     }
 
     // Find the edges where we need to cast extra rays
-    let mut long_edges      = find_long_edges(&edges, &center, edge_min_len_squared);
+    let mut long_edges      = find_long_edges(&edges, edge_min_len_squared);
 
     // TODO: cast rays from each of the 'long' edges and update the edge list
     let mut long_edge_index = 0;
@@ -196,7 +185,7 @@ where   Coord:      Coordinate+Coordinate2D,
                 }
 
                 // Find new long edges in the new edges
-                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], &center_point, edge_min_len_squared);
+                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
 
                 // Don't count the edge ending at point 0 (that's the edge we just came from)
                 new_long_edges.retain(|edge| edge.edge_index.1 != 0);
