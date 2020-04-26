@@ -174,6 +174,14 @@ where   Coord:      Coordinate+Coordinate2D,
 
             if new_edges.len() > 2 {
                 // We ignore the first and last point as they will be the points along the existing edge (ie, will be the start and end points we already know)
+                let next_edge_index = next_edge.edge_index.1;
+
+                // Invalidate any edge we've had an intersection with (we'll end up with a 0-width gap we'll try to fill if we process these)
+                for new_edge in new_edges.iter() {
+                    if let ConcaveItem::SelfIntersection(edge_index) = new_edge.what {
+                        long_edges[edge_index].ray_collided = true;
+                    }
+                }
 
                 // Find new long edges in the new edges
                 let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
@@ -182,7 +190,7 @@ where   Coord:      Coordinate+Coordinate2D,
                 new_long_edges.retain(|edge| edge.edge_index.1 != 0);
 
                 // Insert the new edges into the existing edge list (except the first and last which will be duplicates)
-                let edge_index      = next_edge.edge_index.1;
+                let edge_index      = next_edge_index;
                 let num_new_edges   = new_edges.len()-2;
                 edges.splice(edge_index..edge_index, new_edges.into_iter().skip(1).take(num_new_edges));
 
