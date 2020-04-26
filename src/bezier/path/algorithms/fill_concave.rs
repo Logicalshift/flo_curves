@@ -16,6 +16,15 @@ enum ConcaveItem<Item> {
     SelfIntersection(usize)
 }
 
+impl<Item> Into<Option<Item>> for ConcaveItem<Item> {
+    fn into(self) -> Option<Item> {
+        match self {
+            ConcaveItem::Edge(item)             => Some(item),
+            ConcaveItem::SelfIntersection(_)    => None
+        }
+    }
+}
+
 ///
 /// Represents a long edge that we want to raycast from
 ///
@@ -83,7 +92,7 @@ where   Coord:      Coordinate+Coordinate2D,
         cast_ray(from, to).into_iter().map(|collision| {
             RayCollision {
                 position:   collision.position,
-                what:       Some(collision.what)
+                what:       ConcaveItem::Edge(collision.what)
             }
         })
     };
@@ -162,5 +171,10 @@ where   Coord:      Coordinate+Coordinate2D,
     }
 
     // The edges we retrieved are the result
-    edges
+    edges.into_iter()
+        .map(|collision| RayCollision { 
+            position:   collision.position,
+            what:       collision.what.into()
+        })
+        .collect()
 }
