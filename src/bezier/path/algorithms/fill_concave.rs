@@ -138,6 +138,7 @@ where   Coord:      Coordinate+Coordinate2D,
             let cast_ray_to_edges   = |from: Coord, to: Coord| {
                 // Generate the edge collisions from the main raycasting function
                 let edge_collisions     = cast_ray(from.clone(), to.clone());
+                let ray_line            = (from.clone(), to.clone());
 
                 // Generate the collisions with the 'long edges' where we'll be considering casting more rays later on
                 let extra_collisions    = long_edges.iter()
@@ -145,11 +146,10 @@ where   Coord:      Coordinate+Coordinate2D,
                     .filter(|(edge_index, _edge)| *edge_index != long_edge_index)
                     .filter_map(move |(edge_index, edge)| {
                         // Create lines from the ray and the lines
-                        let ray_line    = (from.clone(), to.clone());
                         let edge_line   = (edge.start.clone(), edge.end.clone());
 
                         // Detect where they intersect
-                        if let Some(intersection_point) = line_intersects_line(&ray_line, &edge_line) {
+                        if let Some(intersection_point) = line_intersects_ray(&edge_line, &ray_line) {
                             // Move the intersection point slightly inside the shape along the direction of the ray (so we can add the final result up properly)
                             let length              = to.distance_to(&from);
                             let direction           = (to-from) * (1.0/length);
