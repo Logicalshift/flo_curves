@@ -1,5 +1,7 @@
 use super::fill_convex::*;
 use super::fill_settings::*;
+use super::super::*;
+use super::super::super::*;
 use super::super::super::super::geo::*;
 
 use std::f64;
@@ -177,4 +179,44 @@ where   Coord:      Coordinate+Coordinate2D,
             what:       collision.what.into()
         })
         .collect()
+}
+
+///
+/// Creates a Bezier path by flood-filling a convex area whose bounds can be determined by ray-casting.
+/// 
+/// This won't fill areas that cannot be directly reached by a straight line from the center point. If the
+/// area is not entirely closed (from the point of view of the ray-casting function), then a line will be
+/// generated between the gaps.
+///
+pub fn flood_fill_concave<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Option<Vec<Path>>
+where   Path:       BezierPathFactory<Point=Coord>,
+        Coord:      Coordinate+Coordinate2D,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+        RayFn:      Fn(Coord, Coord) -> RayList {
+    // Trace where the ray casting algorithm indicates collisions with the specified center
+    let collisions = trace_outline_concave(center, options, cast_ray);
+
+    // Build a path using the LMS algorithm
+    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position.clone()).collect::<Vec<_>>(), options.fit_error);
+
+    if let Some(curves) = curves {
+        if curves.len() > 0 {
+            // Convert the curves into a path
+            let initial_point   = curves[0].start_point();
+            let overlapped_path  = Path::from_points(initial_point, curves.into_iter().map(|curve| {
+                let (cp1, cp2)  = curve.control_points();
+                let end_point   = curve.end_point();
+                (cp1, cp2, end_point)
+            }));
+            
+            // Remove any interior points that the path might have (this happens when the fill path overlaps itself)
+            Some(path_remove_interior_points(&vec![overlapped_path], 0.01))
+        } else {
+            // No curves in the path
+            None
+        } 
+    } else {
+        // Failed to fit a curve to these points
+        None
+    }
 }
