@@ -19,10 +19,10 @@ fn circle_ray_cast(circle_center: Coord2, radius: f64) -> impl Fn(Coord2, Coord2
 
         let d       = x1*y2 - x2*y1;
 
-        let xc1     = (d*dy + dy.signum()*dx)*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
-        let xc2     = (d*dy - dy.signum()*dx)*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
-        let yc1     = (-d*dx + dy.abs())*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
-        let yc2     = (-d*dx - dy.abs())*((radius*radius*dr*dr - d*d).sqrt())/(dr*dr);
+        let xc1     = (d*dy + (dy.signum()*dx*((radius*radius*dr*dr - d*d).sqrt())))/(dr*dr);
+        let xc2     = (d*dy - (dy.signum()*dx*((radius*radius*dr*dr - d*d).sqrt())))/(dr*dr);
+        let yc1     = (-d*dx + (dy.abs()*((radius*radius*dr*dr - d*d).sqrt())))/(dr*dr);
+        let yc2     = (-d*dx - (dy.abs()*((radius*radius*dr*dr - d*d).sqrt())))/(dr*dr);
 
         vec![
             RayCollision::new(Coord2(xc1, yc1)+circle_center, ()), RayCollision::new(Coord2(xc2, yc2)+circle_center, ())
@@ -50,11 +50,17 @@ fn ray_cast_to_circle_at_origin() {
     assert!(offset[0].position.distance_to(&Coord2(3.54, 3.54)) < 0.1);
     assert!(offset[1].position.distance_to(&Coord2(-3.54, -3.54)) < 0.1);
 
-    let offset2 = ray_cast(Coord2(1.0, 1.0), Coord2(2.0, 1.0));
+    let offset2 = ray_cast(Coord2(1.0, 1.0), Coord2(1.0, 2.0));
 
     assert!(offset2.len() == 2);
     assert!((offset2[0].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
     assert!((offset2[1].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+
+    let offset3 = ray_cast(Coord2(1.0, 1.0), Coord2(2.0, 1.0));
+
+    assert!(offset3.len() == 2);
+    assert!((offset3[0].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!((offset3[1].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
 }
 
 #[test]
