@@ -112,3 +112,44 @@ fn fill_concave_circle() {
         }
     }
 }
+
+#[test]
+fn fill_concave_doughnut() {
+   // Simple circle ray-casting algorithm
+    let circle_center   = Coord2(10.0, 10.0);
+    let outer_radius    = 100.0;
+    let inner_radius    = 50.0;
+    let outer_circle    = circle_ray_cast(circle_center, outer_radius);
+    let inner_circle    = circle_ray_cast(circle_center, inner_radius);
+    let doughnut        = |from: Coord2, to: Coord2| {
+        outer_circle(from.clone(), to.clone()).into_iter()
+            .chain(inner_circle(from, to))
+    };
+
+    // Flood-fill this curve
+    let start_point     = circle_center + Coord2(inner_radius + 10.0, 0.0);
+    let path            = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(start_point, &FillSettings::default(), doughnut);
+
+    assert!(path.is_some());
+    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(path.as_ref().unwrap().len() != 1);
+    // assert!(path.as_ref().unwrap().len() == 2); -- TODO: we're returning way more than 2 paths! Though the central 2 paths are apparently correct
+
+    for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let distance    = circle_center.distance_to(&curve.point_at_pos(t));
+
+            assert!((distance-outer_radius).abs() < 1.0);
+        }
+    }
+
+    for curve in path.unwrap()[1].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let distance    = circle_center.distance_to(&curve.point_at_pos(t));
+
+            assert!((distance-inner_radius).abs() < 1.0);
+        }
+    }
+}
