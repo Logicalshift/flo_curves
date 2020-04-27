@@ -31,6 +31,33 @@ fn circle_ray_cast(circle_center: Coord2, radius: f64) -> impl Fn(Coord2, Coord2
 }
 
 #[test]
+fn ray_cast_to_circle_at_origin() {
+    let ray_cast    = circle_ray_cast(Coord2(0.0, 0.0), 5.0);
+
+    let from_center = ray_cast(Coord2(0.0, 0.0), Coord2(1.0, 1.0));
+
+    assert!(from_center.len() == 2);
+    assert!((from_center[0].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!((from_center[1].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!(from_center[0].position.distance_to(&Coord2(3.54, 3.54)) < 0.1);
+    assert!(from_center[1].position.distance_to(&Coord2(-3.54, -3.54)) < 0.1);
+
+    let offset = ray_cast(Coord2(1.0, 1.0), Coord2(2.0, 2.0));
+
+    assert!(offset.len() == 2);
+    assert!((offset[0].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!((offset[1].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!(offset[0].position.distance_to(&Coord2(3.54, 3.54)) < 0.1);
+    assert!(offset[1].position.distance_to(&Coord2(-3.54, -3.54)) < 0.1);
+
+    let offset2 = ray_cast(Coord2(1.0, 1.0), Coord2(2.0, 1.0));
+
+    assert!(offset2.len() == 2);
+    assert!((offset2[0].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+    assert!((offset2[1].position.distance_to(&Coord2(0.0, 0.0))-5.0).abs() < 0.1);
+}
+
+#[test]
 fn ray_cast_to_circle() {
     let ray_cast    = circle_ray_cast(Coord2(10.0, 10.0), 5.0);
 
