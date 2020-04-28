@@ -133,7 +133,7 @@ fn fill_concave_doughnut() {
     assert!(path.is_some());
     assert!(path.as_ref().unwrap().len() != 0);
     assert!(path.as_ref().unwrap().len() != 1);
-    // assert!(path.as_ref().unwrap().len() == 2); -- TODO: we're returning way more than 2 paths! Though the central 2 paths are apparently correct
+    assert!(path.as_ref().unwrap().len() == 2);
 
     for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
