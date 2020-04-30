@@ -91,7 +91,7 @@ where   Coord:      Coordinate+Coordinate2D,
     let step_size           = options.step;
 
     // The previous collision point
-    //let mut last_collision  = None;
+    let mut last_collision  = None;
 
     // Collisions we're including in the result
     let mut collisions      = vec![];
@@ -111,6 +111,7 @@ where   Coord:      Coordinate+Coordinate2D,
 
         if let Some((nearest_collision, nearest_distance_squared)) = nearest_collision {
             // If we found a collision on this ray, add to the result
+            last_collision = Some(nearest_collision.position);
             collisions.push(nearest_collision);
 
             if nearest_distance_squared > 0.01 {
@@ -123,8 +124,9 @@ where   Coord:      Coordinate+Coordinate2D,
                 theta                   += last_step;
             }
         } else {
-            // Keep moving around the outline at the speed used after the last collision
-            theta += last_step
+            // No collision found in this direction: keep moving around the outline at the speed used after the last collision
+            theta += last_step;
+            last_collision = None;
         }
     }
 
