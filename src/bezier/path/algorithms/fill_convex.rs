@@ -47,6 +47,34 @@ where   Coord:      Coordinate+Coordinate2D,
 }
 
 ///
+/// Finds the nearest collision and the square of its distance from the center from the results of a ray-casting operation
+///
+fn find_nearest_collision<Coord, Item, RayList>(candidates: RayList, center: Coord, ray_vector: Coord) -> Option<(RayCollision<Coord, Item>, f64)>
+where   Coord:      Coordinate+Coordinate2D,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>> {
+    // Pick the first positive collision in the direction of the ray
+    let mut nearest_collision           = None;
+    let mut nearest_distance_squared    = f64::MAX;
+
+    for ray_collision in candidates {
+        let collision_vector    = ray_collision.position - center;
+
+        // Ignore collisions in the opposite direction of our ray
+        let direction           = collision_vector.dot(&ray_vector);
+        if direction < 0.0 { continue; }
+
+        // If this collision is closer to the center than before, then it becomes the nearest collision
+        let distance            = collision_vector.dot(&collision_vector);
+        if distance < nearest_distance_squared {
+            nearest_collision           = Some(ray_collision);
+            nearest_distance_squared    = distance;
+        }
+    }
+
+    nearest_collision.map(|nearest_collision| (nearest_collision, nearest_distance_squared))
+}
+
+///
 /// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
 ///
 pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
@@ -54,47 +82,34 @@ where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
     // Current angle of the ray that we're casting
-    let mut theta       = angles.start;
+    let mut theta           = angles.start;
 
     // The number of radians moved in the last step
-    let mut last_step   = 0.1;
+    let mut last_step       = 0.1;
 
     // The number of pixels to put between points when tracing the outline
-    let step_size       = options.step;
+    let step_size           = options.step;
+
+    // The previous collision point
+    //let mut last_collision  = None;
 
     // Collisions we're including in the result
-    let mut collisions  = vec![];
+    let mut collisions      = vec![];
 
     // Cast rays until we make a complete circle
     while theta < angles.end {
         // Work out the direction of the ray
-        let ray_vector      = [1.0 * theta.sin(), 1.0 * theta.cos()];
-        let ray_vector      = Coord::from_components(&ray_vector);
-        let ray_target      = center + ray_vector;
+        let ray_vector          = [1.0 * theta.sin(), 1.0 * theta.cos()];
+        let ray_vector          = Coord::from_components(&ray_vector);
+        let ray_target          = center + ray_vector;
 
         // Cast this ray and get the list of collisions
-        let ray_collisions  = cast_ray(center, ray_target);
+        let ray_collisions      = cast_ray(center, ray_target);
 
         // Pick the first positive collision in the direction of the ray
-        let mut nearest_collision           = None;
-        let mut nearest_distance_squared    = f64::MAX;
+        let nearest_collision   = find_nearest_collision(ray_collisions, center, ray_vector);
 
-        for ray_collision in ray_collisions {
-            let collision_vector    = ray_collision.position - center;
-
-            // Ignore collisions in the opposite direction of our ray
-            let direction           = collision_vector.dot(&ray_vector);
-            if direction < 0.0 { continue; }
-
-            // If this collision is closer to the center than before, then it becomes the nearest collision
-            let distance            = collision_vector.dot(&collision_vector);
-            if distance < nearest_distance_squared {
-                nearest_collision           = Some(ray_collision);
-                nearest_distance_squared    = distance;
-            }
-        }
-
-        if let Some(nearest_collision) = nearest_collision {
+        if let Some((nearest_collision, nearest_distance_squared)) = nearest_collision {
             // If we found a collision on this ray, add to the result
             collisions.push(nearest_collision);
 
