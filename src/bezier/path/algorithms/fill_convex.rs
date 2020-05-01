@@ -100,44 +100,91 @@ pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center:
 where   Coord:      Coordinate+Coordinate2D,
         RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
         RayFn:      Fn(Coord, Coord) -> RayList {
-    // Current angle of the ray that we're casting
-    let mut theta           = angles.start;
-
-    // The number of radians moved in the last step
-    let mut last_step       = 0.1;
+    // The minimum number of radians to move forward when a ray does not find a collision
+    let min_step            = 0.02;
 
     // The number of pixels to put between points when tracing the outline
     let step_size           = options.step;
-
-    // The previous collision point
-    let mut last_collision  = None;
+    let max_step            = step_size * 2.0;
+    let max_step_squared    = max_step * max_step;
 
     // Collisions we're including in the result
     let mut collisions      = vec![];
 
-    // Cast rays until we make a complete circle
-    while theta < angles.end {
-        // Pick the first positive collision in the direction of the ray
-        let nearest_collision   = perform_ray_cast(center, theta, &cast_ray);
+    // Create a stack to track the state
+    let mut stack           = vec![];
+    struct StackEntry<Coord: Coordinate+Coordinate2D, Item> {
+        angle:      Range<f64>,
+        start_pos:  Option<(RayCollision<Coord, Item>, f64)>,
+        end_pos:    Option<Coord>
+    };
 
-        if let Some((nearest_collision, nearest_distance_squared)) = nearest_collision {
-            // If we found a collision on this ray, add to the result
-            last_collision = Some(nearest_collision.position);
-            collisions.push(nearest_collision);
+    // Ray cast a few points to get the initial stack of points to check
+    for check_point in 0..4 {
+        let check_point = (4-check_point) as f64;
+        let theta       = angles.start + (angles.end-angles.start/4.0) * check_point;
+        let end_theta   = theta + (angles.end-angles.start/4.0);
 
-            if nearest_distance_squared > 0.01 {
-                // Move the ray such that we'd expect the next collision to be at approximately the distance specified by the step
-                let nearest_distance    = nearest_distance_squared.sqrt();
-                last_step               =  (step_size / nearest_distance).atan();
-                theta                   += last_step;
+        let start_pos   = perform_ray_cast(center, theta, &cast_ray);
+        let end_pos     = perform_ray_cast(center, end_theta, &cast_ray);
+
+        stack.push(StackEntry {
+            angle:      theta..end_theta,
+            start_pos:  start_pos,
+            end_pos:    end_pos.map(|(end_pos, _distance)| end_pos.position)
+        });
+    }
+
+    // Divide up the check points until the gap between them becomes small enough that it's less than the maximum gap size
+    while let Some(entry) = stack.pop() {
+        if let (Some((start_pos, _start_distance_squared)), Some(end_pos)) = (entry.start_pos.as_ref(), entry.end_pos) {
+            // Check the distance between the start and the end
+            let offset              = end_pos - start_pos.position;
+            let distance_squared    = offset.dot(&offset);
+
+            if distance_squared < max_step_squared {
+                // This point is close enough to its following point to be added to the result
+                collisions.push(entry.start_pos.unwrap().0);
             } else {
-                // Collision was too close to produce a stepping angle
-                theta                   += last_step;
+                // Divide the entry into two by casting a ray between the two points
+                let mid_point   = (entry.angle.start + entry.angle.end) / 2.0;
+                let mid_ray     = perform_ray_cast(center, mid_point, &cast_ray);
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position.clone());
+
+                // Divide into two pairs of ranges (process the earlier one first)
+                stack.push(StackEntry {
+                    angle:      mid_point..entry.angle.end,
+                    start_pos:  mid_ray,
+                    end_pos:    entry.end_pos
+                });
+                stack.push(StackEntry {
+                    angle:      entry.angle.start..mid_point,
+                    start_pos:  entry.start_pos,
+                    end_pos:    mid_ray_pos
+                })
             }
+
         } else {
-            // No collision found in this direction: keep moving around the outline at the speed used after the last collision
-            theta += last_step;
-            last_collision = None;
+
+            // One or both of the rays did not find a collision
+            if entry.angle.end - entry.angle.start > min_step {
+                // Cast a ray between the two points
+                let mid_point   = (entry.angle.start + entry.angle.end) / 2.0;
+                let mid_ray     = perform_ray_cast(center, mid_point, &cast_ray);
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position.clone());
+
+                // Divide into two pairs of ranges (process the earlier one first)
+                stack.push(StackEntry {
+                    angle:      mid_point..entry.angle.end,
+                    start_pos:  mid_ray,
+                    end_pos:    entry.end_pos
+                });
+                stack.push(StackEntry {
+                    angle:      entry.angle.start..mid_point,
+                    start_pos:  entry.start_pos,
+                    end_pos:    mid_ray_pos
+                })
+            }
         }
     }
 
