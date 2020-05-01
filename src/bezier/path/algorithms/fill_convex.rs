@@ -121,8 +121,8 @@ where   Coord:      Coordinate+Coordinate2D,
 
     // Ray cast a few points to get the initial stack of points to check
     for check_point in 0..4 {
-        let check_point = (4-check_point) as f64;
-        let theta       = angles.start + (angles.end-angles.start/4.0) * check_point;
+        let check_point = (3-check_point) as f64;
+        let theta       = angles.start + (angles.end-angles.start)/4.0 * check_point;
         let end_theta   = theta + (angles.end-angles.start)/4.0;
 
         let start_pos   = perform_ray_cast(center, theta, &cast_ray);
