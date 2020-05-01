@@ -75,6 +75,25 @@ where   Coord:      Coordinate+Coordinate2D,
 }
 
 ///
+/// Performs a raycast from a center point at a particular angle
+///
+fn perform_ray_cast<Coord, Item, RayList, RayFn>(center: Coord, theta: f64, cast_ray: RayFn) -> Option<(RayCollision<Coord, Item>, f64)>
+where   Coord:      Coordinate+Coordinate2D,
+        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+        RayFn:      Fn(Coord, Coord) -> RayList {
+    // Work out the direction of the ray
+    let ray_vector          = [1.0 * theta.sin(), 1.0 * theta.cos()];
+    let ray_vector          = Coord::from_components(&ray_vector);
+    let ray_target          = center + ray_vector;
+
+    // Cast this ray and get the list of collisions
+    let ray_collisions      = cast_ray(center, ray_target);
+
+    // Pick the first positive collision in the direction of the ray
+    find_nearest_collision(ray_collisions, center, ray_vector)
+}
+
+///
 /// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
 ///
 pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
@@ -98,16 +117,8 @@ where   Coord:      Coordinate+Coordinate2D,
 
     // Cast rays until we make a complete circle
     while theta < angles.end {
-        // Work out the direction of the ray
-        let ray_vector          = [1.0 * theta.sin(), 1.0 * theta.cos()];
-        let ray_vector          = Coord::from_components(&ray_vector);
-        let ray_target          = center + ray_vector;
-
-        // Cast this ray and get the list of collisions
-        let ray_collisions      = cast_ray(center, ray_target);
-
         // Pick the first positive collision in the direction of the ray
-        let nearest_collision   = find_nearest_collision(ray_collisions, center, ray_vector);
+        let nearest_collision   = perform_ray_cast(center, theta, &cast_ray);
 
         if let Some((nearest_collision, nearest_distance_squared)) = nearest_collision {
             // If we found a collision on this ray, add to the result
