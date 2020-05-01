@@ -34,7 +34,7 @@ fn circle_ray_cast(circle_center: Coord2, radius: f64) -> impl Fn(Coord2, Coord2
 fn trace_convex_circle() {
     // Simple circle ray-casting algorithm
     let circle_center   = Coord2(10.0, 10.0);
-    let radius          = 5.0;
+    let radius          = 100.0;
     let circle_ray_cast = circle_ray_cast(circle_center, radius);
 
     // Trace the outline
@@ -52,13 +52,15 @@ fn trace_convex_circle() {
         assert!((point.position.distance_to(&circle_center)-radius).abs() < 1.0);
         assert!(point.position.distance_to(&next_point.position) <= 4.0);
     }
+
+    assert!(outline.len() > 8);
 }
 
 #[test]
 fn fill_convex_circle() {
     // Simple circle ray-casting algorithm
     let circle_center   = Coord2(10.0, 10.0);
-    let radius          = 5.0;
+    let radius          = 100.0;
     let circle_ray_cast = circle_ray_cast(circle_center, radius);
 
     // Flood-fill this curve

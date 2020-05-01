@@ -94,11 +94,34 @@ fn ray_cast_to_circle() {
 fn fill_concave_circle() {
     // Simple circle ray-casting algorithm
     let circle_center   = Coord2(10.0, 10.0);
-    let radius          = 5.0;
+    let radius          = 50.0;
     let circle_ray_cast = circle_ray_cast(circle_center, radius);
 
     // Flood-fill this curve
     let path = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(circle_center, &FillSettings::default(), circle_ray_cast);
+
+    assert!(path.is_some());
+    assert!(path.as_ref().unwrap().len() == 1);
+
+    for curve in path.unwrap()[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let distance    = circle_center.distance_to(&curve.point_at_pos(t));
+
+            assert!((distance-radius).abs() < 1.0);
+        }
+    }
+}
+
+#[test]
+fn fill_concave_circle_offset() {
+    // Simple circle ray-casting algorithm
+    let circle_center   = Coord2(10.0, 10.0);
+    let radius          = 50.0;
+    let circle_ray_cast = circle_ray_cast(circle_center, radius);
+
+    // Flood-fill this curve
+    let path = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(circle_center + Coord2(1.0, 0.0), &FillSettings::default(), circle_ray_cast);
 
     assert!(path.is_some());
     assert!(path.as_ref().unwrap().len() == 1);
