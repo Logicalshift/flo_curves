@@ -123,7 +123,7 @@ where   Coord:      Coordinate+Coordinate2D,
     for check_point in 0..4 {
         let check_point = (4-check_point) as f64;
         let theta       = angles.start + (angles.end-angles.start/4.0) * check_point;
-        let end_theta   = theta + (angles.end-angles.start/4.0);
+        let end_theta   = theta + (angles.end-angles.start)/4.0;
 
         let start_pos   = perform_ray_cast(center, theta, &cast_ray);
         let end_pos     = perform_ray_cast(center, end_theta, &cast_ray);
