@@ -163,7 +163,7 @@ fn fill_concave_doughnut() {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
 
-            assert!((distance-outer_radius).abs() < 1.0);
+            assert!((distance-outer_radius).abs() < 2.0);
         }
     }
 
@@ -172,7 +172,7 @@ fn fill_concave_doughnut() {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
 
-            assert!((distance-inner_radius).abs() < 1.0);
+            assert!((distance-inner_radius).abs() < 2.0);
         }
     }
 }
