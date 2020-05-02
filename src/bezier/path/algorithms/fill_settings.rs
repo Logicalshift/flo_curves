@@ -10,7 +10,10 @@ pub struct FillSettings {
     pub (crate) step: f64,
 
     /// The maximum error to allow when performing curve fitting
-    pub (crate) fit_error: f64
+    pub (crate) fit_error: f64,
+
+    /// For concave fills, the minimum gap size that a fill can escape through
+    pub (crate) min_gap: Option<f64>
 }
 
 impl FillSettings {
@@ -39,6 +42,17 @@ impl FillSettings {
         new_options.fit_error = new_fit_error;
         new_options
     }
+
+    ///
+    /// Sets the minimum gap size that a fill can 'escape' through when moving between regions
+    ///
+    /// This makes it possible to fill regions that are not perfectly enclosed
+    ///
+    pub fn with_min_gap(self, new_min_gap: Option<f64>) -> FillSettings {
+        let mut new_options = self;
+        new_options.min_gap = new_min_gap;
+        new_options
+    }
 }
 
 impl Default for FillSettings {
@@ -48,7 +62,8 @@ impl Default for FillSettings {
     fn default() -> FillSettings {
         FillSettings {
             step:       2.0,
-            fit_error:  0.5
+            fit_error:  0.5,
+            min_gap:    Some(4.0)
         }
     }    
 }
