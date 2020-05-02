@@ -79,6 +79,36 @@ fn fill_convex_circle() {
 }
 
 #[test]
+fn trace_convex_doughnut() {
+    // With a convex fill, a 'doughnut' shape will only fill those points that are immediately reachable from the origin point
+    let circle_center   = Coord2(10.0, 10.0);
+    let outer_radius    = 100.0;
+    let inner_radius    = 50.0;
+    let outer_circle    = circle_ray_cast(circle_center, outer_radius);
+    let inner_circle    = circle_ray_cast(circle_center, inner_radius);
+    let doughnut        = |from: Coord2, to: Coord2| {
+        outer_circle(from.clone(), to.clone()).into_iter()
+            .chain(inner_circle(from, to))
+    };
+
+    // Trace the outline
+    let start_point     = circle_center + Coord2(inner_radius + 10.0, 0.0);
+    let outline         = trace_outline_convex(start_point, &FillSettings::default(), doughnut);
+
+    // Should be at least one point
+    assert!(outline.len() > 0);
+
+    for point_idx in 0..outline.len() {
+        let point           = &outline[point_idx];
+
+        assert!((point.position.distance_to(&circle_center)-outer_radius).abs() < 1.0
+            || (point.position.distance_to(&circle_center)-inner_radius).abs() < 1.0);
+    }
+
+    assert!(outline.len() > 8);
+}
+
+#[test]
 fn fill_convex_doughnut() {
     // With a convex fill, a 'doughnut' shape will only fill those points that are immediately reachable from the origin point
     let circle_center   = Coord2(10.0, 10.0);
