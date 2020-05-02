@@ -153,7 +153,7 @@ where   Coord:      Coordinate+Coordinate2D,
                         if let Some(intersection_point) = line_intersects_ray(&edge_line, &ray_line) {
                             // Move the intersection point slightly inside the shape along the direction of the ray (so we can add the final result up properly)
                             let length              = to.distance_to(&from);
-                            let direction           = (to-from) * (1.0/length);
+                            let direction           = (to-from) * (4.0/length);
                             let intersection_point  = intersection_point + (direction * self_intersection_distance);
 
                             // Generate a colision at this point
