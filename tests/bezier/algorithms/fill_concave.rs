@@ -176,3 +176,55 @@ fn fill_concave_doughnut() {
         }
     }
 }
+
+#[test]
+fn fill_doughnut_with_extra_holes() {
+   // A 'doughnut' shape is one of the harder shapes to fill in this manner as eventually we'll have to raycast over areas we've already filled
+    let circle_center   = Coord2(10.0, 10.0);
+    let outer_radius    = 100.0;
+    let inner_radius    = 50.0;
+    let outer_circle    = circle_ray_cast(circle_center, outer_radius);
+    let inner_circle    = circle_ray_cast(circle_center, inner_radius);
+    let doughnut        = |from: Coord2, to: Coord2| {
+        let inner_collisions = inner_circle(from.clone(), to.clone());
+        let outer_collisions = outer_circle(from.clone(), to.clone());
+
+        let ray             = to-from;
+        if (ray.x()/ray.y()).abs() < 0.1 || (ray.y()/ray.x()) < 0.1 {
+            // Just the inner collisions (leave holes in the collision list)
+            inner_collisions.into_iter()
+                .chain(vec![])
+        } else {
+            // All the collisions
+            outer_collisions.into_iter()
+                .chain(inner_collisions)
+        }
+    };
+
+    // Flood-fill this curve
+    let start_point     = circle_center + Coord2(inner_radius + 10.0, 0.0);
+    let path            = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(start_point, &FillSettings::default(), doughnut);
+
+    assert!(path.is_some());
+    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(path.as_ref().unwrap().len() != 1);
+    assert!(path.as_ref().unwrap().len() == 2);
+
+    for curve in path.as_ref().unwrap()[1].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let distance    = circle_center.distance_to(&curve.point_at_pos(t));
+
+            assert!((distance-outer_radius).abs() < 5.0);
+        }
+    }
+
+    for curve in path.unwrap()[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let distance    = circle_center.distance_to(&curve.point_at_pos(t));
+
+            assert!((distance-inner_radius).abs() < 2.0);
+        }
+    }
+}
