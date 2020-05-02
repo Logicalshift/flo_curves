@@ -136,7 +136,6 @@ fn fill_concave_circle_offset() {
     }
 }
 
-/*
 #[test]
 fn fill_concave_doughnut() {
    // Simple circle ray-casting algorithm
@@ -177,4 +176,3 @@ fn fill_concave_doughnut() {
         }
     }
 }
-*/
