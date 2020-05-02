@@ -48,7 +48,7 @@ impl Default for FillSettings {
     fn default() -> FillSettings {
         FillSettings {
             step:       2.0,
-            fit_error:  1.0
+            fit_error:  0.5
         }
     }    
 }
