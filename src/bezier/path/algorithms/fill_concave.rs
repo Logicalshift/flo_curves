@@ -190,9 +190,9 @@ where   Coord:      Coordinate+Coordinate2D,
                 // Don't count the edge ending at point 0 (that's the edge we just came from)
                 new_long_edges.retain(|edge| edge.edge_index.1 != 0);
 
-                // Insert the new edges into the existing edge list (except the first and last which will be duplicates)
+                // Insert the new edges into the existing edge list (except the first which will be a duplicate)
                 let edge_index      = next_edge_index;
-                let num_new_edges   = new_edges.len()-2;
+                let num_new_edges   = new_edges.len()-1;
                 edges.splice(edge_index..edge_index, new_edges.into_iter().skip(1).take(num_new_edges));
 
                 // Update the remaining long edge indexes
