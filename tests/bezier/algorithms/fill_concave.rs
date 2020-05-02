@@ -138,7 +138,7 @@ fn fill_concave_circle_offset() {
 
 #[test]
 fn fill_concave_doughnut() {
-   // Simple circle ray-casting algorithm
+    // A 'doughnut' shape is one of the harder shapes to fill in this manner as eventually we'll have to raycast over areas we've already filled
     let circle_center   = Coord2(10.0, 10.0);
     let outer_radius    = 100.0;
     let inner_radius    = 50.0;

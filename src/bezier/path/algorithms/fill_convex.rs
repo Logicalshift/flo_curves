@@ -151,6 +151,27 @@ where   Coord:      Coordinate+Coordinate2D,
                 let mid_ray     = perform_ray_cast(center, mid_point, &cast_ray);
                 let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position.clone());
 
+                // If there's a discontinuity (eg, a corner we can't see around), we'll see that the mid point is very close to the end point and far from the start point
+                if let Some(mid_ray_pos) = mid_ray_pos {
+                    // Compute the distance from the start to the mid-point and the mid-point to the end
+                    let mid_to_end          = end_pos - mid_ray_pos;
+                    let mid_to_end_sq       = mid_to_end.dot(&mid_to_end);
+
+                    // If the end is very close to the mid-point ...
+                    if mid_to_end_sq < (step_size * step_size) {
+                        // ... and is over 3/4 from the start point ...
+                        let three_quarters_sq   = (9.0*distance_squared)/16.0;
+                        let start_to_mid        = mid_ray_pos - start_pos.position;
+                        let start_to_mid_sq     = start_to_mid.dot(&start_to_mid);
+
+                        if start_to_mid_sq >= three_quarters_sq {
+                            // ... we've hit an edge and won't be able to find a point closer to the start position
+                            collisions.push(entry.start_pos.unwrap().0);
+                            continue;
+                        }
+                    }
+                }
+
                 // Divide into two pairs of ranges (process the earlier one first)
                 stack.push(StackEntry {
                     angle:      mid_point..entry.angle.end,
