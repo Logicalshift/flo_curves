@@ -6,6 +6,8 @@ use crate::line::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 
+use itertools::*;
+
 use std::f64;
 
 ///
@@ -72,6 +74,35 @@ where Coord: Coordinate+Coordinate2D {
 }
 
 ///
+/// Smooths out small gaps found in a list of edges/long edges
+///
+/// When we encounter a corner or a gap, some rays will leave to find the other side. We can work out how large the
+/// gap the ray escaped through by looking at the long edges in pairs and checking the start and end point of each edge.
+/// If they're closer than the minimum size, we can remove the edge by moving all the points that were found on the other
+/// side into a line.
+///
+fn remove_small_gaps<Coord, Item>(edges: &mut Vec<RayCollision<Coord, Item>>, long_edges: &mut Vec<LongEdge<Coord>>, min_gap_size: f64)
+where   Coord:      Coordinate+Coordinate2D {
+    let min_gap_sq = min_gap_size * min_gap_size;
+
+    // Inspect the 'long edges' as pairs (they need to be in order for this to work)
+    for ((edge1_idx, edge1), (edge2_idx, edge2)) in long_edges.iter().enumerate().tuples() {
+        // Work out the gap between the start and the end of this gap
+        let start_pos   = &edge1.start;
+        let end_pos     = &edge2.end;
+        let offset      = *end_pos - *start_pos;
+        let distance_sq = offset.dot(&offset);
+
+        // If it's less than the min gap size, add it to the list of edges to remove
+        if distance_sq <= min_gap_sq {
+            println!("Found edge to remove {} {}", edge1_idx, edge2_idx);
+        } else {
+            println!("Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
+        }
+    }
+}
+
+///
 /// Traces the outline of a complex area using ray-casting
 ///
 /// While the convex version of this function can only trace the outline of a region as it can be reached by a single ray, this
@@ -119,6 +150,11 @@ where   Coord:      Coordinate+Coordinate2D,
 
     // Find the edges where we need to cast extra rays
     let mut long_edges      = find_long_edges(&edges, edge_min_len_squared);
+
+    // Remove any gaps that are too small for the rays to escape through
+    if let Some(min_gap) = options.min_gap {
+        remove_small_gaps(&mut edges, &mut long_edges, min_gap);
+    }
 
     // TODO: cast rays from each of the 'long' edges and update the edge list
     let mut long_edge_index = 0;
