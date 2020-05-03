@@ -259,10 +259,11 @@ where   Coord:      Coordinate+Coordinate2D,
             };
 
             // Perform raycasting over a 180 degree angle to get the next set of edges
-            let new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray_to_edges);
+            let mut new_edges   = trace_outline_convex_partial(center_point, options, line_angle..(line_angle+f64::consts::PI), cast_ray_to_edges);
 
             if new_edges.len() > 2 {
-                // We ignore the first and last point as they will be the points along the existing edge (ie, will be the start and end points we already know)
+                // We ignore the first point as it will be the point along the existing edge (ie, will be the start point we already know)
+                new_edges.remove(0);
                 let next_edge_index = next_edge.edge_index.1;
 
                 // Invalidate any edge we've had an intersection with (we'll end up with a 0-width gap we'll try to fill if we process these)
@@ -273,15 +274,21 @@ where   Coord:      Coordinate+Coordinate2D,
                 }
 
                 // Find new long edges in the new edges
-                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len())], edge_min_len_squared);
+                let mut new_long_edges  = find_long_edges(&new_edges[0..(new_edges.len())], edge_min_len_squared);
 
                 // Don't count the edge ending at point 0 (that's the edge we just came from)
                 new_long_edges.retain(|edge| edge.edge_index.1 != 0);
 
+                // Remove any gaps if necessary
+                if let Some(min_gap) = options.min_gap {
+                    remove_small_gaps(&center, &mut new_edges, &mut new_long_edges, min_gap);
+                }
+
+
                 // Insert the new edges into the existing edge list (except the first which will be a duplicate)
                 let edge_index      = next_edge_index;
                 let num_new_edges   = new_edges.len()-1;
-                edges.splice(edge_index..edge_index, new_edges.into_iter().skip(1).take(num_new_edges));
+                edges.splice(edge_index..edge_index, new_edges.into_iter().take(num_new_edges));
 
                 // Update the remaining long edge indexes
                 for update_idx in long_edge_index..long_edges.len() {
