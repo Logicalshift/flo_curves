@@ -94,7 +94,11 @@ where Coord: Coordinate+Coordinate2D {
 ///
 fn remove_small_gaps<Coord, Item>(center: &Coord, edges: &mut Vec<RayCollision<Coord, Item>>, long_edges: &mut Vec<LongEdge<Coord>>, min_gap_size: f64)
 where   Coord:      Coordinate+Coordinate2D {
-    let min_gap_sq = min_gap_size * min_gap_size;
+    // To avoid calculating a lot of square roots, square the min gap size
+    let min_gap_sq          = min_gap_size * min_gap_size;
+
+    // List of long edges to remove after we've edited the points
+    let mut long_edges_to_remove = vec![];
 
     // Inspect the 'long edges' as pairs (they need to be in order for this to work)
     for edge1_idx in 0..long_edges.len() {
@@ -113,10 +117,39 @@ where   Coord:      Coordinate+Coordinate2D {
 
             // If it's less than the min gap size, add it to the list of edges to remove
             if distance_sq <= min_gap_sq {
-                println!("  Found edge to remove {} {}", edge1_idx, edge2_idx);
-            } else {
-                println!("  Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
+                // Move all the points between the two 'long' edges onto a line between the start and end point
+                // Alternatively: could remove the points here to produce a smoother shape later on
+                let gap_line        = (edge1.start.clone(), edge2.end.clone());
+                let mut edge_num    = edge1.edge_index.1;
+
+                loop {
+                    // Stop once we reach the end of the final edge
+                    if edge_num == edge2.edge_index.1 {
+                        break;
+                    }
+
+                    // Map this edge to the gap line
+                    let edge        = &mut edges[edge_num];
+                    let edge_ray    = (center.clone(), edge.position.clone());
+                    edge.position   = line_intersects_ray(&gap_line, &edge_ray).unwrap();
+
+                    // Move to the next edge
+                    edge_num += 1;
+                    if edge_num >= edges.len() { edge_num = 0; }
+                }
+
+                // Remove these edges from consideration for future raycast operations
+                long_edges_to_remove.push(edge1_idx);
+                long_edges_to_remove.push(edge2_idx);
             }
+        }
+    }
+
+    // Remove any long edges that were affected by the gap removal operation
+    if long_edges_to_remove.len() > 0 {
+        long_edges_to_remove.sort();
+        for long_edge_num in long_edges_to_remove.into_iter().rev() {
+            long_edges.remove(long_edge_num);
         }
     }
 }
