@@ -40,7 +40,7 @@ pub trait Line : Geo {
             let line_component  = delta_line.get(component_idx);
             let point_component = delta_point.get(component_idx);
 
-            if line_component.abs() > 0.000001 {
+            if line_component.abs() > 0.000001 && point_component.abs() > 0.000001 {
                 return point_component/line_component;
             }
         }

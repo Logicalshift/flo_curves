@@ -90,3 +90,15 @@ fn distance_from_diagonal_line() {
     assert!((line.distance_to(&Coord2(3.5, 6.0))).abs() < 0.001);
     assert!((line.distance_to(&Coord2(3.0, 4.0)) - 0.4472).abs() < 0.001);
 }
+
+#[test]
+fn pos_for_point_horizontal() {
+    let line = (Coord2(2.0, 3.0), Coord2(6.0, 3.0));
+    assert!((line.pos_for_point(&Coord2(4.0, 3.0)) - 0.5).abs() < 0.001);
+}
+
+#[test]
+fn pos_for_point_vertical() {
+    let line = (Coord2(3.0, 2.0), Coord2(3.0, 6.0));
+    assert!((line.pos_for_point(&Coord2(3.0, 4.0)) - 0.5).abs() < 0.001);
+}
