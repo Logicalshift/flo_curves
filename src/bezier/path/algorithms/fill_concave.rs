@@ -72,6 +72,19 @@ where Coord: Coordinate+Coordinate2D {
 }
 
 ///
+/// Determines if the 'to' position is further away from the 'center' position than the 'from' position
+///
+fn ray_is_moving_outwards<Coord>(center: &Coord, from: &Coord, to: &Coord) -> bool
+where Coord: Coordinate+Coordinate2D {
+    // Determine where the 'to' point is along this ray
+    let ray = (center.clone(), from.clone());
+    let pos = ray.pos_for_point(to);
+
+    // Position will be > 1.0 if the 'to' position is further away that 'from'
+    pos > 1.0
+}
+
+///
 /// Smooths out small gaps found in a list of edges/long edges
 ///
 /// When we encounter a corner or a gap, some rays will leave to find the other side. We can work out how large the
@@ -79,7 +92,7 @@ where Coord: Coordinate+Coordinate2D {
 /// If they're closer than the minimum size, we can remove the edge by moving all the points that were found on the other
 /// side into a line.
 ///
-fn remove_small_gaps<Coord, Item>(edges: &mut Vec<RayCollision<Coord, Item>>, long_edges: &mut Vec<LongEdge<Coord>>, min_gap_size: f64)
+fn remove_small_gaps<Coord, Item>(center: &Coord, edges: &mut Vec<RayCollision<Coord, Item>>, long_edges: &mut Vec<LongEdge<Coord>>, min_gap_size: f64)
 where   Coord:      Coordinate+Coordinate2D {
     let min_gap_sq = min_gap_size * min_gap_size;
 
@@ -90,17 +103,20 @@ where   Coord:      Coordinate+Coordinate2D {
         let edge1       = &long_edges[edge1_idx];
         let edge2       = &long_edges[edge2_idx];
 
-        // Work out the gap between the start and the end of this gap
-        let start_pos   = &edge1.start;
-        let end_pos     = &edge2.end;
-        let offset      = *end_pos - *start_pos;
-        let distance_sq = offset.dot(&offset);
+        // Edge1 must be moving out from the center
+        if ray_is_moving_outwards(center, &edge1.start, &edge1.end) && !ray_is_moving_outwards(center, &edge2.start, &edge2.end) {
+            // Work out the gap between the start and the end of this gap
+            let start_pos   = &edge1.start;
+            let end_pos     = &edge2.end;
+            let offset      = *end_pos - *start_pos;
+            let distance_sq = offset.dot(&offset);
 
-        // If it's less than the min gap size, add it to the list of edges to remove
-        if distance_sq <= min_gap_sq {
-            println!("  Found edge to remove {} {}", edge1_idx, edge2_idx);
-        } else {
-            println!("  Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
+            // If it's less than the min gap size, add it to the list of edges to remove
+            if distance_sq <= min_gap_sq {
+                println!("  Found edge to remove {} {}", edge1_idx, edge2_idx);
+            } else {
+                println!("  Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
+            }
         }
     }
 }
@@ -156,7 +172,7 @@ where   Coord:      Coordinate+Coordinate2D,
 
     // Remove any gaps that are too small for the rays to escape through
     if let Some(min_gap) = options.min_gap {
-        remove_small_gaps(&mut edges, &mut long_edges, min_gap);
+        remove_small_gaps(&center, &mut edges, &mut long_edges, min_gap);
     }
 
     // TODO: cast rays from each of the 'long' edges and update the edge list
