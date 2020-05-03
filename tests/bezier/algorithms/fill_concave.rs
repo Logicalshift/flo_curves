@@ -242,7 +242,7 @@ fn fill_circle_without_escaping_gaps() {
         let outer_collisions        = outer_circle(from.clone(), to.clone());
 
         let ray             = to-from;
-        if (ray.x()/ray.y()).abs() < 0.05 || (ray.y()/ray.x()) < 0.05 {
+        if (ray.x()/ray.y()).abs() < 0.01 {
             // Just the inner collisions (leave holes in the collision list)
             enclosing_collisions.into_iter()
                 .chain(vec![])
@@ -287,7 +287,7 @@ fn fill_doughnut_without_escaping_gaps() {
         let outer_collisions        = outer_circle(from.clone(), to.clone());
 
         let ray             = to-from;
-        if (ray.x()/ray.y()).abs() < 0.05 || (ray.y()/ray.x()) < 0.05 {
+        if (ray.x()/ray.y()).abs() < 0.01 {
             // Just the inner collisions (leave holes in the collision list)
             inner_collisions.into_iter()
                 .chain(enclosing_collisions)
