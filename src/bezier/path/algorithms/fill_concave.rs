@@ -6,8 +6,6 @@ use crate::line::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 
-use itertools::*;
-
 use std::f64;
 
 ///
@@ -86,7 +84,12 @@ where   Coord:      Coordinate+Coordinate2D {
     let min_gap_sq = min_gap_size * min_gap_size;
 
     // Inspect the 'long edges' as pairs (they need to be in order for this to work)
-    for ((edge1_idx, edge1), (edge2_idx, edge2)) in long_edges.iter().enumerate().tuples() {
+    for edge1_idx in 0..long_edges.len() {
+        // Going to measure the distance between this edge and the following one
+        let edge2_idx   = if edge1_idx < long_edges.len()-1 { edge1_idx + 1 } else { 0 };
+        let edge1       = &long_edges[edge1_idx];
+        let edge2       = &long_edges[edge2_idx];
+
         // Work out the gap between the start and the end of this gap
         let start_pos   = &edge1.start;
         let end_pos     = &edge2.end;
@@ -95,9 +98,9 @@ where   Coord:      Coordinate+Coordinate2D {
 
         // If it's less than the min gap size, add it to the list of edges to remove
         if distance_sq <= min_gap_sq {
-            println!("Found edge to remove {} {}", edge1_idx, edge2_idx);
+            println!("  Found edge to remove {} {}", edge1_idx, edge2_idx);
         } else {
-            println!("Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
+            println!("  Gap large enough: {} (vs {})", distance_sq.sqrt(), min_gap_size);
         }
     }
 }
