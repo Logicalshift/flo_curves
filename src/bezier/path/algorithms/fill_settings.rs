@@ -63,7 +63,7 @@ impl Default for FillSettings {
         FillSettings {
             step:       2.0,
             fit_error:  0.5,
-            min_gap:    Some(4.0)
+            min_gap:    Some(5.0)
         }
     }    
 }
