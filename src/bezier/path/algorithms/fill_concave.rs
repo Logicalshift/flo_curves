@@ -131,7 +131,7 @@ where   Coord:      Coordinate+Coordinate2D {
                     // Map this edge to the gap line
                     let edge        = &mut edges[edge_num];
                     let edge_ray    = (center.clone(), edge.position.clone());
-                    edge.position   = line_intersects_ray(&gap_line, &edge_ray).unwrap();
+                    edge.position   = line_intersects_ray(&edge_ray, &gap_line).unwrap_or_else(|| edge.position.clone());
 
                     // Move to the next edge
                     edge_num += 1;
