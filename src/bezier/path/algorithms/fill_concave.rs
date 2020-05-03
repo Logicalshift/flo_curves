@@ -273,7 +273,7 @@ where   Coord:      Coordinate+Coordinate2D,
                 }
 
                 // Find new long edges in the new edges
-                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len()-1)], edge_min_len_squared);
+                let mut new_long_edges  = find_long_edges(&new_edges[1..(new_edges.len())], edge_min_len_squared);
 
                 // Don't count the edge ending at point 0 (that's the edge we just came from)
                 new_long_edges.retain(|edge| edge.edge_index.1 != 0);
