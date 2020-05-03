@@ -352,7 +352,7 @@ fn fill_doughnut_without_escaping_gaps() {
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 
-    for curve in path.as_ref().unwrap()[1].to_curves::<Curve<Coord2>>() {
+    for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
@@ -361,7 +361,7 @@ fn fill_doughnut_without_escaping_gaps() {
         }
     }
 
-    for curve in path.unwrap()[0].to_curves::<Curve<Coord2>>() {
+    for curve in path.unwrap()[1].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
