@@ -62,7 +62,7 @@ where Curve::Point: Normalize+Coordinate2D {
             if t2 > t1 {
                 smallvec![(0.0, t1), (t1, t2), (t1, 1.0)]
             } else {
-                smallvec![(0.0, t2), (t2, t1), (t2, 1.0)]
+                smallvec![(0.0, t2), (t2, t1), (t1, 1.0)]
             }
         }
 
