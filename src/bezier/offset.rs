@@ -58,14 +58,47 @@ where Curve::Point: Normalize+Coordinate2D {
     let offset_distance     = final_offset-initial_offset;
 
     sections.into_iter()
-        .map(|section| {
+        .flat_map(|section| {
             // Compute the offsets for this section (TODO: use the curve length, not the t values)
             let (t1, t2)            = section.original_curve_t_values();
             let (offset1, offset2)  = (t1*offset_distance+initial_offset, t2*offset_distance+initial_offset);
 
-            simple_offset(&section, offset1, offset2)
+            subdivide_offset(&section, offset1, offset2)
         })
         .collect()
+}
+
+///
+/// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
+///
+fn subdivide_offset<P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveIn, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
+where P: Coordinate2D+Normalize {
+    // Perform a basic offset
+    let offset_curve: CurveOut = simple_offset(curve, initial_offset, final_offset);
+
+    // Work out the expected offset at the midpoint, and the actual offset
+    let expected_mid_offset = (initial_offset + final_offset) * 0.5;
+    let mid_normal          = curve.normal_at_pos(0.5).to_unit_vector();
+    let actual_pos          = offset_curve.point_at_pos(0.5);
+    let target_pos          = curve.point_at_pos(0.5) + (mid_normal * expected_mid_offset);
+
+    let error_offset        = actual_pos - target_pos;
+    let midpoint_error      = error_offset.dot(&error_offset);
+
+    if midpoint_error > 0.1*0.1 {
+        // Divide the curve into two if the error is too great and try again 
+        // (TODO: this is probably possible to detect more cheaply by looking at the start and end scales in simple_offset)
+        let left_curve  = curve.section(0.0, 0.5);
+        let right_curve = curve.section(0.5, 1.0);
+
+        smallvec![
+            simple_offset(&left_curve, initial_offset, expected_mid_offset),
+            simple_offset(&right_curve, expected_mid_offset, final_offset)
+        ]
+    } else {
+        // This curve is within tolerance
+        smallvec![offset_curve]
+    }
 }
 
 ///
