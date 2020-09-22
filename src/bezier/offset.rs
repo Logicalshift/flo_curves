@@ -4,6 +4,7 @@ use super::deform::*;
 use super::characteristics::*;
 use super::super::geo::*;
 use super::super::line::*;
+use super::super::bezier::{CurveSection};
 
 use smallvec::*;
 
@@ -71,7 +72,7 @@ where Curve::Point: Normalize+Coordinate2D {
 ///
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
-fn subdivide_offset<P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveIn, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
+fn subdivide_offset<'a, P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
 where P: Coordinate2D+Normalize {
     // Perform a basic offset
     let offset_curve: CurveOut = simple_offset(curve, initial_offset, final_offset);
@@ -88,8 +89,8 @@ where P: Coordinate2D+Normalize {
     if midpoint_error > 0.1*0.1 {
         // Divide the curve into two if the error is too great and try again 
         // (TODO: this is probably possible to detect more cheaply by looking at the start and end scales in simple_offset)
-        let left_curve  = curve.section(0.0, 0.5);
-        let right_curve = curve.section(0.5, 1.0);
+        let left_curve  = curve.subsection(0.0, 0.5);
+        let right_curve = curve.subsection(0.5, 1.0);
 
         smallvec![
             simple_offset(&left_curve, initial_offset, expected_mid_offset),
