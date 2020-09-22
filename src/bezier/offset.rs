@@ -54,15 +54,26 @@ pub fn offset<Curve: BezierCurveFactory+NormalCurve>(curve: &Curve, initial_offs
 where Curve::Point: Normalize+Coordinate2D {
     // Split at the location of any features the curve might have
     let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
-        CurveFeatures::DoubleInflectionPoint(t1, t2) |
-        CurveFeatures::Loop(t1, t2) => {
+        CurveFeatures::DoubleInflectionPoint(t1, t2)  => {
             let t1 = if t1 > 0.9999 { 1.0 } else if t1 < 0.0001 { 0.0 } else { t1 };
             let t2 = if t2 > 0.9999 { 1.0 } else if t2 < 0.0001 { 0.0 } else { t2 };
 
             if t2 > t1 {
-                smallvec![(0.0, t1), (t1, t2), (t1, 1.0)]
+                smallvec![(0.0, t1), (t1, t2), (t2, 1.0)]
             } else {
                 smallvec![(0.0, t2), (t2, t1), (t1, 1.0)]
+            }
+        }
+
+        CurveFeatures::Loop(t1, t3) => {
+            let t1 = if t1 > 0.9999 { 1.0 } else if t1 < 0.0001 { 0.0 } else { t1 };
+            let t3 = if t3 > 0.9999 { 1.0 } else if t3 < 0.0001 { 0.0 } else { t3 };
+            let t2 = (t1+t3)/2.0;
+
+            if t2 > t1 {
+                smallvec![(0.0, t1), (t1, t2), (t2, t3), (t3, 1.0)]
+            } else {
+                smallvec![(0.0, t3), (t3, t2), (t2, t1), (t1, 1.0)]
             }
         }
 
