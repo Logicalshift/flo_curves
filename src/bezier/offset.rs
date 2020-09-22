@@ -8,44 +8,6 @@ use super::super::line::*;
 use smallvec::*;
 
 ///
-/// Returns true if the specified bezier curve is 'safe'
-/// 
-/// A safe curve has both control points on the same side of the base line and the point at t=0.5
-/// roughly in the center of the polygon formed by the points of the curve
-///
-fn is_safe_curve<Curve: BezierCurve>(curve: &Curve) -> bool
-where Curve::Point: Coordinate2D {
-    // Get the points of the curve
-    let start_point = curve.start_point();
-    let end_point   = curve.end_point();
-    let (cp1, cp2)  = curve.control_points();
-
-    // Determine if the two control points are on the same side
-    let (a, b, c)   = line_coefficients_2d_unnormalized(&(start_point, end_point));
-    let side_cp1    = (a*cp1.x() + b*cp1.y() + c).signum();
-    let side_cp2    = (a*cp2.x() + b*cp2.y() + c).signum();
-
-    test_assert!(!side_cp1.is_nan());
-    test_assert!(!side_cp2.is_nan());
-
-    if side_cp1 != side_cp2 {
-        // Control points are on different sides
-        false
-    } else {
-        // Mid point of the polygon is the average of all of the points
-        let polygon_mid_point   = (start_point + cp1 + cp2 + end_point) * 0.25;
-
-        // Maximum distance from the mid point to consider the curve 'safe'
-        let max_mid_distance    = start_point.distance_to(&end_point) * 0.1;
-        let max_mid_distance    = max_mid_distance.max(5.0);
-
-        // Is safe if the point at t = 0.5 is within this distance of the midpoint
-        let curve_mid_point     = curve.point_at_pos(0.5);
-        curve_mid_point.is_near_to(&polygon_mid_point, max_mid_distance)
-    }
-}
-
-///
 /// Computes a series of curves that approximate an offset curve from the specified origin curve.
 /// 
 /// Based on the algorithm described in https://pomax.github.io/bezierinfo/#offsetting
@@ -87,41 +49,13 @@ where Curve::Point: Normalize+Coordinate2D {
 
         _ => { smallvec![(0.0, 1.0)] }
     };
-    let mut sections                = sections.into_iter()
+    let sections            = sections.into_iter()
         .filter(|(t1, t2)| t1 != t2)
         .map(|(t1, t2)| curve.section(t1, t2))
         .collect::<SmallVec<[_; 8]>>();
 
-    // Split 'unsafe' sections into two until all sections are safe
-    loop {
-        let mut all_safe    = true;
-        test_assert!(sections.len() < 50);
-
-        // Check all of the sections
-        let mut section_idx = 0;
-        while section_idx < sections.len() {
-            // Split this section if it's not safe
-            if !is_safe_curve(&sections[section_idx]) {
-                all_safe = false;
-
-                let left    = sections[section_idx].subsection(0.0, 0.5);
-                let right   = sections[section_idx].subsection(0.5, 1.0);
-
-                sections[section_idx] = left;
-                sections.insert(section_idx+1, right);
-
-                section_idx += 1;
-            }
-
-            section_idx += 1;
-        }
-
-        // Stop once all sections are safe
-        if all_safe { break; }
-    }
-
     // Offset the set of curves that we retrieved
-    let offset_distance = final_offset-initial_offset;
+    let offset_distance     = final_offset-initial_offset;
 
     sections.into_iter()
         .map(|section| {
