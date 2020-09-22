@@ -142,7 +142,7 @@ where P: Coordinate2D+Normalize {
     let normal_end      = normal_end.to_unit_vector();
 
     // If we can we want to scale the control points around the intersection of the normals
-    let intersect_point = line_intersects_line(&(start, start+normal_start), &(end, end+normal_end));
+    let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
 
     let offset_curve = if let Some(intersect_point) = intersect_point {
         // The control points point at an intersection point. We want to scale around this point so that start and end wind up at the appropriate offsets
