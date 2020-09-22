@@ -32,7 +32,7 @@ where Curve::Point: Normalize+Coordinate2D {
             let t3 = if t3 > 0.9999 { 1.0 } else if t3 < 0.0001 { 0.0 } else { t3 };
             let t2 = (t1+t3)/2.0;
 
-            if t2 > t1 {
+            if t3 > t1 {
                 smallvec![(0.0, t1), (t1, t2), (t2, t3), (t3, 1.0)]
             } else {
                 smallvec![(0.0, t3), (t3, t2), (t2, t1), (t1, 1.0)]
