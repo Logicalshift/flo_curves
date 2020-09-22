@@ -12,8 +12,13 @@ fn intersection_at_other_point() {
 }
 
 #[test]
-fn ray_intersection() {
+fn ray_intersects_line() {
     assert!(line_intersects_ray(&(Coord2(10.0, 20.0), Coord2(50.0, 60.0)), &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))).unwrap().distance_to(&Coord2(30.0, 40.0)) < 0.01);
+}
+
+#[test]
+fn two_rays_intersect() {
+    assert!(ray_intersects_ray(&(Coord2(10.0, 20.0), Coord2(50.0, 60.0)), &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))).unwrap().distance_to(&Coord2(30.0, 40.0)) < 0.01);
 }
 
 #[test]

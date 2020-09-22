@@ -1,6 +1,8 @@
 use super::line::*;
 use super::super::geo::*;
 
+use std::f64;
+
 ///
 /// Returns the point at which two lines intersect (if they intersect)
 /// 
@@ -46,6 +48,35 @@ where L::Point: Coordinate2D {
     let ua = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
 
     if ua >= 0.0 && ua <= 1.0 {
+        Some(L::Point::from_components(&[
+            x1+(ua*(x2-x1)), 
+            y1+(ua*(y2-y1))
+        ]))
+    } else {
+        None
+    }
+}
+
+
+///
+/// Returns the point at which two rays  intersect (if they intersect). Rays are infinitely long.
+/// 
+/// Only the 2-dimensional form is supported at the moment (lines are much less likely to intersect
+/// in higher dimensions)
+/// 
+pub fn ray_intersects_ray<L: Line>(line: &L, ray: &L) -> Option<L::Point> 
+where L::Point: Coordinate2D {
+    let line_points = line.points();
+    let ray_points  = ray.points();
+
+    let ((x1, y1), (x2, y2))    = (line_points.0.coords(), line_points.1.coords());
+    let ((x3, y3), (x4, y4))    = (ray_points.0.coords(), ray_points.1.coords());
+
+    let divisor                 = (y4-y3)*(x2-x1) - (x4-x3)*(y2-y1);
+
+    if divisor.abs() > f64::EPSILON {
+        let ua                  = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / divisor;
+
         Some(L::Point::from_components(&[
             x1+(ua*(x2-x1)), 
             y1+(ua*(y2-y1))
