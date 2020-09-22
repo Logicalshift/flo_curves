@@ -155,7 +155,7 @@ where P: Coordinate2D+Normalize {
         let new_cp1     = ((cp1-intersect_point) * start_scale) + intersect_point;
         let new_cp2     = ((cp2-intersect_point) * end_scale) + intersect_point;
 
-        CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end)
+        return CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end);
     } else {
         // No intersection point: just move everything along the normal
 
