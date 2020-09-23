@@ -74,31 +74,48 @@ where Curve::Point: Normalize+Coordinate2D {
 ///
 fn subdivide_offset<'a, P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
 where P: Coordinate2D+Normalize {
-    // Perform a basic offset
-    let offset_curve: CurveOut = simple_offset(curve, initial_offset, final_offset);
+    // TODO: we calculate the normals and intersection point both here and in simple_offset, which is inefficient
 
-    // Work out the expected offset at the midpoint, and the actual offset
-    let expected_mid_offset = (initial_offset + final_offset) * 0.5;
-    let mid_normal          = curve.normal_at_pos(0.5).to_unit_vector();
-    let actual_pos          = offset_curve.point_at_pos(0.5);
-    let target_pos          = curve.point_at_pos(0.5) + (mid_normal * expected_mid_offset);
+    // Fetch the original points
+    let start           = curve.start_point();
+    let end             = curve.end_point();
 
-    let error_offset        = actual_pos - target_pos;
-    let midpoint_error      = error_offset.dot(&error_offset);
+    // The normals at the start and end of the curve define the direction we should move in
+    let normal_start    = curve.normal_at_pos(0.0);
+    let normal_end      = curve.normal_at_pos(1.0);
+    let normal_start    = normal_start.to_unit_vector();
+    let normal_end      = normal_end.to_unit_vector();
 
-    if midpoint_error > 0.1*0.1 {
-        // Divide the curve into two if the error is too great and try again 
-        // (TODO: this is probably possible to detect more cheaply by looking at the start and end scales in simple_offset)
-        let left_curve  = curve.subsection(0.0, 0.5);
-        let right_curve = curve.subsection(0.5, 1.0);
+    // If we can we want to scale the control points around the intersection of the normals
+    let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
 
-        smallvec![
-            simple_offset(&left_curve, initial_offset, expected_mid_offset),
-            simple_offset(&right_curve, expected_mid_offset, final_offset)
-        ]
+    if let Some(intersect_point) = intersect_point {
+        // Subdivide again if the intersection point is too close to one or other of the mpr,a;s
+        let start_distance  = intersect_point.distance_to(&start);
+        let end_distance    = intersect_point.distance_to(&end);
+
+        // TODO: the closer to 1 this value is, the better the quality of the offset (0.99 produces good results)
+        // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
+        // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
+        if start_distance.min(end_distance) / start_distance.max(end_distance) < 0.5 {
+            let mid_offset      = (initial_offset + final_offset) / 2.0;
+            let left_curve      = curve.subsection(0.0, 0.5);
+            let right_curve     = curve.subsection(0.5, 1.0);
+
+            let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset);
+            let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset);
+
+            left_offset.into_iter()
+                .chain(right_offset)
+                .collect()
+        } else {
+            // Event intersection point
+            smallvec![simple_offset(curve, initial_offset, final_offset)]
+        }
+
     } else {
-        // This curve is within tolerance
-        smallvec![offset_curve]
+        // No intersection point
+        smallvec![simple_offset(curve, initial_offset, final_offset)]
     }
 }
 
