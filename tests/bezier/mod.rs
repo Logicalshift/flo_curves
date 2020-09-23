@@ -14,6 +14,7 @@ mod bounds;
 mod deform;
 mod search;
 mod solve;
+mod offset;
 mod overlaps;
 mod intersection;
 mod characteristics;
