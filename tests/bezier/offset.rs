@@ -73,6 +73,17 @@ fn simple_offset_3() {
 }
 
 #[test]
+fn simple_offset_4() {
+    // This curve seems to produce a huge spike
+    let c           = Curve::from_points(Coord2(987.7637, 993.9645), (Coord2(991.1699, 994.0231), Coord2(1043.5605, 853.44885)), Coord2(1064.9473, 994.277));
+    let offset      = offset(&c, 10.0, 10.0);
+    let error       = max_error(&c, &offset, 10.0, 10.0);
+
+    // But the test doesn't seem to see it?
+    assert!(error <= 10.0);
+}
+
+#[test]
 fn resizing_offset_1() {
     let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(163.0, 589.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
     let offset      = offset(&c, 10.0, 40.0);
