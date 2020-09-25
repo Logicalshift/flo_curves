@@ -74,8 +74,6 @@ where Curve::Point: Normalize+Coordinate2D {
 ///
 fn subdivide_offset<'a, P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
 where P: Coordinate2D+Normalize {
-    // TODO: we calculate the normals and intersection point both here and in simple_offset, which is inefficient
-
     // Fetch the original points
     let start           = curve.start_point();
     let end             = curve.end_point();
@@ -93,14 +91,17 @@ where P: Coordinate2D+Normalize {
         // Subdivide again if the intersection point is too close to one or other of the mpr,a;s
         let start_distance  = intersect_point.distance_to(&start);
         let end_distance    = intersect_point.distance_to(&end);
+        let distance_ratio = start_distance.min(end_distance) / start_distance.max(end_distance);
 
         // TODO: the closer to 1 this value is, the better the quality of the offset (0.99 produces good results)
         // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
         // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
-        if start_distance.min(end_distance) / start_distance.max(end_distance) < 0.5 {
-            let mid_offset      = (initial_offset + final_offset) / 2.0;
-            let left_curve      = curve.subsection(0.0, 0.5);
-            let right_curve     = curve.subsection(0.5, 1.0);
+        if distance_ratio < 0.99 {
+            let divide_point    = 0.5;
+
+            let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
+            let left_curve      = curve.subsection(0.0, divide_point);
+            let right_curve     = curve.subsection(divide_point, 1.0);
 
             let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset);
             let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset);
@@ -110,65 +111,57 @@ where P: Coordinate2D+Normalize {
                 .collect()
         } else {
             // Event intersection point
-            smallvec![simple_offset(curve, initial_offset, final_offset)]
+            smallvec![offset_by_scaling(curve, initial_offset, final_offset, intersect_point, normal_start, normal_end)]
         }
 
     } else {
         // No intersection point
-        smallvec![simple_offset(curve, initial_offset, final_offset)]
+        smallvec![offset_by_moving(curve, initial_offset, final_offset, normal_start, normal_end)]
     }
 }
 
 ///
-/// Offsets the endpoints and mid-point of a curve by the specified amounts without subdividing
-/// 
-/// This won't produce an accurate offset if the curve doubles back on itself. The return value is the curve and the error
-/// 
-fn simple_offset<P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveIn, initial_offset: f64, final_offset: f64) -> CurveOut
-where P: Coordinate2D+Normalize {
-    // Fetch the original points
+/// Offsets a curve by scaling around a central point
+///
+#[inline]
+fn offset_by_scaling<CurveIn, CurveOut>(curve: &CurveIn, initial_offset: f64, final_offset: f64, intersect_point: CurveIn::Point, unit_normal_start: CurveIn::Point, unit_normal_end: CurveIn::Point) -> CurveOut
+where   CurveIn:        NormalCurve+BezierCurve,
+        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+        CurveIn::Point: Coordinate2D+Normalize {
     let start           = curve.start_point();
     let end             = curve.end_point();
     let (cp1, cp2)      = curve.control_points();
 
-    // The normals at the start and end of the curve define the direction we should move in
-    let normal_start    = curve.normal_at_pos(0.0);
-    let normal_end      = curve.normal_at_pos(1.0);
-    let normal_start    = normal_start.to_unit_vector();
-    let normal_end      = normal_end.to_unit_vector();
+    // The control points point at an intersection point. We want to scale around this point so that start and end wind up at the appropriate offsets
+    let new_start   = start + (unit_normal_start * initial_offset);
+    let new_end     = end + (unit_normal_end * final_offset);
 
-    // If we can we want to scale the control points around the intersection of the normals
-    let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
+    let start_scale = (intersect_point.distance_to(&new_start))/(intersect_point.distance_to(&start));
+    let end_scale   = (intersect_point.distance_to(&new_end))/(intersect_point.distance_to(&end));
 
-    let offset_curve = if let Some(intersect_point) = intersect_point {
-        // The control points point at an intersection point. We want to scale around this point so that start and end wind up at the appropriate offsets
-        let new_start   = start + (normal_start * initial_offset);
-        let new_end     = end + (normal_end * final_offset);
+    let new_cp1     = ((cp1-intersect_point) * start_scale) + intersect_point;
+    let new_cp2     = ((cp2-intersect_point) * end_scale) + intersect_point;
 
-        let start_scale = (intersect_point.distance_to(&new_start))/(intersect_point.distance_to(&start));
-        let end_scale   = (intersect_point.distance_to(&new_end))/(intersect_point.distance_to(&end));
+    CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end)
+}
 
-        let new_cp1     = ((cp1-intersect_point) * start_scale) + intersect_point;
-        let new_cp2     = ((cp2-intersect_point) * end_scale) + intersect_point;
+///
+/// Given a curve where the start and end normals do not intersect at a point, calculates the offset (by moving the start and end points along the normal)
+///
+#[inline]
+fn offset_by_moving<CurveIn, CurveOut>(curve: &CurveIn, initial_offset: f64, final_offset: f64, unit_normal_start: CurveIn::Point, unit_normal_end: CurveIn::Point) -> CurveOut
+where   CurveIn:        NormalCurve+BezierCurve,
+        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+        CurveIn::Point: Coordinate2D+Normalize {
+    let start           = curve.start_point();
+    let end             = curve.end_point();
+    let (cp1, cp2)      = curve.control_points();
 
-        return CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end);
-    } else {
-        // No intersection point: just move everything along the normal
+    // Offset start & end by the specified amounts to create the first approximation of a curve
+    let new_start   = start + (unit_normal_start * initial_offset);
+    let new_cp1     = cp1 + (unit_normal_start * initial_offset);
+    let new_cp2     = cp2 + (unit_normal_end * final_offset);
+    let new_end     = end + (unit_normal_end * final_offset);
 
-        // Offset start & end by the specified amounts to create the first approximation of a curve
-        let new_start   = start + (normal_start * initial_offset);
-        let new_cp1     = cp1 + (normal_start * initial_offset);
-        let new_cp2     = cp2 + (normal_end * final_offset);
-        let new_end     = end + (normal_end * final_offset);
-
-        CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end)
-    };
-
-    // Adjust the center point of the curve
-    let mid_offset  = (initial_offset + final_offset) * 0.5;
-    let mid_normal  = curve.normal_at_pos(0.5).to_unit_vector();
-    let cur_pos     = offset_curve.point_at_pos(0.5);
-    let target_pos  = curve.point_at_pos(0.5) + (mid_normal * mid_offset);
-
-    move_point(&offset_curve, 0.5, &(target_pos-cur_pos))
+    CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end)
 }
