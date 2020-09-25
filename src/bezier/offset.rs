@@ -1,6 +1,5 @@
 use super::curve::*;
 use super::normal::*;
-use super::deform::*;
 use super::characteristics::*;
 use super::super::geo::*;
 use super::super::line::*;
