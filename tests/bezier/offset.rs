@@ -95,6 +95,18 @@ fn simple_offset_5() {
 }
 
 #[test]
+fn simple_offset_6() {
+    let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(35.15625, 502.65625), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
+    let offset_1    = offset(&c, 10.0, 10.0);
+    let offset_2    = offset(&c, -10.0, -10.0);
+    let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
+    let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
+
+    assert!(error_1 <= 10.0);
+    assert!(error_2 <= 10.0);
+}
+
+#[test]
 fn resizing_offset_1() {
     let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(163.0, 589.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
     let offset      = offset(&c, 10.0, 40.0);
