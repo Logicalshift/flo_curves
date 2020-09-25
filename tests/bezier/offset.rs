@@ -89,10 +89,7 @@ fn resizing_offset_1() {
     let offset      = offset(&c, 10.0, 40.0);
     let error       = max_error(&c, &offset, 10.0, 40.0);
 
-    // TODO (I think this is a problem with max_error, it might be finding the opposite side of the curve? It's a limited portion of the result that produces these large errors)
-    assert!(error <= 113.0);
-    assert!(error > 100.0, "(Fixed error with this case)")
-    // assert!(error <= 6.0);
+    assert!(error <= 2.0);
 }
 
 #[test]
