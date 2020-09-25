@@ -64,7 +64,7 @@ where   Curve:          BezierCurveFactory+NormalCurve,
             let (t1, t2)            = section.original_curve_t_values();
             let (offset1, offset2)  = (t1*offset_distance+initial_offset, t2*offset_distance+initial_offset);
 
-            subdivide_offset(&section, offset1, offset2)
+            subdivide_offset(&section, offset1, offset2, 0)
         })
         .collect()
 }
@@ -72,10 +72,12 @@ where   Curve:          BezierCurveFactory+NormalCurve,
 ///
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
-fn subdivide_offset<'a, CurveIn, CurveOut>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
+fn subdivide_offset<'a, CurveIn, CurveOut>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64, depth: usize) -> SmallVec<[CurveOut; 2]>
 where   CurveIn:        NormalCurve+BezierCurve,
         CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
         CurveIn::Point: Coordinate2D+Normalize {
+    const MAX_DEPTH: usize = 5;
+
     // Fetch the original points
     let start           = curve.start_point();
     let end             = curve.end_point();
@@ -98,15 +100,15 @@ where   CurveIn:        NormalCurve+BezierCurve,
         // TODO: the closer to 1 this value is, the better the quality of the offset (0.99 produces good results)
         // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
         // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
-        if distance_ratio < 0.99 {
+        if distance_ratio < 0.98 && depth < MAX_DEPTH {
             let divide_point    = 0.5;
 
             let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
             let left_curve      = curve.subsection(0.0, divide_point);
             let right_curve     = curve.subsection(divide_point, 1.0);
 
-            let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset);
-            let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset);
+            let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset, depth+1);
+            let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset, depth+1);
 
             left_offset.into_iter()
                 .chain(right_offset)
