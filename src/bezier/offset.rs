@@ -12,8 +12,9 @@ use smallvec::*;
 /// 
 /// Based on the algorithm described in https://pomax.github.io/bezierinfo/#offsetting
 ///
-pub fn offset<Curve: BezierCurveFactory+NormalCurve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
-where Curve::Point: Normalize+Coordinate2D {
+pub fn offset<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
+where   Curve:          BezierCurveFactory+NormalCurve,
+        Curve::Point:   Normalize+Coordinate2D {
     // Split at the location of any features the curve might have
     let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2)  => {
@@ -71,8 +72,10 @@ where Curve::Point: Normalize+Coordinate2D {
 ///
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
-fn subdivide_offset<'a, P: Coordinate, CurveIn: NormalCurve+BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
-where P: Coordinate2D+Normalize {
+fn subdivide_offset<'a, CurveIn, CurveOut>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64) -> SmallVec<[CurveOut; 2]>
+where   CurveIn:        NormalCurve+BezierCurve,
+        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+        CurveIn::Point: Coordinate2D+Normalize {
     // Fetch the original points
     let start           = curve.start_point();
     let end             = curve.end_point();
