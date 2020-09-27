@@ -89,12 +89,23 @@ where   CurveIn:        NormalCurve+BezierCurve,
     let normal_end          = normal_end.to_unit_vector();
 
     // If we can we want to scale the control points around the intersection of the normals
-    let mut intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
+    let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
 
     if intersect_point.is_none() {
         if characterize_curve(curve) != CurveCategory::Linear {
             // Collinear normals
-            intersect_point = Some((start+end)*0.5);
+            let divide_point    = 0.5;
+
+            let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
+            let left_curve      = curve.subsection(0.0, divide_point);
+            let right_curve     = curve.subsection(divide_point, 1.0);
+
+            let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset, depth+1);
+            let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset, depth+1);
+
+            return left_offset.into_iter()
+                .chain(right_offset)
+                .collect();
         }
     }
 
