@@ -118,7 +118,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
         // TODO: the closer to 1 this value is, the better the quality of the offset (0.99 produces good results)
         // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
         // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
-        if distance_ratio < 0.98 && depth < MAX_DEPTH {
+        if distance_ratio < 0.97 && depth < MAX_DEPTH {
             let divide_point    = 0.5;
 
             let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
