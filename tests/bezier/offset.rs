@@ -14,7 +14,8 @@ use std::f64;
 fn max_error<Curve: BezierCurve>(src_curve: &Curve, offset_curve: &Vec<Curve>, initial_offset: f64, final_offset: f64) -> f64
 where Curve::Point: Coordinate2D+Normalize,
 Curve: BezierCurve+NormalCurve {
-    let mut error = 0.0f64;
+    let mut error                                       = 0.0f64;
+    let mut last_closest: Option<(f64, Curve::Point)>   = None;
 
     for offset in offset_curve.iter() {
         for t in 0..=100 {
@@ -25,11 +26,21 @@ Curve: BezierCurve+NormalCurve {
             let intersect           = curve_intersects_ray(src_curve, &(pos, pos+normal));
 
             let mut min_error    = f64::MAX;
+
+            if let Some((last_expected_offset, last_point)) = last_closest {
+                let distance    = last_point.distance_to(&pos);
+                min_error       = min_error.min((distance-last_expected_offset).abs());
+            }
+
             for (curve_t, _, intersect_point) in intersect {
                 let expected_offset     = (final_offset-initial_offset) * curve_t + initial_offset;
 
-                let distance = intersect_point.distance_to(&pos);
-                min_error = min_error.min((distance-expected_offset).abs());
+                let distance            = intersect_point.distance_to(&pos);
+                let error               = (distance-expected_offset).abs();
+                if error < min_error {
+                    min_error           = error;
+                    last_closest        = Some((expected_offset, intersect_point));
+                }
             }
 
             if min_error < f64::MAX {
@@ -40,6 +51,8 @@ Curve: BezierCurve+NormalCurve {
             }
         }
     }
+
+    println!("Max error: {}", error);
 
     error
 }
