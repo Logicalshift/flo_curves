@@ -79,17 +79,24 @@ where   CurveIn:        NormalCurve+BezierCurve,
     const MAX_DEPTH: usize = 5;
 
     // Fetch the original points
-    let start           = curve.start_point();
-    let end             = curve.end_point();
+    let start               = curve.start_point();
+    let end                 = curve.end_point();
 
     // The normals at the start and end of the curve define the direction we should move in
-    let normal_start    = curve.normal_at_pos(0.0);
-    let normal_end      = curve.normal_at_pos(1.0);
-    let normal_start    = normal_start.to_unit_vector();
-    let normal_end      = normal_end.to_unit_vector();
+    let normal_start        = curve.normal_at_pos(0.0);
+    let normal_end          = curve.normal_at_pos(1.0);
+    let normal_start        = normal_start.to_unit_vector();
+    let normal_end          = normal_end.to_unit_vector();
 
     // If we can we want to scale the control points around the intersection of the normals
-    let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
+    let mut intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
+
+    if intersect_point.is_none() {
+        if characterize_curve(curve) != CurveCategory::Linear {
+            // Collinear normals
+            intersect_point = Some((start+end)*0.5);
+        }
+    }
 
     if let Some(intersect_point) = intersect_point {
         // Subdivide again if the intersection point is too close to one or other of the mpr,a;s
