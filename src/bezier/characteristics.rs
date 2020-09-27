@@ -170,7 +170,7 @@ fn characterize_from_canonical_point(b4: (f64, f64)) -> CurveCategory {
         if y >= 1.0 {
             CurveCategory::SingleInflectionPoint
         } else if x <= 0.0 {
-            CurveCategory:: DoubleInflectionPoint
+            CurveCategory::DoubleInflectionPoint
         } else {
             if (x-3.0).abs() <= f64::EPSILON && (y-0.0).abs() <= f64::EPSILON {
                 CurveCategory::Parabolic

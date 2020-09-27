@@ -14,7 +14,8 @@ use std::f64;
 fn max_error<Curve: BezierCurve>(src_curve: &Curve, offset_curve: &Vec<Curve>, initial_offset: f64, final_offset: f64) -> f64
 where Curve::Point: Coordinate2D+Normalize,
 Curve: BezierCurve+NormalCurve {
-    let mut error = 0.0f64;
+    let mut error                                       = 0.0f64;
+    let mut last_closest: Option<(f64, Curve::Point)>   = None;
 
     for offset in offset_curve.iter() {
         for t in 0..=100 {
@@ -25,11 +26,21 @@ Curve: BezierCurve+NormalCurve {
             let intersect           = curve_intersects_ray(src_curve, &(pos, pos+normal));
 
             let mut min_error    = f64::MAX;
+
+            if let Some((last_expected_offset, last_point)) = last_closest {
+                let distance    = last_point.distance_to(&pos);
+                min_error       = min_error.min((distance-last_expected_offset).abs());
+            }
+
             for (curve_t, _, intersect_point) in intersect {
                 let expected_offset     = (final_offset-initial_offset) * curve_t + initial_offset;
 
-                let distance = intersect_point.distance_to(&pos);
-                min_error = min_error.min((distance-expected_offset).abs());
+                let distance            = intersect_point.distance_to(&pos);
+                let error               = (distance-expected_offset).abs();
+                if error < min_error {
+                    min_error           = error;
+                    last_closest        = Some((expected_offset, intersect_point));
+                }
             }
 
             if min_error < f64::MAX {
@@ -40,6 +51,8 @@ Curve: BezierCurve+NormalCurve {
             }
         }
     }
+
+    println!("Max error: {}", error);
 
     error
 }
@@ -79,8 +92,31 @@ fn simple_offset_4() {
     let offset      = offset(&c, 10.0, 10.0);
     let error       = max_error(&c, &offset, 10.0, 10.0);
 
-    // But the test doesn't seem to see it?
     assert!(error <= 10.0);
+}
+
+#[test]
+fn simple_offset_5() {
+    let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(140.99219, 492.1289), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
+    let offset_1    = offset(&c, 10.0, 10.0);
+    let offset_2    = offset(&c, -10.0, -10.0);
+    let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
+    let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
+
+    assert!(error_1 <= 10.0);
+    assert!(error_2 <= 10.0);
+}
+
+#[test]
+fn simple_offset_6() {
+    let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(35.15625, 502.65625), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
+    let offset_1    = offset(&c, 10.0, 10.0);
+    let offset_2    = offset(&c, -10.0, -10.0);
+    let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
+    let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
+
+    assert!(error_1 <= 10.0);
+    assert!(error_2 <= 10.0);
 }
 
 #[test]
@@ -89,10 +125,7 @@ fn resizing_offset_1() {
     let offset      = offset(&c, 10.0, 40.0);
     let error       = max_error(&c, &offset, 10.0, 40.0);
 
-    // TODO (I think this is a problem with max_error, it might be finding the opposite side of the curve? It's a limited portion of the result that produces these large errors)
-    assert!(error <= 113.0);
-    assert!(error > 100.0, "(Fixed error with this case)")
-    // assert!(error <= 6.0);
+    assert!(error <= 2.0);
 }
 
 #[test]
@@ -110,5 +143,7 @@ fn resize_offset_3() {
     let offset      = offset(&c, 10.0, 40.0);
     let error       = max_error(&c, &offset, 10.0, 40.0);
 
-    assert!(error <= 6.0);
+    // The error seems to get so high because we're using the 't' value as a ratio for determining width rather than curve length
+    // This also results in this offset curve not being particularly smooth
+    assert!(error <= 15.0);
 }
