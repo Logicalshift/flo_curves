@@ -92,7 +92,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
     let intersect_point = ray_intersects_ray(&(start, start+normal_start), &(end, end+normal_end));
 
     if intersect_point.is_none() {
-        if characterize_curve(curve) != CurveCategory::Linear {
+        if characterize_curve(curve) != CurveCategory::Linear && depth < MAX_DEPTH {
             // Collinear normals
             let divide_point    = 0.5;
 
