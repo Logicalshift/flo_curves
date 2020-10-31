@@ -620,6 +620,17 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     pub fn edge_label(&self, edge: GraphEdgeRef) -> Label {
         self.points[edge.start_idx].forward_edges[edge.edge_idx].label
     }
+    
+    ///
+    /// Resets the edge kinds in this path by setting them all to uncategorised
+    ///
+    pub fn reset_edge_kinds(&mut self) {
+        for point in self.points.iter_mut() {
+            for edge in point.forward_edges.iter_mut() {
+                edge.kind = GraphPathEdgeKind::Uncategorised;
+            }
+        }
+    }
 
     ///
     /// Sets the kind of an edge and any connected edge where there are no intersections (only one edge)
