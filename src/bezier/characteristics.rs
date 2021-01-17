@@ -684,23 +684,13 @@ mod test {
     }
 
     #[test]
-    fn degenerate_line_overlapping_all_control_points_2() {
+    fn features_for_degenerate_line_overlapping_all_control_points() {
         let w1 = Coord2(518.0, 765.0);
-        let w2 = Coord2(163.0, 611.0);
-        let w3 = Coord2(518.0, 765.0);
-        let w4 = Coord2(163.0, 611.0);
-
-        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
-    }
-
-    #[test]
-    fn degenerate_line_overlapping_all_control_points_3() {
-        let w1 = Coord2(163.0, 611.0);
         let w2 = Coord2(518.0, 765.0);
-        let w3 = Coord2(518.0, 765.0);
+        let w3 = Coord2(163.0, 611.0);
         let w4 = Coord2(163.0, 611.0);
 
-        assert!(characterize_cubic_bezier(&w1, &w2, &w3, &w4) == CurveCategory::Linear);
+        assert!(features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) == CurveFeatures::Linear);
     }
 
     #[test]
