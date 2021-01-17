@@ -300,6 +300,29 @@ impl Into<CurveFeatures> for InflectionPoints {
 }
 
 ///
+/// Returns the features from a curve where we have discovered the canonical point
+///
+fn features_from_canonical_point<Point: Coordinate+Coordinate2D>(x: f64, y: f64, w1: &Point, w2: &Point, w3: &Point, w4: &Point, accuracy: f64) -> CurveFeatures {
+    match characterize_from_canonical_point((x, y)) {
+        CurveCategory::Arch                     => CurveFeatures::Arch,
+        CurveCategory::Linear                   => CurveFeatures::Linear,
+        CurveCategory::Cusp                     => CurveFeatures::Cusp,
+        CurveCategory::Parabolic                => CurveFeatures::Parabolic,
+        CurveCategory::Point                    => CurveFeatures::Point,
+        CurveCategory::DoubleInflectionPoint    |
+        CurveCategory::SingleInflectionPoint    => find_inflection_points((x, y)).into(),
+        CurveCategory::Loop                     => {
+            let curve       = Curve::from_points(w1.clone(), (w2.clone(), w3.clone()), w4.clone());
+            let loop_pos    = find_self_intersection_point(&curve, accuracy);
+
+            // TODO: if we can't find the loop_pos, we could probably find a cusp position instead
+            loop_pos.map(|(t1, t2)| CurveFeatures::Loop(t1, t2))
+                .unwrap_or(CurveFeatures::Arch)
+        }
+    }
+}
+
+///
 /// Determines the characteristics of a paritcular bezier curve: whether or not it is an arch, or changes directions
 /// (has inflection points), or self-intersects (has a loop)
 ///
@@ -313,23 +336,7 @@ pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
         let x       = b4.x();
         let y       = b4.y();
 
-        match characterize_from_canonical_point((x, y)) {
-            CurveCategory::Arch                     => CurveFeatures::Arch,
-            CurveCategory::Linear                   => CurveFeatures::Linear,
-            CurveCategory::Cusp                     => CurveFeatures::Cusp,
-            CurveCategory::Parabolic                => CurveFeatures::Parabolic,
-            CurveCategory::Point                    => CurveFeatures::Point,
-            CurveCategory::DoubleInflectionPoint    |
-            CurveCategory::SingleInflectionPoint    => find_inflection_points((x, y)).into(),
-            CurveCategory::Loop                     => {
-                let curve       = Curve::from_points(w1.clone(), (w2.clone(), w3.clone()), w4.clone());
-                let loop_pos    = find_self_intersection_point(&curve, accuracy);
-
-                // TODO: if we can't find the loop_pos, we could probably find a cusp position instead
-                loop_pos.map(|(t1, t2)| CurveFeatures::Loop(t1, t2))
-                    .unwrap_or(CurveFeatures::Arch)
-            }
-        }
+        features_from_canonical_point(x, y, w1, w2, w3, w4, accuracy)
     } else {
         // Degenerate case: there's no canonical form for this curve
         if w2.is_near_to(w3, SMALL_DISTANCE) {
