@@ -224,16 +224,19 @@ pub fn characterize_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
             }
         } else {
             // w1, w2, w3 must be collinear (w2 and w3 are known not to overlap)
-            let line        = (w2.clone(), w3.clone());
-            let (a, b, c)   = line_coefficients_2d(&line);
+            // If w4 is also co-linear then the result is a line. If the points w1,w2,w3 are co-linear and w4,w3,w2 are co-linear
+            // then all 4 points must therefore be co-linear.
+            let b1 = to_canonical_curve(w4, w3, w2, w1);
 
-            let distance    = a*w4.x() + b*w4.y() + c;
-            if distance.abs() < SMALL_DISTANCE {
-                // All 4 points are in a line
-                CurveCategory::Linear
+            if let Some(b1) = b1 {
+                // w4 is not co-linear with w1, w2, w3
+                let x       = b1.x();
+                let y       = b1.y();
+
+                characterize_from_canonical_point((x, y))
             } else {
-                // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
-                characterize_cubic_bezier(w4, w3, w2, w1)
+                // All four points are co-linear (to the precision allowed by SMALL_DIVISOR)
+                CurveCategory::Linear
             }
         }
     }
@@ -690,7 +693,7 @@ mod test {
         let w3 = Coord2(163.0, 611.0);
         let w4 = Coord2(163.0, 611.0);
 
-        assert!(features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.01) == CurveFeatures::Linear);
+        assert!(features_for_cubic_bezier(&w1, &w2, &w3, &w4, 0.00001) == CurveFeatures::Linear);
     }
 
     #[test]
