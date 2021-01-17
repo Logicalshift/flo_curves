@@ -8,6 +8,10 @@ use std::f64;
 
 const SMALL_DIVISOR: f64 = 0.0000001;
 
+// See also "A Geometrical Characterization of Parametric Curves"
+//  ACM Transactions on Graphics, Vol 8, No 3 (July 1989), 147-162
+// https://graphics.pixar.com/people/derose/publications/CubicClassification/paper.pdf
+
 ///
 /// Possible types of a two-dimensional cubic bezier curve
 ///
