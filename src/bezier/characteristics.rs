@@ -367,21 +367,24 @@ pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
             }
         } else {
             // w1, w2, w3 must be collinear (w2 and w3 are known not to overlap)
-            let line        = (w2.clone(), w3.clone());
-            let (a, b, c)   = line_coefficients_2d(&line);
+            // w4 may or may not be co-linear: determine the features of the curve when reversed
+            let b1          = to_canonical_curve(w4, w3, w2, w1);
 
-            let distance    = a*w4.x() + b*w4.y() + c;
-            if distance.abs() < SMALL_DISTANCE {
-                // All 4 points are in a line
-                CurveFeatures::Linear
-            } else {
-                // w2, w3, w4 are not in a line, we can reverse the curve to get a firm result
-                match features_for_cubic_bezier(w4, w3, w2, w1, accuracy) {
+            if let Some(b1) = b1 {
+                // w4 is not co-linear with w2 and w3
+                let x       = b1.x();
+                let y       = b1.y();
+
+                // Reverse the curve coordinates for the features
+                match features_from_canonical_point(x, y, w1, w2, w3, w4, accuracy) {
                     CurveFeatures::SingleInflectionPoint(t)         => CurveFeatures::SingleInflectionPoint(1.0-t),
                     CurveFeatures::DoubleInflectionPoint(t1, t2)    => CurveFeatures::DoubleInflectionPoint(1.0-t1, 1.0-t2),
                     CurveFeatures::Loop(t1, t2)                     => CurveFeatures::Loop(1.0-t1, 1.0-t2),
                     other                                           => other
                 }
+            } else {
+                // w1, w2 and w3 are co-linear and w2, w3 and w4 are co-linear, so all of w1, w2, w3 and w4 must be along the same line
+                CurveFeatures::Linear
             }
         }
     }
