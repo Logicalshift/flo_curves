@@ -7,10 +7,23 @@ use super::super::bezier::{CurveSection};
 
 use smallvec::*;
 
+// This is loosely based on the algorithm described at: https://pomax.github.io/bezierinfo/#offsetting,
+// with numerous changes to allow for variable-width offsets and consistent behaviour (in particular,
+// a much more reliable method of subdividing the curve)
+// 
+// This algorithm works by subdividing the original curve into arches. We use the characteristics of the
+// curve to do this: by subdividing a curve at its inflection point, we turn it into a series of arches.
+// Arches have a single focal point, so we can scale around this point to generate an offset curve
+// (every point of the curve will move away from the focal point along its normal axis).
+//
+// Edge cases: curves with inflection points at the start or end, arches where the normal vectors at the
+// start and end are in parallel.
+//
+// TODO: we currently assume that 't' maps to 'length' which is untrue, so this can produce 'lumpy' curves
+// when varying the width.
+
 ///
 /// Computes a series of curves that approximate an offset curve from the specified origin curve.
-/// 
-/// Based on the algorithm described in https://pomax.github.io/bezierinfo/#offsetting
 ///
 pub fn offset<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where   Curve:          BezierCurveFactory+NormalCurve,
