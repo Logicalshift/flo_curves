@@ -58,6 +58,24 @@ Curve: BezierCurve+NormalCurve {
 }
 
 #[test]
+fn offset_overlap_start_point() {
+    let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
+    let offset      = offset(&c, 10.0, 10.0);
+    let error       = max_error(&c, &offset, 10.0, 10.0);
+
+    assert!(error <= 3.5);
+}
+
+#[test]
+fn offset_overlap_end_point() {
+    let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(163.0, 589.0), Coord2(308.0, 665.0)), Coord2(308.0, 665.0));
+    let offset      = offset(&c, 10.0, 10.0);
+    let error       = max_error(&c, &offset, 10.0, 10.0);
+
+    assert!(error <= 10.0);
+}
+
+#[test]
 fn simple_offset_1() {
     let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(163.0, 589.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
     let offset      = offset(&c, 10.0, 10.0);
