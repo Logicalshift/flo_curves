@@ -13,14 +13,25 @@ use smallvec::*;
 // 
 // This algorithm works by subdividing the original curve into arches. We use the characteristics of the
 // curve to do this: by subdividing a curve at its inflection point, we turn it into a series of arches.
-// Arches have a single focal point, so we can scale around this point to generate an offset curve
-// (every point of the curve will move away from the focal point along its normal axis).
+// Arches have a focal point that the normal vectors along the curve roughly converge to, so we can 
+// scale around this point to generate an approximate offset curve (every point of the curve will move 
+// away from the focal point along its normal axis).
+//
+// As the focal point is approximate, using the start and end points to compute its location ensures that
+// the offset is exact at the start and end of the curve. 
 //
 // Edge cases: curves with inflection points at the start or end, arches where the normal vectors at the
 // start and end are in parallel.
 //
+// Not all arches have normal vectors that converge (close to) a focal point. We can spot these quickly 
+// because the focal point of any two points is in general not equidistant from those two points: this
+// also results in uneven scaling of the start and end points.
+//
 // TODO: we currently assume that 't' maps to 'length' which is untrue, so this can produce 'lumpy' curves
 // when varying the width.
+//
+// It might be possible to use the canonical curve to better identify how to subdivide curves for the
+// best results.
 
 ///
 /// Computes a series of curves that approximate an offset curve from the specified origin curve.
