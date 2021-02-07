@@ -120,6 +120,23 @@ fn normal_for_short_diagonal_line_is_diagonal() {
 }
 
 #[test]
+fn normal_for_short_diagonal_line_is_diagonal_overlapping_points() {
+    let line    = bezier::Curve::from_points(Coord2(0.0,0.0), (Coord2(0.0000000000, 0.0000000000), Coord2(0.0000000010, 0.0000000010)), Coord2(0.0000000010, 0.0000000010));
+    for t in 0..101 {
+        let t       = (t as f64) / 100.0;
+        let normal  = line.normal_at_pos(t);
+
+        // Normals usually aren't unit vectors, but will produce very small values for very short lines
+        let normal = normal.to_unit_vector();
+
+        // Normal should be a 45 degree diagonal line
+        assert!(normal.x() < -0.01);
+        assert!(normal.y() > 0.01);
+        assert!((-normal.x()-normal.y()).abs() < 0.01);
+    }
+}
+
+#[test]
 fn normal_for_point() {
     let line    = bezier::Curve::from_points(Coord2(0.0,0.0), (Coord2(0.0, 0.0), Coord2(0.0, 0.0)), Coord2(0.0, 0.0));
     let normal  = line.normal_at_pos(0.5);
