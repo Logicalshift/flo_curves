@@ -59,10 +59,20 @@ pub trait NormalCurve : BezierCurve {
     ///
     /// Computes the tangent vector to the curve at the specified t value
     ///
+    /// The vector that this returns can have any magnitude: it's only defined to be in the direction of the
+    /// tangent at the specified point. You can call `to_unit_vector()` to generate a normal vector of length 1.
+    ///
+    /// In the event that the curve represents a point, this will return the vector (0,0)
+    ///
     fn tangent_at_pos(&self, t: f64) -> Self::Point;
 
     ///
     /// Computes the normal vector to the curve at the specified t value
+    ///
+    /// The vector that this returns can have any magnitude: it's only defined to be in the direction of the
+    /// normal at the specified point. You can call `to_unit_vector()` to generate a normal vector of length 1.
+    ///
+    /// In the event that the curve represents a point, this will return the vector (0,0)
     ///
     fn normal_at_pos(&self, t: f64) -> Self::Point;
 }
