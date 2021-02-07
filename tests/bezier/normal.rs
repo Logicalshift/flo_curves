@@ -13,6 +13,16 @@ fn normal_for_line_is_straight_up() {
 }
 
 #[test]
+fn normal_for_vert_short_line_is_straight_up() {
+    let line    = bezier::Curve::from_points(Coord2(0.0,0.0), (Coord2(0.000003, 0.0), Coord2(0.000007, 0.0)), Coord2(0.000010, 0.0));
+    let normal  = line.normal_at_pos(0.5);
+
+    // Normal should be a line facing up
+    assert!(normal.x().abs() < 0.01);
+    assert!(normal.y() > 0.01);
+}
+
+#[test]
 fn normal_at_start_of_curve_matches_control_points() {
     let line    = bezier::Curve::from_points(Coord2(0.0,0.0), (Coord2(0.0, 1.0), Coord2(7.0, 0.0)), Coord2(10.0, 0.0));
     let normal  = line.normal_at_pos(0.0);
