@@ -85,6 +85,11 @@ where Curve::Point: Normalize {
         let (w2, w3)    = self.control_points();
         let w4          = self.end_point();
 
+        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0 
+        // (it's probably mathematically correct to say there's no tangent at these points but the result is surprising and probably useless in a practical sense)
+        let t = if t == 0.0 { f64::EPSILON }        else { t };
+        let t = if t == 1.0 { 1.0-f64::EPSILON }    else { t };
+
         // Get the deriviative
         let (d1, d2, d3) = derivative4(w1, w2, w3, w4);
 
@@ -99,6 +104,11 @@ where Curve::Point: Normalize {
         let w1          = self.start_point();
         let (w2, w3)    = self.control_points();
         let w4          = self.end_point();
+
+        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0 
+        // (it's probably mathematically correct to say there's no normal at these points but the result is surprising and probably useless in a practical sense)
+        let t = if t == 0.0 { f64::EPSILON }        else { t };
+        let t = if t == 1.0 { 1.0-f64::EPSILON }    else { t };
 
         // Get the deriviative
         let (d1, d2, d3) = derivative4(w1, w2, w3, w4);
