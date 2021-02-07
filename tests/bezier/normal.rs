@@ -41,6 +41,21 @@ fn normal_for_short_line_is_straight_up_2() {
 }
 
 #[test]
+fn normal_for_short_line_is_straight_up_2_t_0() {
+    // IEEE floating point has extra precision for numbers very close to 0, so we also try with a short line 'far away' from 0
+    // (Will break down eventually when the line is far enough away as it will get represented as a point due to how floating point works)
+    let line    = bezier::Curve::from_points(Coord2(10.0, 10.0), (Coord2(10.0000000003, 10.0), Coord2(10.0000000007, 10.0)), Coord2(10.0000000010, 10.0));
+    let normal  = line.normal_at_pos(0.0);
+
+    // Normals usually aren't unit vectors, but will produce very small values for very short lines
+    let normal = normal.to_unit_vector();
+
+    // Normal should be a line facing up
+    assert!(normal.x().abs() < 0.01);
+    assert!(normal.y() > 0.01);
+}
+
+#[test]
 fn normal_for_short_line_is_straight_up_overlapping_control_points_inside_line() {
     let line    = bezier::Curve::from_points(Coord2(0.0,0.0), (Coord2(0.0000000000, 0.0), Coord2(0.0000000010, 0.0)), Coord2(0.0000000010, 0.0));
 
