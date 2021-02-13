@@ -1,4 +1,5 @@
 use flo_curves::*;
+use flo_curves::line;
 use flo_curves::bezier::*;
 use flo_curves::bezier::NormalCurve;
 
@@ -164,4 +165,20 @@ fn resize_offset_3() {
     // The error seems to get so high because we're using the 't' value as a ratio for determining width rather than curve length
     // This also results in this offset curve not being particularly smooth
     assert!(error <= 15.0);
+}
+
+#[test]
+fn normals_for_line_do_not_meet_at_intersection() {
+    // Overlapping control points mean that this curve defines a line
+    let c               = Curve::from_points(Coord2(163.0, 579.0), (Coord2(163.0, 579.0), Coord2(405.0, 684.0)), Coord2(405.0, 684.0));
+
+    // Compute the normal at the start and the end of the line
+    let start           = c.start_point();
+    let end             = c.end_point();
+    let start_normal    = c.normal_at_pos(0.0).to_unit_vector();
+    let end_normal      = c.normal_at_pos(1.0).to_unit_vector();
+
+    // The rays starting from the start and end of this line should not intersect
+    let intersection    = line::ray_intersects_ray(&(start, start+start_normal), &(end, end+end_normal));
+    assert!(intersection.is_none());
 }
