@@ -8,6 +8,7 @@ description     = "Library for manipulating Bezier curves"
 documentation   = "http://docs.rs/flo_curves/"
 readme          = "README.md"
 edition         = "2018"
+include         = [ "Cargo.toml", "LICENSE", "src/**/*", "demos/src/**/*.rs", "demos/*.toml", "demos/*.md" ]
 
 keywords        = ["bezier", "geometry", "graphics"]
 categories      = ["algorithms","rendering"]
