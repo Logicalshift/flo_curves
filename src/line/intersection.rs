@@ -1,7 +1,7 @@
 use super::line::*;
 use super::super::geo::*;
 
-use std::f64;
+const RAY_DIVISOR_SMALLEST_VALUE: f64 = 2e-12;
 
 ///
 /// Returns the point at which two lines intersect (if they intersect)
@@ -57,9 +57,8 @@ where L::Point: Coordinate2D {
     }
 }
 
-
 ///
-/// Returns the point at which two rays  intersect (if they intersect). Rays are infinitely long.
+/// Returns the point at which two rays intersect (if they intersect). Rays are infinitely long.
 /// 
 /// Only the 2-dimensional form is supported at the moment (lines are much less likely to intersect
 /// in higher dimensions)
@@ -74,7 +73,7 @@ where L::Point: Coordinate2D {
 
     let divisor                 = (y4-y3)*(x2-x1) - (x4-x3)*(y2-y1);
 
-    if divisor.abs() > f64::EPSILON {
+    if divisor.abs() > RAY_DIVISOR_SMALLEST_VALUE {
         let ua                  = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / divisor;
 
         Some(L::Point::from_components(&[
