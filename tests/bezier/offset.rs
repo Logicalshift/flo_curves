@@ -179,6 +179,7 @@ fn normals_for_line_do_not_meet_at_intersection() {
     let end_normal      = c.normal_at_pos(1.0).to_unit_vector();
 
     // The rays starting from the start and end of this line should not intersect
+    // (This generates a ray divisor of 0.00000000000002603472992745992, because we lose enough precision that the lines appear to be not quite parallel)
     let intersection    = line::ray_intersects_ray(&(start, start+start_normal), &(end, end+end_normal));
     assert!(intersection.is_none());
 }

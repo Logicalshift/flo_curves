@@ -1,6 +1,9 @@
 use super::line::*;
 use super::super::geo::*;
 
+/// Smallest divisor magnitude to use in ray_intersects_ray (the closer the divisor is to 0, the more close to parallel the lines are), so this
+/// determines the shallowest angle allowed between two lines before we consider them to be parallel.
+/// Some operations can lose precision when ray intersections occur too far out.
 const RAY_DIVISOR_SMALLEST_VALUE: f64 = 2e-12;
 
 ///
