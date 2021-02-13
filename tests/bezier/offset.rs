@@ -1,5 +1,6 @@
 use flo_curves::*;
 use flo_curves::line;
+use flo_curves::line::{Line2D};
 use flo_curves::bezier::*;
 use flo_curves::bezier::NormalCurve;
 
@@ -165,6 +166,23 @@ fn resize_offset_3() {
     // The error seems to get so high because we're using the 't' value as a ratio for determining width rather than curve length
     // This also results in this offset curve not being particularly smooth
     assert!(error <= 15.0);
+}
+
+#[test]
+fn move_offset_1() {
+    let c           = Curve::from_points(Coord2(163.0, 579.0), (Coord2(163.0, 579.0), Coord2(405.0, 684.0)), Coord2(405.0, 684.0));
+    let offset      = offset(&c, 10.0, 10.0);
+    let error       = max_error(&c, &offset, 10.0, 10.0);
+
+    assert!(offset.len() == 1);
+
+    let w1          = offset[0].start_point();
+    let (w2, w3)    = offset[0].control_points();
+    let w4          = offset[0].end_point();
+
+    assert!((w2, w3).distance_to(&w1) < 0.01);
+    assert!((w2, w3).distance_to(&w4) < 0.01);
+    assert!(error <= 1.0);
 }
 
 #[test]
