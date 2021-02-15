@@ -37,6 +37,23 @@ fn main() {
             }
             gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
             gc.stroke();
+
+            for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2].into_iter() {
+                gc.line_width(1.0);
+                gc.stroke_color(Color::Rgba(0.6, 0.0, 0.0, 1.0));
+                for c in curve.iter().nth(0) {
+                    let p = c.start_point();
+                    gc.new_path();
+                    gc.circle(p.x() as _, p.y() as _, 6.0);
+                    gc.stroke();
+                }
+                for c in curve.iter() {
+                    let p = c.end_point();
+                    gc.new_path();
+                    gc.circle(p.x() as _, p.y() as _, 6.0);
+                    gc.stroke();
+                }
+            }
         })
     });
 }
