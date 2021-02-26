@@ -3,12 +3,30 @@ use flo_curves::bezier;
 use flo_draw::*;
 use flo_draw::canvas::*;
 
+use std::time::{Instant,Duration};
+
 fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Offset demo");
         let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 1000.0), Coord2(700.5, 0.0)), Coord2(900.0, 900.0));
         let offset_curve_1  = bezier::offset(&initial_curve, 80.0, 5.0);
-        let offset_curve_2  = bezier::offset(&initial_curve, -80.0, -5.0);
+        let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-80.0)*t+80.0), 10, 0.5).unwrap();
+
+        let time_1 = Instant::now();
+        let mut count = 0;
+        while time_1.elapsed() < Duration::from_millis(500) {
+            count += 1;
+            bezier::offset(&initial_curve, 80.0, 5.0);
+        }
+        println!("Scaling: {:?}/sec", count *2);
+
+        let time_2 = Instant::now();
+        let mut count = 0;
+        while time_2.elapsed() < Duration::from_millis(500) {
+            count += 1;
+            bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-80.0)*t+80.0), 10, 0.5).unwrap();
+        }
+        println!("LMS: {:?}/sec", count *2);
 
         canvas.draw(|gc| {
             gc.canvas_height(1000.0);
