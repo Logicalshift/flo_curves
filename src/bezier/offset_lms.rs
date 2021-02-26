@@ -10,6 +10,10 @@ use std::iter;
 ///
 /// Produces an offset curve by performing a least-mean-square curve fit against the output of a function
 ///
+/// This is about 5x slower than the scaling algorithm with 10 subdivisions (which is a number that seems to
+/// produce good results). Too few subdivisions can result in flat sections in the curve, and too many can
+/// result in artifacts caused by overfitting.
+///
 pub fn offset_lms_sampling<Curve, OffsetFn>(curve: &Curve, offset_for_t: OffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
 where   Curve:          BezierCurveFactory+NormalCurve,
         Curve::Point:   Normalize+Coordinate2D,
