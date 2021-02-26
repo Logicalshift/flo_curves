@@ -8,9 +8,9 @@ use std::time::{Instant,Duration};
 fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Offset demo");
-        let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 1000.0), Coord2(700.5, 0.0)), Coord2(900.0, 900.0));
-        let offset_curve_1  = bezier::offset(&initial_curve, 80.0, 5.0);
-        let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-80.0)*t+80.0), 10, 0.5).unwrap();
+        let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 800.0), Coord2(1000.5, 1000.0)), Coord2(900.0, 700.0));
+        let offset_curve_1  = bezier::offset(&initial_curve, -200.0, -5.0);
+        let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-200.0)*t+200.0), 20, 4.0).unwrap();
 
         let time_1 = Instant::now();
         let mut count = 0;
@@ -24,7 +24,7 @@ fn main() {
         let mut count = 0;
         while time_2.elapsed() < Duration::from_millis(500) {
             count += 1;
-            bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-80.0)*t+80.0), 10, 0.5).unwrap();
+            bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-80.0)*t+80.0), 20, 0.5).unwrap();
         }
         println!("LMS: {:?}/sec", count *2);
 
