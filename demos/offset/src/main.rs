@@ -7,8 +7,8 @@ fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Offset demo");
         let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 1000.0), Coord2(700.5, 0.0)), Coord2(900.0, 900.0));
-        let offset_curve_1  = bezier::offset(&initial_curve, 10.0, 10.0);
-        let offset_curve_2  = bezier::offset(&initial_curve, -10.0, -10.0);
+        let offset_curve_1  = bezier::offset(&initial_curve, 80.0, 5.0);
+        let offset_curve_2  = bezier::offset(&initial_curve, -80.0, -5.0);
 
         canvas.draw(|gc| {
             gc.canvas_height(1000.0);
