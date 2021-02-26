@@ -39,6 +39,18 @@ use smallvec::*;
 pub fn offset<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where   Curve:          BezierCurveFactory+NormalCurve,
         Curve::Point:   Normalize+Coordinate2D {
+    offset_scaling(curve, initial_offset, final_offset)
+}
+
+///
+/// Computes a series of curves that approximate an offset curve from the specified origin curve.
+///
+/// This uses a scaling algorithm to compute the offset curve, which is fast but which can produce
+/// errors, especially if the initial and final offsets are very different from one another.
+///
+pub fn offset_scaling<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
+where   Curve:          BezierCurveFactory+NormalCurve,
+        Curve::Point:   Normalize+Coordinate2D {
     // Split at the location of any features the curve might have
     let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2)  => {
