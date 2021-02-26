@@ -188,8 +188,12 @@ where   CurveIn:        NormalCurve+BezierCurve,
     let start_scale = (intersect_point.distance_to(&new_start))/(intersect_point.distance_to(&start));
     let end_scale   = (intersect_point.distance_to(&new_end))/(intersect_point.distance_to(&end));
 
-    let new_cp1     = ((cp1-intersect_point) * start_scale) + intersect_point;
-    let new_cp2     = ((cp2-intersect_point) * end_scale) + intersect_point;
+    // When the scale is changing, the control points are effectively 1/3rd and 2/3rds of the way along the curve
+    let cp1_scale   = (end_scale - start_scale) * (1.0/3.0) + start_scale;
+    let cp2_scale   = (end_scale - start_scale) * (2.0/3.0) + start_scale;
+
+    let new_cp1     = ((cp1-intersect_point) * cp1_scale) + intersect_point;
+    let new_cp2     = ((cp2-intersect_point) * cp2_scale) + intersect_point;
 
     CurveOut::from_points(new_start, (new_cp1, new_cp2), new_end)
 }
