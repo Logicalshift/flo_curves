@@ -9,7 +9,7 @@ fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Offset demo");
         let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 800.0), Coord2(1000.5, 1000.0)), Coord2(900.0, 700.0));
-        let offset_curve_1  = bezier::offset(&initial_curve, -200.0, -5.0);
+        let offset_curve_1  = bezier::offset(&initial_curve, 200.0, 5.0);
         let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((5.0-200.0)*t+200.0), 20, 4.0).unwrap();
 
         let time_1 = Instant::now();
