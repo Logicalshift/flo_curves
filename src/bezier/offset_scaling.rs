@@ -1,11 +1,12 @@
 use super::curve::*;
 use super::normal::*;
 use super::characteristics::*;
-use super::super::geo::*;
-use super::super::line::*;
-use super::super::bezier::{CurveSection};
+use crate::geo::*;
+use crate::line::*;
+use crate::bezier::{CurveSection};
 
 use smallvec::*;
+use itertools::*;
 
 // This is loosely based on the algorithm described at: https://pomax.github.io/bezierinfo/#offsetting,
 // with numerous changes to allow for variable-width offsets and consistent behaviour (in particular,
@@ -137,27 +138,50 @@ where   CurveIn:        NormalCurve+BezierCurve,
     }
 
     if let Some(intersect_point) = intersect_point {
-        // Subdivide again if the intersection point is too close to one or other of the mpr,a;s
+        // Subdivide again if the intersection point is too close to one or other of the normals
         let start_distance  = intersect_point.distance_to(&start);
         let end_distance    = intersect_point.distance_to(&end);
-        let distance_ratio = start_distance.min(end_distance) / start_distance.max(end_distance);
+        let distance_ratio  = start_distance.min(end_distance) / start_distance.max(end_distance);
 
         // TODO: the closer to 1 this value is, the better the quality of the offset (0.99 produces good results)
         // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
         // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
-        if distance_ratio < 0.9 && depth < MAX_DEPTH {
-            let divide_point    = 0.5;
+        if distance_ratio < 0.995 && depth < MAX_DEPTH {
+            // Try to subdivide at the curve's extremeties
+            let mut extremeties     = curve.find_extremities();
+            extremeties.retain(|item| item > &0.01 && item < &0.99);
 
-            let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
-            let left_curve      = curve.subsection(0.0, divide_point);
-            let right_curve     = curve.subsection(divide_point, 1.0);
+            if extremeties.len() == 0 || true {
+                // No extremeties (or they're all too close to the edges)
+                let divide_point    = 0.5;
 
-            let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset, depth+1);
-            let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset, depth+1);
+                let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
+                let left_curve      = curve.subsection(0.0, divide_point);
+                let right_curve     = curve.subsection(divide_point, 1.0);
 
-            left_offset.into_iter()
-                .chain(right_offset)
-                .collect()
+                let left_offset     = subdivide_offset(&left_curve, initial_offset, mid_offset, depth+1);
+                let right_offset    = subdivide_offset(&right_curve, mid_offset, final_offset, depth+1);
+
+                left_offset.into_iter()
+                    .chain(right_offset)
+                    .collect()
+            } else {
+                let mut extremeties = extremeties;
+                extremeties.insert(0, 0.0);
+                extremeties.push(1.0);
+
+                extremeties
+                    .into_iter()
+                    .tuple_windows()
+                    .flat_map(|(t1, t2)| {
+                        let subsection  = curve.subsection(t1, t2);
+                        let offset1     = initial_offset + (final_offset - initial_offset) * t1;
+                        let offset2     = initial_offset + (final_offset - initial_offset) * t2;
+                        let res = subdivide_offset(&subsection, offset1, offset2, depth+1);
+                        res
+                    })
+                    .collect()
+            }
         } else {
             // Event intersection point
             smallvec![offset_by_scaling(curve, initial_offset, final_offset, intersect_point, normal_start, normal_end)]
