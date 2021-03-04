@@ -117,24 +117,28 @@ fn simple_offset_4() {
 
 #[test]
 fn simple_offset_5() {
+    // This curve has a point approaching a cusp, so it produces 'strange' values
+
+    // We bulge out slightly around the cusp so there's a large error
     let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(140.99219, 492.1289), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
     let offset_1    = offset(&c, 10.0, 10.0);
-    let offset_2    = offset(&c, -10.0, -10.0);
     let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
-    let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
+    assert!(error_1 <= 12.0);
 
-    assert!(error_1 <= 10.0);
-    assert!(error_2 <= 10.0);
+    // Offsetting too much 'inside' the curve starts to produce chaotic behaviour around the cusp with this algorithm
+    let offset_2    = offset(&c, -2.0, -2.0);
+    let error_2     = max_error(&c, &offset_2, 2.0, 2.0);
+    assert!(error_2 <= 4.0);
 }
 
 #[test]
 fn simple_offset_6() {
     let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(35.15625, 502.65625), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
 
-    // This is a very tight curve, so there's no good solution in this direction (the scaling algorithm produces a very chaotic curve)
-    //let offset_1    = offset(&c, 10.0, 10.0);
-    //let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
-    //assert!(error_1 <= 10.0);
+    // This is a very tight curve, so there's no good solution in this direction for large offsets (the scaling algorithm produces a very chaotic curve)
+    let offset_1    = offset(&c, 2.0, 2.0);
+    let error_1     = max_error(&c, &offset_1, 2.0, 2.0);
+    assert!(error_1 <= 2.0);
 
     let offset_2    = offset(&c, -10.0, -10.0);
     let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
