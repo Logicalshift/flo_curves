@@ -20,7 +20,7 @@ Curve: BezierCurve+NormalCurve {
     let mut last_closest: Option<(f64, Curve::Point)>   = None;
 
     for offset in offset_curve.iter() {
-        for t in 0..=100 {
+        for t in 1..=99 {
             let t = (t as f64)/100.0;
 
             let pos                 = offset.point_at_pos(t);
