@@ -29,33 +29,41 @@ pub fn chord_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
 /// Estimates the length of a bezier curve within a particular error tolerance
 ///
 pub fn curve_length<Curve: BezierCurve>(curve: &Curve, max_error: f64) -> f64 {
-    section_length(&curve.section(0.0, 1.0), max_error)
+    section_length(curve.section(0.0, 1.0), max_error)
 }
 
 ///
 /// Computes the length of a section of a bezier curve
 ///
-fn section_length<'a, Curve>(section: &'a CurveSection<'a, Curve>, max_error: f64) -> f64
+fn section_length<'a, Curve>(section: CurveSection<'a, Curve>, max_error: f64) -> f64
 where
 Curve: BezierCurve {
     // This algorithm is described in Graphics Gems V IV.7
 
-    // Estimate the error for the length of the curve
-    let polygon_length  = control_polygon_length(section);
-    let chord_length    = chord_length(section);
+    // Algorithm is recursive, but we use a vec as a stack to avoid overflowing (and to make the number of iterations easy to count)
+    let mut waiting         = vec![(section, max_error)];
+    let mut total_length    = 0.0;
 
-    let error           = (polygon_length - chord_length) * (polygon_length - chord_length);
+    while let Some((section, max_error)) = waiting.pop() {
+        // Estimate the error for the length of the curve
+        let polygon_length  = control_polygon_length(&section);
+        let chord_length    = chord_length(&section);
 
-    // If the error is low enough, return the estimated length
-    if error < max_error {
-        (2.0*chord_length + 2.0*polygon_length)/4.0
-    } else {
-        // Subdivide the curve (each half has half the error tolerance)
-        let left                = section.subsection(0.0, 0.5);
-        let right               = section.subsection(0.5, 1.0);
-        let subsection_error    = max_error / 2.0;
+        let error           = (polygon_length - chord_length) * (polygon_length - chord_length);
 
-        section_length(&left, subsection_error)
-            + section_length(&right, subsection_error)
+        // If the error is low enough, return the estimated length
+        if error < max_error {
+            total_length += (2.0*chord_length + 2.0*polygon_length)/4.0;
+        } else {
+            // Subdivide the curve (each half has half the error tolerance)
+            let left                = section.subsection(0.0, 0.5);
+            let right               = section.subsection(0.5, 1.0);
+            let subsection_error    = max_error / 2.0;
+
+            waiting.push((left, subsection_error));
+            waiting.push((right, subsection_error));
+        }
     }
+
+    total_length
 }
