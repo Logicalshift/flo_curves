@@ -117,7 +117,7 @@ where   Coord:      Coordinate+Coordinate2D,
         angle:      Range<f64>,
         start_pos:  Option<(RayCollision<Coord, Item>, f64)>,
         end_pos:    Option<Coord>
-    };
+    }
 
     // Ray cast a few points to get the initial stack of points to check
     for check_point in 0..4 {
