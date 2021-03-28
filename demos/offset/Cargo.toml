@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 flo_curves  = "0.4"
-flo_draw    = "0.2"
+flo_draw    = "0.3"
