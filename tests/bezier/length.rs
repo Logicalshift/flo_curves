@@ -6,9 +6,7 @@ use flo_curves::bezier::*;
 fn subdivide_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
     let mut length = 0.0;
 
-    for division in 0..1000 {
-        let division    = (division as f64)/1000.0;
-        let subsection  = curve.section(division, division + (1.0/1000.0));
+    for subsection in walk_curve_uneven(curve, 1000) {
         length          += chord_length(&subsection);
     }
 
