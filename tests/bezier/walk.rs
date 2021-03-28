@@ -67,7 +67,6 @@ fn even_walk_3() {
     assert!((total_length-actual_length).abs() < 4.0);
 }
 
-/*
 #[test]
 fn even_walk_4() {
     let c                   = Curve::from_points(Coord2(222.37538991853827, 99.16540392815092), (Coord2(224.47523575883392, 100.31557953334229), Coord2(223.19303980237945, 101.8075327562316)), Coord2(225.42363518033414, 99.716688142193));
@@ -83,4 +82,3 @@ fn even_walk_4() {
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
 }
-*/
