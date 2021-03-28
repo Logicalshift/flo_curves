@@ -133,6 +133,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             }
         }
 
+        #[cfg(debug_assertions)] let mut count = 0;
         loop {
             debug_assert!(!t_increment.is_nan());
 
@@ -150,14 +151,20 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
 
             // Use the error to adjust the t position we're testing if it's larger than max_error
             let error_ratio     = distance / next_distance;
-            t_increment         = if error_ratio < 0.1 { 
+            t_increment         = if error_ratio < 0.5 { 
                 t_increment * 0.5
-            } else if error_ratio > 2.0 { 
+            } else if error_ratio > 1.5 { 
                 t_increment * 1.5
             } else {
                 t_increment * error_ratio
             };
             next_t              = last_t + t_increment;
+
+            #[cfg(debug_assertions)] 
+            { 
+                count += 1;
+                debug_assert!(count < 100);
+            }
         }
 
         // next_t -> last_t is the next point
