@@ -7,7 +7,7 @@ fn line_to_sine_wave() {
     let distorted   = distort_curve::<_, _, Curve<_>>(&line, |pos, _t| Coord2(pos.x(), pos.y() + (pos.x()*20.0).sin()), 1.0, 1.0).expect("Fit curve");
 
     for curve in distorted.into_iter() {
-        for section in walk_curve_evenly(&curve, 1.0, 0.1) {
+        for section in walk_curve_unevenly(&curve, 1000) {
             let (t_min, t_max)  = section.original_curve_t_values();
             let t_mid           = (t_min+t_max)/2.0;
             let pos             = section.point_at_pos(t_mid);
