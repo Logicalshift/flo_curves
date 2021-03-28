@@ -36,6 +36,7 @@ mod intersection;
 mod characteristics;
 mod length;
 mod walk;
+mod distort;
 
 pub mod path;
 
@@ -59,5 +60,6 @@ pub use self::intersection::*;
 pub use self::characteristics::*;
 pub use self::length::*;
 pub use self::walk::*;
+pub use self::distort::*;
 
 pub use super::geo::*;
