@@ -21,6 +21,7 @@ mod characteristics;
 mod self_intersection;
 mod curve_intersection_clip;
 mod length;
+mod walk;
 
 pub fn approx_equal(a: f64, b: f64) -> bool {
     f64::floor(f64::abs(a-b)*10000.0) == 0.0

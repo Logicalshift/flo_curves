@@ -35,6 +35,7 @@ mod overlaps;
 mod intersection;
 mod characteristics;
 mod length;
+mod walk;
 
 pub mod path;
 
@@ -57,5 +58,6 @@ pub use self::overlaps::*;
 pub use self::intersection::*;
 pub use self::characteristics::*;
 pub use self::length::*;
+pub use self::walk::*;
 
 pub use super::geo::*;
