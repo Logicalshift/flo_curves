@@ -40,6 +40,9 @@ where
 Curve: BezierCurve {
     // This algorithm is described in Graphics Gems V IV.7
 
+    // The MIN_ERROR guards against cases where the length of a section fails to converge for some reason
+    const MIN_ERROR: f64 = 1e-12;
+
     // Algorithm is recursive, but we use a vec as a stack to avoid overflowing (and to make the number of iterations easy to count)
     let mut waiting         = vec![(section, max_error)];
     let mut total_length    = 0.0;
@@ -52,7 +55,7 @@ Curve: BezierCurve {
         let error           = (polygon_length - chord_length) * (polygon_length - chord_length);
 
         // If the error is low enough, return the estimated length
-        if error < max_error {
+        if error < max_error || max_error <= MIN_ERROR {
             total_length += (2.0*chord_length + 2.0*polygon_length)/4.0;
         } else {
             // Subdivide the curve (each half has half the error tolerance)
