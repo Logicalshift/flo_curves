@@ -1,5 +1,4 @@
 use super::curve::*;
-use super::length::*;
 use super::section::*;
 
 use crate::geo::*;
