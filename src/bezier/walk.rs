@@ -42,7 +42,6 @@ pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64
 
     EvenWalkIterator {
         curve:          curve,
-        curve_length:   curve_length(curve, max_error),
         last_t:         0.0, 
         last_point:     curve.start_point(),
         last_increment: INITIAL_INCREMENT,
@@ -95,9 +94,6 @@ struct EvenWalkIterator<'a, Curve: BezierCurve> {
     /// The curve that is being walked
     curve:          &'a Curve,
 
-    /// The total length of the curve
-    curve_length:   f64,
-
     /// The last 't' value where a coordinate was generated
     last_t:         f64,
 
@@ -122,7 +118,6 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
     fn next(&mut self) -> Option<Self::Item> {
         // Gather values
         let curve           = self.curve;
-        let curve_length    = self.curve_length;
         let distance        = self.distance;
         let max_error       = self.max_error;
         let mut t_increment = self.last_increment;
@@ -144,6 +139,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             }
         }
 
+        let mut count = 0;
         loop {
             debug_assert!(!t_increment.is_nan());
 
@@ -160,9 +156,14 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             }
 
             // Use the error to adjust the t position we're testing if it's larger than max_error
-            let error_ratio     = error / curve_length;
-            t_increment         = t_increment + error_ratio;
-            t_increment         = if t_increment < 1e-10 { (next_t + last_t)/2.0 - last_t } else { t_increment };
+            let error_ratio     = distance / next_distance;
+            t_increment         = if error_ratio < 0.1 { 
+                t_increment * 0.5
+            } else if error_ratio > 2.0 { 
+                t_increment * 1.5
+            } else {
+                t_increment * error_ratio
+            };
             next_t              = last_t + t_increment;
         }
 
