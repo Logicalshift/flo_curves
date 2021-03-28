@@ -126,11 +126,6 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
         let last_point      = self.last_point.clone();
         let mut next_point;
 
-        // If the curve far too short, then indicate that there are no points
-        if curve_length < 1e-10 {
-            return None;
-        }
-
         // If the next point appears to be after the end of the curve, and the end of the curve i
         if next_t >= 1.0 {
             if last_point.distance_to(&curve.point_at_pos(1.0)) < distance {
@@ -139,7 +134,6 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             }
         }
 
-        let mut count = 0;
         loop {
             debug_assert!(!t_increment.is_nan());
 
