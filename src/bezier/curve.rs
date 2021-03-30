@@ -1,6 +1,7 @@
 use super::fit::*;
 use super::basis::*;
 use super::solve::*;
+use super::length::*;
 use super::search::*;
 use super::bounds::*;
 use super::section::*;
@@ -8,8 +9,6 @@ use super::subdivide::*;
 use super::characteristics::*;
 
 use super::super::geo::*;
-
-const LENGTH_SUBDIVISIONS: usize = 16;
 
 ///
 /// Trait implemented by bezier curves that can create new versions of themselves
@@ -157,19 +156,8 @@ pub trait BezierCurve: Geo+Clone+Sized {
     ///
     /// Attempts to estimate the length of this curve
     /// 
-    fn estimate_length(&self, max_t: f64) -> f64 {
-        let mut last_pos = self.point_at_pos(0.0);
-        let mut length   = 0.0;
-
-        for t in 1..LENGTH_SUBDIVISIONS {
-            let t           = (t as f64) / (LENGTH_SUBDIVISIONS as f64) * max_t;
-            let next_pos    = self.point_at_pos(t);
-
-            length += last_pos.distance_to(&next_pos);
-            last_pos = next_pos;
-        }
-
-        length
+    fn estimate_length(&self) -> f64 {
+        curve_length(self, 0.01)
     }
 
     ///
