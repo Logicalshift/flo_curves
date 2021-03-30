@@ -134,6 +134,8 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        const MAX_ITERATIONS: usize = 32;
+
         // Gather values
         let curve           = self.curve;
         let (wn1, wn2, wn3) = self.derivative;
@@ -153,7 +155,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             }
         }
 
-        #[cfg(debug_assertions)] let mut count = 0;
+        let mut count = 0;
         loop {
             debug_assert!(!t_increment.is_nan());
 
@@ -195,10 +197,11 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
 
             next_t              = last_t + t_increment;
 
-            #[cfg(debug_assertions)] 
-            { 
-                count += 1;
-                debug_assert!(count < 100);
+            // Sharp changes in direction can sometimes cause the distance to fail to converge: we limit the maximum number of iterations to avoid this
+            // (It's possible for there to be multiple points 'distance' away, and for this algorithm to fail to converge on one or the other)
+            count               += 1;
+            if count >= MAX_ITERATIONS {
+                break;
             }
         }
 
