@@ -26,7 +26,12 @@ fn even_walk_1() {
     let actual_length       = curve_length(&c, 0.1);
 
     let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
     for section in sections.iter() {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
@@ -42,7 +47,12 @@ fn even_walk_2() {
     let actual_length       = curve_length(&c, 0.1);
 
     let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
     for section in sections.iter() {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
@@ -58,7 +68,12 @@ fn even_walk_3() {
     let actual_length       = curve_length(&c, 0.1);
 
     let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
     for section in sections.iter() {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
@@ -74,7 +89,12 @@ fn even_walk_4() {
     let actual_length       = curve_length(&c, 0.1);
 
     let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
     for section in sections.iter() {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
@@ -90,7 +110,12 @@ fn even_walk_5() {
     let actual_length       = curve_length(&c, 0.1);
 
     let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
     for section in sections.iter() {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
