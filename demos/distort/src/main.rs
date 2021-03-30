@@ -10,18 +10,18 @@ use std::time::{Duration, Instant};
 
 fn main() {
     with_2d_graphics(|| {
-        let canvas          = create_canvas_window("Offset demo");
+        let canvas          = create_canvas_window("Curve and path distortion demonstration");
 
         // Simple rectangle to use as a source path
-        let source_path     = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(300.0, 300.0))
-            .line_to(Coord2(700.0, 300.0))
-            .line_to(Coord2(700.0, 700.0))
-            .line_to(Coord2(300.0, 700.0))
-            .line_to(Coord2(300.0, 300.0))
+        let source_path     = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(300.0, 500.0))
+            .line_to(Coord2(700.0, 500.0))
+            .line_to(Coord2(700.0, 900.0))
+            .line_to(Coord2(300.0, 900.0))
+            .line_to(Coord2(300.0, 500.0))
             .build();
 
         // Line to use as a source curve
-        let source_curve    = bezier::Curve::from_points(Coord2(300.0, 200.0), (Coord2(300.0, 200.0), Coord2(700.0, 200.0)), Coord2(700.0, 200.0));
+        let source_curve    = bezier::Curve::from_points(Coord2(300.0, 200.0), (Coord2(300.0, 300.0), Coord2(700.0, 100.0)), Coord2(700.0, 200.0));
 
         // We'll change the amount of distortion over time
         let start_time = Instant::now();
@@ -36,8 +36,11 @@ fn main() {
             let amplitude       = (since_start / (f64::consts::PI * 500_000_000.0)).sin() * 50.0;
 
             let distorted_path  = bezier::distort_path::<_, _, SimpleBezierPath>(&source_path, |point, _curve, _t| {
-                let offset_x = (point.y() / (f64::consts::PI*25.0)).sin() * amplitude;
-                let offset_y = (point.x() / (f64::consts::PI*12.0)*(amplitude/50.0)).sin() * amplitude;
+                let distance = point.magnitude();
+                let ripple = (since_start / (f64::consts::PI * 500_000_000.0)) * 10.0;
+
+                let offset_x = (distance / (f64::consts::PI*5.0) + ripple).sin() * amplitude * 0.5;
+                let offset_y = (distance / (f64::consts::PI*5.0) + ripple).sin() * amplitude * 0.5;
 
                 Coord2(point.x() + offset_x, point.y() + offset_y)
             }, 1.0, 0.1).unwrap();
