@@ -84,6 +84,22 @@ fn even_walk_4() {
 }
 
 #[test]
+fn even_walk_5() {
+    let c                   = Curve::from_points(Coord2(128.51366414207797, 100.43540868606826), (Coord2(128.8517120419268, 100.53996562501626), Coord2(131.79687993559304, 99.36123524249854)), Coord2(131.8239019605053, 99.36980615298116));
+    let sections            = walk_curve_evenly(&c, 1.0, 0.1).collect::<Vec<_>>();
+    let actual_length       = curve_length(&c, 0.1);
+
+    let mut total_length    = 0.0;
+    for section in sections.iter() {
+        assert!((chord_length(section)-1.0).abs() <= 0.1);
+        total_length += chord_length(section);
+    }
+
+    println!("{:?}", (total_length-actual_length).abs());
+    assert!((total_length-actual_length).abs() < 4.0);
+}
+
+#[test]
 fn even_walk_point() {
     let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(412.0, 500.0)), Coord2(412.0, 500.0));
     let sections    = walk_curve_evenly(&c, 1.0, 0.1).collect::<Vec<_>>();
