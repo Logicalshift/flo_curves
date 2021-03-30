@@ -200,7 +200,8 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             next_t              = last_t + t_increment;
 
             // Sharp changes in direction can sometimes cause the distance to fail to converge: we limit the maximum number of iterations to avoid this
-            // (It's possible for there to be multiple points 'distance' away, and for this algorithm to fail to converge on one or the other)
+            // (It's possible for there to be multiple points 'distance' away or two equidistant points around the target point, 
+            // and for this algorithm to fail to converge as a result)
             count               += 1;
             if count >= MAX_ITERATIONS {
                 break;
