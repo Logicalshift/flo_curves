@@ -1,5 +1,7 @@
+use super::basis::*;
 use super::curve::*;
 use super::section::*;
+use super::derivative::*;
 
 use crate::geo::*;
 
@@ -36,14 +38,29 @@ pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64
     const INITIAL_INCREMENT: f64 = 0.1;
 
     // Too small or negative values might produce bad effects due to floating point inprecision
-    let max_error   = if max_error < 1e-10  { 1e-10 } else { max_error };
-    let distance    = if distance < 1e-10   { 1e-10 } else { distance };
+    let max_error       = if max_error < 1e-10  { 1e-10 } else { max_error };
+    let distance        = if distance < 1e-10   { 1e-10 } else { distance };
+
+    // Compute the derivative of the curve
+    let (cp1, cp2)      = curve.control_points();
+    let (wn1, wn2, wn3) = derivative4(curve.start_point(), cp1, cp2, curve.end_point());
+
+    // We can calculate the initial speed from the first point of the curve
+    let initial_speed   = de_casteljau3(0.01, wn1, wn2, wn3).magnitude();
+
+    let initial_increment = if initial_speed.abs() < 0.00000001 {
+        panic!();
+        INITIAL_INCREMENT
+    } else {
+        distance / initial_speed
+    };
 
     EvenWalkIterator {
         curve:          curve,
+        derivative:     (wn1, wn2, wn3),
         last_t:         0.0, 
         last_point:     curve.start_point(),
-        last_increment: INITIAL_INCREMENT,
+        last_increment: initial_increment,
         distance:       distance,
         max_error:      max_error
     }
