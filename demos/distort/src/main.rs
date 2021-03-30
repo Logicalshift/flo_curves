@@ -40,14 +40,14 @@ fn main() {
                 let ripple = (since_start / (f64::consts::PI * 500_000_000.0)) * 10.0;
 
                 let offset_x = (distance / (f64::consts::PI*5.0) + ripple).sin() * amplitude * 0.5;
-                let offset_y = (distance / (f64::consts::PI*5.0) + ripple).sin() * amplitude * 0.5;
+                let offset_y = (distance / (f64::consts::PI*4.0) + ripple).cos() * amplitude * 0.5;
 
                 Coord2(point.x() + offset_x, point.y() + offset_y)
             }, 1.0, 0.1).unwrap();
 
             let distorted_curve = bezier::distort_curve::<_, _, bezier::Curve<Coord2>>(&source_curve, |point, _t| {
                 let offset_x = (point.x() / (f64::consts::PI*25.0)*(amplitude/50.0)).sin() * amplitude * 2.0;
-                let offset_y = (point.x() / (f64::consts::PI*12.0)).sin() * amplitude * 2.0;
+                let offset_y = (point.x() / (f64::consts::PI*12.0)).cos() * amplitude * 2.0;
 
                 Coord2(point.x() + offset_x, point.y() + offset_y)
             }, 1.0, 0.1).unwrap();
