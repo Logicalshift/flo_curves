@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "offset",
-    "walk"
+    "walk",
+    "distort"
 ]
 
 [patch.crates-io]
