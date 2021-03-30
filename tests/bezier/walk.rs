@@ -27,7 +27,7 @@ fn even_walk_1() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter() {
+    for section in sections.iter().take(sections.len()-1) {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
@@ -35,6 +35,8 @@ fn even_walk_1() {
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
@@ -48,7 +50,7 @@ fn even_walk_2() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter() {
+    for section in sections.iter().take(sections.len()-1) {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
@@ -56,6 +58,8 @@ fn even_walk_2() {
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
@@ -69,7 +73,7 @@ fn even_walk_3() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter() {
+    for section in sections.iter().take(sections.len()-1) {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
@@ -77,6 +81,8 @@ fn even_walk_3() {
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
@@ -90,7 +96,7 @@ fn even_walk_4() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter() {
+    for section in sections.iter().take(sections.len()-1) {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
@@ -98,6 +104,8 @@ fn even_walk_4() {
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
@@ -111,7 +119,7 @@ fn even_walk_5() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter() {
+    for section in sections.iter().take(sections.len()-1) {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
@@ -119,6 +127,8 @@ fn even_walk_5() {
         assert!((chord_length(section)-1.0).abs() <= 0.1);
         total_length += chord_length(section);
     }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
@@ -129,5 +139,6 @@ fn even_walk_point() {
     let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(412.0, 500.0)), Coord2(412.0, 500.0));
     let sections    = walk_curve_evenly(&c, 1.0, 0.1).collect::<Vec<_>>();
 
-    assert!(sections.len() == 0);
+    assert!(sections.len() == 1);
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 }

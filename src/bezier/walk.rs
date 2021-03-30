@@ -146,10 +146,16 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
         let mut next_point;
 
         // If the next point appears to be after the end of the curve, and the end of the curve is further away than the closest distance, return None
+        if last_t >= 1.0 {
+            return None;
+        }
+
         if next_t >= 1.0 {
             if last_point.distance_to(&curve.point_at_pos(1.0)) < distance {
                 // End point is closer than the target distance
-                return None;
+                let last_section = curve.section(last_t, 1.0);
+                self.last_t = 1.0;
+                return Some(last_section);
             }
         }
 
@@ -210,7 +216,9 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
 
         // next_t -> last_t is the next point
         if next_t > 1.0 {
-            return None;
+            let last_section = curve.section(last_t, 1.0);
+            self.last_t = 1.0;
+            return Some(last_section);
         }
 
         // Update the coordinates
