@@ -6,5 +6,5 @@ edition     = "2018"
 description = "Demonstrates bezier curve offsets in flo_curve"
 
 [dependencies]
-flo_curves  = "0.4"
+flo_curves  = "0.5"
 flo_draw    = "0.3"
