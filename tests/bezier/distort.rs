@@ -15,7 +15,7 @@ fn line_to_sine_wave() {
             let expected_y      = 100.0 + (pos.x()*20.0).sin();
             let actual_y        = pos.y();
 
-            assert!((expected_y-actual_y).abs() < 3.0);
+            assert!((expected_y-actual_y).abs() < 4.0);
         }
     }
 }
