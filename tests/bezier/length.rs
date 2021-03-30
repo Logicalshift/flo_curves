@@ -14,6 +14,16 @@ fn subdivide_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
 }
 
 #[test]
+fn measure_point_length() {
+    let c               = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(412.0, 500.0)), Coord2(412.0, 500.0));
+    let by_subdivision  = subdivide_length(&c);
+    let by_measuring    = curve_length(&c, 0.5);
+
+    assert!((by_measuring - by_subdivision).abs() < 1.0);
+    assert!(by_measuring.abs() < 0.1);
+}
+
+#[test]
 fn measure_length_1() {
     let c               = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
     let by_subdivision  = subdivide_length(&c);

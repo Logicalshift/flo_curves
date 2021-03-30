@@ -82,3 +82,11 @@ fn even_walk_4() {
     println!("{:?}", (total_length-actual_length).abs());
     assert!((total_length-actual_length).abs() < 4.0);
 }
+
+#[test]
+fn even_walk_point() {
+    let c           = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(412.0, 500.0)), Coord2(412.0, 500.0));
+    let sections    = walk_curve_evenly(&c, 1.0, 0.1).collect::<Vec<_>>();
+
+    assert!(sections.len() == 0);
+}
