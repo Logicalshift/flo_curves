@@ -74,8 +74,9 @@ DistortFn:  Fn(PathIn::Point, &Curve<PathIn::Point>, f64) -> PathOut::Point {
         }));
 
         // Move to the next curve (stopping once we reach the end of the list of the points)
+        let next_start_point    = current_curve.end_point();
         current_point           = if let Some(point) = path_points.next() { point } else { break; };
-        current_curve           = Curve::from_points(start_point, (current_point.0, current_point.1), current_point.2);
+        current_curve           = Curve::from_points(next_start_point, (current_point.0, current_point.1), current_point.2);
     }
 
     // Create the new path from the result
