@@ -190,9 +190,11 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
                 let error       = next_distance - distance;
                 let adjustment  = error / speed;
 
-                debug_assert!(adjustment < t_increment);
-
-                t_increment     = t_increment - adjustment;
+                if adjustment >= t_increment {
+                    t_increment *= 0.3333333;
+                } else {
+                    t_increment = t_increment - adjustment;
+                }
             }
 
             next_t              = last_t + t_increment;
