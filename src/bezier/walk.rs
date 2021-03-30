@@ -45,11 +45,10 @@ pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64
     let (cp1, cp2)      = curve.control_points();
     let (wn1, wn2, wn3) = derivative4(curve.start_point(), cp1, cp2, curve.end_point());
 
-    // We can calculate the initial speed from the first point of the curve
-    let initial_speed   = de_casteljau3(0.01, wn1, wn2, wn3).magnitude();
+    // We can calculate the initial speed from close to the first point of the curve
+    let initial_speed   = de_casteljau3(0.001, wn1, wn2, wn3).magnitude();
 
     let initial_increment = if initial_speed.abs() < 0.00000001 {
-        panic!();
         INITIAL_INCREMENT
     } else {
         distance / initial_speed
@@ -110,6 +109,9 @@ struct EvenWalkIterator<'a, Curve: BezierCurve> {
     /// The curve that is being walked
     curve:          &'a Curve,
 
+    /// The wn1, wn2, wn3 of the derivative of the curve
+    derivative:     (Curve::Point, Curve::Point, Curve::Point),
+
     /// The last 't' value where a coordinate was generated
     last_t:         f64,
 
@@ -134,6 +136,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
     fn next(&mut self) -> Option<Self::Item> {
         // Gather values
         let curve           = self.curve;
+        let (wn1, wn2, wn3) = self.derivative;
         let distance        = self.distance;
         let max_error       = self.max_error;
         let mut t_increment = self.last_increment;
@@ -142,7 +145,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
         let last_point      = self.last_point.clone();
         let mut next_point;
 
-        // If the next point appears to be after the end of the curve, and the end of the curve i
+        // If the next point appears to be after the end of the curve, and the end of the curve is further away than the closest distance, return None
         if next_t >= 1.0 {
             if last_point.distance_to(&curve.point_at_pos(1.0)) < distance {
                 // End point is closer than the target distance
@@ -166,15 +169,30 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
                 break;
             }
 
-            // Use the error to adjust the t position we're testing if it's larger than max_error
-            let error_ratio     = distance / next_distance;
-            t_increment         = if error_ratio < 0.5 { 
-                t_increment * 0.5
-            } else if error_ratio > 1.5 { 
-                t_increment * 1.5
+            // Use the slope of the curve at this position to work out the next point to try
+            let tangent         = de_casteljau3(next_t, wn1, wn2, wn3);
+            let speed           = tangent.magnitude();
+
+            if speed.abs() < 0.00000001 {
+                // Very rarely, the speed can be 0 (at t=0 or t=1 when the control points overlap, for the easiest example to construct)
+
+                // Use the error to adjust the t position we're testing if it's larger than max_error
+                let error_ratio     = distance / next_distance;
+                t_increment         = if error_ratio < 0.5 { 
+                    t_increment * 0.5
+                } else if error_ratio > 1.5 { 
+                    t_increment * 1.5
+                } else {
+                    t_increment * error_ratio
+                };
             } else {
-                t_increment * error_ratio
-            };
+                // Use the current speed to work out the adjustment for t_increment
+                let error       = next_distance - distance;
+                let adjustment  = error / speed;
+
+                t_increment     = t_increment - adjustment;
+            }
+
             next_t              = last_t + t_increment;
 
             #[cfg(debug_assertions)] 
