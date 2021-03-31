@@ -8,7 +8,7 @@ use super::section::*;
 use super::subdivide::*;
 use super::characteristics::*;
 
-use super::super::geo::*;
+use crate::geo::*;
 
 ///
 /// Trait implemented by bezier curves that can create new versions of themselves
@@ -207,6 +207,15 @@ impl<Coord: Coordinate> BezierCurve for Curve<Coord> {
     #[inline]
     fn control_points(&self) -> (Coord, Coord) {
         self.control_points
+    }
+}
+
+impl<Coord: Coordinate> HasBoundingBox for Curve<Coord> {
+    ///
+    /// Computes the bounds of this bezier curve
+    /// 
+    fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+        self.bounding_box()
     }
 }
 

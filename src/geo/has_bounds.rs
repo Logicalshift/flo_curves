@@ -8,5 +8,5 @@ pub trait HasBoundingBox : Geo {
     ///
     /// Returns the bounding box that encloses this item
     ///
-    fn bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds;
+    fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds;
 }
