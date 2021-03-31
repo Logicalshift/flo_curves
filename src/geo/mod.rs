@@ -11,9 +11,11 @@
 //!
 
 mod geo;
+mod sweep;
 mod coordinate;
 mod bounding_box;
 
 pub use self::geo::*;
+pub use self::sweep::*;
 pub use self::bounding_box::*;
 pub use self::coordinate::*;
