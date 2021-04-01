@@ -5,16 +5,16 @@ use smallvec::*;
 use std::cmp::{Ordering};
 
 ///
-/// Sweeps a set of objects with bounding boxes to find the potential collisions
+/// Sweeps a set of objects with bounding boxes to find the potential collisions between them
 ///
 /// The objects must be sorted into order by their min-x position, with the lowest first
 ///
-pub fn sweep<'a, TItem, BoundsIter>(ordered_items: BoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
+pub fn sweep_self<'a, TItem, BoundsIter>(ordered_items: BoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
 where
 BoundsIter:     'a+Iterator<Item=&'a TItem>,
 TItem:          'a+HasBoundingBox,
 TItem::Point:   Coordinate2D {
-    SweepIterator {
+    SweepSelfIterator {
         bounds_iterator:    ordered_items,
         pending:            smallvec![],
         by_max_x:           Vec::new()
@@ -22,9 +22,30 @@ TItem::Point:   Coordinate2D {
 }
 
 ///
+/// Sweeps two sets of objects to find the collisions between them
+///
+/// This will only collide between objects in src and objects in tgt. Both must be sorted into order by
+/// their min-x position, with the lowest first
+///
+pub fn sweep_against<'a, TItem, SrcBoundsIter, TgtBoundsIter>(src: SrcBoundsIter, tgt: TgtBoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
+where
+SrcBoundsIter:  'a+Iterator<Item=&'a TItem>,
+TgtBoundsIter:  'a+Iterator<Item=&'a TItem>,
+TItem:          'a+HasBoundingBox,
+TItem::Point:   Coordinate2D {
+    SweepAgainstIterator {
+        src_iterator:   src,
+        tgt_iterator:   tgt,
+        pending:        smallvec![],
+        src_by_max_x:   Vec::new(),
+        tgt_by_max_x:   Vec::new()
+    }
+}
+
+///
 /// Iterator that performs the sweep operation
 ///
-struct SweepIterator<'a, TItem, BoundsIter>
+struct SweepSelfIterator<'a, TItem, BoundsIter>
 where
 BoundsIter:     'a+Iterator<Item=&'a TItem>,
 TItem:          'a+HasBoundingBox,
@@ -40,7 +61,7 @@ TItem::Point:   Coordinate2D {
     by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>
 }
 
-impl<'a, TItem, BoundsIter> Iterator for SweepIterator<'a, TItem, BoundsIter>
+impl<'a, TItem, BoundsIter> Iterator for SweepSelfIterator<'a, TItem, BoundsIter>
 where
 BoundsIter:     'a+Iterator<Item=&'a TItem>,
 TItem:          'a+HasBoundingBox,
@@ -107,5 +128,43 @@ TItem::Point:   Coordinate2D {
                 return Some(next);
             }
         }
+    }
+}
+
+///
+/// Iterator that performs the sweep operation
+///
+struct SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
+where
+SrcIterator:    'a+Iterator<Item=&'a TItem>,
+TgtIterator:    'a+Iterator<Item=&'a TItem>,
+TItem:          'a+HasBoundingBox,
+TItem::Point:   Coordinate2D {
+    /// Iterator, ordered by minimum X position
+    src_iterator: SrcIterator,
+
+    /// Iterator, ordered by minimum X position, that returns the items to be checked for overlaps
+    tgt_iterator: TgtIterator,
+
+    /// Collided items that are pending a return
+    pending: SmallVec<[(&'a TItem, &'a TItem); 16]>,
+
+    /// Source items that have not yet been swept away, ordered by maximum x position (in reverse, so the next item to remove can be popped)
+    src_by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>,
+
+    /// Target items that have npt yet been swept away, ordered by maximum x position (in reverse, so the next item to remove can be popped)
+    tgt_by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>
+}
+
+impl<'a, TItem, SrcIterator, TgtIterator> Iterator for SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
+where
+SrcIterator:    'a+Iterator<Item=&'a TItem>,
+TgtIterator:    'a+Iterator<Item=&'a TItem>,
+TItem:          'a+HasBoundingBox,
+TItem::Point:   Coordinate2D {
+    type Item = (&'a TItem, &'a TItem);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
     }
 }
