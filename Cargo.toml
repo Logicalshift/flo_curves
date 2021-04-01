@@ -20,3 +20,6 @@ extra_checks    = []
 itertools   = "0.9"
 roots       = "0.0.6"
 smallvec    = "1.1"
+
+[dev-dependencies]
+rand        = "0.8"
