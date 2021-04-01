@@ -1,4 +1,5 @@
 use super::geo::*;
+use super::has_bounds::*;
 use super::coordinate::*;
 
 ///
@@ -111,6 +112,12 @@ impl<Point: Coordinate> BoundingBox for (Point, Point) {
     #[inline]
     fn max(&self) -> Self::Point {
         Point::from_biggest_components(self.0, self.1)
+    }
+}
+
+impl<Point: Coordinate> HasBoundingBox for Bounds<Point> {
+    fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+        Bounds::from_min_max(self.min(), self.max())
     }
 }
 
