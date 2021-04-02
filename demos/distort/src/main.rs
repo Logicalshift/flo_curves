@@ -85,6 +85,17 @@ fn main() {
                 gc.new_path();
                 gc.bezier_path(&distorted_path);
                 gc.stroke();
+
+                if (since_start % 10_000_000_000.0) > 5_000_000_000.0 {
+                    // Render the path points
+                    gc.line_width(1.0);
+
+                    for (_, _, point) in distorted_path.1.iter() {
+                        gc.new_path();
+                        gc.circle(point.x() as _, point.y() as _, 5.0);
+                        gc.stroke();
+                    }
+                }
             });
         }
     });
