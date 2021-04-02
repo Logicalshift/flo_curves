@@ -21,7 +21,7 @@ fn main() {
             // Decide on an amplitude that determines where the paths are relative to each other
             let since_start     = Instant::now().duration_since(start_time);
             let since_start     = since_start.as_nanos() as f64;
-            let amplitude       = (since_start / (f64::consts::PI * 500_000_000.0)).sin() * 200.0;
+            let amplitude       = (since_start / (f64::consts::PI * 1_000_000_000.0)).sin() * 200.0;
 
             // Create some circles
             let path1           = Circle::new(Coord2(500.0 + amplitude, 500.0), 100.0).to_path::<SimpleBezierPath>();
