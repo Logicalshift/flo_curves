@@ -182,6 +182,13 @@ impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> BezierCurve for GraphEdge<'a, Poi
     }
 }
 
+impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> HasBoundingBox for GraphEdge<'a, Point, Label> {
+    #[inline]
+    fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+        self.fast_bounding_box()
+    }
+}
+
 impl<'a, Point: fmt::Debug, Label: 'a+Copy> fmt::Debug for GraphEdge<'a, Point, Label> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}: {:?} -> {:?} ({:?} -> {:?} ({:?}, {:?}))", self.kind(), self.edge.start_idx, self.edge().end_idx, self.graph.points[self.edge.start_idx].position, self.graph.points[self.edge().end_idx].position, self.edge().cp1, self.edge().cp2)
