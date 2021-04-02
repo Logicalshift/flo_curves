@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 
 fn main() {
     with_2d_graphics(|| {
-        let canvas          = create_canvas_window("Curve and path distortion demonstration");
+        let canvas          = create_canvas_window("Path arithmetic demonstration");
 
         let start_time = Instant::now();
 
@@ -21,12 +21,12 @@ fn main() {
             // Decide on an amplitude that determines where the paths are relative to each other
             let since_start     = Instant::now().duration_since(start_time);
             let since_start     = since_start.as_nanos() as f64;
-            let amplitude       = (since_start / (f64::consts::PI * 500_000_000.0)).sin() * 100.0;
+            let amplitude       = (since_start / (f64::consts::PI * 500_000_000.0)).sin() * 200.0;
 
             // Create some circles
-            let path1           = Circle::new(Coord2(500.0 + amplitude, 500.0), 50.0).to_path::<SimpleBezierPath>();
-            let path2           = Circle::new(Coord2(500.0 - amplitude, 500.0), 60.0).to_path::<SimpleBezierPath>();
-            let path3           = Circle::new(Coord2(500.0, 500.0 - amplitude), 30.0).to_path::<SimpleBezierPath>();
+            let path1           = Circle::new(Coord2(500.0 + amplitude, 500.0), 100.0).to_path::<SimpleBezierPath>();
+            let path2           = Circle::new(Coord2(500.0 - amplitude, 500.0), 120.0).to_path::<SimpleBezierPath>();
+            let path3           = Circle::new(Coord2(500.0, 500.0 - amplitude), 60.0).to_path::<SimpleBezierPath>();
 
             // Add and subtract them to generate the final path
             let path            = path_add::<_, _, SimpleBezierPath>(&vec![path1], &vec![path2], 0.1);
