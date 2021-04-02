@@ -43,10 +43,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     fn t_is_one(t: f64) -> bool { t >= 1.0 }
 
     ///
-    /// Finds the self collisions in a range
+    /// Retrieves the ordered graph edges for a range of points
     ///
-    fn find_self_collisions(&self, points: Range<usize>, accuracy: f64) -> Vec<Collision> {
-        // Sort the edges into min_x order
+    fn get_ordered_edges<'a>(&'a self, points: Range<usize>) -> Vec<GraphEdge<'a, Point, Label>> {
         let mut ordered_edges = points.into_iter()
             .flat_map(|point_idx| (0..self.points[point_idx].forward_edges.len()).into_iter().map(move |edge_idx| (point_idx, edge_idx)))
             .map(|(point_idx, edge_idx)| GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
@@ -59,6 +58,16 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             bb1.min().x().partial_cmp(&bb2.min().x()).unwrap_or(Ordering::Equal)
         });
+
+        ordered_edges
+    }
+
+    ///
+    /// Finds the self collisions in a range
+    ///
+    fn find_self_collisions(&self, points: Range<usize>, accuracy: f64) -> Vec<Collision> {
+        // Sort the edges into min_x order
+        let ordered_edges = self.get_ordered_edges(points);
 
         // Find the collisions
         let mut collisions = vec![];
