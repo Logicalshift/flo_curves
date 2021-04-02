@@ -1,7 +1,7 @@
 use super::{GraphPath, GraphEdgeRef, GraphEdge, GraphPathEdge, GraphPathEdgeKind};
-use super::super::super::curve::*;
-use super::super::super::bounds::*;
-use super::super::super::super::geo::*;
+use crate::bezier::curve::*;
+use crate::bezier::bounds::*;
+use crate::geo::*;
 
 use std::fmt;
 use std::cell::*;

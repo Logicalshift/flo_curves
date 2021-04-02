@@ -1,7 +1,7 @@
 use super::*;
-use super::super::*;
-use super::super::super::normal::*;
-use super::super::super::super::arc::*;
+use crate::bezier::path::*;
+use crate::bezier::normal::*;
+use crate::arc::*;
 
 pub (crate) fn donut() -> GraphPath<Coord2, ()> {
     let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();

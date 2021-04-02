@@ -1,5 +1,5 @@
 use super::{GraphPath, GraphEdge, GraphEdgeRef};
-use super::super::super::super::geo::*;
+use crate::geo::*;
 
 impl GraphEdgeRef {
     ///

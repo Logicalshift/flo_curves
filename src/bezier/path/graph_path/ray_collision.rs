@@ -1,7 +1,7 @@
 use super::{GraphPath,GraphEdge,GraphEdgeRef};
-use super::super::ray::*;
-use super::super::super::super::geo::*;
-use super::super::super::super::line::*;
+use crate::bezier::path::ray::*;
+use crate::geo::*;
+use crate::line::*;
 
 use smallvec::*;
 

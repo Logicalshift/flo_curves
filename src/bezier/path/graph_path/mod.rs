@@ -1,7 +1,7 @@
 use super::path::*;
-use super::super::curve::*;
-use super::super::super::geo::*;
-use super::super::super::consts::*;
+use crate::bezier::curve::*;
+use crate::geo::*;
+use crate::consts::*;
 
 use smallvec::*;
 

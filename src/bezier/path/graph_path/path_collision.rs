@@ -1,8 +1,8 @@
 use super::{GraphPath, GraphEdge, GraphEdgeRef, GraphPathPoint, GraphPathEdge};
-use super::super::super::curve::*;
-use super::super::super::intersection::*;
-use super::super::super::super::geo::*;
-use super::super::super::super::consts::*;
+use crate::bezier::curve::*;
+use crate::bezier::intersection::*;
+use crate::geo::*;
+use crate::consts::*;
 
 use smallvec::*;
 
