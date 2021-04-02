@@ -122,100 +122,53 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             return self.find_self_collisions(collide_from, accuracy);
         }
 
-        if collide_to.start < collide_from.start {
-            // collide_from must always start at a lower index
-            self.find_collisions(collide_to, collide_from, accuracy)
-        } else {
-            // Start creating the list of collisions
-            let mut collisions = vec![];
+        // Order the edges for the two sides that are going to be collided
+        let collide_src = self.get_ordered_edges(collide_from);
+        let collide_tgt = self.get_ordered_edges(collide_to);
 
-            // Iterate through all of the collide_from points
-            for src_idx in collide_from {
-                // Do not re-check edges that we've already visited
-                let collide_to      = (collide_to.start.max(src_idx))..collide_to.end;
+        // Perform a sweep to find any collisions
+        let mut collisions = vec![];
 
-                // Search all of the edges at this index
-                for src_edge_idx in 0..self.points[src_idx].forward_edges.len() {
-                    // We can quickly eliminate edges that are outside the bounds
-                    let src_curve_ref   = GraphEdgeRef { start_idx: src_idx, edge_idx: src_edge_idx, reverse: false };
-                    let src_curve       = GraphEdge::new(self, src_curve_ref);
-                    let src_edge_bounds = src_curve.fast_bounding_box::<Bounds<_>>();
+        for (src_curve, tgt_curve) in sweep_against(collide_src.iter(), collide_tgt.iter()) {
+            // Find any collisions between the two edges (to the required accuracy)
+            let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
+            if edge_collisions.len() == 0 { continue; }
 
-                    // Collide against the target edges
-                    for tgt_idx in collide_to.clone() {
-                        for tgt_edge_idx in 0..self.points[tgt_idx].forward_edges.len() {
-                            // Search for loops when colliding an edge against itself
-                            if src_idx == tgt_idx {
-                                if src_edge_idx == tgt_edge_idx { 
-                                    // Colliding edge against itself
-                                    if let Some((t1, t2)) = find_self_intersection_point(&src_curve, accuracy) {
-                                        if !(t1 <= 0.0 && t2 >= 1.0) && !(t1 >= 1.0 && t2 <= 0.0) {
-                                            collisions.push(Collision {
-                                                edge_1:     src_curve_ref,
-                                                edge_2:     src_curve_ref,
-                                                edge_1_t:   t1,
-                                                edge_2_t:   t2
-                                            });
-                                        }
-                                    }
+            // Remove any pairs of collisions that are too close together
+            remove_and_round_close_collisions(&mut edge_collisions, src_curve, tgt_curve);
 
-                                    continue;
-                                } else if src_edge_idx > tgt_edge_idx {
-                                    // Will already have collided this edge elsewhere
-                                    continue; 
-                                }
-                            }
-
-                            // Avoid trying to collide two curves whose bounding boxes do not overlap
-                            let tgt_curve_ref   = GraphEdgeRef { start_idx: tgt_idx, edge_idx: tgt_edge_idx, reverse: false };
-                            let tgt_curve       = GraphEdge::new(self, tgt_curve_ref);
-                            
-                            let tgt_edge_bounds = tgt_curve.fast_bounding_box::<Bounds<_>>();
-                            if !src_edge_bounds.overlaps(&tgt_edge_bounds) { continue; }
-
-                            // Find any collisions between the two edges (to the required accuracy)
-                            let mut edge_collisions = curve_intersects_curve_clip(&src_curve, &tgt_curve, accuracy);
-                            if edge_collisions.len() == 0 { continue; }
-
-                            // Remove any pairs of collisions that are too close together
-                            remove_and_round_close_collisions(&mut edge_collisions, &src_curve, &tgt_curve);
-
-                            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another).
-                            // For cases where we get a collision at the end of an edge, wait for the one at the beginning of the next one
-                            let edge_collisions = edge_collisions.into_iter()
-                                .filter(|(src_t, tgt_t)| !(Self::t_is_one(*src_t) || Self::t_is_one(*tgt_t) || (Self::t_is_zero(*src_t) && Self::t_is_zero(*tgt_t))))
-                                .map(|(src_t, tgt_t)| {
-                                    Collision {
-                                        edge_1:     src_curve_ref,
-                                        edge_2:     tgt_curve_ref,
-                                        edge_1_t:   src_t,
-                                        edge_2_t:   tgt_t
-                                    }
-                                })
-                                .map(|mut collision| {
-                                    // If the collision is at the end of the edge, move it to the start of the following edge
-                                    if Self::t_is_one(collision.edge_1_t) {
-                                        collision.edge_1    = self.following_edge_ref(collision.edge_1);
-                                        collision.edge_1_t  = 0.0;
-                                    }
-
-                                    if Self::t_is_one(collision.edge_2_t) {
-                                        collision.edge_2    = self.following_edge_ref(collision.edge_2);
-                                        collision.edge_2_t  = 0.0;
-                                    }
-
-                                    collision
-                                });
-
-                            // Add to the results
-                            collisions.extend(edge_collisions);
-                        }
+            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another).
+            // For cases where we get a collision at the end of an edge, wait for the one at the beginning of the next one
+            let edge_collisions = edge_collisions.into_iter()
+                .filter(|(src_t, tgt_t)| !(Self::t_is_one(*src_t) || Self::t_is_one(*tgt_t) || (Self::t_is_zero(*src_t) && Self::t_is_zero(*tgt_t))))
+                .map(|(src_t, tgt_t)| {
+                    Collision {
+                        edge_1:     src_curve.edge,
+                        edge_2:     tgt_curve.edge,
+                        edge_1_t:   src_t,
+                        edge_2_t:   tgt_t
                     }
-                }
-            }
+                })
+                .map(|mut collision| {
+                    // If the collision is at the end of the edge, move it to the start of the following edge
+                    if Self::t_is_one(collision.edge_1_t) {
+                        collision.edge_1    = self.following_edge_ref(collision.edge_1);
+                        collision.edge_1_t  = 0.0;
+                    }
 
-            collisions
+                    if Self::t_is_one(collision.edge_2_t) {
+                        collision.edge_2    = self.following_edge_ref(collision.edge_2);
+                        collision.edge_2_t  = 0.0;
+                    }
+
+                    collision
+                });
+
+            // Add to the results
+            collisions.extend(edge_collisions);
         }
+
+        collisions
     }
 
     ///
