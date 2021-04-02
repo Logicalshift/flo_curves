@@ -38,7 +38,7 @@ fn main() {
                 gc.canvas_height(1000.0);
                 gc.center_region(0.0, 0.0, 1000.0, 1000.0);
                 
-                gc.line_width(4.0);
+                gc.line_width(3.0);
 
                 // Render the combined path
                 gc.stroke_color(Color::Rgba(0.8, 0.5, 0.0, 1.0));
@@ -51,6 +51,17 @@ fn main() {
                 });
                 gc.fill();
                 gc.stroke();
+
+                // Render the path points
+                gc.line_width(1.0);
+
+                for subpath in path.iter() {
+                    for (_, _, point) in subpath.1.iter() {
+                        gc.new_path();
+                        gc.circle(point.x() as _, point.y() as _, 5.0);
+                        gc.stroke();
+                    }
+                }
             });
         }
     });
