@@ -111,6 +111,21 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             collisions.extend(edge_collisions);
         }
 
+        // Check all edges for self-collisions
+        for edge in ordered_edges {
+            // Colliding edge against itself
+            if let Some((t1, t2)) = find_self_intersection_point(&edge, accuracy) {
+                if !(t1 <= 0.0 && t2 >= 1.0) && !(t1 >= 1.0 && t2 <= 0.0) {
+                    collisions.push(Collision {
+                        edge_1:     edge.edge,
+                        edge_2:     edge.edge,
+                        edge_1_t:   t1,
+                        edge_2_t:   t2
+                    });
+                }
+            }
+        }
+
         collisions
     }
 
