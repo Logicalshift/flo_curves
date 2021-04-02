@@ -43,9 +43,76 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     fn t_is_one(t: f64) -> bool { t >= 1.0 }
 
     ///
+    /// Finds the self collisions in a range
+    ///
+    fn find_self_collisions(&self, points: Range<usize>, accuracy: f64) -> Vec<Collision> {
+        // Sort the edges into min_x order
+        let mut ordered_edges = points.into_iter()
+            .flat_map(|point_idx| (0..self.points[point_idx].forward_edges.len()).into_iter().map(move |edge_idx| (point_idx, edge_idx)))
+            .map(|(point_idx, edge_idx)| GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
+            .map(|edge_ref| GraphEdge::new(self, edge_ref))
+            .collect::<Vec<_>>();
+
+        ordered_edges.sort_by(|edge1, edge2| {
+            let bb1 = edge1.get_bounding_box::<Bounds<_>>();
+            let bb2 = edge2.get_bounding_box::<Bounds<_>>();
+
+            bb1.min().x().partial_cmp(&bb2.min().x()).unwrap_or(Ordering::Equal)
+        });
+
+        // Find the collisions
+        let mut collisions = vec![];
+
+        for (src_curve, tgt_curve) in sweep_self(ordered_edges.iter()) {
+            // Find any collisions between the two edges (to the required accuracy)
+            let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
+            if edge_collisions.len() == 0 { continue; }
+
+            // Remove any pairs of collisions that are too close together
+            remove_and_round_close_collisions(&mut edge_collisions, src_curve, tgt_curve);
+
+            // Turn into collisions, filtering out the collisions that occur at the ends (where one edge joins another).
+            // For cases where we get a collision at the end of an edge, wait for the one at the beginning of the next one
+            let edge_collisions = edge_collisions.into_iter()
+                .filter(|(src_t, tgt_t)| !(Self::t_is_one(*src_t) || Self::t_is_one(*tgt_t) || (Self::t_is_zero(*src_t) && Self::t_is_zero(*tgt_t))))
+                .map(|(src_t, tgt_t)| {
+                    Collision {
+                        edge_1:     src_curve.edge,
+                        edge_2:     tgt_curve.edge,
+                        edge_1_t:   src_t,
+                        edge_2_t:   tgt_t
+                    }
+                })
+                .map(|mut collision| {
+                    // If the collision is at the end of the edge, move it to the start of the following edge
+                    if Self::t_is_one(collision.edge_1_t) {
+                        collision.edge_1    = self.following_edge_ref(collision.edge_1);
+                        collision.edge_1_t  = 0.0;
+                    }
+
+                    if Self::t_is_one(collision.edge_2_t) {
+                        collision.edge_2    = self.following_edge_ref(collision.edge_2);
+                        collision.edge_2_t  = 0.0;
+                    }
+
+                    collision
+                });
+
+            // Add to the results
+            collisions.extend(edge_collisions);
+        }
+
+        collisions
+    }
+
+    ///
     /// Finds any collisions that might exist between two ranges of points
     ///
     fn find_collisions(&self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) -> Vec<Collision> {
+        if collide_from == collide_to {
+            return self.find_self_collisions(collide_from, accuracy);
+        }
+
         if collide_to.start < collide_from.start {
             // collide_from must always start at a lower index
             self.find_collisions(collide_to, collide_from, accuracy)
