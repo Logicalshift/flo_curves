@@ -95,6 +95,34 @@ fn add_two_very_close_circles() {
 }
 
 #[test]
+fn add_two_close_circles() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(496.9997044935593, 5.0), 300.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(503.0002955064407, 5.0), 300.0).to_path::<SimpleBezierPath>();
+
+    // Combine them
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+
+    /*
+    assert!(combined_circles.len() != 0);
+    assert!(combined_circles.len() != 2);
+    assert!(combined_circles.len() == 1);
+    */
+
+    // All points should be on either circle, and two should be on both
+    let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
+
+    for point in points {
+        let distance_to_circle1 = Coord2(500.0, 5.0).distance_to(&point);
+
+        // Must be on either circle
+        assert!((distance_to_circle1-300.0).abs() < 10.0);
+
+        println!("{:?} {:?}", point, distance_to_circle1);
+    }
+}
+
+#[test]
 fn add_two_overlapping_circles_via_combination_chain() {
     // Two overlapping circles
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
