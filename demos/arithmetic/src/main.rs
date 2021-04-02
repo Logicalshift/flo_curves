@@ -29,18 +29,28 @@ fn main() {
             let path3           = Circle::new(Coord2(500.0, 500.0 - amplitude), 60.0).to_path::<SimpleBezierPath>();
 
             // Add and subtract them to generate the final path
-            let path            = path_add::<_, _, SimpleBezierPath>(&vec![path1], &vec![path2], 0.1);
-            let path            = path_sub::<_, _, SimpleBezierPath>(&path, &vec![path3], 0.1);
+            let path            = path_add::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+            let path            = path_sub::<_, _, SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
 
                 gc.canvas_height(1000.0);
                 gc.center_region(0.0, 0.0, 1000.0, 1000.0);
-                
-                gc.line_width(3.0);
+
+                // Render the subpaths
+                gc.line_width(1.0);
+
+                gc.stroke_color(Color::Rgba(0.4, 0.8, 0.0, 0.5));
+                for p in vec![&path1, &path2, &path3] {
+                    gc.new_path();
+                    gc.bezier_path(p);
+                    gc.stroke();
+                }
 
                 // Render the combined path
+                gc.line_width(3.0);
+
                 gc.stroke_color(Color::Rgba(0.8, 0.5, 0.0, 1.0));
                 gc.fill_color(Color::Rgba(0.3, 0.6, 0.8, 0.8));
                 gc.winding_rule(WindingRule::EvenOdd);
