@@ -505,6 +505,8 @@ fn intersection_curve_10() {
     };
 
     let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    assert!(intersections1.len() > 0);
+
     let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
 
     println!("{:?}", intersections1);
@@ -515,4 +517,43 @@ fn intersection_curve_10() {
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
+
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.01);
+}
+
+// (0.49236699497857783, 0.5065132298924669) (0.47428429377321385, 0.4934869656848157
+// Intersection at 0.5064950379631311, 0.49346879469352817 (very close to the end of this range)
+#[test]
+fn intersection_curve_11() {
+    // Tries to eliminate the subdivisions from intersection_curve_10 so will more reliably fail if other changes are made to
+    // the intersection algorithm
+    let curve1 = bezier::Curve { 
+        start_point: Coord2(284.86767013759504, 712.1320343559642), 
+        end_point: Coord2(709.1317388495236, 712.1320343559643), 
+        control_points: (Coord2(402.02495766297596, 829.2893218813454), Coord2(591.9744513241425, 829.2893218813454)) 
+    };
+    let curve2 = bezier::Curve { 
+        start_point: Coord2(290.8682611504764, 712.1320343559642), 
+        end_point: Coord2(715.132329862405, 712.1320343559643), 
+        control_points: (Coord2(408.02554867585735, 829.2893218813454), Coord2(597.9750423370239, 829.2893218813454)) 
+    };
+
+    let curve1 = curve1.section(0.49236699497857783, 0.5065132298924669);
+    let curve2 = curve2.section(0.47428429377321385, 0.4934869656848157);
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    assert!(intersections1.len() > 0);
+
+    let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
+
+    println!("{:?}", intersections1);
+    println!("{:?}", intersections2);
+
+    assert!(intersections1.len() > 0);
+    assert!(intersections2.len() > 0);
+
+    assert!(intersections1.len() == 1);
+    assert!(intersections2.len() == 1);
+
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.01);
 }
