@@ -282,6 +282,30 @@ impl Mul<f64> for Coord2 {
     }
 }
 
+impl From<(f64, f64)> for Coord2 {
+    fn from((x, y): (f64, f64)) -> Coord2 {
+        Coord2(x, y)
+    }
+}
+
+impl Into<(f64, f64)> for Coord2 {
+    fn into(self) -> (f64, f64) {
+        (self.0, self.1)
+    }
+}
+
+impl From<(f32, f32)> for Coord2 {
+    fn from((x, y): (f32, f32)) -> Coord2 {
+        Coord2(x as _, y as _)
+    }
+}
+
+impl Into<(f32, f32)> for Coord2 {
+    fn into(self) -> (f32, f32) {
+        (self.0 as _, self.1 as _)
+    }
+}
+
 impl Coordinate for Coord2 {
     #[inline]
     fn from_components(components: &[f64]) -> Coord2 {
