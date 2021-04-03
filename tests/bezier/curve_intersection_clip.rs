@@ -491,3 +491,28 @@ fn intersection_curve_9() {
     assert!(intersections2.len() == 2);
 }
 
+#[test]
+fn intersection_curve_10() {
+    let curve1 = bezier::Curve { 
+        start_point: Coord2(284.86767013759504, 712.1320343559642), 
+        end_point: Coord2(709.1317388495236, 712.1320343559643), 
+        control_points: (Coord2(402.02495766297596, 829.2893218813454), Coord2(591.9744513241425, 829.2893218813454)) 
+    };
+    let curve2 = bezier::Curve { 
+        start_point: Coord2(290.8682611504764, 712.1320343559642), 
+        end_point: Coord2(715.132329862405, 712.1320343559643), 
+        control_points: (Coord2(408.02554867585735, 829.2893218813454), Coord2(597.9750423370239, 829.2893218813454)) 
+    };
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
+
+    println!("{:?}", intersections1);
+    println!("{:?}", intersections2);
+
+    assert!(intersections1.len() > 0);
+    assert!(intersections2.len() > 0);
+
+    assert!(intersections1.len() == 1);
+    assert!(intersections2.len() == 1);
+}

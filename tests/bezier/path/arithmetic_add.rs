@@ -103,11 +103,9 @@ fn add_two_close_circles() {
     // Combine them
     let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
 
-    /*
     assert!(combined_circles.len() != 0);
     assert!(combined_circles.len() != 2);
     assert!(combined_circles.len() == 1);
-    */
 
     // All points should be on either circle, and two should be on both
     let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
