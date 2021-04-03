@@ -25,7 +25,7 @@ fn main() {
 
             // Create some circles
             let path1           = Circle::new(Coord2(500.0 + amplitude, 500.0), 100.0).to_path::<SimpleBezierPath>();
-            let path2           = Circle::new(Coord2(500.0 - amplitude, 500.0), 120.0).to_path::<SimpleBezierPath>();
+            let path2           = Circle::new(Coord2(500.0 - amplitude, 500.0), 100.0).to_path::<SimpleBezierPath>();
             let path3           = Circle::new(Coord2(500.0, 500.0 - amplitude), 60.0).to_path::<SimpleBezierPath>();
 
             // Add and subtract them to generate the final path
