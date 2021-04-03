@@ -30,16 +30,37 @@ fn curve_hull_length_sq<'a, C: BezierCurve>(curve: &CurveSection<'a, C>) -> f64 
 ///
 fn intersections_with_linear_section<'a, C: BezierCurve>(linear_section: &CurveSection<'a, C>, curved_section: &CurveSection<'a, C>) -> SmallVec<[(f64, f64); 4]>
 where C::Point: 'a+Coordinate2D {
+    // Treat the linear section as a ray based on the start and the end point and find where on the curved section the ray intersects the linear section
     let ray                 = (linear_section.start_point(), linear_section.end_point());
     let ray_intersections   = curve_intersects_ray(curved_section, &ray);
 
-    let curve_intersections = ray_intersections.into_iter()
+    // Attempt to find where the 't' value is for each ray intersection against the linear section
+    let curve_intersections = ray_intersections.iter()
         .filter_map(|(curved_t, _ray_t, pos)| {
-            let linear_t = solve_curve_for_t(linear_section, &pos);
+            let linear_t = solve_curve_for_t(linear_section, pos);
 
-            linear_t.map(|linear_t| (linear_t, curved_t))
+            linear_t.map(|linear_t| (linear_t, *curved_t))
         })
         .collect::<SmallVec<_>>();
+
+    // Rarely: the linear section might be very short and the solver might miss that it's essentially a point
+    if curve_intersections.len() == 0 && ray_intersections.len() != 0 {
+        // If the linear section seems short
+        if linear_section.point_at_pos(0.0).is_near_to(&linear_section.point_at_pos(1.0), 0.1) {
+            let midpoint            = linear_section.point_at_pos(0.5);
+            let curve_intersections = ray_intersections.iter()        
+            .filter_map(|(curved_t, _ray_t, pos)| {
+                if pos.is_near_to(&midpoint, CLOSE_ENOUGH) {
+                    Some((0.5, *curved_t))
+                } else {
+                    None
+                }
+            })
+            .collect::<SmallVec<_>>();
+
+            return curve_intersections;
+        }
+    }
 
     curve_intersections
 }
