@@ -3,7 +3,8 @@ members = [
     "offset",
     "walk",
     "distort",
-    "arithmetic"
+    "arithmetic",
+    "curve_intersections"
 ]
 
 [patch.crates-io]
