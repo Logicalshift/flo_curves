@@ -518,7 +518,7 @@ fn intersection_curve_10() {
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.01);
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
 }
 
 // (0.49236699497857783, 0.5065132298924669) (0.47428429377321385, 0.4934869656848157
@@ -555,5 +555,5 @@ fn intersection_curve_11() {
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.01);
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
 }
