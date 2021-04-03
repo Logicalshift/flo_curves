@@ -1,8 +1,8 @@
 use super::fat_line::*;
 use super::curve_line::*;
-use super::super::solve::*;
-use super::super::super::geo::*;
-use super::super::super::bezier::*;
+use crate::geo::*;
+use crate::bezier::*;
+use crate::bezier::solve::*;
 
 use smallvec::*;
 
