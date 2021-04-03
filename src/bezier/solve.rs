@@ -5,7 +5,7 @@ use super::super::consts::*;
 use roots::{find_roots_quadratic, find_roots_cubic, Roots};
 use smallvec::*;
 
-const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
+pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 
 ///
 /// Solves for t in a single dimension for a bezier curve (finds the point(s) where the basis
