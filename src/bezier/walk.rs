@@ -127,6 +127,33 @@ pub struct EvenWalkIterator<'a, Curve: BezierCurve> {
     max_error:      f64
 }
 
+///
+/// Iterator that modifies the behaviour of EvenWalkIterator so that it varies the distance between
+/// each step
+///
+struct VaryingWalkIterator<'a, Curve: BezierCurve, DistanceIter: 'a+Iterator<Item=f64>> {
+    /// The even walk iterator
+    even_iterator: EvenWalkIterator<'a, Curve>,
+
+    /// Iterator that returns the distance for each step (or None if the distance is fixed for the remaining distance)
+    distance_iterator: Option<DistanceIter>
+}
+
+impl<'a, Curve: BezierCurve> EvenWalkIterator<'a, Curve> {
+    ///
+    /// Changes this iterator into one that varies distance with each step
+    ///
+    /// The supplied iterator will by used to get the distance for each subsequent step of the iterator. Normally, this iterator
+    /// would generate a cycle of distances (say, by calling `cycle()`), but if it does end, the last distance will be used
+    /// until the iteration over the curve is completed
+    ///
+    pub fn vary_by<DistanceIter: 'a+Iterator<Item=f64>>(self, distance: DistanceIter) -> impl 'a+Iterator<Item=CurveSection<'a, Curve>> {
+        VaryingWalkIterator {
+            even_iterator:      self,
+            distance_iterator:  Some(distance)
+        }
+    }
+}
 
 impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
     type Item = CurveSection<'a, Curve>;
@@ -228,5 +255,27 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
 
         // Return the section that we found
         Some(self.curve.section(last_t, next_t))
+    }
+}
+
+impl<'a, Curve: BezierCurve, DistanceIter: 'a+Iterator<Item=f64>> Iterator for VaryingWalkIterator<'a, Curve, DistanceIter> {
+    type Item = CurveSection<'a, Curve>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Vary the distance for the next step according to the distance iterator
+        if let Some(distance_iterator) = &mut self.distance_iterator {
+            if let Some(distance) = distance_iterator.next() {
+                // Update the distance in the 'even' iterator
+                let ratio                           = distance / self.even_iterator.distance;
+                self.even_iterator.distance         = distance;
+                self.even_iterator.last_increment   *= ratio;
+            } else {
+                // No more distance changes
+                self.distance_iterator = None;
+            }
+        }
+
+        // Continue with the even iterator with the new distance
+        self.even_iterator.next()
     }
 }

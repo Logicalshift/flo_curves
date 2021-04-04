@@ -142,3 +142,30 @@ fn even_walk_point() {
     assert!(sections.len() == 1);
     assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
 }
+
+#[test]
+fn varying_walk_1() {
+    let c                   = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
+    let sections            = walk_curve_evenly(&c, 1.0, 0.1)
+        .vary_by(vec![1.0, 2.0, 3.0].into_iter().cycle())
+        .collect::<Vec<_>>();
+    let actual_length       = curve_length(&c, 0.1);
+
+    let mut total_length    = 0.0;
+    let mut last_t          = 0.0;
+    let mut expected_length = vec![1.0, 2.0, 3.0].into_iter().cycle();
+    for section in sections.iter().take(sections.len()-1) {
+        let (_, t_max) = section.original_curve_t_values();
+        assert!(t_max > last_t);
+        last_t = t_max;
+
+        let expected_length = expected_length.next().unwrap();
+        assert!((chord_length(section)-expected_length).abs() <= 0.1);
+        total_length += chord_length(section);
+    }
+
+    assert!(sections[sections.len()-1].original_curve_t_values().1 == 1.0);
+
+    println!("{:?}", (total_length-actual_length).abs());
+    assert!((total_length-actual_length).abs() < 4.0);
+}
