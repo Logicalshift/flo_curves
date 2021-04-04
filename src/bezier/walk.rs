@@ -33,7 +33,7 @@ pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(curve: &'a Curve, num_subdivi
 ///
 /// Walks a bezier curve by moving forward a set amount at each point. Each point may be up to `max_error` away from `distance.
 ///
-pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64, max_error: f64) -> impl 'a+Iterator<Item=CurveSection<'a, Curve>> {
+pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64, max_error: f64) -> EvenWalkIterator<'a, Curve> {
     const INITIAL_INCREMENT: f64 = 0.1;
 
     // Too small or negative values might produce bad effects due to floating point inprecision
@@ -104,7 +104,7 @@ impl<'a, Curve: BezierCurve> Iterator for UnevenWalkIterator<'a, Curve> {
 ///
 /// Iterator implementation that performs an even walk along a curve
 ///
-struct EvenWalkIterator<'a, Curve: BezierCurve> {
+pub struct EvenWalkIterator<'a, Curve: BezierCurve> {
     /// The curve that is being walked
     curve:          &'a Curve,
 
