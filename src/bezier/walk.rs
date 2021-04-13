@@ -31,7 +31,10 @@ pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(curve: &'a Curve, num_subdivi
 }
 
 ///
-/// Walks a bezier curve by moving forward a set amount at each point. Each point may be up to `max_error` away from `distance.
+/// Walks a bezier curve by moving forward a set amount at each point. Each point may be up to `max_error` away from `distance`.
+///
+/// This walks evenly using the curve's chord length rather than the arc length: each section returned will have a `chord_length()`
+/// of `distance`. The call `vary_by()` can be used on the result to vary the step size at each point.
 ///
 pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64, max_error: f64) -> EvenWalkIterator<'a, Curve> {
     const INITIAL_INCREMENT: f64 = 0.1;
