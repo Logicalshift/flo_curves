@@ -37,7 +37,7 @@ pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(curve: &'a Curve, num_subdivi
 /// of `distance`. The call `vary_by()` can be used on the result to vary the step size at each point.
 ///
 pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64, max_error: f64) -> EvenWalkIterator<'a, Curve> {
-    const INITIAL_INCREMENT: f64 = 0.1;
+    const INITIAL_INCREMENT: f64 = 0.01;
 
     // Too small or negative values might produce bad effects due to floating point inprecision
     let max_error       = if max_error < 1e-10  { 1e-10 } else { max_error };
@@ -49,12 +49,15 @@ pub fn walk_curve_evenly<'a, Curve: BezierCurve>(curve: &'a Curve, distance: f64
 
     // We can calculate the initial speed from close to the first point of the curve
     let initial_speed   = de_casteljau3(0.001, wn1, wn2, wn3).magnitude();
+    let initial_speed   = if distance/(initial_speed.abs()) > 0.25 { de_casteljau3(0.01, wn1, wn2, wn3).magnitude() } else { initial_speed };
 
     let initial_increment = if initial_speed.abs() < 0.00000001 {
         INITIAL_INCREMENT
     } else {
         distance / initial_speed
     };
+
+    let initial_increment = if initial_increment > 0.25 { INITIAL_INCREMENT } else { initial_increment };
 
     EvenWalkIterator {
         curve:          curve,
