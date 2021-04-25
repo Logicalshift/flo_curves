@@ -119,7 +119,9 @@ fn even_walk_5() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter().take(sections.len()-1) {
+    for section in sections.iter() {
+        println!("{:?} {:?}", chord_length(section)-1.0, section.original_curve_t_values());
+
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
