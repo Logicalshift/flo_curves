@@ -145,13 +145,13 @@ fn even_walk_6() {
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
     for section in sections.iter() {
-        println!("{:?} {:?}", chord_length(section)-1.0, section.original_curve_t_values());
+        println!("{:?} {:?}", chord_length(section)-2.0, section.original_curve_t_values());
 
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.5 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
+        assert!((chord_length(section)-2.0).abs() <= 0.5 || (t_max >= 1.0 && chord_length(section)-2.0 <= 0.0));
         total_length += chord_length(section);
     }
 
