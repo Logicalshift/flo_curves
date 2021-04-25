@@ -27,12 +27,12 @@ fn even_walk_1() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter().take(sections.len()-1) {
+    for section in sections.iter() {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.1);
+        assert!((chord_length(section)-1.0).abs() <= 0.1 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
         total_length += chord_length(section);
     }
 
@@ -50,12 +50,12 @@ fn even_walk_2() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter().take(sections.len()-1) {
+    for section in sections.iter() {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.1);
+        assert!((chord_length(section)-1.0).abs() <= 0.1 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
         total_length += chord_length(section);
     }
 
@@ -73,12 +73,12 @@ fn even_walk_3() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter().take(sections.len()-1) {
+    for section in sections.iter() {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.1);
+        assert!((chord_length(section)-1.0).abs() <= 0.1 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
         total_length += chord_length(section);
     }
 
@@ -96,12 +96,12 @@ fn even_walk_4() {
 
     let mut total_length    = 0.0;
     let mut last_t          = 0.0;
-    for section in sections.iter().take(sections.len()-1) {
+    for section in sections.iter() {
         let (_, t_max) = section.original_curve_t_values();
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.1);
+        assert!((chord_length(section)-1.0).abs() <= 0.1 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
         total_length += chord_length(section);
     }
 
@@ -126,7 +126,7 @@ fn even_walk_5() {
         assert!(t_max > last_t);
         last_t = t_max;
 
-        assert!((chord_length(section)-1.0).abs() <= 0.5 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
+        assert!((chord_length(section)-1.0).abs() <= 0.1 || (t_max >= 1.0 && chord_length(section)-1.0 <= 0.0));
         total_length += chord_length(section);
     }
 
