@@ -27,4 +27,5 @@ criterion   = "0.3"
 
 [[bench]]
 name        = "sweep"
+path        = "benches/sweep.rs"
 harness     = false
