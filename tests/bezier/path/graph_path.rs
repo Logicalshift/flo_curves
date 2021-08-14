@@ -180,6 +180,45 @@ pub fn collide_two_rectangles() {
 }
 
 #[test]
+pub fn collide_identical_rectangles() {
+    // Create the two rectangles
+    let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let rectangle2 = rectangle1.clone();
+    
+    let rectangle1 = GraphPath::from_path(&rectangle1, 1);
+    let rectangle2 = GraphPath::from_path(&rectangle2, 2);
+
+    // Collide them
+    let collision = rectangle1.collide(rectangle2, 0.1);
+
+    for point_idx in 0..(collision.num_points()) {
+        // Check the edges for each point
+        let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
+        println!("Point {:?} edges: {:?}", point_idx, edges);
+    }
+
+    // 4 points in the collision
+    assert!(collision.num_points() == 8);
+
+    for point_idx in 0..8 {
+        // Check the edges for each point
+        let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
+
+        // 4 of the points have 2 edges, 4 of the points have 0 edges
+        if point_idx < 4 {
+            assert!(edges.len() == 2);
+        } else {
+            assert!(edges.len() == 0);
+        }
+    }
+}
+
+#[test]
 fn multiple_collisions_on_one_edge() {
     // Create the two rectangles
     let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
