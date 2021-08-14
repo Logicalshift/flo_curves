@@ -84,6 +84,16 @@ fn full_intersect_interior_circles_2() {
 }
 
 #[test]
+fn fintersect_two_fully_overlapping_circles() {
+    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    let intersection    = path_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+
+    assert!(intersection.len() == 1);
+}
+
+#[test]
 fn full_intersect_two_fully_overlapping_circles() {
     let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
