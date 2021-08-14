@@ -66,7 +66,7 @@ fn erase_all() {
 }
 
 #[test]
-fn subtract_from_self_rectangles() {
+fn subtract_from_self_rectangles_1() {
     // Two overlapping/identical rectangles
     let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(5.0, 1.0))
@@ -78,6 +78,26 @@ fn subtract_from_self_rectangles() {
 
     // Create a hole in the larger circle
     let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    println!("{:?}", combined_rectangles);
+
+    assert!(combined_rectangles.len() != 1);
+    assert!(combined_rectangles.len() == 0);
+}
+
+#[test]
+fn subtract_from_self_rectangles_2() {
+    // Two overlapping/identical rectangles (reverse direction to the other test)
+    let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let rectangle2 = rectangle1.clone();
+
+    // Create a hole in the larger circle
+    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
     assert!(combined_rectangles.len() == 0);
