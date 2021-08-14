@@ -5,7 +5,7 @@ use super::super::super::super::geo::*;
 
 impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
-    /// Given a labelled graph path, marks exterior edges by subtracting `PathSource::Path1` and `PathSource::Path2`
+    /// Given a labelled graph path, marks exterior edges by subtracting `PathSource::Path2` from `PathSource::Path1`
     ///
     pub fn set_exterior_by_subtracting(&mut self) {
         // Use an even-odd winding rule (all edges are considered 'external')

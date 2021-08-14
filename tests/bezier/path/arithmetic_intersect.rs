@@ -17,3 +17,44 @@ fn intersect_two_doughnuts() {
     println!("{:?}", combined_circles);
     assert!(combined_circles.len() == 2);
 }
+
+#[test]
+fn full_intersect_two_doughnuts() {
+    // Two overlapping circles
+    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle1   = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle2         = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle2   = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+
+    // Combine them
+    let intersection    = path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1, inner_circle1], &vec![circle2, inner_circle2], 0.1);
+
+    let combined_circles = &intersection.intersecting_path;
+    println!("{:?}", combined_circles.len());
+    println!("{:?}", combined_circles);
+    assert!(combined_circles.len() == 2);
+}
+
+#[test]
+fn full_intersect_two_partially_overlapping_circles() {
+    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2         = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    let intersection    = path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+
+    assert!(intersection.intersecting_path.len() == 1);
+    assert!(intersection.exterior_paths[0].len() == 1);
+    assert!(intersection.exterior_paths[1].len() == 1);
+}
+
+#[test]
+fn full_intersect_two_non_overlapping_circles() {
+    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2         = Circle::new(Coord2(15.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    let intersection    = path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+
+    assert!(intersection.intersecting_path.len() == 0);
+    assert!(intersection.exterior_paths[0].len() == 1);
+    assert!(intersection.exterior_paths[1].len() == 1);
+}
