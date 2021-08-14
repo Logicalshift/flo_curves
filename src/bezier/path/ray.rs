@@ -604,6 +604,7 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let edge_order              = edge_a.edge_idx.cmp(&edge_b.edge_idx);
 
                 // Ordering is reversed depending on the direction of the edge relative to the line
+                // TODO: it would be better to use label ordering here to get a more consistent result. This relies on the order that edges are added to the list
                 let (earlier_edge, edge_t)  = match edge_order {
                     Ordering::Greater   => (edge_b, *curve_t_b),
                     Ordering::Less      => (edge_a, *curve_t_a),
@@ -614,9 +615,9 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let earlier_direction       = ray_direction.dot(&earlier_normal);
 
                 if earlier_direction < 0.0 {
-                    edge_order.reverse()
+                    Ordering::Less
                 } else {
-                    edge_order
+                    Ordering::Greater
                 }
             }
         }
