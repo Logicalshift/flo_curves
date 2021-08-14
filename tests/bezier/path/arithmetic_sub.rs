@@ -66,6 +66,18 @@ fn erase_all() {
 }
 
 #[test]
+fn subtract_from_self() {
+    // Two overlapping/identical circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+
+    // Create a hole in the larger circle
+    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
+
+    assert!(combined_circles.len() == 0);
+}
+
+#[test]
 fn cut_corners() {
     // Two rectangles
     let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
