@@ -79,6 +79,7 @@ fn subtract_from_self_rectangles() {
     // Create a hole in the larger circle
     let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
 
+    assert!(combined_rectangles.len() != 1);
     assert!(combined_rectangles.len() == 0);
 }
 
