@@ -1679,3 +1679,55 @@ fn ray_cast_close_to_circle_produces_2_hits() {
     assert!(collisions.len() != 1);
     assert!(collisions.len() == 2);
 }
+
+#[test]
+pub fn ray_cast_identical_rectangles() {
+    // Create the two rectangles
+    let rectangle1  = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let rectangle2  = rectangle1.clone();
+    
+    let rectangle1  = GraphPath::from_path(&rectangle1, 1);
+    let rectangle2  = GraphPath::from_path(&rectangle2, 2);
+
+    // Collide them
+    let path        = rectangle1.collide(rectangle2, 0.1);
+
+    // The edges are identical, so we need to process them in a consistent order
+    let collisions  = path.ray_collisions(&(Coord2(3.0, 0.0), Coord2(3.0, 10.0)));
+
+    // Collides with two edges twice, so four total collisions
+    assert!(collisions.len() == 4);
+
+    // First two collisions should hit path 1 and path 2
+    let edge1       = collisions[0].0.edge();
+    let edge2       = collisions[1].0.edge();
+    let edge3       = collisions[2].0.edge();
+    let edge4       = collisions[3].0.edge();
+
+    let edge1       = path.get_edge(edge1);
+    let edge2       = path.get_edge(edge2);
+    let edge3       = path.get_edge(edge3);
+    let edge4       = path.get_edge(edge4);
+
+    // edge1, edge2 and edge3, edge4 should all have the same start and end points (ie, be duplicate edges)
+    assert!(edge1.start_point_index() == edge2.start_point_index());
+    assert!(edge1.end_point_index() == edge2.end_point_index());
+    assert!(edge3.start_point_index() == edge4.start_point_index());
+    assert!(edge3.end_point_index() == edge4.end_point_index());
+
+    assert!(edge1.start_point_index() != edge3.start_point_index());
+
+    // The collisions must be for the two different paths
+    assert!(edge1.label() != edge2.label());
+    assert!(edge3.label() != edge4.label());
+
+    // The entry and exit collisions must be in a consistent order (ie 1 -> 2 -> 2 -> 1 or 2 -> 1 -> 1 -> 2)
+    // (This is so that one path is on the outside and one path is on the inside consistently, and is only necessary
+    // when the edges precisely overlap)
+    assert!(edge1.label() != edge3.label());
+}
