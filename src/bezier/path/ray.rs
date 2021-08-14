@@ -615,9 +615,9 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let earlier_direction       = ray_direction.dot(&earlier_normal);
 
                 if earlier_direction < 0.0 {
-                    Ordering::Less
+                    edge_order.reverse()
                 } else {
-                    Ordering::Greater
+                    edge_order
                 }
             }
         }
