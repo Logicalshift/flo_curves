@@ -563,6 +563,9 @@ where   Path::Point: Coordinate+Coordinate2D {
 pub (crate) fn ray_collisions<Path: RayPath, L: Line>(path: &Path, ray: &L) -> Vec<(GraphRayCollision, f64, f64, Path::Point)>
 where   Path::Point:    Coordinate+Coordinate2D,
         L:              Line<Point=Path::Point> {
+    let (p1, p2)        = ray.points();
+    let ray_direction   = p2 - p1;
+
     // Raw collisions
     let (crossing_collisions, collinear_collisions) = crossing_and_collinear_collisions(path, ray);
     let collinear_collisions    = collinear_collisions.into_iter();
@@ -581,7 +584,7 @@ where   Path::Point:    Coordinate+Coordinate2D,
     // Convert to a vec and sort by ray position
     let mut collisions = collisions.collect::<Vec<_>>();
 
-    collisions.sort_by(|(edge_a, _curve_t_a, line_t_a, _pos_a), (edge_b, _curve_t_b, line_t_b, _pos_b)| {
+    collisions.sort_by(|(edge_a, curve_t_a, line_t_a, _pos_a), (edge_b, curve_t_b, line_t_b, _pos_b)| {
         let result = line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal);
 
         if result != Ordering::Equal {
@@ -598,7 +601,23 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 result
             } else {
                 // Check if these are the same edge or not
-                edge_a.edge_idx.cmp(&edge_b.edge_idx)
+                let edge_order              = edge_a.edge_idx.cmp(&edge_b.edge_idx);
+
+                // Ordering is reversed depending on the direction of the edge relative to the line
+                let (earlier_edge, edge_t)  = match edge_order {
+                    Ordering::Greater   => (edge_b, *curve_t_b),
+                    Ordering::Less      => (edge_a, *curve_t_a),
+                    Ordering::Equal     => { return Ordering::Equal; }
+                };
+                let earlier_edge            = path.get_edge(earlier_edge);
+                let earlier_normal          = earlier_edge.normal_at_pos(edge_t);
+                let earlier_direction       = ray_direction.dot(&earlier_normal);
+
+                if earlier_direction < 0.0 {
+                    edge_order.reverse()
+                } else {
+                    edge_order
+                }
             }
         }
     });
