@@ -604,6 +604,8 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let edge_order              = edge_a.edge_idx.cmp(&edge_b.edge_idx);
 
                 // Ordering is reversed depending on the direction of the edge relative to the line
+                // To produce a consistent ordering, we rely on edges from newer paths being added later in the list (having a higher edge_idx)
+                // The ordering here is used with `set_edge_kinds_by_ray_casting()` to generate consistent results when paths overlap
                 // TODO: it would be better to use label ordering here to get a more consistent result. This relies on the order that edges are added to the list
                 let (earlier_edge, edge_t)  = match edge_order {
                     Ordering::Greater   => (edge_b, *curve_t_b),
