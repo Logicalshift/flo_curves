@@ -67,11 +67,36 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 // Cast a ray at the target edge
                 let ray             = (next_point - next_normal, next_point);
                 let ray_direction   = ray.1 - ray.0;
-                let collisions      = self.ray_collisions(&ray);
+                let mut collisions  = self.ray_collisions(&ray);
 
                 // There should always be an even number of collisions on a particular ray cast through a closed shape
                 test_assert!((collisions.len()&1) == 0);
 
+                // For collisions that overlap, ensure that the first shape is outermost so that subtractions work (swap based on the direction)
+                // This interacts with the ordering chosen in ray_collisions: if that ordering changes this may no longer be correct
+                if collisions.len() > 0 {
+                    for collision_idx in 0..(collisions.len()-1) {
+                        let (collision_a, _curve_t, line_t_a, _pos) = &collisions[collision_idx+0];
+                        let (collision_b, _curve_t, line_t_b, _pos) = &collisions[collision_idx+1];
+
+                        if line_t_a == line_t_b {
+                            let edge_a = collision_a.edge();
+                            let edge_b = collision_b.edge();
+
+                            // Swap if the earlier of the two edges is moving in the appropriate direction
+                            if edge_a.start_idx == edge_b.start_idx {
+                                let earlier_edge                    = if edge_a.edge_idx < edge_b.edge_idx { edge_a } else { edge_b };
+                                let PathLabel(_, edge_direction)    = self.edge_label(earlier_edge);
+
+                                if edge_direction == PathDirection::Anticlockwise {
+                                    collisions.swap(collision_idx, collision_idx+1);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Work out which edges are interior or exterior
                 for (collision, curve_t, _line_t, _pos) in collisions {
                     let is_intersection = collision.is_intersection();
                     let edge            = collision.edge();
