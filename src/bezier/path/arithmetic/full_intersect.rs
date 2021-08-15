@@ -63,8 +63,14 @@ where   P1::Point:  Coordinate+Coordinate2D,
     let exterior_from_path_1 = merged_path.exterior_paths();
 
     // Invert the subtraction operation
-    merged_path.reset_edge_kinds();
-    merged_path.set_edge_kinds_by_ray_casting(|path_crossings| (path_crossings[0]&1) == 0 && (path_crossings[1]&1) != 0);
+    // TODO: it would be faster to re-use the existing merged paths here, but this will fail to properly generate a subtracted paths
+    // in the case where edges of the two paths overlap.
+    let mut merged_path = GraphPath::new();
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path.round(accuracy);
+
+    merged_path.set_exterior_by_subtracting();
     merged_path.heal_exterior_gaps();
 
     // This will be the part of path 2 that excludes path1
