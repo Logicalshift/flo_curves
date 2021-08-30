@@ -1,5 +1,5 @@
 ```toml
-flo_curves = "0.4"
+flo_curves = "0.5"
 ```
 
 flo_curves
