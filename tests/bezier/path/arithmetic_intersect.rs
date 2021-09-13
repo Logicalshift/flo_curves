@@ -190,6 +190,8 @@ fn convert_path_to_f32_and_back((start_point, remaining_points): SimpleBezierPat
 
 #[test]
 fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
+    // Converting the remaining curve to f32 and back again results in a failed intersection due to slightly different line positions, which causes the cut to fail on some slices
+
     // Start with a circle
     let circle          = Circle::new(Coord2(500.0, 500.0), 116.0).to_path::<SimpleBezierPath>();
 
