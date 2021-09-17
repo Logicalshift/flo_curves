@@ -219,6 +219,14 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
             .line_to(Coord2(x3, y3))
             .build();
 
+        // Merge the paths and print out the number of edges
+        let mut merged_path = GraphPath::new();
+        merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+        merged_path         = merged_path.collide(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+        merged_path.round(0.01);
+
+        println!("Slice {}: {} edges", slice_idx, merged_path.all_edges().count());
+
         // Cut the circle via the fragment
         let cut_circle              = path_full_intersect::<_, _, SimpleBezierPath>(&vec![fragment], &remaining, 0.01);
 
@@ -231,7 +239,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
     }
 
     // Each fragment should consist of points that are either at the origin or on the circle
-    for circle_fragment in slices {
+    for (idx, circle_fragment) in slices.iter().enumerate() {
         assert!(circle_fragment.len() == 1);
 
         let start_point = circle_fragment[0].start_point();
@@ -240,7 +248,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
 
         for circle_point in all_points {
             let distance_to_center = circle_point.distance_to(&Coord2(500.0, 500.0));
-            println!("{:?}", distance_to_center);
+            println!("- {} {:?}", idx, distance_to_center);
             assert!((distance_to_center-16.0).abs() < 0.1 || (distance_to_center-116.0).abs() < 1.0);
         }
     }
