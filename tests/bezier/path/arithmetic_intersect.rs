@@ -266,7 +266,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         let fragment_graph  = GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0, PathDirection::from(path)))));
         let remain_graph    = GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(1, PathDirection::from(path)))));
 
-        println!("Slice {}: {} edges in remaining", slice_idx, remain_graph.all_edges().count());
+        println!("Slice {}: {} edges in 'remaining' before colliding with the next fragment", slice_idx, remain_graph.all_edges().count());
 
         merged_path         = merged_path.merge(fragment_graph);
         merged_path         = merged_path.collide(remain_graph, 0.01);
