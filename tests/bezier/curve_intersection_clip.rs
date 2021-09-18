@@ -583,3 +583,25 @@ fn intersection_very_close_to_start_1() {
 
     assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 1.0);
 }
+
+#[test]
+fn intersection_very_close_to_start_2() {
+    let fragment    = bezier::Curve { start_point: Coord2(558.5270966048386, 205.76441587903088), end_point: Coord2(503.12144515225805, 484.3074355135483), control_points: (Coord2(540.0603929756935, 298.60280432321554), Coord2(521.5936893465484, 391.44119276740014)) };
+    let remaining   = bezier::Curve { start_point: Coord2(417.9756164550781, 582.0244140625), end_point: Coord2(477.3671569824219, 613.7830200195313), control_points: (Coord2(434.840087890625, 598.8888549804688), Coord2(455.60540771484375, 609.47509765625)) };
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&fragment, &remaining, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&remaining, &fragment, 0.01);
+
+    println!("{:?}", intersections1);
+    println!("{:?}", intersections2);
+
+    assert!(intersections1.len() > 0);
+    assert!(intersections2.len() > 0);
+
+    assert!(intersections1.len() == 1);
+    assert!(intersections2.len() == 1);
+
+    println!("{:?}", Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])));
+
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 1.0);
+}
