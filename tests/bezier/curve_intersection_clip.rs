@@ -557,3 +557,27 @@ fn intersection_curve_11() {
 
     assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
 }
+
+// Fragment: Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) }
+// Remaining: Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) }
+#[test]
+fn intersection_very_close_to_start_1() {
+    // One section here is a line, so we can find that the start point of the 'remaining' section is very close to that line (enough that it should produce an intersection)
+    // Source of this is a case where the 'remaining' section is slightly rounded due to a conversion to f32 and back to f64
+    let fragment    = bezier::Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) };
+    let remaining   = bezier::Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) };
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&fragment, &remaining, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&remaining, &fragment, 0.01);
+
+    println!("{:?}", intersections1);
+    println!("{:?}", intersections2);
+
+    assert!(intersections1.len() > 0);
+    assert!(intersections2.len() > 0);
+
+    assert!(intersections1.len() == 1);
+    assert!(intersections2.len() == 1);
+
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
+}
