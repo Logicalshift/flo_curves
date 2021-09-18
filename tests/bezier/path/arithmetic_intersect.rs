@@ -235,6 +235,20 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
                 let intersections   = bezier::curve_intersects_curve_clip(&fragment_edge, &remain_edge, 0.01);
 
                 num_collisions      += intersections.len();
+                if intersections.len() > 0 { println!("  {:?}", intersections.len()); }
+
+                // There should be at least one collision if the start or end point is near the edge
+                let start_distance  = edge.distance_to(&first_point);
+                let end_distance    = edge.distance_to(&end_point);
+
+                if intersections.len() == 0 {
+                    if start_distance.abs() < 1.0 || end_distance.abs() < 1.0 {
+                        println!("  - {:?} {:?}", start_distance, end_distance);
+                    }
+
+                    assert!(start_distance.abs() > 0.1);
+                    assert!(end_distance.abs() > 0.1);
+                }
 
                 // The end point of this curve is the start point of the next curve
                 first_point         = end_point;
