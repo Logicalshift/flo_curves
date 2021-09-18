@@ -304,10 +304,11 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
     }
 
     // Should be a 16x16 polygon left over for the circle
-    assert!(remaining.len() == 1);
+    assert!(remaining.len() > 0);
+    println!("{:?}", remaining[0]);
 
-    let start_point = remaining[0].start_point();
-    let points      = remaining[0].points().map(|(_, _, p)| p);
+    let start_point = remaining[remaining.len()-1].start_point();
+    let points      = remaining[remaining.len()-1].points().map(|(_, _, p)| p);
     let all_points  = iter::once(start_point).chain(points);
 
     for circle_point in all_points {
@@ -315,4 +316,6 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         println!("{:?}", distance_to_center);
         assert!((distance_to_center-0.0).abs() < 0.1 || (distance_to_center-16.0).abs() < 1.0);
     }
+
+    assert!(remaining.len() == 1);
 }
