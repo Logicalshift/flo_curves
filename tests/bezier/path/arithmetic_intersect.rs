@@ -232,7 +232,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
             for (cp1, cp2, end_point) in remaining[0].points() {
                 // Turn into a curve
                 let remain_edge     = Curve::from_points(first_point, (cp1, cp2), end_point);
-                let intersections   = bezier::curve_intersects_curve_clip(&fragment_edge, &remain_edge, 0.01);
+                let intersections   = curve_intersects_curve_clip(&fragment_edge, &remain_edge, 0.01);
 
                 num_collisions      += intersections.len();
                 if intersections.len() > 0 { println!("  {:?}", intersections.len()); }
@@ -244,6 +244,9 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
                 if intersections.len() == 0 {
                     if start_distance.abs() < 1.0 || end_distance.abs() < 1.0 {
                         println!("  - {:?} {:?}", start_distance, end_distance);
+
+                        println!("Fragment: {:?}", fragment_edge);
+                        println!("Remaining: {:?}", remain_edge);
                     }
 
                     assert!(start_distance.abs() > 0.1);
