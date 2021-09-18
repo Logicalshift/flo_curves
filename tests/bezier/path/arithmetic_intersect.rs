@@ -1,5 +1,7 @@
 use flo_curves::*;
 use flo_curves::arc::*;
+use flo_curves::line::*;
+use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 
 use std::f64;
@@ -218,6 +220,29 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
             .line_to(Coord2(x4, y4))
             .line_to(Coord2(x3, y3))
             .build();
+
+        // The edges (x3, y3) -> (x1, y1) and (x2, y2) -> (x4, y4) should both collide with at least one edge in the remaining path
+        for edge in [(Coord2(x3, y3), Coord2(x1, y1)), (Coord2(x2, y2), Coord2(x4, y4))] {
+            // Convert the edge to a line
+            let fragment_edge       = line_to_bezier::<_, Curve<_>>(&edge);
+
+            // Iterate through the edges in remaining
+            let mut first_point     = remaining[0].start_point();
+            let mut num_collisions  = 0;
+            for (cp1, cp2, end_point) in remaining[0].points() {
+                // Turn into a curve
+                let remain_edge     = Curve::from_points(first_point, (cp1, cp2), end_point);
+                let intersections   = bezier::curve_intersects_curve_clip(&fragment_edge, &remain_edge, 0.01);
+
+                num_collisions      += intersections.len();
+
+                // The end point of this curve is the start point of the next curve
+                first_point         = end_point;
+            }
+
+            println!("Slice {}: {}, {:?}", slice_idx, num_collisions, edge);
+            assert!(num_collisions == 1 || num_collisions == 4);
+        }
 
         // Merge the paths and print out the number of edges
         let mut merged_path = GraphPath::new();
