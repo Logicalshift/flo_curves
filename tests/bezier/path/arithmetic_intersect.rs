@@ -242,15 +242,18 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
                 let end_distance    = edge.distance_to(&end_point);
 
                 if intersections.len() == 0 {
+                    let start_pos   = edge.pos_for_point(&first_point);
+                    let end_pos     = edge.pos_for_point(&end_point);
+
                     if start_distance.abs() < 1.0 || end_distance.abs() < 1.0 {
-                        println!("  - {:?} {:?}", start_distance, end_distance);
+                        println!("  - {:?} {:?} {:?} {:?}", start_distance, end_distance, start_pos, end_pos);
 
                         println!("Fragment: {:?}", fragment_edge);
                         println!("Remaining: {:?}", remain_edge);
                     }
 
-                    assert!(start_distance.abs() > 0.1);
-                    assert!(end_distance.abs() > 0.1);
+                    assert!(start_distance.abs() > 0.1 || start_pos < -0.01 || start_pos > 1.01);
+                    assert!(end_distance.abs() > 0.1 || end_pos < -0.01 || end_pos > 1.01);
                 }
 
                 // The end point of this curve is the start point of the next curve
