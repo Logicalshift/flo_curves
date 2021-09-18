@@ -68,6 +68,7 @@ where C::Point: 'a+Coordinate2D {
 ///
 /// The result of the clip operation
 ///
+#[derive(Debug)]
 enum ClipResult {
     None,
     Some((f64, f64)),
