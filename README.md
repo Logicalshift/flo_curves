@@ -63,7 +63,7 @@ let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
     .build();
 ```
 
-Path artihmetic:
+Path arithmetic:
 
 ```Rust
 use flo_curves::bezier::path::*;
