@@ -581,5 +581,5 @@ fn intersection_very_close_to_start_1() {
 
     println!("{:?}", Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])));
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 1.0);
+    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
 }
