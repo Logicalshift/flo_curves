@@ -583,3 +583,26 @@ fn intersection_very_close_to_start_1() {
 
     assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
 }
+
+#[test]
+fn solve_t_close_to_start() {
+    use flo_curves::bezier::*;
+
+    // Same curve as above, but we try to solve the closest point for one curve against another
+    let fragment    = bezier::Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) };
+    let remaining   = bezier::Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) };
+
+    // In this case, the fragment is linear (however, as we're solving for a point close to a curve, this shouldn't be necessary always)
+    assert!(fragment.characteristics() == CurveCategory::Linear);
+
+    // The start point of 'remaining' is very close to fragment (in fact, the distance between the two is down to floating-point imprecision more than anything)
+    let t_remaining = 0.0;
+
+    // Should be able to solve for this point on the remaining curve
+    let t_fragment  = fragment.t_for_point(&remaining.start_point).expect("t value");
+    let t_point     = fragment.point_at_pos(t_fragment);
+    let t_distance  = t_point.distance_to(&remaining.point_at_pos(t_remaining));
+
+    // The above test should be able to solve this value to at least this precision level (t_remaining = 0.0, t_fragment = as above)
+    assert!(t_distance < 0.02);
+}
