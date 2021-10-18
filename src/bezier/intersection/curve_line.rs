@@ -1,7 +1,8 @@
 use super::super::curve::*;
 use super::super::basis::*;
-use super::super::super::geo::*;
-use super::super::super::line::*;
+use crate::geo::*;
+use crate::line::*;
+use crate::consts::*;
 
 use smallvec::*;
 use roots::{find_roots_cubic, find_roots_quadratic, Roots};
@@ -81,8 +82,8 @@ where C::Point: Coordinate2D {
                 let factor      = (a*a + b*b).sqrt();
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let start_point = &w1;
-                
-                if (start_point.x()*a + start_point.y()*b + c).abs() < 0.000001 {
+
+                if (start_point.x()*a + start_point.y()*b + c).abs() < SMALL_DISTANCE {
                     0.0 
                 } else {
                     t
@@ -93,7 +94,7 @@ where C::Point: Coordinate2D {
                 let (a, b, c)   = (a/factor, b/factor, c/factor);
                 let end_point   = &w4;
 
-                if (end_point.x()*a + end_point.y()*b + c).abs() < 0.000001 {
+                if (end_point.x()*a + end_point.y()*b + c).abs() < SMALL_DISTANCE {
                     1.0
                 } else {
                     t
