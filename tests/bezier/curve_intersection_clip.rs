@@ -555,7 +555,21 @@ fn intersection_curve_11() {
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
+    let pos1 = curve1.point_at_pos(intersections1[0].0);
+    let pos2 = curve2.point_at_pos(intersections1[0].1);
+
+    let pos3 = curve2.point_at_pos(intersections2[0].0);
+    let pos4 = curve1.point_at_pos(intersections2[0].1);
+
+    println!("{:?}", pos1.distance_to(&pos2));
+    println!("{:?}", pos3.distance_to(&pos4));
+    println!("{:?}", pos3.distance_to(&pos2));
+    println!("{:?}", pos1.distance_to(&pos4));
+
+    assert!(pos1.distance_to(&pos2) < 0.02);
+    assert!(pos3.distance_to(&pos4) < 0.02);
+    assert!(pos2.distance_to(&pos3) < 0.02);
+    assert!(pos1.distance_to(&pos4) < 0.02);
 }
 
 // Fragment: Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) }
@@ -579,9 +593,21 @@ fn intersection_very_close_to_start_1() {
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
 
-    println!("{:?}", Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])));
+    let pos1 = fragment.point_at_pos(intersections1[0].0);
+    let pos2 = remaining.point_at_pos(intersections1[0].1);
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
+    let pos3 = remaining.point_at_pos(intersections2[0].0);
+    let pos4 = fragment.point_at_pos(intersections2[0].1);
+
+    println!("{:?}", pos1.distance_to(&pos2));
+    println!("{:?}", pos3.distance_to(&pos4));
+    println!("{:?}", pos3.distance_to(&pos2));
+    println!("{:?}", pos1.distance_to(&pos4));
+
+    assert!(pos1.distance_to(&pos2) < 0.02);
+    assert!(pos3.distance_to(&pos4) < 0.02);
+    assert!(pos2.distance_to(&pos3) < 0.02);
+    assert!(pos1.distance_to(&pos4) < 0.02);
 }
 
 #[test]
