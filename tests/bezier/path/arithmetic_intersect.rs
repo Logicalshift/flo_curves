@@ -278,7 +278,22 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         println!("Slice {}: {} edges", slice_idx, merged_path.all_edges().count());
 
         // Cut the circle via the fragment
-        let cut_circle              = path_full_intersect::<_, _, SimpleBezierPath>(&vec![fragment], &remaining, 0.01);
+        let cut_circle              = path_full_intersect::<_, _, SimpleBezierPath>(&vec![fragment.clone()], &remaining, 0.01);
+
+        if cut_circle.exterior_paths[1].len() != 1 {
+            use flo_curves::debug::*;
+
+            let mut merged_path = GraphPath::new();
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+
+            //merged_path.round(0.01);
+
+            merged_path.set_exterior_by_subtracting();
+            //merged_path.heal_exterior_gaps();
+
+            println!("{}", graph_path_svg_string(&merged_path, vec![]));
+        }
 
         assert!(cut_circle.intersecting_path.len() == 1);
         assert!(cut_circle.exterior_paths[1].len() == 1);
