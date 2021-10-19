@@ -280,6 +280,9 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         // Cut the circle via the fragment
         let cut_circle              = path_full_intersect::<_, _, SimpleBezierPath>(&vec![fragment], &remaining, 0.01);
 
+        assert!(cut_circle.intersecting_path.len() == 1);
+        assert!(cut_circle.exterior_paths[1].len() == 1);
+
         // Add the slice and the remaining part of the circle
         slices.push(cut_circle.intersecting_path);
         remaining = cut_circle.exterior_paths[1].clone();
