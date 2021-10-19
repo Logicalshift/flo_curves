@@ -11,7 +11,7 @@ pub struct PathIntersection<P: BezierPathFactory> {
     /// The path that was intersecting between the two paths
     pub intersecting_path: Vec<P>,
 
-    /// The path that was outside of the 'cut' path
+    /// The path that was outside of the 'cut' path for the two input paths
     pub exterior_paths: [Vec<P>; 2]
 }
 
