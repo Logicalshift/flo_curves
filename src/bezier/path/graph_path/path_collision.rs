@@ -63,6 +63,105 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Returns the 'snapped' version of two points when they're close enough
+    ///
+    fn snap_points(p1: &Point, p2: &Point) -> Point {
+        let components = (0..Point::len())
+            .into_iter()
+            .map(|idx| {
+                (p1.get(idx) + p2.get(idx)) / 2.0
+            })
+            .collect::<SmallVec<[f64; 3]>>();
+
+        Point::from_components(&components)
+    }
+
+    ///
+    /// True if points p1 and p2 are near to each other
+    ///
+    #[inline]
+    fn point_is_near(p1: &Point, p2: &Point, max_distance_squared: f64) -> bool {
+        let offset              = *p1 - *p2;
+        let squared_distance    = offset.dot(&offset);
+
+        squared_distance <= max_distance_squared
+    }
+
+    ///
+    /// Takes two graph edges and snaps them together if they're close enough
+    ///
+    /// 'Close distance' here is the distance between points that is needed to snap them together, and the value passed in here should be
+    /// squared.
+    ///
+    #[inline]
+    fn snap_curves<'a>(curve1: &GraphEdge<'a, Point, Label>, curve2: &GraphEdge<'a, Point, Label>, close_distance_squared: f64) -> (Curve<Point>, Curve<Point>) {
+        // Fetch the points for the curves
+        let mut curve1_s                        = curve1.start_point();
+        let (mut curve1_cp1, mut curve1_cp2)    = curve1.control_points();
+        let mut curve1_e                        = curve1.end_point();
+
+        let mut curve2_s                        = curve2.start_point();
+        let (mut curve2_cp1, mut curve2_cp2)    = curve2.control_points();
+        let mut curve2_e                        = curve2.end_point();
+
+        // curve1_s might be close to curve2_s or curve2_e
+        if Self::point_is_near(&curve1_s, &curve2_s, close_distance_squared) {
+            // Snap these points together
+            curve1_s = Self::snap_points(&curve1_s, &curve2_s);
+            curve2_s = curve1_s.clone();
+
+            // Attached control point might need snapping too
+            if Self::point_is_near(&curve1_cp1, &curve2_cp1, close_distance_squared) {
+                curve1_cp1 = Self::snap_points(&curve1_cp1, &curve2_cp1);
+                curve2_cp1 = curve1_cp1.clone();
+            }
+        } else if Self::point_is_near(&curve1_s, &curve2_e, close_distance_squared) {
+            curve1_s = Self::snap_points(&curve1_s, &curve2_e);
+            curve2_e = curve1_s.clone();
+
+            // Attached control point might need snapping too
+            if Self::point_is_near(&curve1_cp1, &curve2_cp2, close_distance_squared) {
+                curve1_cp1 = Self::snap_points(&curve1_cp1, &curve2_cp2);
+                curve2_cp2 = curve1_cp1.clone();
+            }
+        }
+
+        // curve1_e might be close to curve2_e or curve2_s
+        if Self::point_is_near(&curve1_e, &curve2_e, close_distance_squared) {
+            // Snap these points together
+            curve1_e = Self::snap_points(&curve1_e, &curve2_e);
+            curve2_e = curve1_e.clone();
+
+            // Attached control point might need snapping too
+            if Self::point_is_near(&curve1_cp2, &curve2_cp2, close_distance_squared) {
+                curve1_cp2 = Self::snap_points(&curve1_cp2, &curve2_cp2);
+                curve2_cp2 = curve1_cp2.clone();
+            }
+        } else if Self::point_is_near(&curve1_e, &curve2_s, close_distance_squared) {
+            curve1_e = Self::snap_points(&curve1_e, &curve2_s);
+            curve2_s = curve1_e.clone();
+
+            // Attached control point might need snapping too
+            if Self::point_is_near(&curve1_cp2, &curve2_cp1, close_distance_squared) {
+                curve1_cp2 = Self::snap_points(&curve1_cp2, &curve2_cp1);
+                curve2_cp1 = curve1_cp2.clone();
+            }
+        }
+
+        // Return the snapped-together curves
+        (Curve {
+            start_point:    curve1_s,
+            end_point:      curve1_e,
+            control_points: (curve1_cp1, curve1_cp2)
+        },
+        Curve {
+            start_point:    curve2_s,
+            end_point:      curve2_e,
+            control_points: (curve2_cp1, curve2_cp2)
+        })
+    }
+
+    ///
     /// Finds the self collisions in a range
     ///
     fn find_self_collisions(&self, points: Range<usize>, accuracy: f64) -> Vec<Collision> {
@@ -146,7 +245,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         for (src_curve, tgt_curve) in sweep_against(collide_src.iter(), collide_tgt.iter()) {
             // Find any collisions between the two edges (to the required accuracy)
-            let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
+            let (src_snap_curve, tgt_snap_curve)    = Self::snap_curves(&src_curve, &tgt_curve, accuracy * accuracy);
+            let mut edge_collisions                 = curve_intersects_curve_clip(&src_snap_curve, &tgt_snap_curve, accuracy);
             if edge_collisions.len() == 0 { continue; }
 
             // Remove any pairs of collisions that are too close together
