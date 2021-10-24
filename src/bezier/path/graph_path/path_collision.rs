@@ -515,7 +515,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let multiplier      = 1.0 / accuracy;
         let mut collisions  = HashMap::new();
 
-        // Move any points that are connected to an edge and very close to each other on top of each other
+        // Move any points that are connected by an edge and very close to each other on top of each other
         for point_idx in 0..self.points.len() {
             for edge_idx in 0..(self.points[point_idx].forward_edges.len()) {
                 let end_point_idx   = self.points[point_idx].forward_edges[edge_idx].end_idx;
