@@ -9,7 +9,6 @@ use smallvec::*;
 use std::mem;
 use std::ops::Range;
 use std::cmp::Ordering;
-use std::collections::HashMap;
 
 ///
 /// Struct describing a collision between two edges
@@ -65,15 +64,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Returns the 'snapped' version of two points when they're close enough
     ///
+    #[inline]
     fn snap_points(p1: &Point, p2: &Point) -> Point {
-        let components = (0..Point::len())
-            .into_iter()
-            .map(|idx| {
-                (p1.get(idx) + p2.get(idx)) / 2.0
-            })
-            .collect::<SmallVec<[f64; 3]>>();
-
-        Point::from_components(&components)
+        Point::from_components(&[(p1.x() + p2.x())/2.0, (p1.y() + p2.y())/2.0])
     }
 
     ///
@@ -505,16 +498,95 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Finds points that are within accuracy distance of each other (for accuracy < 1.0)
+    ///
+    /// Return value is a list of nearby points
+    ///
+    fn sweep_for_nearby_points(&mut self, accuracy: f64) -> impl Iterator<Item=(usize, usize)> {
+        // Structure to attach a bounding box to a point within this graph: this limits us as to the maximum distance we can use as it's used for sweeping
+        struct PointArea<'a, Point, Label>(&'a GraphPath<Point, Label>, usize);
+
+        impl<'a, Point: Coordinate+Coordinate2D, Label> PointArea<'a, Point, Label> {
+            #[inline]
+            fn pos(&self) -> &Point {
+                let PointArea(graph, point_idx) = self;
+
+                &graph.points[*point_idx].position
+            }
+
+            #[inline]
+            fn idx(&self) -> usize {
+                let PointArea(_graph, point_idx) = self;
+
+                *point_idx
+            }
+        }
+
+        impl<'a, Point: Coordinate+Coordinate2D, Label> Geo for PointArea<'a, Point, Label> {
+            type Point = Point;
+        }
+
+        impl<'a, Point: Coordinate+Coordinate2D, Label> HasBoundingBox for PointArea<'a, Point, Label> {
+            fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+                let PointArea(graph, point_idx) = self;
+
+                let point   = &graph.points[*point_idx];
+                let lower   = Point::from_components(&[point.position.x()-1.0, point.position.y()-1.0]);
+                let upper   = Point::from_components(&[point.position.x()+1.0, point.position.y()+1.0]);
+
+                Bounds::from_min_max(lower, upper)
+            }
+        }
+
+        // Collect all of the points in the graph, and order them by min_x
+        let mut all_points = (0..self.points.len()).into_iter()
+            .map(|idx| PointArea(self, idx))
+            .collect::<Vec<_>>();
+        all_points.sort_by(|point1, point2| {
+            let x1 = point1.pos().x();
+            let x2 = point2.pos().x();
+
+            x1.partial_cmp(&x2).unwrap_or(Ordering::Equal)
+        });
+
+        // Sweep to find the points that might be colliding
+        let min_distance_squared    = accuracy * accuracy;
+        let colliding_points        = sweep_self(all_points.iter())
+            .filter(|(point1, point2)| {
+                if point1.idx() == point2.idx() {
+                    // A point cannot overlap itself
+                    false
+                } else {
+                    // Work out the distances between the points and 
+                    let p1                  = point1.pos();
+                    let p2                  = point2.pos();
+
+                    let (x1, y1)            = (p1.x(), p1.y());
+                    let (x2, y2)            = (p2.x(), p2.y());
+                    let (dx, dy)            = (x2-x1, y2-y1);
+
+                    let distance_squared    = dx*dx + dy*dy;
+
+                    distance_squared < min_distance_squared
+                }
+            });
+
+        // Result is the indexes of the points that are 'close enough' to collide
+        colliding_points
+            .map(|(point1, point2)| {
+                (point1.idx(), point2.idx())
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
+    }
+
+    ///
     /// Finds any points that have approximately the same coordinates and combines them
     /// 
     /// Accuracy indicates the maximum difference in the x or y coordinate for two points to be considered the same.
     ///
     #[inline(never)]
     pub fn combine_overlapping_points(&mut self, accuracy: f64) -> bool {
-        // Find collisions using a hashmap
-        let multiplier      = 1.0 / accuracy;
-        let mut collisions  = HashMap::new();
-
         // Move any points that are connected by an edge and very close to each other on top of each other
         for point_idx in 0..self.points.len() {
             for edge_idx in 0..(self.points[point_idx].forward_edges.len()) {
@@ -533,6 +605,125 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             }
         }
 
+        // Find the points that are close enough to collide
+        let mut nearby_points = self.sweep_for_nearby_points(accuracy);
+
+        if let Some(nearby_point) = nearby_points.next() {
+            // Remap points according to whatever is nearest
+            let min_distance_squared    = accuracy * accuracy;
+            let mut remapped_points     = (0..self.points.len())
+                .into_iter()
+                .map(|idx| (idx, None))         // Target index (= point index if not remapped and new position, or None if unmoved)
+                .collect::<Vec<(_, Option<Point>)>>();
+
+            let mut nearby_point        = nearby_point;
+            loop {
+                // Index is of two points that are close enough to overlap
+                let (p1_orig_idx, p2_orig_idx) = nearby_point;
+                debug_assert!(p1_orig_idx != p2_orig_idx);                  // Guaranteed by the implementation of sweep_for_nearby_points()
+
+                // Point may be remapped
+                let (p1_idx, p1_pos)    = &remapped_points[p1_orig_idx];
+                let (p2_idx, p2_pos)    = &remapped_points[p2_orig_idx];
+
+                // To prevent averaging a whole bunch of points down to the same point because they're all close together, we re-check the distance if the one of the two close points has already been remapped
+                let moved               = p1_pos.is_some() || p2_pos.is_some();
+
+                let p1_pos              = if let Some(pos) = p1_pos { pos.clone() } else { self.points[*p1_idx].position.clone() };
+                let p2_pos              = if let Some(pos) = p2_pos { pos.clone() } else { self.points[*p2_idx].position.clone() };
+
+                if !moved || Self::point_is_near(&p1_pos, &p2_pos, min_distance_squared) {
+                    // Remap both points to a common target position
+                    let pos         = Self::snap_points(&p1_pos, &p2_pos);
+                    let remap_idx   = usize::min(*p1_idx, *p2_idx);
+
+                    remapped_points[p1_orig_idx] = (remap_idx, Some(pos.clone()));
+                    remapped_points[p2_orig_idx] = (remap_idx, Some(pos));
+                }
+
+                // Fetch the next point or stop
+                if let Some(next_point) = nearby_points.next() {
+                    nearby_point = next_point;
+                } else {
+                    break;
+                }
+            }
+
+            // Remap every point and the edges (we can tell remapped points by looking at the new position)
+            let mut following_edge_idx_offset = vec![0; self.points.len()];
+
+            for original_idx in 0..self.points.len() {
+                if let (new_idx, Some(new_pos)) = &remapped_points[original_idx] {
+                    // This point has been moved
+                    self.points[original_idx].position = new_pos.clone();
+
+                    // If this is the target point, then don't move any edges
+                    if *new_idx == original_idx { continue; }
+
+                    // Trace the new index to its final point (which is the point still mapped to itself: this should always exist because we always prefer the lowest point)
+                    let mut new_idx = *new_idx;
+                    loop {
+                        let (next_idx, _)   = &remapped_points[new_idx];
+                        let next_idx        = *next_idx;
+
+                        if next_idx == new_idx {
+                            break;
+                        } else {
+                            remapped_points[original_idx].0 = next_idx;
+                            new_idx = next_idx;
+                        }
+                    }
+
+                    // Move the edges into the new index
+                    let forward_edges   = mem::take(&mut self.points[original_idx].forward_edges);
+                    let connected_from  = mem::take(&mut self.points[original_idx].connected_from);
+
+                    following_edge_idx_offset[original_idx] = self.points[new_idx].forward_edges.len();
+
+                    self.points[new_idx].forward_edges.extend(forward_edges.into_iter());
+                    self.points[new_idx].connected_from.extend(connected_from.into_iter());
+                }
+            }
+
+            // Remap the target points (we should no longer need to follow points to the end as )
+            for point in self.points.iter_mut() {
+                // Remap the edges
+                for edge in point.forward_edges.iter_mut() {
+                    let new_end_idx = remapped_points[edge.end_idx].0;
+
+                    if new_end_idx != edge.end_idx {
+                        let following_edge_idx_offset   = following_edge_idx_offset[edge.end_idx];
+
+                        edge.end_idx                    = new_end_idx;
+                        edge.following_edge_idx         += following_edge_idx_offset;
+                    }
+                }
+
+                // Remap the 'connected from' points
+                let mut remapped = false;
+                for connected_from_idx in point.connected_from.iter_mut() {
+                    let new_connected_from_idx = remapped_points[*connected_from_idx].0;
+
+                    if new_connected_from_idx != *connected_from_idx {
+                        *connected_from_idx = new_connected_from_idx;
+                        remapped            = true;
+                    }
+                }
+
+                // If we introduced duplicates, remove them
+                if remapped {
+                    point.connected_from.sort();
+                    point.connected_from.dedup();
+                }
+            }
+
+            true
+        } else {
+            // No overlap
+            false
+        }
+
+        /*
         // Build up a hash set of the possible collisions
         for (point_idx, point) in self.points.iter().enumerate() {
             // Convert the position to an integer using the accuracy value
@@ -621,6 +812,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         } else {
             false
         }
+        */
     }
 
     ///
