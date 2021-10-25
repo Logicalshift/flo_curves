@@ -584,12 +584,14 @@ where   Path::Point:    Coordinate+Coordinate2D,
     // Convert to a vec and sort by ray position
     let mut collisions = collisions.collect::<Vec<_>>();
 
-    collisions.sort_by(|(edge_a, curve_t_a, line_t_a, _pos_a), (edge_b, curve_t_b, line_t_b, _pos_b)| {
-        let result = line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal);
+    collisions.sort_by(|(edge_a, curve_t_a, line_t_a, pos_a), (edge_b, curve_t_b, line_t_b, pos_b)| {
+        // If the collision occurs at the same point on the line (within SMALL_DISTANCE), we need to order by edge priority. Otherwise, order by where collisions occur along the ray
+        let dx  = pos_a.x() - pos_b.x();
+        let dy  = pos_a.y() - pos_b.y();
 
-        if result != Ordering::Equal {
-            // Position on the line is different
-            result
+        if dx.abs() > SMALL_DISTANCE || dy.abs() > SMALL_DISTANCE {
+            // Order by position on the ray
+            line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else {
             // Position on the line is the same (stabilise ordering by checking the edges)
             let edge_a = edge_a.edge();
