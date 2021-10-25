@@ -190,6 +190,16 @@ fn subtract_triangle_from_partial_circle_graph() {
         point_positions.insert(end_idx, end_pos);
     }
 
+    // All points along the ray should be interior points as they're subtracting from each other (edges very nearly overlap though)\
+    for (edge_type, _curve_t, _line_t, _pos) in collisions {
+        let edge_ref = match edge_type {
+            GraphRayCollision::SingleEdge(edge) | GraphRayCollision::Intersection(edge) => edge
+        };
+
+        assert!(merged_path.edge_kind(edge_ref) != GraphPathEdgeKind::Exterior);
+        assert!(merged_path.edge_kind(edge_ref) == GraphPathEdgeKind::Interior);
+    }
+
     println!();
     for (idx, pos) in point_positions.iter() {
         for (cmp_idx, cmp_pos) in point_positions.iter() {
