@@ -166,9 +166,15 @@ fn subtract_triangle_from_partial_circle_graph() {
     merged_path             = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
     merged_path             = merged_path.collide(GraphPath::from_merged_paths(fragment.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
 
+    // Ray cast along the fragment edge
+    let ypos                = 570.0;
+    let collisions          = merged_path.ray_collisions(&(Coord2(0.0, ypos), Coord2(1.0, ypos)));
+    println!("{:?}", collisions);
+
     // Subtract fragment from remaining
+    println!();
     merged_path.set_exterior_by_subtracting();
-    println!("{}", graph_path_svg_string(&merged_path, vec![]));
+    println!("{}", graph_path_svg_string(&merged_path, vec![(Coord2(0.0, ypos), Coord2(1.0, ypos))]));
     merged_path.heal_exterior_gaps();
 
     // No points with any edges leaving or arriving at them should be close to each other
