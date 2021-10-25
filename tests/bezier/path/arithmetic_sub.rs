@@ -151,6 +151,7 @@ fn cut_corners() {
 #[test]
 fn subtract_triangle_from_partial_circle_graph() {
     use flo_curves::debug::*;
+    use std::collections::{HashMap};
 
     // This regenerates a failing test from arithmetic_intersection: problem seems to be that there are overlapping (or near-overlapping lines) that cause two outer edges when subtracting
     let remaining           = vec![(Coord2(477.3671569824219, 613.7830200195313), vec![(Coord2(483.87042236328125, 581.0888671875), Coord2(490.3741455078125, 548.3924560546875), Coord2(496.8785400390625, 515.6925659179688)), (Coord2(498.9593200683594, 515.6925659179688), Coord2(501.0400695800781, 515.6925659179688), Coord2(503.1199951171875, 515.6900024414063)), (Coord2(505.0438232421875, 514.8963012695313), Coord2(506.9661865234375, 514.1000366210938), Coord2(508.8900146484375, 513.2999877929688)), (Coord2(510.3604431152344, 511.8321838378906), Coord2(511.8317565917969, 510.3608703613281), Coord2(513.2999877929688, 508.8900146484375)), (Coord2(514.0997924804688, 506.9667663574219), Coord2(514.8960571289063, 505.0444030761719), Coord2(515.6900024414063, 503.1199951171875)), (Coord2(515.6925659179688, 501.0406799316406), Coord2(515.6925659179688, 498.9599304199219), Coord2(515.6900024414063, 496.8800048828125)), (Coord2(514.8963012695313, 494.9561767578125), Coord2(514.1000366210938, 493.0338134765625), Coord2(513.2999877929688, 491.1099853515625)), (Coord2(511.8321838378906, 489.6395568847656), Coord2(510.3608703613281, 488.1682434082031), Coord2(508.8900146484375, 486.70001220703125)), (Coord2(506.9667663574219, 485.90020751953125), Coord2(505.0444030761719, 485.10394287109375), Coord2(503.1199951171875, 484.30999755859375)), (Coord2(501.0406799316406, 484.30743408203125), Coord2(498.9599304199219, 484.30743408203125), Coord2(496.8800048828125, 484.30999755859375)), (Coord2(494.9561767578125, 485.10369873046875), Coord2(493.0338134765625, 485.89996337890625), Coord2(491.1099853515625, 486.70001220703125)), (Coord2(489.6395568847656, 488.1678161621094), Coord2(488.1682434082031, 489.6391296386719), Coord2(486.70001220703125, 491.1099853515625)), (Coord2(485.90020751953125, 493.0332336425781), Coord2(485.10394287109375, 494.9555969238281), Coord2(484.30999755859375, 496.8800048828125)), (Coord2(484.30743408203125, 498.9593200683594), Coord2(484.30743408203125, 501.0400695800781), Coord2(484.30999755859375, 503.1199951171875)), (Coord2(485.10369873046875, 505.0438232421875), Coord2(485.89996337890625, 506.9661865234375), Coord2(486.70001220703125, 508.8900146484375)), (Coord2(488.1678161621094, 510.3604431152344), Coord2(489.6391296386719, 511.8317565917969), Coord2(491.1108703613281, 513.3035278320313)), (Coord2(472.5879821777344, 541.0249633789063), Coord2(454.0650939941406, 568.7463989257813), Coord2(435.5415344238281, 596.4689331054688)), (Coord2(448.4329833984375, 605.102783203125), Coord2(462.67291259765625, 610.8741455078125), Coord2(477.3671569824219, 613.7830200195313))])];
@@ -169,6 +170,30 @@ fn subtract_triangle_from_partial_circle_graph() {
     merged_path.set_exterior_by_subtracting();
     println!("{}", graph_path_svg_string(&merged_path, vec![]));
     merged_path.heal_exterior_gaps();
+
+    // No points with any edges leaving or arriving at them should be close to each other
+    let mut point_positions = HashMap::new();
+    for edge in merged_path.all_edges() {
+        let start_idx   = edge.start_point_index();
+        let end_idx     = edge.end_point_index();
+
+        let start_pos   = edge.start_point();
+        let end_pos     = edge.end_point();
+
+        point_positions.insert(start_idx, start_pos);
+        point_positions.insert(end_idx, end_pos);
+    }
+
+    println!();
+    for (idx, pos) in point_positions.iter() {
+        for (cmp_idx, cmp_pos) in point_positions.iter() {
+            if cmp_idx == idx { continue; }
+
+            if pos.distance_to(cmp_pos) < 1.0 {
+                println!("Overlapping points: {} {}", idx, cmp_idx);
+            }
+        }
+    }
 
     // Extract the resulting path
     let subtracted_path     = merged_path.exterior_paths::<SimpleBezierPath>();
