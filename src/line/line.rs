@@ -63,7 +63,11 @@ pub trait Line2D {
     fn coefficients(&self) -> (f64, f64, f64);
 
     ///
-    /// Returns the distance from a point to this line
+    /// Returns the distance from a point to the closest point along this line
+    ///
+    /// Note that this will project the line to infinity so this can return a distance to a point outside of the start or end point
+    /// of the line. To determine if this has occurred, the `pos_for_point()` call can be used to determine the `t` value for the
+    /// closest point: it will return a value in the range `0.0..1.0` if the closest point is within the line.
     /// 
     fn distance_to(&self, p: &Self::Point) -> f64;
 

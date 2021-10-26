@@ -555,5 +555,80 @@ fn intersection_curve_11() {
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
 
-    assert!(Coord2::from(intersections1[0]).distance_to(&Coord2::from(intersections2[0])) < 0.02);
+    let pos1 = curve1.point_at_pos(intersections1[0].0);
+    let pos2 = curve2.point_at_pos(intersections1[0].1);
+
+    let pos3 = curve2.point_at_pos(intersections2[0].0);
+    let pos4 = curve1.point_at_pos(intersections2[0].1);
+
+    println!("{:?}", pos1.distance_to(&pos2));
+    println!("{:?}", pos3.distance_to(&pos4));
+    println!("{:?}", pos3.distance_to(&pos2));
+    println!("{:?}", pos1.distance_to(&pos4));
+
+    assert!(pos1.distance_to(&pos2) < 0.02);
+    assert!(pos3.distance_to(&pos4) < 0.02);
+    assert!(pos2.distance_to(&pos3) < 0.02);
+    assert!(pos1.distance_to(&pos4) < 0.02);
+}
+
+// Fragment: Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) }
+// Remaining: Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) }
+#[test]
+fn intersection_very_close_to_start_1() {
+    // One section here is a line, so we can find that the start point of the 'remaining' section is very close to that line (enough that it should produce an intersection)
+    // Source of this is a case where the 'remaining' section is slightly rounded due to a conversion to f32 and back to f64
+    let fragment    = bezier::Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) };
+    let remaining   = bezier::Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) };
+
+    let intersections1 = bezier::curve_intersects_curve_clip(&fragment, &remaining, 0.01);
+    let intersections2 = bezier::curve_intersects_curve_clip(&remaining, &fragment, 0.01);
+
+    println!("{:?}", intersections1);
+    println!("{:?}", intersections2);
+
+    assert!(intersections1.len() > 0);
+    assert!(intersections2.len() > 0);
+
+    assert!(intersections1.len() == 1);
+    assert!(intersections2.len() == 1);
+
+    let pos1 = fragment.point_at_pos(intersections1[0].0);
+    let pos2 = remaining.point_at_pos(intersections1[0].1);
+
+    let pos3 = remaining.point_at_pos(intersections2[0].0);
+    let pos4 = fragment.point_at_pos(intersections2[0].1);
+
+    println!("{:?}", pos1.distance_to(&pos2));
+    println!("{:?}", pos3.distance_to(&pos4));
+    println!("{:?}", pos3.distance_to(&pos2));
+    println!("{:?}", pos1.distance_to(&pos4));
+
+    assert!(pos1.distance_to(&pos2) < 0.02);
+    assert!(pos3.distance_to(&pos4) < 0.02);
+    assert!(pos2.distance_to(&pos3) < 0.02);
+    assert!(pos1.distance_to(&pos4) < 0.02);
+}
+
+#[test]
+fn solve_t_close_to_start() {
+    use flo_curves::bezier::*;
+
+    // Same curve as above, but we try to solve the closest point for one curve against another
+    let fragment    = bezier::Curve { start_point: Coord2(503.12144515225805, 515.6925644864517), end_point: Coord2(558.5270966048384, 794.2355841209692), control_points: (Coord2(521.5881487814031, 608.5309529306364), Coord2(540.0548524105482, 701.369341374821)) };
+    let remaining   = bezier::Curve { start_point: Coord2(522.6328735351563, 613.7830200195313), end_point: Coord2(582.0244140625, 582.0244140625), control_points: (Coord2(544.3945922851563, 609.47509765625), Coord2(565.159912109375, 598.8888549804688)) };
+
+    // In this case, the fragment is linear (however, as we're solving for a point close to a curve, this shouldn't be necessary always)
+    assert!(fragment.characteristics() == CurveCategory::Linear);
+
+    // The start point of 'remaining' is very close to fragment (in fact, the distance between the two is down to floating-point imprecision more than anything)
+    let t_remaining = 0.0;
+
+    // Should be able to solve for this point on the remaining curve
+    let t_fragment  = fragment.t_for_point(&remaining.start_point).expect("t value");
+    let t_point     = fragment.point_at_pos(t_fragment);
+    let t_distance  = t_point.distance_to(&remaining.point_at_pos(t_remaining));
+
+    // The above test should be able to solve this value to at least this precision level (t_remaining = 0.0, t_fragment = as above)
+    assert!(t_distance < 0.02);
 }

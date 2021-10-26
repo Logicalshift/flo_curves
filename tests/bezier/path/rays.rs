@@ -369,10 +369,16 @@ fn ray_hitting_intersection_bad() {
     let ray2 = curve_intersects_ray(&edge2, &ray);
     let ray3 = curve_intersects_ray(&edge3, &ray);
 
-    // Ray1 produces a collision at the end that I think doesn't get merged by the appropriate step
-    assert!(ray1.len() == 1);
+    println!("{:?}", ray1);
+    println!("{:?}", ray2);
+    println!("{:?}", ray3);
+
+    // edge2 should generate 1 collision
     assert!(ray2.len() == 1);
     assert!(ray3.len() == 1);
+
+    // Ray1 produces a collision at the end
+    assert!(ray1.len() == 2);
 }
 
 #[test]
