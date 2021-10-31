@@ -18,6 +18,8 @@ pub fn offset_lms_sampling<Curve, OffsetFn>(curve: &Curve, offset_for_t: OffsetF
 where   Curve:          BezierCurveFactory+NormalCurve,
         Curve::Point:   Normalize+Coordinate2D,
         OffsetFn:       Fn(f64) -> f64 {
+    if subdivisions < 2 { return None; }
+
     // Subdivide the curve by its major features
     let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2)  => {
