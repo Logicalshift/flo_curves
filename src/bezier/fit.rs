@@ -50,7 +50,11 @@ pub fn fit_curve<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::Point],
             let block_points = &points[start_point..start_point+num_points];
 
             let start_tangent   = start_tangent(block_points);
-            let end_tangent     = end_tangent(block_points);
+            let end_tangent     = if start_point+num_points < points.len() {
+                end_tangent(&points[start_point..start_point+num_points+1])
+            } else { 
+                end_tangent(block_points) 
+            };
 
             let fit = fit_curve_cubic(block_points, &start_tangent, &end_tangent, max_error);
             for curve in fit {
