@@ -64,7 +64,20 @@ pub fn fit_curve<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::Point],
 
 ///
 /// Fits a bezier curve to a subset of points
-/// 
+///
+/// Usually you should use `fit_curve` unless you have a specific reason for using this function (`fit_curve` will call this function). There are
+/// two main reasons for calling this directly: if you have a better estimation of the tangent at the start and end of the curve than the one made
+/// `fit_curve` (which is based on the first and last two points of the curve), or if `fit_curve` is breaking down the set of points in a way that
+/// produces a poor fit for your use-case (it fits points in groups of 100).
+///
+/// `start_tangent` and `end_tangent` should be unit vectors indicating the direction of the curve at the start and end after fitting. `start_tangent`
+/// should point in the direction of the curve moving forwards, and `end_tangent` should point in the opposite direction (ie, these represent the
+/// direction of the control points at the start and end of the curve). Choosing bad values for these tangents will still result in a curve that fits
+/// well against the points but will have many subdivisions towards the start or end.
+///
+/// The algorithm here is to attempt to fit a single bezier curve against the points, estimate the point which has the highest error, and if too high
+/// subdivide at that point and try again.
+///
 pub fn fit_curve_cubic<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::Point], start_tangent: &Curve::Point, end_tangent: &Curve::Point, max_error: f64) -> Vec<Curve> {
     if points.len() <= 2 {
         // 2 points is a line (less than 2 points is an error here)
