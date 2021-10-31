@@ -14,7 +14,7 @@ const MAX_POINTS_TO_FIT: usize = 100;
 ///
 /// Creates a bezier curve that fits a set of points with a particular error
 /// 
-/// Algorithm from Philip J. Schdeiner, Graphics Gems
+/// Algorithm from Philip J. Schneider, Graphics Gems
 /// 
 /// There are a few modifications from the original algorithm:
 /// 
