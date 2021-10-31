@@ -210,7 +210,7 @@ fn generate_bezier<Curve: BezierCurveFactory>(points: &[Curve::Point], chords: &
     if alpha_l < epsilon || alpha_r < epsilon {
         // Much less accurate means of estimating a curve
         let dist = seg_length/3.0;
-        Curve::from_points(points[0], (points[0]+(*start_tangent*dist), last_point+(*end_tangent*-dist)), last_point)
+        Curve::from_points(points[0], (points[0]+(*start_tangent*dist), last_point+(*end_tangent*dist)), last_point)
     } else {
         // The control points are positioned an alpha distance out along the tangent vectors
         Curve::from_points(points[0], (points[0]+(*start_tangent*alpha_l), last_point+(*end_tangent*alpha_r)), last_point)

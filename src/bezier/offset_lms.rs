@@ -76,6 +76,6 @@ where   Curve:          BezierCurveFactory+NormalCurve,
 
     // Generate a curve using the sample points
     let start_tangent   = curve.tangent_at_pos(0.0).to_unit_vector();
-    let end_tangent     = curve.tangent_at_pos(1.0).to_unit_vector();
+    let end_tangent     = curve.tangent_at_pos(1.0).to_unit_vector() * -1.0;
     Some(fit_curve_cubic(&sample_points, &start_tangent, &end_tangent, max_error))
 }
