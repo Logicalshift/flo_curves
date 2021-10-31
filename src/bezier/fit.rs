@@ -1,6 +1,6 @@
 use super::curve::*;
 use super::basis::*;
-use super::super::geo::*;
+use crate::geo::*;
 
 /// Maximum number of iterations to perform when trying to improve the curve fit
 const MAX_ITERATIONS: usize = 4;
@@ -70,18 +70,22 @@ pub fn fit_curve_cubic<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::P
         // 2 points is a line (less than 2 points is an error here)
         fit_line(&points[0], &points[1])
     } else {
-        // Find the initial set of chords (estimates for where the t values for each of the points are)
-        let mut chords = chords_for_points(points);
+        // Perform an initial estimate of the 't' values corresponding to the chords of the curve
+        let mut chords                  = chords_for_points(points);
 
         // Use the least-squares method to fit against the initial set of chords
-        let mut curve: Curve = generate_bezier(points, &chords, start_tangent, end_tangent);
+        let mut curve                   = generate_bezier(points, &chords, start_tangent, end_tangent);
 
-        // Just use this curve if we got a good fit
-        let (mut error, mut split_pos) = max_error_for_curve(points, &chords, &curve);
+        // Reparameterise the chords (which will probably be quite a bad estimate initially)
+        chords                          = reparameterize(points, &chords, &curve);
+        curve                           = generate_bezier(points, &chords, start_tangent, end_tangent);
+
+        // Estimate the error after the reparameterization
+        let (mut error, mut split_pos)  = max_error_for_curve(points, &chords, &curve);
 
         // Try iterating to improve the fit if we're not too far out
         if error > max_error && error < max_error*FIT_ATTEMPT_RATIO {
-            for _iteration in 0..MAX_ITERATIONS {
+            for _iteration in 1..MAX_ITERATIONS {
                 // Recompute the chords and the curve
                 chords = reparameterize(points, &chords, &curve);
                 curve  = generate_bezier(points, &chords, start_tangent, end_tangent);
