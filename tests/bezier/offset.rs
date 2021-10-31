@@ -270,3 +270,19 @@ fn offset_lms_sampling_arc_end_point() {
     assert!((end_point_original.distance_to(&end_point_new)-10.0).abs() < 0.01);
     assert!(end_point_expected.distance_to(&end_point_new) < 0.01);
 }
+
+#[test]
+fn offset_lms_sampling_arc_fit_single_curve() {
+    use flo_curves::arc::*;
+
+    // 90 degree circle arc
+    let circle      = Circle::new(Coord2(0.0, 0.0), 100.0);
+    let arc         = circle.arc(0.0, f64::consts::PI / 2.0);
+    let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
+
+    // Offset by 10
+    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, 20, 1.0).expect("Offset curve");
+
+    // We should be able to find a single bezier curve that fits these points
+    assert!(offset_arc.len() == 1);
+}
