@@ -14,10 +14,11 @@ use std::iter;
 /// produce good results). Too few subdivisions can result in flat sections in the curve, and too many can
 /// result in artifacts caused by overfitting.
 ///
-pub fn offset_lms_sampling<Curve, OffsetFn>(curve: &Curve, offset_for_t: OffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
+pub fn offset_lms_sampling<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
 where   Curve:          BezierCurveFactory+NormalCurve,
         Curve::Point:   Normalize+Coordinate2D,
-        OffsetFn:       Fn(f64) -> f64 {
+        NormalOffsetFn:       Fn(f64) -> f64,
+        TangentOffsetFn:       Fn(f64) -> f64 {
     if subdivisions < 2 { return None; }
 
     // Subdivide the curve by its major features
@@ -70,9 +71,11 @@ where   Curve:          BezierCurveFactory+NormalCurve,
         .map(|t| {
             let original_point  = curve.point_at_pos(t);
             let unit_normal     = curve.normal_at_pos(t).to_unit_vector();
-            let offset          = offset_for_t(t);
+            let unit_tangent    = curve.tangent_at_pos(t).to_unit_vector();
+            let normal_offset = normal_offset_for_t(t);
+            let tangent_offset = tangent_offset_for_t(t);
 
-            original_point + (unit_normal * offset)
+            original_point + (unit_normal * normal_offset) + (unit_tangent * tangent_offset)
         })
         .collect::<Vec<_>>();
 
