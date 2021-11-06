@@ -15,10 +15,10 @@ use std::iter;
 /// result in artifacts caused by overfitting.
 ///
 pub fn offset_lms_sampling<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
-where   Curve:          BezierCurveFactory+NormalCurve,
-        Curve::Point:   Normalize+Coordinate2D,
-        NormalOffsetFn:       Fn(f64) -> f64,
-        TangentOffsetFn:       Fn(f64) -> f64 {
+where   Curve:              BezierCurveFactory+NormalCurve,
+        Curve::Point:       Normalize+Coordinate2D,
+        NormalOffsetFn:     Fn(f64) -> f64,
+        TangentOffsetFn:    Fn(f64) -> f64 {
     if subdivisions < 2 { return None; }
 
     // Subdivide the curve by its major features
@@ -70,10 +70,11 @@ where   Curve:          BezierCurveFactory+NormalCurve,
     let sample_points       = sections
         .map(|t| {
             let original_point  = curve.point_at_pos(t);
-            let unit_normal     = curve.normal_at_pos(t).to_unit_vector();
             let unit_tangent    = curve.tangent_at_pos(t).to_unit_vector();
-            let normal_offset = normal_offset_for_t(t);
-            let tangent_offset = tangent_offset_for_t(t);
+            let unit_normal     = Curve::Point::to_normal(&original_point, &unit_tangent);
+            let unit_normal     = Curve::Point::from_components(&unit_normal);
+            let normal_offset   = normal_offset_for_t(t);
+            let tangent_offset  = tangent_offset_for_t(t);
 
             original_point + (unit_normal * normal_offset) + (unit_tangent * tangent_offset)
         })
