@@ -219,7 +219,7 @@ fn offset_lms_sampling_arc_start_tangent() {
     let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
 
     // Offset by 10
-    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |t| 0.0, 20, 0.01).expect("Offset curve");
+    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |_t| 0.0, 20, 0.01).expect("Offset curve");
 
     let start_tangent_original  = arc_curve.tangent_at_pos(0.0).to_unit_vector();
     let start_tangent_new       = offset_arc[0].tangent_at_pos(0.0).to_unit_vector();
@@ -239,7 +239,7 @@ fn offset_lms_sampling_arc_end_tangent() {
     let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
 
     // Offset by 10
-    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |t| 0.0, 20, 0.01).expect("Offset curve");
+    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |_t| 0.0, 20, 0.01).expect("Offset curve");
 
     let end_tangent_original    = arc_curve.tangent_at_pos(1.0).to_unit_vector();
     let end_tangent_new         = offset_arc[offset_arc.len()-1].tangent_at_pos(1.0).to_unit_vector();
@@ -259,7 +259,7 @@ fn offset_lms_sampling_arc_end_point() {
     let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
 
     // Offset by 10
-    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |t| 0.0, 20, 0.01).expect("Offset curve");
+    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |_t| 0.0, 20, 0.01).expect("Offset curve");
 
     let end_point_original      = arc_curve.point_at_pos(1.0);
     let end_point_new           = offset_arc[offset_arc.len()-1].point_at_pos(1.0);
@@ -281,7 +281,7 @@ fn offset_lms_sampling_arc_fit_single_curve() {
     let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
 
     // Offset by 10
-    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |t| 0.0, 20, 1.0).expect("Offset curve");
+    let offset_arc  = offset_lms_sampling(&arc_curve, |_t| 10.0, |_t| 0.0, 20, 1.0).expect("Offset curve");
 
     // We should be able to find a single bezier curve that fits these points
     assert!(offset_arc.len() == 1);
