@@ -43,15 +43,24 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
 
 ///
 /// Given a point that is close to or on the specified bezier curve, solves the 't' value that can
-/// be used to retrieve it
+/// be used to retrieve it. This is intended to take points that are known (or thought) to be on the
+/// curve and find the corresponding 't' value.
 ///
 pub fn solve_curve_for_t<C: BezierCurve>(curve: &C, point: &C::Point) -> Option<f64> {
     solve_curve_for_t_within(curve, point, CLOSE_ENOUGH)
 }
 
 ///
-/// Equivalent to `solve_curve_for_t`, just with a configurable `accuracy`, by default
-/// `SMALL_DISTANCE * 50.0`.
+/// Searches along the x or y axis for a point within `accuracy` units of the curve, returning the `t` value of that point
+///
+/// This can be used to find points on the curve that are close to points that are not but does not find the closest point and
+/// it's possible to construct a curve such that a nearby point is not nearby along either the x or the y axis. Therefore, this
+/// is best used with accuracy values that are small compared to the length of the curve and with points far away from
+/// inflection points or cusps.
+///
+/// This is often 'good enough' to find a point close to where a user has clicked along a curve, for example, but as it 
+/// effectively ray-casts along the x and y axes to do so is not suitable as a general-purpose way of finding the closest point 
+/// on a curve to another point.
 ///
 pub fn solve_curve_for_t_within<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: f64) -> Option<f64> {
     let p1              = curve.start_point();
