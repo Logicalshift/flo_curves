@@ -47,7 +47,7 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
 /// curve and find the corresponding 't' value.
 ///
 pub fn solve_curve_for_t<C: BezierCurve>(curve: &C, point: &C::Point) -> Option<f64> {
-    solve_curve_for_t_within(curve, point, CLOSE_ENOUGH)
+    solve_curve_for_t_along_axis(curve, point, CLOSE_ENOUGH)
 }
 
 ///
@@ -62,7 +62,9 @@ pub fn solve_curve_for_t<C: BezierCurve>(curve: &C, point: &C::Point) -> Option<
 /// effectively ray-casts along the x and y axes to do so is not suitable as a general-purpose way of finding the closest point 
 /// on a curve to another point.
 ///
-pub fn solve_curve_for_t_within<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: f64) -> Option<f64> {
+/// Note that `curve_intersects_ray()` can be used to find points on a curve along any direction rather than solely along the axis.
+///
+pub fn solve_curve_for_t_along_axis<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: f64) -> Option<f64> {
     let p1              = curve.start_point();
     let (p2, p3)        = curve.control_points();
     let p4              = curve.end_point();
