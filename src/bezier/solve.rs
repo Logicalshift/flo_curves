@@ -46,14 +46,14 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
 /// be used to retrieve it
 ///
 pub fn solve_curve_for_t<C: BezierCurve>(curve: &C, point: &C::Point) -> Option<f64> {
-    solve_curve_for_t_within(curve, point, None)
+    solve_curve_for_t_within(curve, point, CLOSE_ENOUGH)
 }
 
 ///
 /// Equivalent to `solve_curve_for_t`, just with a configurable `accuracy`, by default
 /// `SMALL_DISTANCE * 50.0`.
 ///
-pub fn solve_curve_for_t_within<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: Option<f64>) -> Option<f64> {
+pub fn solve_curve_for_t_within<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: f64) -> Option<f64> {
     let p1              = curve.start_point();
     let (p2, p3)        = curve.control_points();
     let p4              = curve.end_point();
@@ -72,7 +72,7 @@ pub fn solve_curve_for_t_within<C: BezierCurve>(curve: &C, point: &C::Point, acc
 
             // If this is an accurate enough solution, return this as the t value
             let point_at_t  = curve.point_at_pos(possible_t);
-            if point_at_t.is_near_to(point, accuracy.unwrap_or(CLOSE_ENOUGH)) {
+            if point_at_t.is_near_to(point, accuracy) {
                 return Some(possible_t);
             }
         }
