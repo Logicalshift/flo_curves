@@ -2,6 +2,8 @@ extern crate flo_curves;
 
 use flo_curves::*;
 
+use std::f64;
+
 #[test]
 fn can_get_distance_between_points() {
     assert!(Coord2(1.0, 1.0).distance_to(&Coord2(1.0, 8.0)) == 7.0);
@@ -38,4 +40,14 @@ fn round_to_units() {
 #[test]
 fn round_up_to_units() {
     assert!(Coord2(1.1111, 2.5555).round(1.0) == Coord2(1.0, 3.0));
+}
+
+#[test]
+fn unit_vector_0_degrees() {
+    assert!(Coord2::unit_vector_at_angle(0.0).distance_to(&Coord2(1.0, 0.0)) < 0.001);
+}
+
+#[test]
+fn unit_vector_90_degrees() {
+    assert!(Coord2::unit_vector_at_angle(f64::consts::PI / 2.0).distance_to(&Coord2(0.0, 1.0)) < 0.001);
 }
