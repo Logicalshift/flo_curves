@@ -14,6 +14,7 @@ mod geo;
 mod sweep;
 mod has_bounds;
 mod coordinate;
+mod coordinate_ext;
 mod bounding_box;
 
 pub use self::geo::*;
@@ -21,4 +22,5 @@ pub use self::sweep::*;
 pub use self::has_bounds::*;
 pub use self::coordinate::*;
 pub use self::bounding_box::*;
+pub use self::coordinate_ext::*;
 
