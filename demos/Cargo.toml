@@ -4,7 +4,8 @@ members = [
     "walk",
     "distort",
     "arithmetic",
-    "curve_intersections"
+    "curve_intersections",
+    "remove_interior_points"
 ]
 
 [patch.crates-io]
