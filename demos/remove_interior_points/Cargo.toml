@@ -10,3 +10,4 @@ flo_curves  = "0.6"
 flo_draw    = "0.4"
 
 MFEKmath    = { git = "https://github.com/MFEK/math.rlib", branch = "main", default-features = false }
+glifparser  = { git = "https://github.com/MFEK/glifparser.rlib", branch = "master", default-features = false }
