@@ -632,3 +632,33 @@ fn solve_t_close_to_start() {
     // The above test should be able to solve this value to at least this precision level (t_remaining = 0.0, t_fragment = as above)
     assert!(t_distance < 0.02);
 }
+
+#[test]
+fn intersections_on_curve_sections() {
+    // Two sections from the same larger curve, no shared points but overlapping in the middle
+    let larger_curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
+
+    let curve1  = larger_curve.section(0.1, 0.5);
+    let curve2  = larger_curve.section(0.4, 0.8);
+
+    let intersections   = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
+    println!("{:?} {:?}", intersections, intersections.iter().map(|(t1, t2)| (curve1.point_at_pos(*t1), curve2.point_at_pos(*t2))).collect::<Vec<_>>());
+
+    // All intersections should be approximately the same location
+    for intersect in intersections.iter() {
+        let point1 = curve1.point_at_pos(intersect.0);
+        let point2 = curve2.point_at_pos(intersect.1);
+
+        assert!(point1.distance_to(&point2) < 1.0);
+        assert!(point1.distance_to(&point2) < 0.1);
+    }
+
+    // Two intersections
+    assert!(intersections.len() == 2);
+
+    // First intersection should be at point 0.0 on curve2
+    assert!((intersections[0].1 - 0.0).abs() < 0.01);
+
+    // Second intersection should be at point 1.0 on curve1
+    assert!((intersections[1].0 - 1.0).abs() < 0.01);
+}
