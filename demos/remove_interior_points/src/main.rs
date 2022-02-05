@@ -199,7 +199,7 @@ fn main() {
                     .map(|path| path_remove_interior_points::<_, PwBez>(&vec![path.clone()], 0.01))
                     .fold(vec![], |a, b| path_add::<_, _, PwBez>(&a, &b, 0.01));
 
-                // let paths = path_remove_interior_points::<_, PwBez>(&paths.iter().cloned().rev().collect(), 0.01);
+                // let paths = path_remove_interior_points::<_, PwBez>(&paths, 0.01);
 
                 gc.new_path();
                 paths.iter()
