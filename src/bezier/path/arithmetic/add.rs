@@ -67,7 +67,13 @@ where   P1::Point:  Coordinate+Coordinate2D,
 
 ///
 /// Generates the path formed by removing any interior points from an existing path. This considers only the outermost edges of the 
-/// path to be the true edges (so a ring will be treated as a single path)
+/// path to be the true edges, so if there are sub-paths inside an outer path, they will be removed.
+///
+/// This is a strict version of the 'non-zero' winding rule. It's useful for things like a path that was generated from a brush stroke
+/// and might self-overlap: this can be passed a drawing of a loop made by overlapping the ends and it will output two non-overlapping 
+/// subpaths.
+///
+/// See `path_remove_overlapped_points()` for a version that considers all edges within the path to be exterior edges.
 ///
 pub fn path_remove_interior_points<P1: BezierPath, POut: BezierPathFactory>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
 where   P1::Point:  Coordinate+Coordinate2D,
@@ -94,6 +100,15 @@ where   P1::Point:  Coordinate+Coordinate2D,
 ///
 /// Generates the path formed by removing any interior points from an existing path. This considers all edges to be exterior edges
 /// and will remove those that are obscured by another part of the path.
+///
+/// This works like the 'even-odd' winding rule.
+///
+/// If a path self-intersects, this will leave a hole behind. See `path_remove_interior_points()` for a way to remove the interior
+/// parts of a path so that all points inside the boundary are filled. This function is useful for cleaning up paths from other
+/// sources, then the other arithmetic operations can be used to reshape the resulting path.
+///
+/// Note that calling 'subtract' is a more reliable way to cut a hole in an existing path than relying on a winding rule, as
+/// winding rules presuppose you can tell if a subpath is inside or outside of an existing path.
 ///
 pub fn path_remove_overlapped_points<P1: BezierPath, POut: BezierPathFactory>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
 where   P1::Point:  Coordinate+Coordinate2D,
