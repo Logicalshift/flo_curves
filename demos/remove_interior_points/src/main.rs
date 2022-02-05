@@ -13,6 +13,7 @@ fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Remove interior points demonstration");
 
+        // See https://github.com/Logicalshift/flo_curves/issues/14
         let paths           = vec![
             BezierPathBuilder::<PwBez>::start(Vector { x: -14.354116, y: 66.98954 })
               .curve_to(
