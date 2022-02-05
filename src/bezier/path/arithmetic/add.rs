@@ -80,7 +80,7 @@ where   P1::Point:  Coordinate+Coordinate2D,
     merged_path.self_collide(accuracy);
     merged_path.round(accuracy);
 
-    // Set the exterior edges using the 'add' algorithm
+    // Set the exterior edges by considering all points inside an edge as 'interior'
     merged_path.set_exterior_by_removing_interior_points();
     merged_path.heal_exterior_gaps();
 
