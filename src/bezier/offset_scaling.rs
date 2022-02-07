@@ -149,12 +149,12 @@ where   CurveIn:        NormalCurve+BezierCurve,
         // but the number of subdivisions tends to be too high: we need to find either a way to generate a better offset
         // curve for an arch with a non-centered intersection point, or a better way to pick the subdivision point
         if distance_ratio < 0.995 && depth < MAX_DEPTH {
-            // Try to subdivide at the curve's extremeties
-            let mut extremeties     = curve.find_extremities();
-            extremeties.retain(|item| item > &0.01 && item < &0.99);
+            // Try to subdivide at the curve's extremities
+            let mut extremities     = curve.find_extremities();
+            extremities.retain(|item| item > &0.01 && item < &0.99);
 
-            if extremeties.len() == 0 {
-                // No extremeties (or they're all too close to the edges)
+            if extremities.len() == 0 {
+                // No extremities (or they're all too close to the edges)
                 let divide_point    = 0.5;
 
                 let mid_offset      = initial_offset + (final_offset - initial_offset) * divide_point;
@@ -168,12 +168,12 @@ where   CurveIn:        NormalCurve+BezierCurve,
                     .chain(right_offset)
                     .collect()
             } else {
-                let mut extremeties = extremeties;
-                extremeties.insert(0, 0.0);
-                extremeties.push(1.0);
-                extremeties.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+                let mut extremities = extremities;
+                extremities.insert(0, 0.0);
+                extremities.push(1.0);
+                extremities.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
 
-                extremeties
+                extremities
                     .into_iter()
                     .tuple_windows()
                     .flat_map(|(t1, t2)| {
