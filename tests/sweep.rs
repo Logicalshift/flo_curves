@@ -16,9 +16,9 @@ fn sweep_self_single_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_self(bounds.iter()).collect::<Vec<_>>();
+    let collisions = sweep_self(bounds.iter());
 
-    assert!(collisions.len() == 1);
+    assert!(collisions.count() == 1);
 }
 
 #[test]
@@ -35,9 +35,9 @@ fn sweep_self_double_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_self(bounds.iter()).collect::<Vec<_>>();
+    let collisions = sweep_self(bounds.iter());
 
-    assert!(collisions.len() == 2);
+    assert!(collisions.count() == 2);
 }
 
 #[test]
@@ -54,9 +54,9 @@ fn sweep_self_triple_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_self(bounds.iter()).collect::<Vec<_>>();
+    let collisions = sweep_self(bounds.iter());
 
-    assert!(collisions.len() == 3);
+    assert!(collisions.count() == 3);
 }
 
 #[test]
@@ -74,9 +74,9 @@ fn sweep_self_quad_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_self(bounds.iter()).collect::<Vec<_>>();
+    let collisions = sweep_self(bounds.iter());
 
-    assert!(collisions.len() == 6);
+    assert!(collisions.count() == 6);
 }
 
 #[test]
@@ -102,9 +102,9 @@ fn sweep_against_single_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_against(bounds1.iter(), bounds2.iter()).collect::<Vec<_>>();
+    let collisions = sweep_against(bounds1.iter(), bounds2.iter());
 
-    assert!(collisions.len() == 1);
+    assert!(collisions.count() == 1);
 }
 
 #[test]
@@ -130,9 +130,9 @@ fn sweep_against_double_overlap_1() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_against(bounds1.iter(), bounds2.iter()).collect::<Vec<_>>();
+    let collisions = sweep_against(bounds1.iter(), bounds2.iter());
 
-    assert!(collisions.len() == 2);
+    assert!(collisions.count() == 2);
 }
 
 #[test]
@@ -158,9 +158,9 @@ fn sweep_against_double_overlap_2() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_against(bounds1.iter(), bounds2.iter()).collect::<Vec<_>>();
+    let collisions = sweep_against(bounds1.iter(), bounds2.iter());
 
-    assert!(collisions.len() == 2);
+    assert!(collisions.count() == 2);
 }
 
 #[test]
@@ -186,9 +186,9 @@ fn sweep_against_quad_overlap() {
             .unwrap_or(Ordering::Equal)
     });
 
-    let collisions = sweep_against(bounds1.iter(), bounds2.iter()).collect::<Vec<_>>();
+    let collisions = sweep_against(bounds1.iter(), bounds2.iter());
 
-    assert!(collisions.len() == 4);
+    assert!(collisions.count() == 4);
 }
 
 #[test]
