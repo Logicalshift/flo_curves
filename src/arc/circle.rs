@@ -44,7 +44,7 @@ impl<Coord: Coordinate2D + Coordinate> Circle<Coord> {
     ///
     /// Returns an object representing an arc from this circle
     ///
-    pub fn arc<'a>(&'a self, start_radians: f64, end_radians: f64) -> CircularArc<'a, Coord> {
+    pub fn arc(&self, start_radians: f64, end_radians: f64) -> CircularArc<Coord> {
         CircularArc {
             circle: self,
             start_radians,

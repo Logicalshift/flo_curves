@@ -9,7 +9,7 @@ use smallvec::*;
 ///
 /// Determines the length of a curve's hull as a sum of squares
 ///
-fn curve_hull_length_sq<'a, C: BezierCurve>(curve: &CurveSection<'a, C>) -> f64 {
+fn curve_hull_length_sq<C: BezierCurve>(curve: &CurveSection<C>) -> f64 {
     if curve.is_tiny() {
         0.0
     } else {
@@ -145,8 +145,8 @@ where
 ///
 /// Given a set of intersections found on a left and right curve, joins them in a way that eliminates duplicates
 ///
-fn join_subsections<'a, C: BezierCurve>(
-    curve1: &CurveSection<'a, C>,
+fn join_subsections<C: BezierCurve>(
+    curve1: &CurveSection<C>,
     left: SmallVec<[(f64, f64); 8]>,
     right: SmallVec<[(f64, f64); 8]>,
     accuracy_squared: f64,

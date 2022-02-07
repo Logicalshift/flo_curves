@@ -133,8 +133,8 @@ where
 ///
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
-fn subdivide_offset<'a, CurveIn, CurveOut>(
-    curve: &CurveSection<'a, CurveIn>,
+fn subdivide_offset<CurveIn, CurveOut>(
+    curve: &CurveSection<CurveIn>,
     initial_offset: f64,
     final_offset: f64,
     depth: usize,

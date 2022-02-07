@@ -48,7 +48,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Retrieves the ordered graph edges for a range of points
     ///
-    fn get_ordered_edges<'a>(&'a self, points: Range<usize>) -> Vec<GraphEdge<'a, Point, Label>> {
+    fn get_ordered_edges(&self, points: Range<usize>) -> Vec<GraphEdge<Point, Label>> {
         let mut ordered_edges = points
             .into_iter()
             .flat_map(|point_idx| {

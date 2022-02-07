@@ -12,10 +12,10 @@ use crate::geo::*;
 /// be spaced according to the shape of the curve (will have an uneven distance between them)
 ///
 #[inline]
-pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(
-    curve: &'a Curve,
+pub fn walk_curve_unevenly<Curve: BezierCurve>(
+    curve: &Curve,
     num_subdivisions: usize,
-) -> impl 'a + Iterator<Item = CurveSection<'a, Curve>> {
+) -> impl Iterator<Item = CurveSection<Curve>> {
     if num_subdivisions > 0 {
         UnevenWalkIterator {
             curve,
@@ -39,11 +39,11 @@ pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(
 /// This walks evenly using the curve's chord length rather than the arc length: each section returned will have a `chord_length()`
 /// of `distance`. The call `vary_by()` can be used on the result to vary the step size at each point.
 ///
-pub fn walk_curve_evenly<'a, Curve: BezierCurve>(
-    curve: &'a Curve,
+pub fn walk_curve_evenly<Curve: BezierCurve>(
+    curve: &Curve,
     distance: f64,
     max_error: f64,
-) -> EvenWalkIterator<'a, Curve> {
+) -> EvenWalkIterator<Curve> {
     const INITIAL_INCREMENT: f64 = 0.01;
 
     // Too small or negative values might produce bad effects due to floating point inprecision
