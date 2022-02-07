@@ -1,7 +1,8 @@
-use flo_curves::*;
-use flo_curves::arc::*;
-use flo_curves::bezier::*;
-use flo_curves::bezier::path::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_intersects_line, path_intersects_path, BezierPath, SimpleBezierPath,
+};
+use flo_curves::bezier::{BezierCurve, BoundingBox, Coord2, Coordinate, Curve};
 
 use std::f64;
 
@@ -14,22 +15,22 @@ fn awkward_line_intersects_circle() {
     let circle: SimpleBezierPath = Circle::new(center, radius).to_path();
 
     // Line from the center to the edge
-    let line            = (Coord2(5.0, 5.0), Coord2(5.0, 9.5));
-    let intersection    = path_intersects_line(&circle, &line).collect::<Vec<_>>();
+    let line = (Coord2(5.0, 5.0), Coord2(5.0, 9.5));
+    let intersection = path_intersects_line(&circle, &line).collect::<Vec<_>>();
 
     // This should be an intersection (straight up from the center)
     assert!(intersection.len() == 1);
 
     // Line from the center to the edge
-    let line            = (Coord2(5.0, 5.0), Coord2(5.0, 0.5));
-    let intersection    = path_intersects_line(&circle, &line).collect::<Vec<_>>();
+    let line = (Coord2(5.0, 5.0), Coord2(5.0, 0.5));
+    let intersection = path_intersects_line(&circle, &line).collect::<Vec<_>>();
 
     // This should be an intersection (straight down from the center)
     assert!(intersection.len() == 1);
 
     // Line from the center to the edge
-    let line            = (Coord2(5.0, 5.0), Coord2(4.999999999999999, 9.5));
-    let intersection    = path_intersects_line(&circle, &line).collect::<Vec<_>>();
+    let line = (Coord2(5.0, 5.0), Coord2(4.999999999999999, 9.5));
+    let intersection = path_intersects_line(&circle, &line).collect::<Vec<_>>();
 
     // This should be an intersection (almost straight up from the center)
     assert!(intersection.len() == 1);
@@ -49,22 +50,22 @@ fn line_intersects_circle() {
     let circle_sections = circle.to_curves::<Curve<_>>();
 
     for angle in 0..=20 {
-        let angle       = angle as f64;
-        let radians     = (2.0*f64::consts::PI)*(angle/20.0);
+        let angle = angle as f64;
+        let radians = (2.0 * f64::consts::PI) * (angle / 20.0);
 
-        let target      = Coord2(radians.sin()*length, radians.cos()*length);
-        let target      = target + center;
+        let target = Coord2(radians.sin() * length, radians.cos() * length);
+        let target = target + center;
 
-        let expected    = Coord2(radians.sin()*radius, radians.cos()*radius);
-        let expected    = expected + center;
+        let expected = Coord2(radians.sin() * radius, radians.cos() * radius);
+        let expected = expected + center;
 
         // Should be one intersection with the circle here
-        let line            = (center, target);
-        let intersection    = path_intersects_line(&circle, &line).collect::<Vec<_>>();
+        let line = (center, target);
+        let intersection = path_intersects_line(&circle, &line).collect::<Vec<_>>();
         assert!(intersection.len() == 1);
 
-        if intersection.len() > 0 {
-            let intersection    = intersection[0];
+        if !intersection.is_empty() {
+            let intersection = intersection[0];
             let intersect_point = circle_sections[intersection.0].point_at_pos(intersection.1);
 
             assert!(expected.distance_to(&intersect_point).abs() < 0.01);
@@ -84,16 +85,16 @@ fn line_does_not_intersect_circle() {
     let length = 3.9999;
 
     for angle in 0..=20 {
-        let angle       = angle as f64;
-        let radians     = (2.0*f64::consts::PI)*(angle/20.0);
+        let angle = angle as f64;
+        let radians = (2.0 * f64::consts::PI) * (angle / 20.0);
 
-        let target      = Coord2(radians.sin()*length, radians.cos()*length);
-        let target      = target + center;
+        let target = Coord2(radians.sin() * length, radians.cos() * length);
+        let target = target + center;
 
         // Should be one intersection with the circle here
-        let line            = (center, target);
-        let intersection    = path_intersects_line(&circle, &line).collect::<Vec<_>>();
-        assert!(intersection.len() == 0);
+        let line = (center, target);
+        let intersection = path_intersects_line(&circle, &line).collect::<Vec<_>>();
+        assert!(intersection.is_empty());
     }
 }
 
@@ -110,7 +111,7 @@ fn circle_intersects_circle() {
     let intersections = path_intersects_path(&circle1, &circle2, 0.5);
 
     // The circles should intersect at least once
-    assert!(intersections.len() > 0);
+    assert!(!intersections.is_empty());
     println!("{:?}", intersections);
 
     // Convert to curves
@@ -122,7 +123,12 @@ fn circle_intersects_circle() {
         let point1 = curves1[*index1].point_at_pos(*t1);
         let point2 = curves2[*index2].point_at_pos(*t2);
 
-        println!("{:?} {:?} {:?}", point1, point2, point1.distance_to(&point2));
+        println!(
+            "{:?} {:?} {:?}",
+            point1,
+            point2,
+            point1.distance_to(&point2)
+        );
     }
 
     for ((index1, t1), (index2, t2)) in intersections.iter() {

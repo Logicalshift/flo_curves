@@ -1,6 +1,6 @@
 //!
 //! # Describing circular arcs
-//! 
+//!
 //! The `arc` module provides routines for describing circular arcs and converting them to bezier
 //! curves.
 //!

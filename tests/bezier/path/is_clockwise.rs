@@ -1,5 +1,5 @@
-use flo_curves::*;
-use flo_curves::bezier::path::*;
+use flo_curves::bezier::path::{BezierPathBuilder, PathWithIsClockwise, SimpleBezierPath};
+use flo_curves::Coord2;
 
 #[test]
 pub fn rectangle_is_clockwise() {

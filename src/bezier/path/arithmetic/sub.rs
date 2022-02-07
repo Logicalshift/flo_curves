@@ -1,45 +1,60 @@
-use super::ray_cast::*;
-use super::super::path::*;
-use super::super::graph_path::*;
-use super::super::super::super::geo::*;
+use super::super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::graph_path::GraphPath;
+use super::super::path::{BezierPath, BezierPathFactory};
+use super::ray_cast::{PathDirection, PathLabel};
 
-impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
+impl<Point: Coordinate + Coordinate2D> GraphPath<Point, PathLabel> {
     ///
     /// Given a labelled graph path, marks exterior edges by subtracting `PathSource::Path2` from `PathSource::Path1`
     ///
     pub fn set_exterior_by_subtracting(&mut self) {
         // Use an even-odd winding rule (all edges are considered 'external')
-        self.set_edge_kinds_by_ray_casting(|path_crossings| (path_crossings[0]&1) != 0 && (path_crossings[1]&1) == 0);
+        self.set_edge_kinds_by_ray_casting(|path_crossings| {
+            (path_crossings[0] & 1) != 0 && (path_crossings[1] & 1) == 0
+        });
     }
 }
 
 ///
 /// Generates the path formed by subtracting two sets of paths
-/// 
+///
 /// The input vectors represent the external edges of the path to subtract (a single BezierPath cannot have any holes in it, so a set of them
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
-pub fn path_sub<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        P2:         BezierPath<Point=P1::Point>,
-        POut:       BezierPathFactory<Point=P1::Point> {
+pub fn path_sub<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
+    path1: &[P1],
+    path2: &[P2],
+    accuracy: f64,
+) -> Vec<POut>
+where
+    P1::Point: Coordinate + Coordinate2D,
+    P2: BezierPath<Point = P1::Point>,
+    POut: BezierPathFactory<Point = P1::Point>,
+{
     // If either path is empty, short-circuit by returning the other
-    if path1.len() == 0 {
-        return path2.iter()
-            .map(|path| POut::from_path(path))
-            .collect();
-    } else if path2.len() == 0 {
-        return path1.iter()
-            .map(|path| POut::from_path(path))
-            .collect();
+    if path1.is_empty() {
+        return path2.iter().map(|path| POut::from_path(path)).collect();
+    } else if path2.is_empty() {
+        return path1.iter().map(|path| POut::from_path(path)).collect();
     }
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+    merged_path = merged_path.merge(GraphPath::from_merged_paths(
+        path1
+            .iter()
+            .map(|path| (path, PathLabel(0, PathDirection::from(path)))),
+    ));
 
     // Collide with the target side to generate a full path
-    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path = merged_path.collide(
+        GraphPath::from_merged_paths(
+            path2
+                .iter()
+                .map(|path| (path, PathLabel(1, PathDirection::from(path)))),
+        ),
+        accuracy,
+    );
     merged_path.round(accuracy);
 
     // Set the exterior edges using the 'subtract' algorithm

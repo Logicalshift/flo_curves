@@ -1,13 +1,22 @@
-use flo_curves::*;
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    BezierPath, BezierPathBuilder, BezierPathFactory, GraphEdge, GraphPath, GraphPathEdgeKind,
+    GraphRayCollision, PathDirection, PathLabel, SimpleBezierPath,
+};
+use flo_curves::{BezierCurve, BoundingBox, Coord2, Coordinate, Coordinate2D, Coordinate3D, Line};
 
 use std::f64;
 
 #[test]
 pub fn create_and_read_simple_graph_path() {
-    let path            = (Coord2(10.0, 11.0), vec![(Coord2(15.0, 16.0), Coord2(17.0, 18.0), Coord2(19.0, 20.0)), (Coord2(21.0, 22.0), Coord2(23.0, 24.0), Coord2(25.0, 26.0))]);
-    let graph_path      = GraphPath::from_path(&path, ());
+    let path = (
+        Coord2(10.0, 11.0),
+        vec![
+            (Coord2(15.0, 16.0), Coord2(17.0, 18.0), Coord2(19.0, 20.0)),
+            (Coord2(21.0, 22.0), Coord2(23.0, 24.0), Coord2(25.0, 26.0)),
+        ],
+    );
+    let graph_path = GraphPath::from_path(&path, ());
 
     assert!(graph_path.num_points() == 3);
 
@@ -45,8 +54,14 @@ pub fn create_and_read_simple_graph_path() {
 
 #[test]
 pub fn create_and_read_simple_graph_path_reverse() {
-    let path            = (Coord2(10.0, 11.0), vec![(Coord2(15.0, 16.0), Coord2(17.0, 18.0), Coord2(19.0, 20.0)), (Coord2(21.0, 22.0), Coord2(23.0, 24.0), Coord2(25.0, 26.0))]);
-    let graph_path      = GraphPath::from_path(&path, ());
+    let path = (
+        Coord2(10.0, 11.0),
+        vec![
+            (Coord2(15.0, 16.0), Coord2(17.0, 18.0), Coord2(19.0, 20.0)),
+            (Coord2(21.0, 22.0), Coord2(23.0, 24.0), Coord2(25.0, 26.0)),
+        ],
+    );
+    let graph_path = GraphPath::from_path(&path, ());
 
     assert!(graph_path.num_points() == 3);
 
@@ -98,7 +113,7 @@ pub fn collide_two_rectangles() {
         .line_to(Coord2(4.0, 9.0))
         .line_to(Coord2(4.0, 4.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, 1);
     let rectangle2 = GraphPath::from_path(&rectangle2, 2);
 
@@ -115,7 +130,7 @@ pub fn collide_two_rectangles() {
         let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
 
         assert!(edges.len() <= 2);
-        assert!(edges.len() >= 1);
+        assert!(!edges.is_empty());
 
         assert!(edges[0].kind() == GraphPathEdgeKind::Uncategorised);
         assert!(edges.len() == 1 || edges[1].kind() == GraphPathEdgeKind::Uncategorised);
@@ -158,8 +173,12 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 2);
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 4.0)) < 0.1));
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1));
+            assert!(edges
+                .iter()
+                .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 4.0)) < 0.1));
+            assert!(edges
+                .iter()
+                .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1));
             assert!(edges.iter().any(|edge| edge.label() == 1));
             assert!(edges.iter().any(|edge| edge.label() == 2));
         }
@@ -168,8 +187,12 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 2);
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(9.0, 4.0)) < 0.1));
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+            assert!(edges
+                .iter()
+                .any(|edge| edge.end_point().distance_to(&Coord2(9.0, 4.0)) < 0.1));
+            assert!(edges
+                .iter()
+                .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
             assert!(edges.iter().any(|edge| edge.label() == 1));
             assert!(edges.iter().any(|edge| edge.label() == 2));
         }
@@ -189,7 +212,7 @@ pub fn collide_identical_rectangles() {
         .line_to(Coord2(1.0, 1.0))
         .build();
     let rectangle2 = rectangle1.clone();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, 1);
     let rectangle2 = GraphPath::from_path(&rectangle2, 2);
 
@@ -213,7 +236,7 @@ pub fn collide_identical_rectangles() {
         if point_idx < 4 {
             assert!(edges.len() == 2);
         } else {
-            assert!(edges.len() == 0);
+            assert!(edges.is_empty());
         }
     }
 }
@@ -233,7 +256,7 @@ fn multiple_collisions_on_one_edge() {
         .line_to(Coord2(4.0, 0.0))
         .line_to(Coord2(2.0, 0.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, ());
     let rectangle2 = GraphPath::from_path(&rectangle2, ());
 
@@ -250,17 +273,33 @@ fn multiple_collisions_on_one_edge() {
         assert!(edges.len() <= 2);
         if edges.len() == 2 {
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
@@ -285,7 +324,7 @@ fn multiple_collisions_on_one_edge_opposite_direction() {
         .line_to(Coord2(2.0, 0.0))
         .line_to(Coord2(4.0, 0.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, ());
     let rectangle2 = GraphPath::from_path(&rectangle2, ());
 
@@ -301,39 +340,59 @@ fn multiple_collisions_on_one_edge_opposite_direction() {
         let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
 
         assert!(edges.len() <= 2);
-        assert!(edges.len() > 0);
+        assert!(!edges.is_empty());
         if edges.len() == 2 {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
                 assert!(false)
             }
         } else if edges.len() == 1 {
-            let edge        = edges.iter().nth(0).unwrap();
+            let edge = edges.iter().nth(0).unwrap();
             let start_point = edge.start_point();
 
-            assert!((start_point.x()-1.0).abs() < 0.01 ||
-                    (start_point.x()-5.0).abs() < 0.01 ||
-                    (start_point.x()-2.0).abs() < 0.01 ||
-                    (start_point.x()-4.0).abs() < 0.01);
-            assert!((start_point.y()-1.0).abs() < 0.01 ||
-                    (start_point.y()-5.0).abs() < 0.01 ||
-                    (start_point.y()-0.0).abs() < 0.01 ||
-                    (start_point.y()-6.0).abs() < 0.01);
+            assert!(
+                (start_point.x() - 1.0).abs() < 0.01
+                    || (start_point.x() - 5.0).abs() < 0.01
+                    || (start_point.x() - 2.0).abs() < 0.01
+                    || (start_point.x() - 4.0).abs() < 0.01
+            );
+            assert!(
+                (start_point.y() - 1.0).abs() < 0.01
+                    || (start_point.y() - 5.0).abs() < 0.01
+                    || (start_point.y() - 0.0).abs() < 0.01
+                    || (start_point.y() - 6.0).abs() < 0.01
+            );
         }
     }
 
@@ -357,7 +416,7 @@ fn collision_at_same_point() {
         .line_to(Coord2(2.0, 0.0))
         .line_to(Coord2(4.0, 0.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, ());
     let rectangle2 = GraphPath::from_path(&rectangle2, ());
 
@@ -372,7 +431,9 @@ fn collision_at_same_point() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 { num_orphaned_points += 1; }
+            if edges.is_empty() {
+                num_orphaned_points += 1;
+            }
         }
 
         assert!(num_orphaned_points <= 1);
@@ -387,34 +448,54 @@ fn collision_at_same_point() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
                 assert!(false)
             }
         } else if edges.len() == 1 {
-            let edge        = edges.iter().nth(0).unwrap();
+            let edge = edges.iter().nth(0).unwrap();
             let start_point = edge.start_point();
 
-            assert!((start_point.x()-1.0).abs() < 0.01 ||
-                    (start_point.x()-5.0).abs() < 0.01 ||
-                    (start_point.x()-2.0).abs() < 0.01 ||
-                    (start_point.x()-4.0).abs() < 0.01);
-            assert!((start_point.y()-1.0).abs() < 0.01 ||
-                    (start_point.y()-5.0).abs() < 0.01 ||
-                    (start_point.y()-0.0).abs() < 0.01 ||
-                    (start_point.y()-6.0).abs() < 0.01);
+            assert!(
+                (start_point.x() - 1.0).abs() < 0.01
+                    || (start_point.x() - 5.0).abs() < 0.01
+                    || (start_point.x() - 2.0).abs() < 0.01
+                    || (start_point.x() - 4.0).abs() < 0.01
+            );
+            assert!(
+                (start_point.y() - 1.0).abs() < 0.01
+                    || (start_point.y() - 5.0).abs() < 0.01
+                    || (start_point.y() - 0.0).abs() < 0.01
+                    || (start_point.y() - 6.0).abs() < 0.01
+            );
         } else {
             // Should only be 1 edge (corners) or 2 edges (collision points)
             println!("{:?}", edges);
@@ -441,7 +522,7 @@ fn collision_exactly_on_edge_src() {
         .line_to(Coord2(2.0, 0.0))
         .line_to(Coord2(4.0, 0.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, ());
     let rectangle2 = GraphPath::from_path(&rectangle2, ());
 
@@ -456,7 +537,9 @@ fn collision_exactly_on_edge_src() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 { num_orphaned_points += 1; }
+            if edges.is_empty() {
+                num_orphaned_points += 1;
+            }
         }
 
         assert!(num_orphaned_points <= 1);
@@ -471,34 +554,54 @@ fn collision_exactly_on_edge_src() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
                 assert!(false)
             }
         } else if edges.len() == 1 {
-            let edge        = edges.iter().nth(0).unwrap();
+            let edge = edges.iter().nth(0).unwrap();
             let start_point = edge.start_point();
 
-            assert!((start_point.x()-1.0).abs() < 0.01 ||
-                    (start_point.x()-5.0).abs() < 0.01 ||
-                    (start_point.x()-2.0).abs() < 0.01 ||
-                    (start_point.x()-4.0).abs() < 0.01);
-            assert!((start_point.y()-1.0).abs() < 0.01 ||
-                    (start_point.y()-5.0).abs() < 0.01 ||
-                    (start_point.y()-0.0).abs() < 0.01 ||
-                    (start_point.y()-6.0).abs() < 0.01);
+            assert!(
+                (start_point.x() - 1.0).abs() < 0.01
+                    || (start_point.x() - 5.0).abs() < 0.01
+                    || (start_point.x() - 2.0).abs() < 0.01
+                    || (start_point.x() - 4.0).abs() < 0.01
+            );
+            assert!(
+                (start_point.y() - 1.0).abs() < 0.01
+                    || (start_point.y() - 5.0).abs() < 0.01
+                    || (start_point.y() - 0.0).abs() < 0.01
+                    || (start_point.y() - 6.0).abs() < 0.01
+            );
         } else {
             // Should only be 1 edge (corners) or 2 edges (collision points)
             println!("{:?}", edges);
@@ -525,7 +628,7 @@ fn collision_exactly_on_edge_tgt() {
         .line_to(Coord2(2.0, 0.0))
         .line_to(Coord2(4.0, 0.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle1, ());
     let rectangle2 = GraphPath::from_path(&rectangle2, ());
 
@@ -540,7 +643,9 @@ fn collision_exactly_on_edge_tgt() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 { num_orphaned_points += 1; }
+            if edges.is_empty() {
+                num_orphaned_points += 1;
+            }
         }
 
         assert!(num_orphaned_points <= 1);
@@ -555,34 +660,54 @@ fn collision_exactly_on_edge_tgt() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+                assert!(edges
+                    .iter()
+                    .any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
                 assert!(false)
             }
         } else if edges.len() == 1 {
-            let edge        = edges.iter().nth(0).unwrap();
+            let edge = edges.iter().nth(0).unwrap();
             let start_point = edge.start_point();
 
-            assert!((start_point.x()-1.0).abs() < 0.01 ||
-                    (start_point.x()-5.0).abs() < 0.01 ||
-                    (start_point.x()-2.0).abs() < 0.01 ||
-                    (start_point.x()-4.0).abs() < 0.01);
-            assert!((start_point.y()-1.0).abs() < 0.01 ||
-                    (start_point.y()-5.0).abs() < 0.01 ||
-                    (start_point.y()-0.0).abs() < 0.01 ||
-                    (start_point.y()-6.0).abs() < 0.01);
+            assert!(
+                (start_point.x() - 1.0).abs() < 0.01
+                    || (start_point.x() - 5.0).abs() < 0.01
+                    || (start_point.x() - 2.0).abs() < 0.01
+                    || (start_point.x() - 4.0).abs() < 0.01
+            );
+            assert!(
+                (start_point.y() - 1.0).abs() < 0.01
+                    || (start_point.y() - 5.0).abs() < 0.01
+                    || (start_point.y() - 0.0).abs() < 0.01
+                    || (start_point.y() - 6.0).abs() < 0.01
+            );
         } else {
             // Should only be 1 edge (corners) or 2 edges (collision points)
             println!("{:?}", edges);
@@ -593,10 +718,16 @@ fn collision_exactly_on_edge_tgt() {
     assert!(num_intersects == 4);
 }
 
-fn to_collision_with_edges<'a, Point, Label>(collisions: Vec<(GraphRayCollision, f64, f64, Coord2)>, graph_path: &'a GraphPath<Point, Label>) -> Vec<(GraphEdge<'a, Point, Label>, f64, f64)> 
-where   Point: Coordinate+Coordinate2D,
-        Label: Copy {
-    collisions.into_iter()
+fn to_collision_with_edges<'a, Point, Label>(
+    collisions: Vec<(GraphRayCollision, f64, f64, Coord2)>,
+    graph_path: &'a GraphPath<Point, Label>,
+) -> Vec<(GraphEdge<'a, Point, Label>, f64, f64)>
+where
+    Point: Coordinate + Coordinate2D,
+    Label: Copy,
+{
+    collisions
+        .into_iter()
         .map(move |(collision, curve_t, line_t, _pos)| {
             let edge = collision.edge();
             (graph_path.get_edge(edge), curve_t, line_t)
@@ -619,11 +750,11 @@ fn cast_ray_to_rectangle_corner() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(1.0, 1.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point() == Coord2(1.0, 1.0));
-    assert!((collision.1-0.0).abs() < 0.01);
+    assert!((collision.1 - 0.0).abs() < 0.01);
 }
 
 #[test]
@@ -644,10 +775,13 @@ fn casting_ray_to_exact_point_produces_one_collision() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(1.0, 1.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    let collisions_with_corner = collision.into_iter()
-        .filter(|(edge, curve_t, _line_t)| edge.point_at_pos(*curve_t).distance_to(&Coord2(1.0, 1.0)) < 0.1)
+    let collisions_with_corner = collision
+        .into_iter()
+        .filter(|(edge, curve_t, _line_t)| {
+            edge.point_at_pos(*curve_t).distance_to(&Coord2(1.0, 1.0)) < 0.1
+        })
         .collect::<Vec<_>>();
-    assert!(collisions_with_corner.len() != 0);
+    assert!(!collisions_with_corner.is_empty());
     assert!(collisions_with_corner.len() != 2);
     assert!(collisions_with_corner.len() == 1);
 }
@@ -668,14 +802,14 @@ fn casting_ray_across_corner_produces_no_collision() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 2.0), Coord2(2.0, 0.0)));
 
     assert!(collision.len() != 1);
-    assert!(collision.len() == 0);
+    assert!(collision.is_empty());
 }
 
 #[test]
 fn casting_ray_to_intersection_point_produces_two_collisions() {
     // A ray hitting an exact point that is an intersection (has two edges leaving it) should produce two collisions, one on each edge
     // ... also this case where we have an overlapping line might be weird (but I don't think we'll generate it properly yet):
-    // 
+    //
     //   +-----+
     //   |     |
     //   |     +----+
@@ -683,9 +817,9 @@ fn casting_ray_to_intersection_point_produces_two_collisions() {
     //   |     +----+
     //   |     |
     //   +-----+
-    // 
+    //
     // (There's an intersection where there are two edges entering it but only one leaving)
-    // 
+    //
     // This test should still be valid if the 'shared' edge is stored in the graph as two edges
 
     // Create a rectangle
@@ -712,10 +846,13 @@ fn casting_ray_to_intersection_point_produces_two_collisions() {
     let collision = collided.ray_collisions(&(Coord2(0.0, 0.0), Coord2(5.0, 3.0)));
     let collision = to_collision_with_edges(collision, &collided);
 
-    let collisions_with_corner = collision.into_iter()
-        .filter(|(edge, curve_t, _line_t)| edge.point_at_pos(*curve_t).distance_to(&Coord2(5.0, 3.0)) < 0.1)
+    let collisions_with_corner = collision
+        .into_iter()
+        .filter(|(edge, curve_t, _line_t)| {
+            edge.point_at_pos(*curve_t).distance_to(&Coord2(5.0, 3.0)) < 0.1
+        })
         .collect::<Vec<_>>();
-    assert!(collisions_with_corner.len() != 0);
+    assert!(!collisions_with_corner.is_empty());
     assert!(collisions_with_corner.len() != 4);
     assert!(collisions_with_corner.len() == 2);
 }
@@ -735,12 +872,18 @@ fn cast_ray_across_rectangle() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 3.0), Coord2(6.0, 3.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
-    assert!(collision.0.point_at_pos(collision.1).distance_to(&Coord2(1.0, 3.0)) < 0.001);
+    assert!(
+        collision
+            .0
+            .point_at_pos(collision.1)
+            .distance_to(&Coord2(1.0, 3.0))
+            < 0.001
+    );
     assert!(collision.0.start_point() == Coord2(1.0, 1.0));
-    assert!((collision.1-0.5).abs() < 0.01);
+    assert!((collision.1 - 0.5).abs() < 0.01);
 }
 
 #[test]
@@ -758,11 +901,11 @@ fn cast_ray_to_rectangle_far_corner() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(6.0, 6.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point() == Coord2(1.0, 1.0));
-    assert!((collision.1-0.0).abs() < 0.01);
+    assert!((collision.1 - 0.0).abs() < 0.01);
 }
 
 #[test]
@@ -780,11 +923,11 @@ fn cast_ray_to_rectangle_far_corner_backwards() {
     let collision = rectangle1.ray_collisions(&(Coord2(6.0, 6.0), Coord2(0.0, 0.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point().distance_to(&Coord2(5.0, 5.0)) < 0.1);
-    assert!((collision.1-0.0).abs() < 0.01);
+    assert!((collision.1 - 0.0).abs() < 0.01);
 }
 
 #[test]
@@ -801,7 +944,7 @@ fn cast_ray_to_nowhere() {
     // Line that entirely misses the rectangle
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(0.0, 10.0)));
 
-    assert!(collision.len() == 0);
+    assert!(collision.is_empty());
 }
 
 #[test]
@@ -816,7 +959,7 @@ fn set_simple_path_as_interior() {
     let mut rectangle1 = GraphPath::from_path(&rectangle1, ());
 
     // Mark everything as an exterior path
-    let first_edge_ref = rectangle1.all_edges().nth(0).unwrap().into();
+    let first_edge_ref = rectangle1.all_edges().next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge_ref, GraphPathEdgeKind::Interior);
 
     // All edges should be exterior
@@ -850,7 +993,7 @@ fn set_collision_as_exterior() {
     let mut collided = rectangle1.collide(rectangle2, 0.01);
 
     // Mark everything as an exterior path
-    let first_edge_ref = collided.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge_ref = collided.edges_for_point(0).next().unwrap().into();
     collided.set_edge_kind_connected(first_edge_ref, GraphPathEdgeKind::Exterior);
 
     // Edges 0 -> 1, 1 -> <x>, <y> -> 2, 2 -> 3 and 3 -> 0 should all be exterior
@@ -860,7 +1003,9 @@ fn set_collision_as_exterior() {
         assert!(edges.len() == 1);
         assert!(edges[0].kind() == GraphPathEdgeKind::Exterior);
 
-        let edges = collided.reverse_edges_for_point(point_idx).collect::<Vec<_>>();
+        let edges = collided
+            .reverse_edges_for_point(point_idx)
+            .collect::<Vec<_>>();
 
         assert!(edges.len() == 1);
         assert!(edges[0].kind() == GraphPathEdgeKind::Exterior);
@@ -870,7 +1015,10 @@ fn set_collision_as_exterior() {
     for point_idx in 4..(collided.num_points()) {
         let edges = collided.edges_for_point(point_idx).collect::<Vec<_>>();
 
-        assert!(edges.into_iter().all(|edge| edge.end_point_index() < 4 || edge.kind() == GraphPathEdgeKind::Uncategorised));
+        assert!(edges
+            .into_iter()
+            .all(|edge| edge.end_point_index() < 4
+                || edge.kind() == GraphPathEdgeKind::Uncategorised));
     }
 }
 
@@ -886,7 +1034,7 @@ fn get_path_from_exterior_lines() {
     let mut rectangle1 = GraphPath::from_path(&rectangle1, ());
 
     // Mark everything as an exterior path
-    let first_edge = rectangle1.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(0).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
     // Turn back into a path
@@ -921,15 +1069,15 @@ fn get_path_from_exterior_lines_multiple_paths() {
         .line_to(Coord2(15.0, 1.0))
         .line_to(Coord2(11.0, 1.0))
         .build();
-    let rectangle1      = GraphPath::from_path(&rectangle1, ());
-    let rectangle2      = GraphPath::from_path(&rectangle2, ());
-    let mut rectangle1  = rectangle1.merge(rectangle2);
+    let rectangle1 = GraphPath::from_path(&rectangle1, ());
+    let rectangle2 = GraphPath::from_path(&rectangle2, ());
+    let mut rectangle1 = rectangle1.merge(rectangle2);
 
     // Mark everything as an exterior path
-    let first_edge = rectangle1.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(0).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
-    let first_edge = rectangle1.edges_for_point(4).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(4).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
     // Turn back into a path
@@ -975,12 +1123,17 @@ fn collide_circles() {
     for point_idx in 0..10 {
         println!("Point {:?}", point_idx);
         for edge in graph_path.edges_for_point(point_idx) {
-            println!("  {:?} -> {:?} ({:?})", edge.start_point(), edge.end_point(), edge.end_point_index());
+            println!(
+                "  {:?} -> {:?} ({:?})",
+                edge.start_point(),
+                edge.end_point(),
+                edge.end_point_index()
+            );
         }
     }
 
     // First four points should correspond to the four points in circle1 (and should all have one edge)
-    // Some implementation details depended on here: 
+    // Some implementation details depended on here:
     //   * we preserve at least the points from the first path when colliding
     assert!(graph_path.edges_for_point(0).collect::<Vec<_>>().len() == 1);
     assert!(graph_path.edges_for_point(1).collect::<Vec<_>>().len() == 1);
@@ -988,29 +1141,50 @@ fn collide_circles() {
     assert!(graph_path.edges_for_point(3).collect::<Vec<_>>().len() == 1);
 
     // Point 1 should lead to the intersection point
-    let to_intersection     = graph_path.edges_for_point(0).nth(0).unwrap();
-    let intersection_point  = to_intersection.end_point_index();
+    let to_intersection = graph_path.edges_for_point(0).next().unwrap();
+    let intersection_point = to_intersection.end_point_index();
 
     assert!(intersection_point > 3);
 
     // Intersection point should lead to another intersection point
-    let intersection_edges = graph_path.edges_for_point(intersection_point).collect::<Vec<_>>();
+    let intersection_edges = graph_path
+        .edges_for_point(intersection_point)
+        .collect::<Vec<_>>();
     assert!(intersection_edges.len() == 2);
 
     // Should lead to one point in the second circle, and one other intersection point
-    let is_intersection = |point_num| { graph_path.edges_for_point(point_num).collect::<Vec<_>>().len() > 1 };
+    let is_intersection = |point_num| {
+        graph_path
+            .edges_for_point(point_num)
+            .collect::<Vec<_>>()
+            .len()
+            > 1
+    };
 
-    assert!(intersection_edges.iter().any(|edge| !is_intersection(edge.end_point_index())));
-    assert!(intersection_edges.iter().any(|edge| is_intersection(edge.end_point_index())));
+    assert!(intersection_edges
+        .iter()
+        .any(|edge| !is_intersection(edge.end_point_index())));
+    assert!(intersection_edges
+        .iter()
+        .any(|edge| is_intersection(edge.end_point_index())));
 
     // The following intersection point should have one point that leads back into our path
-    let following_intersection      = intersection_edges.iter().filter(|edge| is_intersection(edge.end_point_index())).nth(0).unwrap();
-    let second_intersection_edges   = graph_path.edges_for_point(following_intersection.end_point_index()).collect::<Vec<_>>();
+    let following_intersection = intersection_edges
+        .iter()
+        .find(|edge| is_intersection(edge.end_point_index()))
+        .unwrap();
+    let second_intersection_edges = graph_path
+        .edges_for_point(following_intersection.end_point_index())
+        .collect::<Vec<_>>();
 
-    assert!(second_intersection_edges.iter().any(|edge| edge.end_point_index() <= 3));
+    assert!(second_intersection_edges
+        .iter()
+        .any(|edge| edge.end_point_index() <= 3));
 
     // It should also have a point that leads back to the first intersection, forming a loop
-    assert!(second_intersection_edges.iter().any(|edge| edge.end_point_index() == intersection_point));
+    assert!(second_intersection_edges
+        .iter()
+        .any(|edge| edge.end_point_index() == intersection_point));
 }
 
 #[test]
@@ -1037,7 +1211,8 @@ fn self_collide_simple_path() {
     assert!(with_interior_point.num_points() == 7);
 
     // One intersection
-    let num_intersections = (0..(with_interior_point.num_points())).into_iter()
+    let num_intersections = (0..(with_interior_point.num_points()))
+        .into_iter()
         .filter(|point_idx| with_interior_point.edges_for_point(*point_idx).count() > 1)
         .count();
     assert!(num_intersections == 1);
@@ -1066,14 +1241,35 @@ fn collide_at_shared_point() {
     let graph = graph.collide(GraphPath::from_path(&rectangle2, ()), 0.01);
 
     // Should be two points at 3.0, 5.0 with only one having any edges
-    let edges_at_shared = graph.all_edges().filter(|edge| edge.start_point().distance_to(&Coord2(3.0, 5.0)) < 0.1).collect::<Vec<_>>();
+    let edges_at_shared = graph
+        .all_edges()
+        .filter(|edge| edge.start_point().distance_to(&Coord2(3.0, 5.0)) < 0.1)
+        .collect::<Vec<_>>();
 
     assert!(edges_at_shared.len() == 2);
     assert!(edges_at_shared[0].start_point_index() == edges_at_shared[1].start_point_index());
-    assert!(edges_at_shared[0].end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(edges_at_shared[1].end_point().distance_to(&Coord2(3.0, 3.0)) < 0.1);
+    assert!(
+        edges_at_shared[0]
+            .end_point()
+            .distance_to(&Coord2(1.0, 5.0))
+            < 0.1
+    );
+    assert!(
+        edges_at_shared[1]
+            .end_point()
+            .distance_to(&Coord2(3.0, 3.0))
+            < 0.1
+    );
 
-    let points_at_shared = (0..(graph.num_points())).into_iter().filter(|point_idx| graph.point_position(*point_idx).distance_to(&Coord2(3.0, 5.0)) < 0.01).collect::<Vec<_>>();
+    let points_at_shared = (0..(graph.num_points()))
+        .into_iter()
+        .filter(|point_idx| {
+            graph
+                .point_position(*point_idx)
+                .distance_to(&Coord2(3.0, 5.0))
+                < 0.01
+        })
+        .collect::<Vec<_>>();
     assert!(points_at_shared.len() == 2);
 }
 
@@ -1086,7 +1282,7 @@ pub fn collide_rectangle_with_self() {
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(1.0, 1.0))
         .build();
-    
+
     let rectangle1 = GraphPath::from_path(&rectangle, 1);
     let rectangle2 = GraphPath::from_path(&rectangle, 2);
 
@@ -1103,7 +1299,9 @@ pub fn collide_rectangle_with_self() {
         let num_edges = collision.edges_for_point(point_idx).count();
 
         assert!(num_edges == 2 || num_edges == 0);
-        if num_edges != 0 { num_connected_points += 1 }
+        if num_edges != 0 {
+            num_connected_points += 1
+        }
     }
 
     assert!(num_connected_points == 4);
@@ -1122,15 +1320,15 @@ fn ray_collide_along_convex_edge() {
     // Collide along the vertical seam of this graph
     let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise));
 
-    let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
-    let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
+    let collisions_seam = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
+    let collisions_no_seam = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
 
     assert!(collisions_no_seam.len() == 2);
 
     // As the ray never actually enters the shape along the seam, there should be 0 collisions
     println!("{:?}", collisions_seam);
     assert!(collisions_seam.len() != 2);
-    assert!(collisions_seam.len() == 0);
+    assert!(collisions_seam.is_empty());
 }
 
 #[test]
@@ -1147,8 +1345,8 @@ fn ray_collide_along_concave_edge() {
     // Collide along the vertical seam of this graph
     let gp = GraphPath::from_path(&concave_shape, PathLabel(0, PathDirection::Clockwise));
 
-    let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
-    let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
+    let collisions_seam = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
+    let collisions_no_seam = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
 
     assert!(collisions_no_seam.len() == 2);
 
@@ -1175,12 +1373,15 @@ fn ray_collide_along_seam_with_intersection() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise)).collide(GraphPath::from_path(&rectangle2, PathLabel(1, PathDirection::Clockwise)), 0.01);
+    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise)).collide(
+        GraphPath::from_path(&rectangle2, PathLabel(1, PathDirection::Clockwise)),
+        0.01,
+    );
 
     println!("{:?}", gp);
 
-    let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
-    let collisions_no_seam  = gp.ray_collisions(&(Coord2(5.1, 0.0), Coord2(5.1, 5.0)));
+    let collisions_seam = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
+    let collisions_no_seam = gp.ray_collisions(&(Coord2(5.1, 0.0), Coord2(5.1, 5.0)));
 
     // Should collide with the line crossing the intersection, and the top line (so two collisions total)
     assert!(collisions_no_seam.len() == 2);
@@ -1188,12 +1389,12 @@ fn ray_collide_along_seam_with_intersection() {
     assert!(collisions_seam.len() != 4);
     assert!(collisions_seam.len() != 3);
     assert!(collisions_seam.len() != 1);
-    assert!(collisions_seam.len()&1 == 0);
+    assert!(collisions_seam.len() & 1 == 0);
     assert!(collisions_seam.len() == 2);
 
     let ray = (Coord2(5.0, 0.0), Coord2(5.0, 5.0));
-    let first_collision     = ray.point_at_pos(collisions_seam[0].2);
-    let second_collision    = ray.point_at_pos(collisions_seam[1].2);
+    let first_collision = ray.point_at_pos(collisions_seam[0].2);
+    let second_collision = ray.point_at_pos(collisions_seam[1].2);
 
     println!("{:?} {:?}", first_collision, second_collision);
 
@@ -1253,56 +1454,59 @@ fn ray_collide_with_edges_and_convex_point_intersection() {
 
 #[test]
 fn ray_collide_doughnuts_near_intersection() {
-    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle1   = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
-    let circle2         = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle2   = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle1 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle2 = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
-    let mut circle1     = GraphPath::from_path(&circle1, ());
-    circle1             = circle1.merge(GraphPath::from_path(&inner_circle1, ()));
-    let mut circle2     = GraphPath::from_path(&circle2, ());
-    circle2             = circle2.merge(GraphPath::from_path(&inner_circle2, ()));
+    let mut circle1 = GraphPath::from_path(&circle1, ());
+    circle1 = circle1.merge(GraphPath::from_path(&inner_circle1, ()));
+    let mut circle2 = GraphPath::from_path(&circle2, ());
+    circle2 = circle2.merge(GraphPath::from_path(&inner_circle2, ()));
 
-    let graph_path      = circle1.collide(circle2, 0.1);
+    let graph_path = circle1.collide(circle2, 0.1);
 
-    let collisions      = graph_path.ray_collisions(&(Coord2(7.000584357101389, 8.342524209216537), Coord2(6.941479643691172, 8.441210096108172)));
+    let collisions = graph_path.ray_collisions(&(
+        Coord2(7.000584357101389, 8.342524209216537),
+        Coord2(6.941479643691172, 8.441210096108172),
+    ));
     let collision_count = collisions.len();
 
     println!("{:?}", collisions);
 
-    assert!((collision_count&1) == 0);
+    assert!((collision_count & 1) == 0);
 }
 
 #[test]
 fn ray_collide_doughnuts_many_angles() {
-    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle1   = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
-    let circle2         = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle2   = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle1 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle2 = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
-    let mut circle1     = GraphPath::from_path(&circle1, ());
-    circle1             = circle1.merge(GraphPath::from_path(&inner_circle1, ()));
-    let mut circle2     = GraphPath::from_path(&circle2, ());
-    circle2             = circle2.merge(GraphPath::from_path(&inner_circle2, ()));
+    let mut circle1 = GraphPath::from_path(&circle1, ());
+    circle1 = circle1.merge(GraphPath::from_path(&inner_circle1, ()));
+    let mut circle2 = GraphPath::from_path(&circle2, ());
+    circle2 = circle2.merge(GraphPath::from_path(&inner_circle2, ()));
 
-    let graph_path      = circle1.collide(circle2, 0.01);
+    let graph_path = circle1.collide(circle2, 0.01);
 
     for angle in 0..3600 {
-        let angle       = (angle as f64)/3600.0;
-        let angle       = (angle/360.0) * 2.0*f64::consts::PI;
-        let ray_start   = Coord2(9.0, 5.0) + Coord2(5.0*angle.sin(), 5.0*angle.cos());
-        let ray_end     = Coord2(5.0, 5.0) - Coord2(5.0*angle.sin(), 5.0*angle.cos());
+        let angle = (angle as f64) / 3600.0;
+        let angle = (angle / 360.0) * 2.0 * f64::consts::PI;
+        let ray_start = Coord2(9.0, 5.0) + Coord2(5.0 * angle.sin(), 5.0 * angle.cos());
+        let ray_end = Coord2(5.0, 5.0) - Coord2(5.0 * angle.sin(), 5.0 * angle.cos());
 
-        let collisions      = graph_path.ray_collisions(&(ray_start, ray_end));
+        let collisions = graph_path.ray_collisions(&(ray_start, ray_end));
         let collision_count = collisions.len();
 
-        assert!((collision_count&1) == 0);
+        assert!((collision_count & 1) == 0);
     }
 }
 
 #[test]
 fn self_collide_removes_shared_point_1() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(3.0, 3.0))
         .line_to(Coord2(5.0, 5.0))
@@ -1311,7 +1515,7 @@ fn self_collide_removes_shared_point_1() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
+    let mut graph_path = GraphPath::from_path(&path, ());
     graph_path.self_collide(0.01);
 
     let mut edges_ending_at_center = vec![];
@@ -1322,12 +1526,14 @@ fn self_collide_removes_shared_point_1() {
     }
 
     assert!(edges_ending_at_center.len() == 2);
-    assert!(edges_ending_at_center.iter().all(|edge| edge.end_point_index() == edges_ending_at_center[0].end_point_index()));
+    assert!(edges_ending_at_center
+        .iter()
+        .all(|edge| edge.end_point_index() == edges_ending_at_center[0].end_point_index()));
 }
 
 #[test]
 fn self_collide_removes_shared_point_2() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(3.0, 3.0))
         .line_to(Coord2(5.0, 1.0))
@@ -1336,7 +1542,7 @@ fn self_collide_removes_shared_point_2() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
+    let mut graph_path = GraphPath::from_path(&path, ());
     graph_path.self_collide(0.01);
 
     let mut edges_ending_at_center = vec![];
@@ -1347,12 +1553,14 @@ fn self_collide_removes_shared_point_2() {
     }
 
     assert!(edges_ending_at_center.len() == 2);
-    assert!(edges_ending_at_center.iter().all(|edge| edge.end_point_index() == edges_ending_at_center[0].end_point_index()));
+    assert!(edges_ending_at_center
+        .iter()
+        .all(|edge| edge.end_point_index() == edges_ending_at_center[0].end_point_index()));
 }
 
 #[test]
 fn self_collide_divides_lines_1() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(3.0, 0.0))
         .line_to(Coord2(5.0, 5.0))
@@ -1360,7 +1568,7 @@ fn self_collide_divides_lines_1() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
+    let mut graph_path = GraphPath::from_path(&path, ());
 
     assert!(graph_path.all_edges().count() == 5);
 
@@ -1371,7 +1579,7 @@ fn self_collide_divides_lines_1() {
 
 #[test]
 fn self_collide_divides_lines_2() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(3.0, 0.985))
         .line_to(Coord2(5.0, 5.0))
@@ -1379,7 +1587,7 @@ fn self_collide_divides_lines_2() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
+    let mut graph_path = GraphPath::from_path(&path, ());
 
     assert!(graph_path.all_edges().count() == 5);
 
@@ -1391,7 +1599,7 @@ fn self_collide_divides_lines_2() {
 
 #[test]
 fn self_collide_divides_lines_3() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(3.0, 0.999))
         .line_to(Coord2(5.0, 5.0))
@@ -1399,7 +1607,7 @@ fn self_collide_divides_lines_3() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
+    let mut graph_path = GraphPath::from_path(&path, ());
 
     assert!(graph_path.all_edges().count() == 5);
 
@@ -1408,24 +1616,27 @@ fn self_collide_divides_lines_3() {
     println!("{:?}", graph_path);
 
     // So close we should just collide as if the 3.0, 0.999 point is at 3.0, 1.0
-    assert!(!graph_path.all_edges().any(|edge| edge.start_point().distance_to(&edge.end_point()) < 0.001));
-    assert!(graph_path.all_edges().count() != 9);           // Technically valid, indicates a change in the precision of the collision
+    assert!(!graph_path
+        .all_edges()
+        .any(|edge| edge.start_point().distance_to(&edge.end_point()) < 0.001));
+    assert!(graph_path.all_edges().count() != 9); // Technically valid, indicates a change in the precision of the collision
     assert!(graph_path.all_edges().count() != 7);
     assert!(graph_path.all_edges().count() == 6);
 }
 
 #[test]
 fn heal_one_line_gap() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(5.0, 5.0))
         .line_to(Coord2(5.0, 1.0))
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
-    let edges           = (0..4).into_iter()
-        .map(|point_idx| graph_path.edges_for_point(point_idx).nth(0).unwrap().into())
+    let mut graph_path = GraphPath::from_path(&path, ());
+    let edges = (0..4)
+        .into_iter()
+        .map(|point_idx| graph_path.edges_for_point(point_idx).next().unwrap().into())
         .collect::<Vec<_>>();
 
     graph_path.set_edge_kind(edges[0], GraphPathEdgeKind::Exterior);
@@ -1439,19 +1650,19 @@ fn heal_one_line_gap() {
     assert!(graph_path.get_edge(edges[1]).kind() == GraphPathEdgeKind::Exterior);
 }
 
-
 #[test]
 fn heal_two_line_gap() {
-    let path            = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(5.0, 5.0))
         .line_to(Coord2(5.0, 1.0))
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let mut graph_path  = GraphPath::from_path(&path, ());
-    let edges           = (0..4).into_iter()
-        .map(|point_idx| graph_path.edges_for_point(point_idx).nth(0).unwrap().into())
+    let mut graph_path = GraphPath::from_path(&path, ());
+    let edges = (0..4)
+        .into_iter()
+        .map(|point_idx| graph_path.edges_for_point(point_idx).next().unwrap().into())
         .collect::<Vec<_>>();
 
     graph_path.set_edge_kind(edges[0], GraphPathEdgeKind::Exterior);
@@ -1510,9 +1721,10 @@ fn ray_cast_at_tiny_line_2() {
 
     // Should be able to cast a ray and hit our line and none of the others
     for p in 0..10 {
-        let offset = ((p as f64)/10.0) * 0.01;
+        let offset = ((p as f64) / 10.0) * 0.01;
 
-        let collisions = path.ray_collisions(&(Coord2(2.9945 + offset, 0.0), Coord2(2.9945+offset, 1.0)));
+        let collisions =
+            path.ray_collisions(&(Coord2(2.9945 + offset, 0.0), Coord2(2.9945 + offset, 1.0)));
         println!("{:?}", collisions);
         assert!(collisions.len() == 2);
 
@@ -1627,18 +1839,39 @@ fn ray_cast_at_tiny_line_6() {
     // Path with a pair of lines with a known failure on them
     let path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(525.2388916015625, 931.7135009765625))
-        .curve_to((Coord2(525.4012451171875, 931.7196044921875), Coord2(525.5686645507813, 931.7201538085938)), Coord2(525.7626342773438, 931.6915893554688))
-        .curve_to((Coord2(526.2460327148438, 931.761962890625), Coord2(526.3161010742188, 931.8532104492188)), Coord2(526.6378173828125, 931.9375610351563))
-        .curve_to((Coord2(529.997314453125, 935.0886840820313), Coord2(508.8724365234375, 903.5847778320313)), Coord2(508.7933654785156, 901.745849609375))
+        .curve_to(
+            (
+                Coord2(525.4012451171875, 931.7196044921875),
+                Coord2(525.5686645507813, 931.7201538085938),
+            ),
+            Coord2(525.7626342773438, 931.6915893554688),
+        )
+        .curve_to(
+            (
+                Coord2(526.2460327148438, 931.761962890625),
+                Coord2(526.3161010742188, 931.8532104492188),
+            ),
+            Coord2(526.6378173828125, 931.9375610351563),
+        )
+        .curve_to(
+            (
+                Coord2(529.997314453125, 935.0886840820313),
+                Coord2(508.8724365234375, 903.5847778320313),
+            ),
+            Coord2(508.7933654785156, 901.745849609375),
+        )
         .line_to(Coord2(700.0, 900.0))
         .line_to(Coord2(1.0, 900.0))
         .line_to(Coord2(1.0, 1.0))
         .build();
     let path = GraphPath::from_path(&path, ());
 
-    let collisions = path.ray_collisions(&(Coord2(543.606689453125, 925.3496704101563), Coord2(553.524658203125, 921.505126953125)));
+    let collisions = path.ray_collisions(&(
+        Coord2(543.606689453125, 925.3496704101563),
+        Coord2(553.524658203125, 921.505126953125),
+    ));
     println!("{:?}", collisions);
-    assert!((collisions.len()&1) == 0);
+    assert!((collisions.len() & 1) == 0);
     assert!(collisions.len() == 4);
 }
 
@@ -1656,9 +1889,9 @@ fn ray_cast_grazing_circle_produces_0_hits() {
     let collisions = path.ray_collisions(&(Coord2(24.0, 0.0), Coord2(24.0, 1.0)));
 
     // Should not actually hit the circle
-    assert!(collisions.len() != 2);         // 2 collisions would produce no bug
+    assert!(collisions.len() != 2); // 2 collisions would produce no bug
     assert!(collisions.len() != 1);
-    assert!(collisions.len() == 0);
+    assert!(collisions.is_empty());
 }
 
 #[test]
@@ -1675,7 +1908,7 @@ fn ray_cast_close_to_circle_produces_2_hits() {
     let collisions = path.ray_collisions(&(Coord2(23.99, 0.0), Coord2(23.99, 1.0)));
 
     // Should not actually hit the circle
-    assert!(collisions.len() != 0);
+    assert!(!collisions.is_empty());
     assert!(collisions.len() != 1);
     assert!(collisions.len() == 2);
 }
@@ -1683,36 +1916,36 @@ fn ray_cast_close_to_circle_produces_2_hits() {
 #[test]
 pub fn ray_cast_identical_rectangles() {
     // Create the two rectangles
-    let rectangle1  = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+    let rectangle1 = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
         .line_to(Coord2(5.0, 1.0))
         .line_to(Coord2(5.0, 5.0))
         .line_to(Coord2(1.0, 5.0))
         .line_to(Coord2(1.0, 1.0))
         .build();
-    let rectangle2  = rectangle1.clone();
-    
-    let rectangle1  = GraphPath::from_path(&rectangle1, 1);
-    let rectangle2  = GraphPath::from_path(&rectangle2, 2);
+    let rectangle2 = rectangle1.clone();
+
+    let rectangle1 = GraphPath::from_path(&rectangle1, 1);
+    let rectangle2 = GraphPath::from_path(&rectangle2, 2);
 
     // Collide them
-    let path        = rectangle1.collide(rectangle2, 0.1);
+    let path = rectangle1.collide(rectangle2, 0.1);
 
     // The edges are identical, so we need to process them in a consistent order
-    let collisions  = path.ray_collisions(&(Coord2(3.0, 0.0), Coord2(3.0, 10.0)));
+    let collisions = path.ray_collisions(&(Coord2(3.0, 0.0), Coord2(3.0, 10.0)));
 
     // Collides with two edges twice, so four total collisions
     assert!(collisions.len() == 4);
 
     // First two collisions should hit path 1 and path 2
-    let edge1       = collisions[0].0.edge();
-    let edge2       = collisions[1].0.edge();
-    let edge3       = collisions[2].0.edge();
-    let edge4       = collisions[3].0.edge();
+    let edge1 = collisions[0].0.edge();
+    let edge2 = collisions[1].0.edge();
+    let edge3 = collisions[2].0.edge();
+    let edge4 = collisions[3].0.edge();
 
-    let edge1       = path.get_edge(edge1);
-    let edge2       = path.get_edge(edge2);
-    let edge3       = path.get_edge(edge3);
-    let edge4       = path.get_edge(edge4);
+    let edge1 = path.get_edge(edge1);
+    let edge2 = path.get_edge(edge2);
+    let edge3 = path.get_edge(edge3);
+    let edge4 = path.get_edge(edge4);
 
     // edge1, edge2 and edge3, edge4 should all have the same start and end points (ie, be duplicate edges)
     assert!(edge1.start_point_index() == edge2.start_point_index());

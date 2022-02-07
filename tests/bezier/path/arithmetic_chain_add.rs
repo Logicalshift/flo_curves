@@ -1,8 +1,11 @@
-use flo_curves::*;
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_add_chain, path_remove_interior_points, BezierPath, BezierPathBuilder, BezierPathFactory,
+    GraphPath, SimpleBezierPath,
+};
+use flo_curves::{BezierCurve, Coord2, Coordinate, Line};
 
-use super::svg::*;
+use super::svg::svg_path_string;
 
 #[test]
 fn add_two_overlapping_circles() {
@@ -11,32 +14,47 @@ fn add_two_overlapping_circles() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
+    let combined_circles =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
 
     assert!(combined_circles.len() == 1);
 
     // All points should be on either circle, and two should be on both
-    let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
+    let points = combined_circles[0]
+        .points()
+        .map(|(_, _, end_point)| end_point);
 
-    let mut num_points_on_circle1   = 0;
-    let mut num_points_on_circle2   = 0;
-    let mut num_points_on_both      = 0;
+    let mut num_points_on_circle1 = 0;
+    let mut num_points_on_circle2 = 0;
+    let mut num_points_on_both = 0;
 
     for point in points {
         let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(&point);
         let distance_to_circle2 = Coord2(7.0, 5.0).distance_to(&point);
 
         // Must be on either circle
-        assert!((distance_to_circle1-4.0).abs() < 0.01 || (distance_to_circle2-4.0).abs() < 0.01);
+        assert!(
+            (distance_to_circle1 - 4.0).abs() < 0.01 || (distance_to_circle2 - 4.0).abs() < 0.01
+        );
 
-        println!("{:?} {:?} {:?}", point, distance_to_circle1, distance_to_circle2);
+        println!(
+            "{:?} {:?} {:?}",
+            point, distance_to_circle1, distance_to_circle2
+        );
 
-        if (distance_to_circle1-4.0).abs() < 0.01 && (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_both += 1 }
-        else if (distance_to_circle1-4.0).abs() < 0.01 { num_points_on_circle1 += 1 }
-        else if (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_circle2 += 1 }
+        if (distance_to_circle1 - 4.0).abs() < 0.01 && (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_both += 1
+        } else if (distance_to_circle1 - 4.0).abs() < 0.01 {
+            num_points_on_circle1 += 1
+        } else if (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_circle2 += 1
+        }
     }
 
-    println!("{:?} {:?} {:?}", num_points_on_circle1, num_points_on_circle2, num_points_on_both);
+    println!(
+        "{:?} {:?} {:?}",
+        num_points_on_circle1, num_points_on_circle2, num_points_on_both
+    );
 
     assert!(num_points_on_circle1 == 2);
     assert!(num_points_on_circle2 == 2);
@@ -50,21 +68,26 @@ fn add_circle_inside_circle() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
+    let combined_circles =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
 
     assert!(combined_circles.len() == 1);
 
     // All points should be on either circle, and two should be on both
-    let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
+    let points = combined_circles[0]
+        .points()
+        .map(|(_, _, end_point)| end_point);
 
-    let mut num_points_on_circle1   = 0;
+    let mut num_points_on_circle1 = 0;
 
     for point in points {
         let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(&point);
 
         // Must be on the circle
-        assert!((distance_to_circle1-4.0).abs() < 0.01);
-        if (distance_to_circle1-4.0).abs() < 0.01 { num_points_on_circle1 += 1 }
+        assert!((distance_to_circle1 - 4.0).abs() < 0.01);
+        if (distance_to_circle1 - 4.0).abs() < 0.01 {
+            num_points_on_circle1 += 1
+        }
     }
 
     assert!(num_points_on_circle1 == 4);
@@ -77,32 +100,47 @@ fn add_two_overlapping_circles_further_apart() {
     let circle2 = Circle::new(Coord2(12.9, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
+    let combined_circles =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
 
     assert!(combined_circles.len() == 1);
 
     // All points should be on either circle, and two should be on both
-    let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
+    let points = combined_circles[0]
+        .points()
+        .map(|(_, _, end_point)| end_point);
 
-    let mut num_points_on_circle1   = 0;
-    let mut num_points_on_circle2   = 0;
-    let mut num_points_on_both      = 0;
+    let mut num_points_on_circle1 = 0;
+    let mut num_points_on_circle2 = 0;
+    let mut num_points_on_both = 0;
 
     for point in points {
         let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(&point);
         let distance_to_circle2 = Coord2(12.9, 5.0).distance_to(&point);
 
         // Must be on either circle
-        assert!((distance_to_circle1-4.0).abs() < 0.01 || (distance_to_circle2-4.0).abs() < 0.01);
+        assert!(
+            (distance_to_circle1 - 4.0).abs() < 0.01 || (distance_to_circle2 - 4.0).abs() < 0.01
+        );
 
-        println!("{:?} {:?} {:?}", point, distance_to_circle1, distance_to_circle2);
+        println!(
+            "{:?} {:?} {:?}",
+            point, distance_to_circle1, distance_to_circle2
+        );
 
-        if (distance_to_circle1-4.0).abs() < 0.01 && (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_both += 1 }
-        else if (distance_to_circle1-4.0).abs() < 0.01 { num_points_on_circle1 += 1 }
-        else if (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_circle2 += 1 }
+        if (distance_to_circle1 - 4.0).abs() < 0.01 && (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_both += 1
+        } else if (distance_to_circle1 - 4.0).abs() < 0.01 {
+            num_points_on_circle1 += 1
+        } else if (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_circle2 += 1
+        }
     }
 
-    println!("{:?} {:?} {:?}", num_points_on_circle1, num_points_on_circle2, num_points_on_both);
+    println!(
+        "{:?} {:?} {:?}",
+        num_points_on_circle1, num_points_on_circle2, num_points_on_both
+    );
 
     assert!(num_points_on_circle1 == 4);
     assert!(num_points_on_circle2 == 4);
@@ -117,33 +155,48 @@ fn add_two_overlapping_circles_with_one_reversed() {
     let circle2 = circle2.reversed::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
+    let combined_circles =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.01);
 
     println!("{:?}", combined_circles);
     assert!(combined_circles.len() == 1);
 
     // All points should be on either circle, and two should be on both
-    let points = combined_circles[0].points().map(|(_, _, end_point)| end_point);
+    let points = combined_circles[0]
+        .points()
+        .map(|(_, _, end_point)| end_point);
 
-    let mut num_points_on_circle1   = 0;
-    let mut num_points_on_circle2   = 0;
-    let mut num_points_on_both      = 0;
+    let mut num_points_on_circle1 = 0;
+    let mut num_points_on_circle2 = 0;
+    let mut num_points_on_both = 0;
 
     for point in points {
         let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(&point);
         let distance_to_circle2 = Coord2(7.0, 5.0).distance_to(&point);
 
         // Must be on either circle
-        assert!((distance_to_circle1-4.0).abs() < 0.01 || (distance_to_circle2-4.0).abs() < 0.01);
+        assert!(
+            (distance_to_circle1 - 4.0).abs() < 0.01 || (distance_to_circle2 - 4.0).abs() < 0.01
+        );
 
-        println!("{:?} {:?} {:?}", point, distance_to_circle1, distance_to_circle2);
+        println!(
+            "{:?} {:?} {:?}",
+            point, distance_to_circle1, distance_to_circle2
+        );
 
-        if (distance_to_circle1-4.0).abs() < 0.01 && (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_both += 1 }
-        else if (distance_to_circle1-4.0).abs() < 0.01 { num_points_on_circle1 += 1 }
-        else if (distance_to_circle2-4.0).abs() < 0.01 { num_points_on_circle2 += 1 }
+        if (distance_to_circle1 - 4.0).abs() < 0.01 && (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_both += 1
+        } else if (distance_to_circle1 - 4.0).abs() < 0.01 {
+            num_points_on_circle1 += 1
+        } else if (distance_to_circle2 - 4.0).abs() < 0.01 {
+            num_points_on_circle2 += 1
+        }
     }
 
-    println!("{:?} {:?} {:?}", num_points_on_circle1, num_points_on_circle2, num_points_on_both);
+    println!(
+        "{:?} {:?} {:?}",
+        num_points_on_circle1, num_points_on_circle2, num_points_on_both
+    );
 
     assert!(num_points_on_circle1 == 2);
     assert!(num_points_on_circle2 == 2);
@@ -157,7 +210,8 @@ fn add_two_non_overlapping_circles() {
     let circle2 = Circle::new(Coord2(20.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.1);
+    let combined_circles =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1], vec![circle2]], 0.1);
 
     println!("{:?}", combined_circles);
     assert!(combined_circles.len() == 2);
@@ -166,10 +220,10 @@ fn add_two_non_overlapping_circles() {
 #[test]
 fn add_two_doughnuts() {
     // Two overlapping circles
-    let circle1         = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle1   = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
-    let circle2         = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
-    let inner_circle2   = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle1 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(9.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let inner_circle2 = Circle::new(Coord2(9.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     println!("{}", svg_path_string(&circle1));
     println!("{}", svg_path_string(&inner_circle1));
@@ -177,11 +231,20 @@ fn add_two_doughnuts() {
     println!("{}", svg_path_string(&inner_circle2));
 
     // Combine them
-    let combined_circles = path_add_chain::<_, SimpleBezierPath>(&vec![vec![circle1, inner_circle1], vec![circle2, inner_circle2]], 0.09);
+    let combined_circles = path_add_chain::<_, SimpleBezierPath>(
+        &vec![vec![circle1, inner_circle1], vec![circle2, inner_circle2]],
+        0.09,
+    );
 
     println!("{:?}", combined_circles.len());
     println!("{:?}", combined_circles);
-    println!("{:?}", combined_circles.iter().map(|path| svg_path_string(path)).collect::<Vec<_>>());
+    println!(
+        "{:?}",
+        combined_circles
+            .iter()
+            .map(svg_path_string)
+            .collect::<Vec<_>>()
+    );
     assert!(combined_circles.len() == 4);
 }
 
@@ -196,7 +259,8 @@ fn remove_interior_points_basic() {
         .line_to(Coord2(1.0, 1.0))
         .build();
 
-    let with_points_removed: Vec<SimpleBezierPath> = path_remove_interior_points(&vec![with_interior_point], 0.1);
+    let with_points_removed: Vec<SimpleBezierPath> =
+        path_remove_interior_points(&[with_interior_point], 0.1);
 
     // Should be 5 points in the path with points removed
     assert!(with_points_removed.len() == 1);
@@ -208,12 +272,16 @@ fn remove_interior_points_basic() {
         Coord2(1.0, 5.0),
         Coord2(5.0, 5.0),
         Coord2(5.0, 1.0),
-        Coord2(3.0, 3.0)
+        Coord2(3.0, 3.0),
     ];
 
-    assert!(expected_points.iter().any(|expected| with_points_removed[0].start_point().distance_to(expected) < 0.1));
+    assert!(expected_points
+        .iter()
+        .any(|expected| with_points_removed[0].start_point().distance_to(expected) < 0.1));
     for (_cp1, _cp2, point) in with_points_removed[0].points() {
-        assert!(expected_points.iter().any(|expected| point.distance_to(expected) < 0.1));
+        assert!(expected_points
+            .iter()
+            .any(|expected| point.distance_to(expected) < 0.1));
     }
 }
 
@@ -256,12 +324,13 @@ fn rectangle_add() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
@@ -293,12 +362,13 @@ fn rectangle_add_with_shared_point() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
@@ -330,12 +400,13 @@ fn rectangle_add_with_shared_point_2() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
@@ -369,12 +440,13 @@ fn rectangle_add_with_shared_point_3() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
@@ -409,12 +481,13 @@ fn rectangle_add_with_shared_point_5() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
@@ -447,12 +520,13 @@ fn rectangle_add_with_shared_point_6() {
         .build();
 
     // Add them
-    let shared_point = path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
+    let shared_point =
+        path_add_chain::<_, SimpleBezierPath>(&vec![vec![rectangle1], vec![rectangle2]], 0.01);
 
     assert!(shared_point.len() == 1);
 
-    let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
+    let shared_point = &shared_point[0];
+    let points = shared_point.points().collect::<Vec<_>>();
 
     assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
     assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);

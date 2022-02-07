@@ -1,23 +1,26 @@
-use crate::geo::*;
+use crate::geo::{BoundingBox, Bounds, Coordinate2D, HasBoundingBox};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
-use std::cmp::{Ordering};
+use std::cmp::Ordering;
 
 ///
 /// Sweeps a set of objects with bounding boxes to find the potential collisions between them
 ///
 /// The objects must be sorted into order by their min-x position, with the lowest first
 ///
-pub fn sweep_self<'a, TItem, BoundsIter>(ordered_items: BoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
+pub fn sweep_self<'a, TItem, BoundsIter>(
+    ordered_items: BoundsIter,
+) -> impl 'a + Iterator<Item = (&'a TItem, &'a TItem)>
 where
-BoundsIter:     'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    BoundsIter: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     SweepSelfIterator {
-        bounds_iterator:    ordered_items,
-        pending:            smallvec![],
-        by_max_x:           Vec::new()
+        bounds_iterator: ordered_items,
+        pending: smallvec![],
+        by_max_x: Vec::new(),
     }
 }
 
@@ -27,18 +30,22 @@ TItem::Point:   Coordinate2D {
 /// This will only collide between objects in src and objects in tgt. Both must be sorted into order by
 /// their min-x position, with the lowest first
 ///
-pub fn sweep_against<'a, TItem, SrcBoundsIter, TgtBoundsIter>(src: SrcBoundsIter, tgt: TgtBoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
+pub fn sweep_against<'a, TItem, SrcBoundsIter, TgtBoundsIter>(
+    src: SrcBoundsIter,
+    tgt: TgtBoundsIter,
+) -> impl 'a + Iterator<Item = (&'a TItem, &'a TItem)>
 where
-SrcBoundsIter:  'a+Iterator<Item=&'a TItem>,
-TgtBoundsIter:  'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcBoundsIter: 'a + Iterator<Item = &'a TItem>,
+    TgtBoundsIter: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     SweepAgainstIterator {
-        src_iterator:   Some(src),
-        tgt_iterator:   tgt,
-        pending:        smallvec![],
-        src_by_max_x:   Vec::new(),
-        src_last_min_x: f64::MIN
+        src_iterator: Some(src),
+        tgt_iterator: tgt,
+        pending: smallvec![],
+        src_by_max_x: Vec::new(),
+        src_last_min_x: f64::MIN,
     }
 }
 
@@ -47,9 +54,10 @@ TItem::Point:   Coordinate2D {
 ///
 struct SweepSelfIterator<'a, TItem, BoundsIter>
 where
-BoundsIter:     'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    BoundsIter: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     /// Iterator, ordered by minimum X position, that returns the items to be checked for overlaps
     bounds_iterator: BoundsIter,
 
@@ -58,14 +66,15 @@ TItem::Point:   Coordinate2D {
 
     /// Items currently under consideration for collisions, reverse ordered by their maximum X coordinate
     /// (reverse ordered so we can remove the earliest items by popping them)
-    by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>
+    by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>,
 }
 
 impl<'a, TItem, BoundsIter> Iterator for SweepSelfIterator<'a, TItem, BoundsIter>
 where
-BoundsIter:     'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    BoundsIter: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     type Item = (&'a TItem, &'a TItem);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -77,19 +86,14 @@ TItem::Point:   Coordinate2D {
         // Attempt to fill the pending queue by reading from the bounds iterator
         loop {
             // Read the next item and retrieve its bounding box
-            let next_item   = if let Some(next_item) = self.bounds_iterator.next() {
-                next_item
-            } else {
-                // No more items to read, and the pending queue is empty
-                return None;
-            };
+            let next_item = self.bounds_iterator.next()?;
 
             // Fetch the bounding box
             let next_bounds = next_item.get_bounding_box::<Bounds<_>>();
 
             // Remove elements from the front of the by_max_x list until the closest ends after where this item begins
             // As the bounds_iterator is ordered by the min_x, we'll never see anything that's before this point again here
-            let min_x       = next_bounds.min().x();
+            let min_x = next_bounds.min().x();
             while let Some((earliest_x, _item)) = self.by_max_x.last() {
                 if earliest_x.max().x() >= min_x {
                     break;
@@ -108,18 +112,21 @@ TItem::Point:   Coordinate2D {
 
             // Insert the new item into the 'by_max_x' list
             // TODO: possible that something like a btree is much more efficient here when there are a lot of items to process
-            let max_x   = next_bounds.max().x();
-            let index   = self.by_max_x.binary_search_by(|(bounds, _item)| {
-                let item_max_x = bounds.max().x();
+            let max_x = next_bounds.max().x();
+            let index = self
+                .by_max_x
+                .binary_search_by(|(bounds, _item)| {
+                    let item_max_x = bounds.max().x();
 
-                if item_max_x > max_x {
-                    Ordering::Less
-                } else if item_max_x == max_x {
-                    Ordering::Equal
-                } else {
-                    Ordering::Greater
-                }
-            }).unwrap_or_else(|idx| idx);
+                    if item_max_x > max_x {
+                        Ordering::Less
+                    } else if item_max_x == max_x {
+                        Ordering::Equal
+                    } else {
+                        Ordering::Greater
+                    }
+                })
+                .unwrap_or_else(|idx| idx);
 
             self.by_max_x.insert(index, (next_bounds, next_item));
 
@@ -136,10 +143,11 @@ TItem::Point:   Coordinate2D {
 ///
 struct SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
 where
-SrcIterator:    'a+Iterator<Item=&'a TItem>,
-TgtIterator:    'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcIterator: 'a + Iterator<Item = &'a TItem>,
+    TgtIterator: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     /// Iterator, ordered by minimum X position
     src_iterator: Option<SrcIterator>,
 
@@ -156,12 +164,14 @@ TItem::Point:   Coordinate2D {
     src_by_max_x: Vec<(Bounds<TItem::Point>, &'a TItem)>,
 }
 
-impl<'a, TItem, SrcIterator, TgtIterator> Iterator for SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
+impl<'a, TItem, SrcIterator, TgtIterator> Iterator
+    for SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
 where
-SrcIterator:    'a+Iterator<Item=&'a TItem>,
-TgtIterator:    'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcIterator: 'a + Iterator<Item = &'a TItem>,
+    TgtIterator: 'a + Iterator<Item = &'a TItem>,
+    TItem: 'a + HasBoundingBox,
+    TItem::Point: Coordinate2D,
+{
     type Item = (&'a TItem, &'a TItem);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -172,14 +182,14 @@ TItem::Point:   Coordinate2D {
             }
 
             // Read a new target item. Target items determine the sweep position (we read things in order such that there'll be no collisions before this point)
-            let next_tgt        = self.tgt_iterator.next();
-            let next_tgt        = if let Some(next_tgt) = next_tgt { next_tgt } else { return None };
+            let next_tgt = self.tgt_iterator.next();
+            let next_tgt = next_tgt?;
 
             let next_tgt_bounds = next_tgt.get_bounding_box::<Bounds<_>>();
 
             // Sweep the source and target items
-            let tgt_min_x       = next_tgt_bounds.min().x();
-            let tgt_max_x       = next_tgt_bounds.max().x();
+            let tgt_min_x = next_tgt_bounds.min().x();
+            let tgt_max_x = next_tgt_bounds.max().x();
 
             while let Some((earliest_x, _item)) = self.src_by_max_x.last() {
                 if earliest_x.max().x() >= tgt_min_x {
@@ -192,32 +202,39 @@ TItem::Point:   Coordinate2D {
             // Read source items and add them to the src list until we find one after the existing target
             loop {
                 // Stop reading if we get a source item that can't overlap the current target item
-                if self.src_last_min_x > tgt_max_x { break; }
+                if self.src_last_min_x > tgt_max_x {
+                    break;
+                }
 
                 // Try to read the next source item
-                let next_src = if let Some(next_src) = self.src_iterator.as_mut().and_then(|iter| iter.next()) {
+                let next_src = if let Some(next_src) =
+                    self.src_iterator.as_mut().and_then(|iter| iter.next())
+                {
                     next_src
                 } else {
                     self.src_iterator = None;
-                    break; 
+                    break;
                 };
 
                 // Add to the list of source items
-                let src_bounds  = next_src.get_bounding_box::<Bounds<_>>();
-                let src_min_x   = src_bounds.min().x();
-                let src_max_x   = src_bounds.max().x();
+                let src_bounds = next_src.get_bounding_box::<Bounds<_>>();
+                let src_min_x = src_bounds.min().x();
+                let src_max_x = src_bounds.max().x();
 
-                let index   = self.src_by_max_x.binary_search_by(|(bounds, _item)| {
-                    let item_max_x = bounds.max().x();
+                let index = self
+                    .src_by_max_x
+                    .binary_search_by(|(bounds, _item)| {
+                        let item_max_x = bounds.max().x();
 
-                    if item_max_x > src_max_x {
-                        Ordering::Less
-                    } else if item_max_x == src_max_x {
-                        Ordering::Equal
-                    } else {
-                        Ordering::Greater
-                    }
-                }).unwrap_or_else(|idx| idx);
+                        if item_max_x > src_max_x {
+                            Ordering::Less
+                        } else if item_max_x == src_max_x {
+                            Ordering::Equal
+                        } else {
+                            Ordering::Greater
+                        }
+                    })
+                    .unwrap_or_else(|idx| idx);
 
                 self.src_by_max_x.insert(index, (src_bounds, next_src));
 

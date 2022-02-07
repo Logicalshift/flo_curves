@@ -1,4 +1,4 @@
-use crate::geo::coordinate::*;
+use crate::geo::coordinate::{Coordinate, Coordinate2D};
 
 ///
 /// Extra functions provided for coordinate types
@@ -20,18 +20,22 @@ pub trait Coordinate2DExt {
     fn unit_vector_at_angle(radians: impl Into<f64>) -> Self;
 }
 
-impl<T> CoordinateExt for T 
-where T: Coordinate {
+impl<T> CoordinateExt for T
+where
+    T: Coordinate,
+{
     fn unit_vector() -> Self {
-        let mut components  = vec![0.0; Self::len()];
-        components[0]       = 1.0;
+        let mut components = vec![0.0; Self::len()];
+        components[0] = 1.0;
 
         Self::from_components(&components)
     }
 }
 
 impl<T> Coordinate2DExt for T
-where T: Coordinate+Coordinate2D {
+where
+    T: Coordinate + Coordinate2D,
+{
     fn unit_vector_at_angle(radians: impl Into<f64>) -> Self {
         let radians = radians.into();
 

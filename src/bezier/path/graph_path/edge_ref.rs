@@ -1,11 +1,11 @@
-use super::{GraphPath, GraphEdge, GraphEdgeRef};
-use crate::geo::*;
+use super::{GraphEdge, GraphEdgeRef, GraphPath};
+use crate::geo::{Coordinate, Coordinate2D};
 
 impl GraphEdgeRef {
     ///
     /// Creates a reversed version of this edge ref
     ///
-    pub fn reversed(mut self) -> GraphEdgeRef {
+    pub fn reversed(mut self) -> Self {
         self.reverse = !self.reverse;
         self
     }
@@ -14,8 +14,10 @@ impl GraphEdgeRef {
 ///
 /// A GraphEdgeRef can be created from a GraphEdge in order to release the borrow
 ///
-impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> From<GraphEdge<'a, Point, Label>> for GraphEdgeRef {
-    fn from(edge: GraphEdge<'a, Point, Label>) -> GraphEdgeRef {
+impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> From<GraphEdge<'a, Point, Label>>
+    for GraphEdgeRef
+{
+    fn from(edge: GraphEdge<'a, Point, Label>) -> Self {
         edge.edge
     }
 }
@@ -23,13 +25,15 @@ impl<'a, Point: 'a+Coordinate, Label: 'a+Copy> From<GraphEdge<'a, Point, Label>>
 ///
 /// A GraphEdgeRef can be created from a GraphEdge in order to release the borrow
 ///
-impl<'a, 'b, Point: 'a+Coordinate, Label: 'a+Copy> From<&'b GraphEdge<'a, Point, Label>> for GraphEdgeRef {
-    fn from(edge: &'b GraphEdge<'a, Point, Label>) -> GraphEdgeRef {
+impl<'a, 'b, Point: 'a + Coordinate, Label: 'a + Copy> From<&'b GraphEdge<'a, Point, Label>>
+    for GraphEdgeRef
+{
+    fn from(edge: &'b GraphEdge<'a, Point, Label>) -> Self {
         edge.edge
     }
 }
 
-impl<Point: Coordinate+Coordinate2D, Label> GraphPath<Point, Label> {
+impl<Point: Coordinate + Coordinate2D, Label> GraphPath<Point, Label> {
     ///
     /// Given an edge ref, returns the edge ref that follows it
     ///
@@ -38,13 +42,17 @@ impl<Point: Coordinate+Coordinate2D, Label> GraphPath<Point, Label> {
         if edge_ref.reverse {
             // Need to search in reverse for the edge
             for connected_from in self.points[edge_ref.start_idx].connected_from.iter() {
-                for (edge_idx, edge) in self.points[*connected_from].forward_edges.iter().enumerate() {
+                for (edge_idx, edge) in self.points[*connected_from]
+                    .forward_edges
+                    .iter()
+                    .enumerate()
+                {
                     if edge.end_idx == edge_ref.start_idx {
                         return GraphEdgeRef {
-                            start_idx:  *connected_from,
-                            edge_idx:   edge_idx,
-                            reverse:    true
-                        }
+                            start_idx: *connected_from,
+                            edge_idx,
+                            reverse: true,
+                        };
                     }
                 }
             }
@@ -55,11 +63,10 @@ impl<Point: Coordinate+Coordinate2D, Label> GraphPath<Point, Label> {
             let edge = &self.points[edge_ref.start_idx].forward_edges[edge_ref.edge_idx];
 
             GraphEdgeRef {
-                start_idx:  edge.end_idx,
-                edge_idx:   edge.following_edge_idx,
-                reverse:    false
+                start_idx: edge.end_idx,
+                edge_idx: edge.following_edge_idx,
+                reverse: false,
             }
         }
     }
 }
-
