@@ -1,7 +1,7 @@
-use super::ray_cast::*;
-use super::super::path::*;
-use super::super::graph_path::*;
 use super::super::super::super::geo::*;
+use super::super::graph_path::*;
+use super::super::path::*;
+use super::ray_cast::*;
 
 ///
 /// The result of a path cut operation
@@ -12,35 +12,58 @@ pub struct PathIntersection<P: BezierPathFactory> {
     pub intersecting_path: Vec<P>,
 
     /// The path that was outside of the 'cut' path for the two input paths
-    pub exterior_paths: [Vec<P>; 2]
+    pub exterior_paths: [Vec<P>; 2],
 }
 
 ///
 /// Intersects two paths, returning both the path that is the intersection and the paths that are outside
 ///
-pub fn path_full_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> PathIntersection<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        P2:         BezierPath<Point=P1::Point>,
-        POut:       BezierPathFactory<Point=P1::Point> {
+pub fn path_full_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
+    path1: &Vec<P1>,
+    path2: &Vec<P2>,
+    accuracy: f64,
+) -> PathIntersection<POut>
+where
+    P1::Point: Coordinate + Coordinate2D,
+    P2: BezierPath<Point = P1::Point>,
+    POut: BezierPathFactory<Point = P1::Point>,
+{
     // If path1 is empty, then there are no points in the result. If path2 is empty, then all points are exterior
     if path1.len() == 0 {
-        return PathIntersection { 
-            intersecting_path:  vec![], 
-            exterior_paths:     [vec![], path2.iter().map(|path| POut::from_path(path)).collect()]
+        return PathIntersection {
+            intersecting_path: vec![],
+            exterior_paths: [
+                vec![],
+                path2.iter().map(|path| POut::from_path(path)).collect(),
+            ],
         };
     } else if path2.len() == 0 {
-        return PathIntersection { 
-            intersecting_path:  vec![], 
-            exterior_paths:     [path1.iter().map(|path| POut::from_path(path)).collect(), vec![]]
+        return PathIntersection {
+            intersecting_path: vec![],
+            exterior_paths: [
+                path1.iter().map(|path| POut::from_path(path)).collect(),
+                vec![],
+            ],
         };
     }
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+    merged_path = merged_path.merge(GraphPath::from_merged_paths(
+        path1
+            .into_iter()
+            .map(|path| (path, PathLabel(0, PathDirection::from(path)))),
+    ));
 
     // Collide with the target side to generate a full path
-    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path = merged_path.collide(
+        GraphPath::from_merged_paths(
+            path2
+                .into_iter()
+                .map(|path| (path, PathLabel(1, PathDirection::from(path)))),
+        ),
+        accuracy,
+    );
     merged_path.round(accuracy);
 
     // The interior edges are those found by intersecting the second path with the first
@@ -66,8 +89,19 @@ where   P1::Point:  Coordinate+Coordinate2D,
     // TODO: it would be faster to re-use the existing merged paths here, but this will fail to properly generate a subtracted paths
     // in the case where edges of the two paths overlap.
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path2.into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path1.into_iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path = merged_path.merge(GraphPath::from_merged_paths(
+        path2
+            .into_iter()
+            .map(|path| (path, PathLabel(0, PathDirection::from(path)))),
+    ));
+    merged_path = merged_path.collide(
+        GraphPath::from_merged_paths(
+            path1
+                .into_iter()
+                .map(|path| (path, PathLabel(1, PathDirection::from(path)))),
+        ),
+        accuracy,
+    );
     merged_path.round(accuracy);
 
     merged_path.set_exterior_by_subtracting();
@@ -77,7 +111,7 @@ where   P1::Point:  Coordinate+Coordinate2D,
     let exterior_from_path_2 = merged_path.exterior_paths();
 
     PathIntersection {
-        intersecting_path:  intersecting_path,
-        exterior_paths:     [exterior_from_path_1, exterior_from_path_2]
+        intersecting_path: intersecting_path,
+        exterior_paths: [exterior_from_path_1, exterior_from_path_2],
     }
 }

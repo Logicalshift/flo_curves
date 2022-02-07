@@ -1,35 +1,72 @@
-use flo_curves::*;
 use flo_curves::line::*;
+use flo_curves::*;
 
 #[test]
 fn intersection_at_0_0() {
-    assert!(line_intersects_line(&(Coord2(-1.0, 0.0), Coord2(1.0, 0.0)), &(Coord2(0.0, 1.0), Coord2(0.0, -1.0))).unwrap().distance_to(&Coord2(0.0, 0.0)) < 0.01);
+    assert!(
+        line_intersects_line(
+            &(Coord2(-1.0, 0.0), Coord2(1.0, 0.0)),
+            &(Coord2(0.0, 1.0), Coord2(0.0, -1.0))
+        )
+        .unwrap()
+        .distance_to(&Coord2(0.0, 0.0))
+            < 0.01
+    );
 }
 
 #[test]
 fn intersection_at_other_point() {
-    assert!(line_intersects_line(&(Coord2(10.0, 20.0), Coord2(50.0, 60.0)), &(Coord2(10.0, 45.0), Coord2(50.0, 35.0))).unwrap().distance_to(&Coord2(30.0, 40.0)) < 0.01);
+    assert!(
+        line_intersects_line(
+            &(Coord2(10.0, 20.0), Coord2(50.0, 60.0)),
+            &(Coord2(10.0, 45.0), Coord2(50.0, 35.0))
+        )
+        .unwrap()
+        .distance_to(&Coord2(30.0, 40.0))
+            < 0.01
+    );
 }
 
 #[test]
 fn ray_intersects_line() {
-    assert!(line_intersects_ray(&(Coord2(10.0, 20.0), Coord2(50.0, 60.0)), &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))).unwrap().distance_to(&Coord2(30.0, 40.0)) < 0.01);
+    assert!(
+        line_intersects_ray(
+            &(Coord2(10.0, 20.0), Coord2(50.0, 60.0)),
+            &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))
+        )
+        .unwrap()
+        .distance_to(&Coord2(30.0, 40.0))
+            < 0.01
+    );
 }
 
 #[test]
 fn two_rays_intersect() {
-    assert!(ray_intersects_ray(&(Coord2(10.0, 20.0), Coord2(50.0, 60.0)), &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))).unwrap().distance_to(&Coord2(30.0, 40.0)) < 0.01);
+    assert!(
+        ray_intersects_ray(
+            &(Coord2(10.0, 20.0), Coord2(50.0, 60.0)),
+            &(Coord2(10.0, 45.0), Coord2(14.0, 44.0))
+        )
+        .unwrap()
+        .distance_to(&Coord2(30.0, 40.0))
+            < 0.01
+    );
 }
 
 #[test]
 fn no_intersection() {
-    assert!(line_intersects_line(&(Coord2(12.0, 13.0), Coord2(24.0, 30.0)), &(Coord2(1.0, 1.0), Coord2(0.0, -1.0))) == None);
+    assert!(
+        line_intersects_line(
+            &(Coord2(12.0, 13.0), Coord2(24.0, 30.0)),
+            &(Coord2(1.0, 1.0), Coord2(0.0, -1.0))
+        ) == None
+    );
 }
 
 #[test]
 fn line_in_bounds() {
-    let line    = (Coord2(5.0, 3.0), Coord2(7.0, 9.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(5.0, 3.0), Coord2(7.0, 9.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_some());
@@ -41,8 +78,8 @@ fn line_in_bounds() {
 
 #[test]
 fn horizontal_clipped_line() {
-    let line    = (Coord2(-10.0, 4.0), Coord2(20.0, 4.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(-10.0, 4.0), Coord2(20.0, 4.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_some());
@@ -54,8 +91,8 @@ fn horizontal_clipped_line() {
 
 #[test]
 fn horizontal_clipped_line_inside_to_outside() {
-    let line    = (Coord2(5.0, 4.0), Coord2(20.0, 4.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(5.0, 4.0), Coord2(20.0, 4.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_some());
@@ -67,8 +104,8 @@ fn horizontal_clipped_line_inside_to_outside() {
 
 #[test]
 fn horizontal_clipped_line_inside_to_outside_reverse() {
-    let line    = (Coord2(20.0, 4.0), Coord2(5.0, 4.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(20.0, 4.0), Coord2(5.0, 4.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_some());
@@ -80,8 +117,8 @@ fn horizontal_clipped_line_inside_to_outside_reverse() {
 
 #[test]
 fn vertical_clipped_line_inside_to_outside() {
-    let line    = (Coord2(5.0, 4.0), Coord2(5.0, 20.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(5.0, 4.0), Coord2(5.0, 20.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_some());
@@ -93,8 +130,8 @@ fn vertical_clipped_line_inside_to_outside() {
 
 #[test]
 fn line_out_of_bounds_right() {
-    let line    = (Coord2(11.0, 9.5), Coord2(20.0, 9.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(11.0, 9.5), Coord2(20.0, 9.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_none());
@@ -102,8 +139,8 @@ fn line_out_of_bounds_right() {
 
 #[test]
 fn line_out_of_bounds_left() {
-    let line    = (Coord2(-11.0, 9.5), Coord2(-20.0, 9.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(-11.0, 9.5), Coord2(-20.0, 9.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_none());
@@ -111,10 +148,9 @@ fn line_out_of_bounds_left() {
 
 #[test]
 fn line_out_of_bounds_crossing() {
-    let line    = (Coord2(9.0, 0.0), Coord2(20.0, 9.0));
-    let bounds  = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
+    let line = (Coord2(9.0, 0.0), Coord2(20.0, 9.0));
+    let bounds = (Coord2(1.0, 1.0), Coord2(10.0, 10.0));
     let clipped = line_clip_to_bounds(&line, &bounds);
 
     assert!(clipped.is_none());
 }
-

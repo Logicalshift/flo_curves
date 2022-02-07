@@ -55,7 +55,7 @@ fn from_points() {
         Coord2(30.0, 30.0),
         Coord2(60.0, 40.0),
         Coord2(45.0, 70.0),
-        Coord2(10.0, 35.0)
+        Coord2(10.0, 35.0),
     ]);
 
     assert!(r.min() == Coord2(10.0, 30.0));

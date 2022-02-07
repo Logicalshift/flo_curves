@@ -1,5 +1,5 @@
-use flo_curves::*;
 use flo_curves::bezier::path::*;
+use flo_curves::*;
 
 #[test]
 fn reverse_rectangle() {

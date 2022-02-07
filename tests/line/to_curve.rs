@@ -1,11 +1,11 @@
-use flo_curves::*;
-use flo_curves::line::*;
 use flo_curves::bezier::*;
+use flo_curves::line::*;
+use flo_curves::*;
 
 #[test]
 fn convert_line_to_bezier_curve() {
-    let line    = (Coord2(10.0, 20.0), Coord2(40.0, 30.0));
-    let curve   = line_to_bezier::<_, Curve<_>>(&line);
+    let line = (Coord2(10.0, 20.0), Coord2(40.0, 30.0));
+    let curve = line_to_bezier::<_, Curve<_>>(&line);
 
     assert!(curve.start_point == Coord2(10.0, 20.0));
     assert!(curve.end_point == Coord2(40.0, 30.0));

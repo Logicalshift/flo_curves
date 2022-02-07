@@ -1,20 +1,20 @@
+use super::coordinate::*;
 use super::geo::*;
 use super::has_bounds::*;
-use super::coordinate::*;
 
 ///
 /// Trait implemented by things representing axis-aligned bounding boxes
-/// 
-pub trait BoundingBox : Geo+Sized {
+///
+pub trait BoundingBox: Geo + Sized {
     ///
     /// Returns a bounding box with the specified minimum and maximum coordinates
-    /// 
+    ///
     fn from_min_max(min: Self::Point, max: Self::Point) -> Self;
 
     ///
     /// Returns a bounding box containing the specified points
-    /// 
-    fn bounds_for_points<PointIter: IntoIterator<Item=Self::Point>>(points: PointIter) -> Self {
+    ///
+    fn bounds_for_points<PointIter: IntoIterator<Item = Self::Point>>(points: PointIter) -> Self {
         let mut points = points.into_iter();
 
         // Initialise the bounding box with the first point
@@ -43,19 +43,19 @@ pub trait BoundingBox : Geo+Sized {
 
     ///
     /// Returns the maximum point of this bounding box
-    /// 
+    ///
     fn max(&self) -> Self::Point;
 
     ///
     /// Returns an empty bounding box
-    /// 
+    ///
     fn empty() -> Self {
         Self::from_min_max(Self::Point::origin(), Self::Point::origin())
     }
 
     ///
     /// True if this bounding box is empty
-    /// 
+    ///
     #[inline]
     fn is_empty(&self) -> bool {
         self.min() == self.max()
@@ -63,27 +63,34 @@ pub trait BoundingBox : Geo+Sized {
 
     ///
     /// Creates the union of this and another bounding box
-    /// 
+    ///
     fn union_bounds(self, target: Self) -> Self {
         if self.is_empty() {
             target
         } else if target.is_empty() {
             self
         } else {
-            Self::from_min_max(Self::Point::from_smallest_components(self.min(), target.min()), Self::Point::from_biggest_components(self.max(), target.max()))
+            Self::from_min_max(
+                Self::Point::from_smallest_components(self.min(), target.min()),
+                Self::Point::from_biggest_components(self.max(), target.max()),
+            )
         }
     }
 
     ///
     /// Returns true if this bounding box overlaps another
-    /// 
+    ///
     fn overlaps(&self, target: &Self) -> bool {
         let (min1, max1) = (self.min(), self.max());
         let (min2, max2) = (target.min(), target.max());
 
         for p_index in 0..Self::Point::len() {
-            if min1.get(p_index) > max2.get(p_index) { return false; }
-            if min2.get(p_index) > max1.get(p_index) { return false; }
+            if min1.get(p_index) > max2.get(p_index) {
+                return false;
+            }
+            if min2.get(p_index) > max1.get(p_index) {
+                return false;
+            }
         }
 
         true
@@ -92,9 +99,9 @@ pub trait BoundingBox : Geo+Sized {
 
 ///
 /// Type representing a bounding box
-/// 
+///
 /// (Unlike a normal point tuple this always represents its bounds in minimum/maximum order)
-/// 
+///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds<Point: Coordinate>(Point, Point);
 
@@ -116,13 +123,13 @@ impl<Point: Coordinate> BoundingBox for (Point, Point) {
 }
 
 impl<Point: Coordinate> HasBoundingBox for Bounds<Point> {
-    fn get_bounding_box<Bounds: BoundingBox<Point=Self::Point>>(&self) -> Bounds {
+    fn get_bounding_box<Bounds: BoundingBox<Point = Self::Point>>(&self) -> Bounds {
         Bounds::from_min_max(self.min(), self.max())
     }
 }
 
 impl<Point: Coordinate> Geo for Bounds<Point> {
-    type Point=Point;
+    type Point = Point;
 }
 
 impl<Point: Coordinate> BoundingBox for Bounds<Point> {

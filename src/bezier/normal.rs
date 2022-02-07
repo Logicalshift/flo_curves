@@ -1,13 +1,13 @@
-use super::curve::*;
-use super::basis::*;
-use super::derivative::*;
 use super::super::geo::*;
+use super::basis::*;
+use super::curve::*;
+use super::derivative::*;
 
 // TODO: normalize should be a trait associated with coordinate rather than bezier curves (move outwards)
 
 ///
 /// Changes a point and its tangent into a normal
-/// 
+///
 pub trait Normalize {
     /// Computes the normal at a point, given its tangent
     fn to_normal(point: &Self, tangent: &Self) -> Vec<f64>;
@@ -54,8 +54,8 @@ impl Normalize<Coordinate3D> for Coordinate3D {
 
 ///
 /// Trait implemented by bezier curves where we can compute the normal
-/// 
-pub trait NormalCurve : BezierCurve {
+///
+pub trait NormalCurve: BezierCurve {
     ///
     /// Computes the tangent vector to the curve at the specified t value
     ///
@@ -78,47 +78,49 @@ pub trait NormalCurve : BezierCurve {
 }
 
 impl<Curve: BezierCurve> NormalCurve for Curve
-where Curve::Point: Normalize {
+where
+    Curve::Point: Normalize,
+{
     fn tangent_at_pos(&self, t: f64) -> Curve::Point {
         // Extract the points that make up this curve
-        let w1          = self.start_point();
-        let (w2, w3)    = self.control_points();
-        let w4          = self.end_point();
+        let w1 = self.start_point();
+        let (w2, w3) = self.control_points();
+        let w4 = self.end_point();
 
-        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0 
+        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0
         // (it's probably mathematically correct to say there's no tangent at these points but the result is surprising and probably useless in a practical sense)
-        let t = if t == 0.0 { f64::EPSILON }        else { t };
-        let t = if t == 1.0 { 1.0-f64::EPSILON }    else { t };
+        let t = if t == 0.0 { f64::EPSILON } else { t };
+        let t = if t == 1.0 { 1.0 - f64::EPSILON } else { t };
 
         // Get the deriviative
         let (d1, d2, d3) = derivative4(w1, w2, w3, w4);
 
         // Get the tangent and the point at the specified t value
-        let tangent     = de_casteljau3(t, d1, d2, d3);
+        let tangent = de_casteljau3(t, d1, d2, d3);
 
         tangent
     }
 
     fn normal_at_pos(&self, t: f64) -> Curve::Point {
         // Extract the points that make up this curve
-        let w1          = self.start_point();
-        let (w2, w3)    = self.control_points();
-        let w4          = self.end_point();
+        let w1 = self.start_point();
+        let (w2, w3) = self.control_points();
+        let w4 = self.end_point();
 
-        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0 
+        // If w1 == w2 or w3 == w4 there will be an anomaly at t=0.0 and t=1.0
         // (it's probably mathematically correct to say there's no normal at these points but the result is surprising and probably useless in a practical sense)
-        let t = if t == 0.0 { f64::EPSILON }        else { t };
-        let t = if t == 1.0 { 1.0-f64::EPSILON }    else { t };
+        let t = if t == 0.0 { f64::EPSILON } else { t };
+        let t = if t == 1.0 { 1.0 - f64::EPSILON } else { t };
 
         // Get the deriviative
         let (d1, d2, d3) = derivative4(w1, w2, w3, w4);
 
         // Get the tangent and the point at the specified t value
-        let point       = de_casteljau4(t, w1, w2, w3, w4);
-        let tangent     = de_casteljau3(t, d1, d2, d3);
+        let point = de_casteljau4(t, w1, w2, w3, w4);
+        let tangent = de_casteljau3(t, d1, d2, d3);
 
         // Compute the normal
-        let normal      = Curve::Point::to_normal(&point, &tangent);
+        let normal = Curve::Point::to_normal(&point, &tangent);
 
         Curve::Point::from_components(&normal)
     }
