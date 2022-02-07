@@ -300,10 +300,10 @@ fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
     }
 }
 
-impl Into<CurveFeatures> for InflectionPoints {
+impl From<InflectionPoints> for CurveFeatures {
     #[inline]
-    fn into(self) -> CurveFeatures {
-        match self {
+    fn from(ip: InflectionPoints) -> CurveFeatures {
+        match ip {
             InflectionPoints::Zero => CurveFeatures::Arch,
             InflectionPoints::One(t) => CurveFeatures::SingleInflectionPoint(t),
             InflectionPoints::Two(t1, t2) => CurveFeatures::DoubleInflectionPoint(t1, t2),

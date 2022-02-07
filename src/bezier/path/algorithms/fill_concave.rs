@@ -20,9 +20,9 @@ enum ConcaveItem<Item> {
     SelfIntersection(usize),
 }
 
-impl<Item> Into<Option<Item>> for ConcaveItem<Item> {
-    fn into(self) -> Option<Item> {
-        match self {
+impl<Item> From<ConcaveItem<Item>> for Option<Item> {
+    fn from(ci: ConcaveItem<Item>) -> Option<Item> {
+        match ci {
             ConcaveItem::Edge(item) => Some(item),
             ConcaveItem::SelfIntersection(_) => None,
         }

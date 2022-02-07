@@ -306,9 +306,9 @@ impl From<(f64, f64)> for Coord2 {
     }
 }
 
-impl Into<(f64, f64)> for Coord2 {
-    fn into(self) -> (f64, f64) {
-        (self.0, self.1)
+impl From<Coord2> for (f64, f64) {
+    fn from(c: Coord2) -> (f64, f64) {
+        (c.0, c.1)
     }
 }
 
@@ -318,9 +318,9 @@ impl From<(f32, f32)> for Coord2 {
     }
 }
 
-impl Into<(f32, f32)> for Coord2 {
-    fn into(self) -> (f32, f32) {
-        (self.0 as _, self.1 as _)
+impl From<Coord2> for (f32, f32) {
+    fn from(c: Coord2) -> (f32, f32) {
+        (c.0 as _, c.1 as _)
     }
 }
 
