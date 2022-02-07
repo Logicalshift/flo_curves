@@ -15,7 +15,7 @@ pub fn bezier_path_to_rust_definition<C: Coordinate + Coordinate2D, P: BezierPat
 
     let start = path.start_point();
     write!(
-        &mut rust_code,
+        rust_code,
         "BezierPathBuilder::<SimpleBezierPath>::start(Coord2({}, {}))",
         start.x(),
         start.y()
@@ -24,7 +24,7 @@ pub fn bezier_path_to_rust_definition<C: Coordinate + Coordinate2D, P: BezierPat
 
     for (cp1, cp2, endpoint) in path.points() {
         write!(
-            &mut rust_code,
+            rust_code,
             "\n    .curve_to((Coord2({}, {}), Coord2({}, {})), Coord2({}, {}))",
             cp1.x(),
             cp1.y(),
@@ -35,7 +35,7 @@ pub fn bezier_path_to_rust_definition<C: Coordinate + Coordinate2D, P: BezierPat
         )
         .unwrap();
     }
-    write!(&mut rust_code, "\n    .build()").unwrap();
+    write!(rust_code, "\n    .build()").unwrap();
 
     rust_code
 }

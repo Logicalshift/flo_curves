@@ -76,7 +76,7 @@ fn add_two_identical_circles() {
         .collect::<Vec<_>>();
 
     for point in points.iter() {
-        let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(&point);
+        let distance_to_circle1 = Coord2(5.0, 5.0).distance_to(point);
 
         // Must be on either circle
         assert!((distance_to_circle1 - 4.0).abs() < 0.01);

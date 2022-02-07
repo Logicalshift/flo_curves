@@ -10,7 +10,7 @@ where
     let mut svg = String::new();
 
     write!(
-        &mut svg,
+        svg,
         "M {} {}",
         path.start_point().x(),
         path.start_point().y()
@@ -18,7 +18,7 @@ where
     .unwrap();
     for (cp1, cp2, end) in path.points() {
         write!(
-            &mut svg,
+            svg,
             " C {} {}, {} {}, {} {}",
             cp1.x(),
             cp1.y(),

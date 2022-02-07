@@ -90,7 +90,7 @@ where
             // Only search for intersections if these two sections have overlapping bounding boxes
             if p1_curve_bounds.overlaps(p2_curve_bounds) {
                 // Determine the intersections (if any) between these two curves
-                let intersections = curve_intersects_curve_clip(&p1_curve, &p2_curve, accuracy);
+                let intersections = curve_intersects_curve_clip(&p1_curve, p2_curve, accuracy);
 
                 // Combine with the section IDs to generate the results
                 result.extend(
