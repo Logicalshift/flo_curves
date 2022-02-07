@@ -182,14 +182,14 @@ fn chords_for_points<Point: Coordinate>(points: &[Point]) -> Vec<f64> {
 
     // Compute the distances for each point
     distances.push(total_distance);
-    for p in 1..points.len() {
-        total_distance += points[p - 1].distance_to(&points[p]);
+    for ps in points.windows(2) {
+        total_distance += ps[0].distance_to(&ps[1]);
         distances.push(total_distance);
     }
 
     // Normalize to the range 0..1
-    for p in 0..points.len() {
-        distances[p] /= total_distance;
+    for distance in &mut distances {
+        *distance /= total_distance;
     }
 
     distances

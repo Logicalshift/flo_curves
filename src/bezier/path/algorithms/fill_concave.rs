@@ -330,13 +330,13 @@ where
                 );
 
                 // Update the remaining long edge indexes
-                for update_idx in long_edge_index..long_edges.len() {
-                    if long_edges[update_idx].edge_index.0 >= edge_index {
-                        long_edges[update_idx].edge_index.0 += num_new_edges;
+                for long_edge in long_edges.iter_mut().skip(long_edge_index) {
+                    if long_edge.edge_index.0 >= edge_index {
+                        long_edge.edge_index.0 += num_new_edges;
                     }
 
-                    if long_edges[update_idx].edge_index.1 >= edge_index {
-                        long_edges[update_idx].edge_index.1 += num_new_edges;
+                    if long_edge.edge_index.1 >= edge_index {
+                        long_edge.edge_index.1 += num_new_edges;
                     }
                 }
 
