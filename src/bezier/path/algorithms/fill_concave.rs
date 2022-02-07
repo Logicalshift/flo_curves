@@ -150,8 +150,8 @@ fn remove_small_gaps<Coord, Item>(
                     // Map this edge to the gap line
                     let edge = &mut edges[edge_num];
                     let edge_ray = (*center, edge.position);
-                    edge.position = line_intersects_ray(&edge_ray, &gap_line)
-                        .unwrap_or_else(|| edge.position);
+                    edge.position =
+                        line_intersects_ray(&edge_ray, &gap_line).unwrap_or(edge.position);
 
                     // Move to the next edge
                     edge_num += 1;
@@ -408,7 +408,7 @@ where
             );
 
             // Remove any interior points that the path might have (this happens when the fill path overlaps itself)
-            Some(path_remove_interior_points(&vec![overlapped_path], 0.01))
+            Some(path_remove_interior_points(&[overlapped_path], 0.01))
         } else {
             // No curves in the path
             None

@@ -217,8 +217,7 @@ where
                         let subsection = curve.subsection(t1, t2);
                         let offset1 = initial_offset + (final_offset - initial_offset) * t1;
                         let offset2 = initial_offset + (final_offset - initial_offset) * t2;
-                        let res = subdivide_offset(&subsection, offset1, offset2, depth + 1);
-                        res
+                        subdivide_offset(&subsection, offset1, offset2, depth + 1)
                     })
                     .collect()
             }

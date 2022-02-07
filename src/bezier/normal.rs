@@ -96,9 +96,7 @@ where
         let (d1, d2, d3) = derivative4(w1, w2, w3, w4);
 
         // Get the tangent and the point at the specified t value
-        let tangent = de_casteljau3(t, d1, d2, d3);
-
-        tangent
+        de_casteljau3(t, d1, d2, d3)
     }
 
     fn normal_at_pos(&self, t: f64) -> Curve::Point {

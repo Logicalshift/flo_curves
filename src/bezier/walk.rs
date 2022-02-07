@@ -248,7 +248,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
                 if adjustment >= t_increment {
                     t_increment *= 0.3333333;
                 } else {
-                    t_increment = t_increment - adjustment;
+                    t_increment -= adjustment;
                 }
             }
 
