@@ -512,7 +512,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     None
                 }
             })
-            .nth(0);
+            .next();
 
         test_assert!(previous_edge_ref.is_some());
 
