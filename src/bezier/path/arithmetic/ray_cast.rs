@@ -57,7 +57,7 @@ impl<Point: Coordinate + Coordinate2D> GraphPath<Point, PathLabel> {
         // This interacts with the ordering chosen in ray_collisions: if that ordering changes this may no longer be correct
         if !collisions.is_empty() {
             for collision_idx in 0..(collisions.len() - 1) {
-                let (collision_a, _curve_t, line_t_a, _pos) = &collisions[collision_idx + 0];
+                let (collision_a, _curve_t, line_t_a, _pos) = &collisions[collision_idx];
                 let (collision_b, _curve_t, line_t_b, _pos) = &collisions[collision_idx + 1];
 
                 if line_t_a == line_t_b {
@@ -126,8 +126,7 @@ impl<Point: Coordinate + Coordinate2D> GraphPath<Point, PathLabel> {
                 // This interacts with the ordering chosen in ray_collisions: if that ordering changes this may no longer be correct
                 if !collisions.is_empty() {
                     for collision_idx in 0..(collisions.len() - 1) {
-                        let (collision_a, _curve_t, line_t_a, _pos) =
-                            &collisions[collision_idx + 0];
+                        let (collision_a, _curve_t, line_t_a, _pos) = &collisions[collision_idx];
                         let (collision_b, _curve_t, line_t_b, _pos) =
                             &collisions[collision_idx + 1];
 
