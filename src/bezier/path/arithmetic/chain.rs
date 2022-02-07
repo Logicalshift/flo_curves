@@ -68,7 +68,7 @@ where
                 .unwrap_or_else(|| PathCombine::Path(vec![]));
             let mut result = path_combine(result, accuracy);
 
-            while let Some(to_subtract) = path_iter.next() {
+            for to_subtract in path_iter {
                 let to_subtract = path_combine(to_subtract, accuracy);
                 result = path_sub(&result, &to_subtract, accuracy);
             }
@@ -83,7 +83,7 @@ where
                 .unwrap_or_else(|| PathCombine::Path(vec![]));
             let mut result = path_combine(result, accuracy);
 
-            while let Some(to_intersect) = path_iter.next() {
+            for to_intersect in path_iter {
                 let to_intersect = path_combine(to_intersect, accuracy);
                 result = path_intersect(&result, &to_intersect, accuracy);
             }
