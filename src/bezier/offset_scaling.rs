@@ -191,7 +191,7 @@ where
             let mut extremeties = curve.find_extremities();
             extremeties.retain(|item| item > &0.01 && item < &0.99);
 
-            if extremeties.len() == 0 || true {
+            if extremeties.is_empty() || true {
                 // No extremeties (or they're all too close to the edges)
                 let divide_point = 0.5;
 

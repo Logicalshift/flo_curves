@@ -29,5 +29,5 @@ fn coordinate_outside_curve_produces_no_results() {
         bezier::search_bounds4(0.01, w1, w2, w3, w4, |p1, p2| p1 < x_coord && p2 > x_coord);
 
     // No points on the curve match this coordinate
-    assert!(matching_values.len() == 0);
+    assert!(matching_values.is_empty());
 }

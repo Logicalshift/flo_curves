@@ -19,7 +19,7 @@ fn find_intersection_on_straight_line_not_middle() {
             .map(|(t1, t2)| (curve1.point_at_pos(*t1), curve2.point_at_pos(*t2)))
             .collect::<Vec<_>>()
     );
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersect_point.distance_to(&Coord2(5.0, 5.0)) < 0.1);
@@ -47,7 +47,7 @@ fn find_intersection_on_straight_line_middle() {
             .map(|(t1, t2)| (curve1.point_at_pos(*t1), curve2.point_at_pos(*t2)))
             .collect::<Vec<_>>()
     );
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersect_point.distance_to(&Coord2(5.0, 5.0)) < 0.1);
@@ -67,7 +67,7 @@ fn find_intersection_on_straight_line_start() {
         line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 5.0), Coord2(0.0, 10.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersections[0].0 < 0.01);
@@ -89,7 +89,7 @@ fn find_intersection_on_straight_line_end_1() {
         line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(0.0, 10.0), Coord2(5.0, 5.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersections[0].0 > 0.99);
@@ -111,7 +111,7 @@ fn find_intersection_on_straight_line_end_to_start_1() {
         line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 5.0), Coord2(0.0, 10.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersections[0].0 > 0.99);
@@ -131,7 +131,7 @@ fn find_intersection_on_line_end_to_end_2() {
     let curve2 = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 5.0), Coord2(3.0, 3.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersect_point.distance_to(&Coord2(3.0, 3.0)) < 0.1);
@@ -151,7 +151,7 @@ fn find_intersection_on_line_end_to_end_3() {
     let curve2 = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(5.0, 1.0), Coord2(3.0, 3.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersect_point.distance_to(&Coord2(3.0, 3.0)) < 0.1);
@@ -187,7 +187,7 @@ fn find_intersection_on_line_end_to_start_2() {
     let curve2 = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(3.0, 3.0), Coord2(5.0, 5.0)));
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.1);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
 
     let intersect_point = curve1.point_at_pos(intersections[0].0);
     assert!(intersect_point.distance_to(&Coord2(3.0, 3.0)) < 0.1);
@@ -216,7 +216,7 @@ fn find_intersection_on_straight_line_near_end() {
             .collect::<Vec<_>>()
     );
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -443,7 +443,7 @@ fn intersection_curve_1() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() != 1);
     assert!(intersections.len() == 2);
 
@@ -462,7 +462,7 @@ fn intersection_curve_1() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 2);
 
     assert!(
@@ -500,7 +500,7 @@ fn intersection_curve_2() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() != 1);
     assert!(intersections.len() == 2);
 
@@ -519,7 +519,7 @@ fn intersection_curve_2() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 2);
 
     assert!(
@@ -557,7 +557,7 @@ fn intersection_curve_3() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -569,7 +569,7 @@ fn intersection_curve_3() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -601,7 +601,7 @@ fn intersection_curve_4() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -613,7 +613,7 @@ fn intersection_curve_4() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -645,7 +645,7 @@ fn intersection_curve_5() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -657,7 +657,7 @@ fn intersection_curve_5() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     assert!(
@@ -689,12 +689,12 @@ fn intersection_curve_6() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 
     let intersections = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
     println!("{:?}", intersections);
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 2);
 }
 
@@ -780,8 +780,8 @@ fn intersection_curve_8() {
     println!("{:?}", intersections1);
     println!("{:?}", intersections2);
 
-    assert!(intersections1.len() > 0);
-    assert!(intersections2.len() > 0);
+    assert!(!intersections1.is_empty());
+    assert!(!intersections2.is_empty());
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
@@ -815,8 +815,8 @@ fn intersection_curve_9() {
     println!("{:?}", intersections1);
     println!("{:?}", intersections2);
 
-    assert!(intersections1.len() > 0);
-    assert!(intersections2.len() > 0);
+    assert!(!intersections1.is_empty());
+    assert!(!intersections2.is_empty());
 
     assert!(intersections1.len() == 2);
     assert!(intersections2.len() == 2);
@@ -842,15 +842,15 @@ fn intersection_curve_10() {
     };
 
     let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
-    assert!(intersections1.len() > 0);
+    assert!(!intersections1.is_empty());
 
     let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
 
     println!("{:?}", intersections1);
     println!("{:?}", intersections2);
 
-    assert!(intersections1.len() > 0);
-    assert!(intersections2.len() > 0);
+    assert!(!intersections1.is_empty());
+    assert!(!intersections2.is_empty());
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
@@ -885,15 +885,15 @@ fn intersection_curve_11() {
     let curve2 = curve2.section(0.47428429377321385, 0.4934869656848157);
 
     let intersections1 = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
-    assert!(intersections1.len() > 0);
+    assert!(!intersections1.is_empty());
 
     let intersections2 = bezier::curve_intersects_curve_clip(&curve2, &curve1, 0.01);
 
     println!("{:?}", intersections1);
     println!("{:?}", intersections2);
 
-    assert!(intersections1.len() > 0);
-    assert!(intersections2.len() > 0);
+    assert!(!intersections1.is_empty());
+    assert!(!intersections2.is_empty());
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);
@@ -944,8 +944,8 @@ fn intersection_very_close_to_start_1() {
     println!("{:?}", intersections1);
     println!("{:?}", intersections2);
 
-    assert!(intersections1.len() > 0);
-    assert!(intersections2.len() > 0);
+    assert!(!intersections1.is_empty());
+    assert!(!intersections2.is_empty());
 
     assert!(intersections1.len() == 1);
     assert!(intersections2.len() == 1);

@@ -50,7 +50,7 @@ where
         .collect::<SmallVec<_>>();
 
     // Rarely: the linear section might be very short and the solver might miss that it's essentially a point
-    if curve_intersections.len() == 0 && ray_intersections.len() != 0 {
+    if curve_intersections.is_empty() && !ray_intersections.is_empty() {
         // If the linear section seems short
         if linear_section
             .point_at_pos(0.0)
@@ -154,10 +154,10 @@ fn join_subsections<'a, C: BezierCurve>(
 where
     C::Point: Coordinate2D,
 {
-    if left.len() == 0 {
+    if left.is_empty() {
         // No further work to do
         right
-    } else if right.len() == 0 {
+    } else if right.is_empty() {
         // No further work to do
         left
     } else {

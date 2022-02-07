@@ -38,5 +38,5 @@ pub fn no_points_means_no_curve() {
     let curve = path_to_curves::<_, Curve<_>>(&path);
     let curve: Vec<_> = curve.collect();
 
-    assert!(curve.len() == 0);
+    assert!(curve.is_empty());
 }

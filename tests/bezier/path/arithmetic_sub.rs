@@ -76,7 +76,7 @@ fn erase_all() {
     // Create a hole in the larger circle
     let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
 
-    assert!(combined_circles.len() == 0);
+    assert!(combined_circles.is_empty());
 }
 
 #[test]
@@ -96,7 +96,7 @@ fn subtract_from_self_rectangles_1() {
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
-    assert!(combined_rectangles.len() == 0);
+    assert!(combined_rectangles.is_empty());
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn subtract_from_self_rectangles_2() {
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
-    assert!(combined_rectangles.len() == 0);
+    assert!(combined_rectangles.is_empty());
 }
 
 #[test]
@@ -128,7 +128,7 @@ fn subtract_from_self_circles() {
     // Create a hole in the larger circle
     let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
 
-    assert!(combined_circles.len() == 0);
+    assert!(combined_circles.is_empty());
 }
 
 #[test]

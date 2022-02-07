@@ -217,7 +217,7 @@ fn crossing_figure_of_8_intersection_collinear() {
     assert!(collisions.len() != 3);
     assert!((collisions.len() & 1) == 0);
 
-    assert!(collisions.len() == 0);
+    assert!(collisions.is_empty());
 }
 
 #[test]
@@ -242,7 +242,7 @@ fn crossing_figure_of_8_intersection_from_outside() {
     assert!(collisions.len() != 3);
     assert!((collisions.len() & 1) == 0);
 
-    assert!(collisions.len() == 0 || collisions.len() == 2);
+    assert!(collisions.is_empty() || collisions.len() == 2);
 }
 
 #[test]
@@ -378,7 +378,7 @@ fn ray_hitting_tangent_at_point() {
     let collisions = graph_path.ray_collisions(&(Coord2(3.0, 0.0), Coord2(3.0, 1.0)));
 
     assert!((collisions.len() & 1) == 0);
-    assert!(collisions.len() == 0);
+    assert!(collisions.is_empty());
 }
 
 #[test]

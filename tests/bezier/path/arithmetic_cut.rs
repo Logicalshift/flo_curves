@@ -44,7 +44,7 @@ fn cut_square_entirely_interior() {
 
     let cut_square = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
-    assert!(cut_square.exterior_path.len() == 0);
+    assert!(cut_square.exterior_path.is_empty());
     assert!(cut_square.interior_path.len() == 1);
 
     assert!(cut_square.interior_path[0].points().len() == 4);
@@ -69,7 +69,7 @@ fn cut_square_entirely_exterior() {
     let cut_square = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
     assert!(cut_square.exterior_path.len() == 1);
-    assert!(cut_square.interior_path.len() == 0);
+    assert!(cut_square.interior_path.is_empty());
 
     assert!(cut_square.exterior_path[0].points().len() == 4);
 }

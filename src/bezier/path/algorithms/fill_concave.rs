@@ -168,7 +168,7 @@ fn remove_small_gaps<Coord, Item>(
     }
 
     // Remove any long edges that were affected by the gap removal operation
-    if long_edges_to_remove.len() > 0 {
+    if !long_edges_to_remove.is_empty() {
         long_edges_to_remove.sort();
         for long_edge_num in long_edges_to_remove.into_iter().rev() {
             long_edges.remove(long_edge_num);
@@ -395,7 +395,7 @@ where
     );
 
     if let Some(curves) = curves {
-        if curves.len() > 0 {
+        if !curves.is_empty() {
             // Convert the curves into a path
             let initial_point = curves[0].start_point();
             let overlapped_path = Path::from_points(

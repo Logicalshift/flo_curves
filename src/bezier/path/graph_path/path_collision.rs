@@ -109,7 +109,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (src_curve, tgt_curve) in sweep_self(ordered_edges.iter()) {
             // Find any collisions between the two edges (to the required accuracy)
             let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
-            if edge_collisions.len() == 0 {
+            if edge_collisions.is_empty() {
                 continue;
             }
 
@@ -191,7 +191,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (src_curve, tgt_curve) in sweep_against(collide_src.iter(), collide_tgt.iter()) {
             // Find any collisions between the two edges (to the required accuracy)
             let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
-            if edge_collisions.len() == 0 {
+            if edge_collisions.is_empty() {
                 continue;
             }
 
@@ -321,7 +321,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ) -> bool {
         // Find all of the collision points
         let all_collisions = self.find_collisions(collide_from, collide_to, accuracy);
-        if all_collisions.len() == 0 {
+        if all_collisions.is_empty() {
             let collided_at_point = self.combine_overlapping_points(accuracy);
             self.remove_all_very_short_edges();
             return collided_at_point;
@@ -346,7 +346,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (point_idx, edge_collisions) in collisions_by_point {
             for (edge_idx, mut collisions) in edge_collisions.into_iter().enumerate() {
                 // Skip edges with no collisions
-                if collisions.len() == 0 {
+                if collisions.is_empty() {
                     continue;
                 }
 
@@ -782,7 +782,7 @@ fn remove_and_round_close_collisions<C: BezierCurve>(
     C::Point: Coordinate + Coordinate2D,
 {
     // Nothing to do if there are no collisions
-    if collisions.len() == 0 {
+    if collisions.is_empty() {
         return;
     }
 
@@ -815,7 +815,7 @@ fn remove_and_round_close_collisions<C: BezierCurve>(
     }
 
     // If the first point or the last point is close to the end of the source or target curve, clip to 0 or 1
-    if collisions.len() > 0 {
+    if !collisions.is_empty() {
         // Get the start/end points of the source and target
         let src_start = src.start_point();
         let src_end = src.end_point();

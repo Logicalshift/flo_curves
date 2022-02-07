@@ -34,7 +34,7 @@ impl<P: BezierPathFactory> BezierPathBuilder<P> {
     ///
     pub fn line_to(mut self, point: P::Point) -> Self {
         // Get the vector from the last point to the new point
-        let distance = if self.points.len() == 0 {
+        let distance = if self.points.is_empty() {
             point - self.start_point
         } else {
             point - self.points[self.points.len() - 1].2

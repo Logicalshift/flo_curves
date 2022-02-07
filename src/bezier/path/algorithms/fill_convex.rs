@@ -278,7 +278,7 @@ where
     );
 
     if let Some(curves) = curves {
-        if curves.len() > 0 {
+        if !curves.is_empty() {
             // Convert the curves into a path
             let initial_point = curves[0].start_point();
             Some(Path::from_points(

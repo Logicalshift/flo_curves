@@ -46,7 +46,7 @@ fn trace_convex_circle() {
     let outline = trace_outline_convex(circle_center, &FillSettings::default(), circle_ray_cast);
 
     // Should be at least one point
-    assert!(outline.len() > 0);
+    assert!(!outline.is_empty());
 
     // Points should be no more that 4.0 pixels apart and should be the correct distance from the circle
     for point_idx in 0..outline.len() {
@@ -107,7 +107,7 @@ fn trace_convex_doughnut() {
     let outline = trace_outline_convex(start_point, &FillSettings::default(), doughnut);
 
     // Should be at least one point
-    assert!(outline.len() > 0);
+    assert!(!outline.is_empty());
 
     for point_idx in 0..outline.len() {
         let point = &outline[point_idx];

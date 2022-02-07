@@ -431,7 +431,7 @@ fn remove_interior_points_1() {
             .collect::<Vec<_>>()
     );
 
-    assert!(with_points_removed.len() > 0);
+    assert!(!with_points_removed.is_empty());
 }
 
 #[test]
@@ -508,7 +508,7 @@ fn remove_interior_points_1_without_failing_section() {
             .collect::<Vec<_>>()
     );
 
-    assert!(with_points_removed.len() > 0);
+    assert!(!with_points_removed.is_empty());
 }
 
 #[test]
@@ -1312,7 +1312,7 @@ fn remove_interior_points_complex_2() {
     assert!(graph_path.num_points() == initial_num_points);
     */
 
-    assert!(without_interior_points.len() != 0);
+    assert!(!without_interior_points.is_empty());
     assert!(without_interior_points.len() == 1);
 }
 
@@ -2097,7 +2097,7 @@ fn remove_interior_points_complex_2_without_healing() {
     graph_path.set_exterior_by_removing_interior_points();
 
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
-    assert!(paths.len() != 0);
+    assert!(!paths.is_empty());
     assert!(paths.len() == 1);
 
     // Must always be a following edge that's an exterior one
@@ -2653,14 +2653,14 @@ fn remove_interior_points_3() {
             .build();
 
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
-    assert!(removed.len() != 0);
+    assert!(!removed.is_empty());
 
     let mut graph_path = GraphPath::from_path(&path, PathLabel(0, PathDirection::Clockwise));
     graph_path.self_collide(0.01);
     graph_path.set_exterior_by_removing_interior_points();
 
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
-    assert!(paths.len() != 0);
+    assert!(!paths.is_empty());
     assert!(paths.len() == 3);
 
     // Must always be a following edge that's an exterior one
@@ -3026,7 +3026,7 @@ fn remove_interior_points_4() {
 
     // Fails an internal assertion (cannot determine if a line is in or outside)
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
-    assert!(removed.len() != 0);
+    assert!(!removed.is_empty());
 
     /* -- we do generate extra points right now, indicating that lines are overlapping
           -- overlapping is occurring because we move 'close' points together after performing the self-collide

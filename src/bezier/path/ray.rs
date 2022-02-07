@@ -832,7 +832,7 @@ mod test {
 
         let collisions =
             crossing_and_collinear_collisions(&gp, &(Coord2(5.0, 0.0), Coord2(5.0, 5.0))).1;
-        assert!(collisions.len() == 0);
+        assert!(collisions.is_empty());
     }
 
     #[test]
@@ -860,7 +860,7 @@ mod test {
         );
         let collisions = collisions.collect::<Vec<_>>();
 
-        assert!(collisions.len() == 0);
+        assert!(collisions.is_empty());
     }
 
     #[test]

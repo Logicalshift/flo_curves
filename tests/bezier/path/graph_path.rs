@@ -127,7 +127,7 @@ pub fn collide_two_rectangles() {
         let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
 
         assert!(edges.len() <= 2);
-        assert!(edges.len() >= 1);
+        assert!(!edges.is_empty());
 
         assert!(edges[0].kind() == GraphPathEdgeKind::Uncategorised);
         assert!(edges.len() == 1 || edges[1].kind() == GraphPathEdgeKind::Uncategorised);
@@ -233,7 +233,7 @@ pub fn collide_identical_rectangles() {
         if point_idx < 4 {
             assert!(edges.len() == 2);
         } else {
-            assert!(edges.len() == 0);
+            assert!(edges.is_empty());
         }
     }
 }
@@ -337,7 +337,7 @@ fn multiple_collisions_on_one_edge_opposite_direction() {
         let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
 
         assert!(edges.len() <= 2);
-        assert!(edges.len() > 0);
+        assert!(!edges.is_empty());
         if edges.len() == 2 {
             num_intersects += 1;
 
@@ -428,7 +428,7 @@ fn collision_at_same_point() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 {
+            if edges.is_empty() {
                 num_orphaned_points += 1;
             }
         }
@@ -534,7 +534,7 @@ fn collision_exactly_on_edge_src() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 {
+            if edges.is_empty() {
                 num_orphaned_points += 1;
             }
         }
@@ -640,7 +640,7 @@ fn collision_exactly_on_edge_tgt() {
         let mut num_orphaned_points = 0;
         for point_idx in 0..13 {
             let edges = collision.edges_for_point(point_idx).collect::<Vec<_>>();
-            if edges.len() == 0 {
+            if edges.is_empty() {
                 num_orphaned_points += 1;
             }
         }
@@ -747,7 +747,7 @@ fn cast_ray_to_rectangle_corner() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(1.0, 1.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point() == Coord2(1.0, 1.0));
@@ -778,7 +778,7 @@ fn casting_ray_to_exact_point_produces_one_collision() {
             edge.point_at_pos(*curve_t).distance_to(&Coord2(1.0, 1.0)) < 0.1
         })
         .collect::<Vec<_>>();
-    assert!(collisions_with_corner.len() != 0);
+    assert!(!collisions_with_corner.is_empty());
     assert!(collisions_with_corner.len() != 2);
     assert!(collisions_with_corner.len() == 1);
 }
@@ -799,7 +799,7 @@ fn casting_ray_across_corner_produces_no_collision() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 2.0), Coord2(2.0, 0.0)));
 
     assert!(collision.len() != 1);
-    assert!(collision.len() == 0);
+    assert!(collision.is_empty());
 }
 
 #[test]
@@ -849,7 +849,7 @@ fn casting_ray_to_intersection_point_produces_two_collisions() {
             edge.point_at_pos(*curve_t).distance_to(&Coord2(5.0, 3.0)) < 0.1
         })
         .collect::<Vec<_>>();
-    assert!(collisions_with_corner.len() != 0);
+    assert!(!collisions_with_corner.is_empty());
     assert!(collisions_with_corner.len() != 4);
     assert!(collisions_with_corner.len() == 2);
 }
@@ -869,7 +869,7 @@ fn cast_ray_across_rectangle() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 3.0), Coord2(6.0, 3.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(
@@ -898,7 +898,7 @@ fn cast_ray_to_rectangle_far_corner() {
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(6.0, 6.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point() == Coord2(1.0, 1.0));
@@ -920,7 +920,7 @@ fn cast_ray_to_rectangle_far_corner_backwards() {
     let collision = rectangle1.ray_collisions(&(Coord2(6.0, 6.0), Coord2(0.0, 0.0)));
     let collision = to_collision_with_edges(collision, &rectangle1);
 
-    assert!(collision.len() > 0);
+    assert!(!collision.is_empty());
 
     let collision = &collision[0];
     assert!(collision.0.start_point().distance_to(&Coord2(5.0, 5.0)) < 0.1);
@@ -941,7 +941,7 @@ fn cast_ray_to_nowhere() {
     // Line that entirely misses the rectangle
     let collision = rectangle1.ray_collisions(&(Coord2(0.0, 0.0), Coord2(0.0, 10.0)));
 
-    assert!(collision.len() == 0);
+    assert!(collision.is_empty());
 }
 
 #[test]
@@ -1326,7 +1326,7 @@ fn ray_collide_along_convex_edge() {
     // As the ray never actually enters the shape along the seam, there should be 0 collisions
     println!("{:?}", collisions_seam);
     assert!(collisions_seam.len() != 2);
-    assert!(collisions_seam.len() == 0);
+    assert!(collisions_seam.is_empty());
 }
 
 #[test]
@@ -1889,7 +1889,7 @@ fn ray_cast_grazing_circle_produces_0_hits() {
     // Should not actually hit the circle
     assert!(collisions.len() != 2); // 2 collisions would produce no bug
     assert!(collisions.len() != 1);
-    assert!(collisions.len() == 0);
+    assert!(collisions.is_empty());
 }
 
 #[test]
@@ -1906,7 +1906,7 @@ fn ray_cast_close_to_circle_produces_2_hits() {
     let collisions = path.ray_collisions(&(Coord2(23.99, 0.0), Coord2(23.99, 1.0)));
 
     // Should not actually hit the circle
-    assert!(collisions.len() != 0);
+    assert!(!collisions.is_empty());
     assert!(collisions.len() != 1);
     assert!(collisions.len() == 2);
 }

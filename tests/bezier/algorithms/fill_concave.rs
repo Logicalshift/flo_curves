@@ -172,7 +172,7 @@ fn fill_concave_doughnut() {
     );
 
     assert!(path.is_some());
-    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(!path.as_ref().unwrap().is_empty());
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 
@@ -226,7 +226,7 @@ fn fill_doughnut_with_extra_holes() {
     );
 
     assert!(path.is_some());
-    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(!path.as_ref().unwrap().is_empty());
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 
@@ -280,7 +280,7 @@ fn fill_circle_without_escaping_gaps() {
     );
 
     assert!(path.is_some());
-    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(!path.as_ref().unwrap().is_empty());
     assert!(path.as_ref().unwrap().len() == 1);
 
     for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
@@ -324,7 +324,7 @@ fn fill_circle_without_escaping_gaps_offset() {
     );
 
     assert!(path.is_some());
-    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(!path.as_ref().unwrap().is_empty());
     assert!(path.as_ref().unwrap().len() == 1);
 
     for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
@@ -377,7 +377,7 @@ fn fill_doughnut_without_escaping_gaps() {
     );
 
     assert!(path.is_some());
-    assert!(path.as_ref().unwrap().len() != 0);
+    assert!(!path.as_ref().unwrap().is_empty());
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 

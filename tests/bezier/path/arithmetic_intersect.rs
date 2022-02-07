@@ -68,7 +68,7 @@ fn full_intersect_two_non_overlapping_circles() {
     let intersection =
         path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
 
-    assert!(intersection.intersecting_path.len() == 0);
+    assert!(intersection.intersecting_path.is_empty());
     assert!(intersection.exterior_paths[0].len() == 1);
     assert!(intersection.exterior_paths[1].len() == 1);
 }
@@ -83,7 +83,7 @@ fn full_intersect_interior_circles_1() {
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].len() == 2);
-    assert!(intersection.exterior_paths[1].len() == 0);
+    assert!(intersection.exterior_paths[1].is_empty());
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn full_intersect_interior_circles_2() {
         path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
-    assert!(intersection.exterior_paths[0].len() == 0);
+    assert!(intersection.exterior_paths[0].is_empty());
     assert!(intersection.exterior_paths[1].len() == 2);
 }
 
@@ -121,8 +121,8 @@ fn full_intersect_two_fully_overlapping_circles() {
     println!("{:?}", intersection);
 
     assert!(intersection.intersecting_path.len() == 1);
-    assert!(intersection.exterior_paths[0].len() == 0);
-    assert!(intersection.exterior_paths[1].len() == 0);
+    assert!(intersection.exterior_paths[0].is_empty());
+    assert!(intersection.exterior_paths[1].is_empty());
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
                 let intersections = curve_intersects_curve_clip(&fragment_edge, &remain_edge, 0.01);
 
                 num_collisions += intersections.len();
-                if intersections.len() > 0 {
+                if !intersections.is_empty() {
                     println!("  {:?}", intersections.len());
                 }
 
@@ -299,7 +299,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
                 let start_distance = edge.distance_to(&first_point);
                 let end_distance = edge.distance_to(&end_point);
 
-                if intersections.len() == 0 {
+                if intersections.is_empty() {
                     let start_pos = edge.pos_for_point(&first_point);
                     let end_pos = edge.pos_for_point(&end_point);
 
@@ -423,7 +423,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
     }
 
     // Should be a 16x16 polygon left over for the circle
-    assert!(remaining.len() > 0);
+    assert!(!remaining.is_empty());
     println!("{:?}", remaining[0]);
 
     let start_point = remaining[remaining.len() - 1].start_point();

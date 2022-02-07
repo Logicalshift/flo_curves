@@ -58,14 +58,14 @@ where
             // Can find the intersection by using the clipping algorithm
             let intersections = curve_intersects_curve_clip(&left, &right, accuracy);
 
-            if intersections.len() == 0
+            if intersections.is_empty()
                 && left.start_point().is_near_to(&right.end_point(), accuracy)
             {
                 // Didn't find an intersection but the left and right curves start and end at the same position
                 return Some((left.t_for_t(0.0), right.t_for_t(1.0)));
             }
 
-            test_assert!(intersections.len() != 0);
+            test_assert!(!intersections.is_empty());
 
             if intersections.len() == 1 {
                 // Only found a single intersection

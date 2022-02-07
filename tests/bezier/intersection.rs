@@ -52,7 +52,7 @@ fn no_intersection_if_line_does_not_cross_curve() {
         line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections = bezier::curve_intersects_line(&curve, &line);
-    assert!(intersections.len() == 0);
+    assert!(intersections.is_empty());
 }
 
 #[test]
@@ -150,7 +150,7 @@ fn dot_intersects_nothing() {
     let intersections = bezier::curve_intersects_line(&curve, &line);
 
     // Should be no intersections
-    assert!(intersections.len() == 0);
+    assert!(intersections.is_empty());
 }
 
 #[test]
@@ -274,7 +274,7 @@ fn ray_intersects_curve_1() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -296,7 +296,7 @@ fn ray_intersects_curve_1a() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -318,7 +318,7 @@ fn ray_intersects_curve_1b() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -340,7 +340,7 @@ fn ray_intersects_curve_1c() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -362,7 +362,7 @@ fn ray_intersects_curve_1d() {
 
     let intersections = bezier::curve_intersects_ray(&curve, &ray);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 
@@ -385,7 +385,7 @@ fn ray_intersects_curve_1e() {
 
     let intersections = bezier::curve_intersects_curve_clip(&curve, &ray, 0.01);
 
-    assert!(intersections.len() != 0);
+    assert!(!intersections.is_empty());
     assert!(intersections.len() == 1);
 }
 

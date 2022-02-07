@@ -49,9 +49,9 @@ where
     POut: BezierPathFactory<Point = P1::Point>,
 {
     // If either path is empty, short-circuit by returning the other
-    if path1.len() == 0 {
+    if path1.is_empty() {
         return path2.iter().map(|path| POut::from_path(path)).collect();
-    } else if path2.len() == 0 {
+    } else if path2.is_empty() {
         return path1.iter().map(|path| POut::from_path(path)).collect();
     }
 
@@ -117,7 +117,7 @@ where
 
     // Produce the final result
     let result = merged_path.exterior_paths();
-    test_assert!(result.len() != 0 || path.len() == 0);
+    test_assert!(!result.is_empty() || path.is_empty());
 
     result
 }
@@ -160,7 +160,7 @@ where
 
     // Produce the final result
     let result = merged_path.exterior_paths();
-    test_assert!(result.len() != 0 || path.len() == 0);
+    test_assert!(!result.is_empty() || path.is_empty());
 
     result
 }
