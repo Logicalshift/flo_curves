@@ -86,12 +86,7 @@ where
         // Attempt to fill the pending queue by reading from the bounds iterator
         loop {
             // Read the next item and retrieve its bounding box
-            let next_item = if let Some(next_item) = self.bounds_iterator.next() {
-                next_item
-            } else {
-                // No more items to read, and the pending queue is empty
-                return None;
-            };
+            let next_item = self.bounds_iterator.next()?;
 
             // Fetch the bounding box
             let next_bounds = next_item.get_bounding_box::<Bounds<_>>();
@@ -188,11 +183,7 @@ where
 
             // Read a new target item. Target items determine the sweep position (we read things in order such that there'll be no collisions before this point)
             let next_tgt = self.tgt_iterator.next();
-            let next_tgt = if let Some(next_tgt) = next_tgt {
-                next_tgt
-            } else {
-                return None;
-            };
+            let next_tgt = next_tgt?;
 
             let next_tgt_bounds = next_tgt.get_bounding_box::<Bounds<_>>();
 
