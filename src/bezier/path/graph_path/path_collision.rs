@@ -58,7 +58,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             })
             .map(|(point_idx, edge_idx)| GraphEdgeRef {
                 start_idx: point_idx,
-                edge_idx: edge_idx,
+                edge_idx,
                 reverse: false,
             })
             .map(|edge_ref| GraphEdge::new(self, edge_ref))
@@ -355,7 +355,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Create a copy of the edge. Our future edges will all have the same kind and label as the edge that's being divided
                 let edge = self.get_edge(GraphEdgeRef {
                     start_idx: point_idx,
-                    edge_idx: edge_idx,
+                    edge_idx,
                     reverse: false,
                 });
                 let kind = edge.kind();

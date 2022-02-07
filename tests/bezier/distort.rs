@@ -1,5 +1,4 @@
 use flo_curves::bezier::*;
-use flo_curves::geo::*;
 
 #[test]
 fn line_to_sine_wave() {

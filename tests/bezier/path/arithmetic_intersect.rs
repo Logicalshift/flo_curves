@@ -2,7 +2,6 @@ use flo_curves::arc::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::*;
 use flo_curves::line::*;
-use flo_curves::*;
 
 use std::f64;
 use std::iter;

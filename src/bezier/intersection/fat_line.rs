@@ -298,8 +298,8 @@ impl FatLine {
         };
 
         FatLine {
-            d_min: d_min,
-            d_max: d_max,
+            d_min,
+            d_max,
             coeff: (a, b, c),
         }
     }
@@ -371,8 +371,8 @@ impl FatLine {
 
         FatLine {
             coeff: (a, b, c),
-            d_min: d_min,
-            d_max: d_max,
+            d_min,
+            d_max,
         }
     }
 }
@@ -392,8 +392,8 @@ mod test {
             let (a, b, c) = line_coefficients_2d(&line);
 
             FatLine {
-                d_min: d_min,
-                d_max: d_max,
+                d_min,
+                d_max,
                 coeff: (a, b, c),
             }
         }

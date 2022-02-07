@@ -161,7 +161,7 @@ where
 
         stack.push(StackEntry {
             angle: theta..end_theta,
-            start_pos: start_pos,
+            start_pos,
             end_pos: end_pos.map(|(end_pos, _distance)| end_pos.position),
         });
     }

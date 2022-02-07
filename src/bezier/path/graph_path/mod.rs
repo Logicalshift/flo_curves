@@ -244,7 +244,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         // Create the graph path from the points
         let mut path = GraphPath {
-            points: points,
+            points,
             next_path_index: 1,
         };
         path.recalculate_reverse_connections();
@@ -327,7 +327,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     .into_iter()
                     .map(move |edge_idx| GraphEdgeRef {
                         start_idx: point_idx,
-                        edge_idx: edge_idx,
+                        edge_idx,
                         reverse: false,
                     })
             })
@@ -350,7 +350,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                     self,
                     GraphEdgeRef {
                         start_idx: point_num,
-                        edge_idx: edge_idx,
+                        edge_idx,
                         reverse: false,
                     },
                 )
@@ -365,7 +365,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             .into_iter()
             .map(move |edge_idx| GraphEdgeRef {
                 start_idx: point_num,
-                edge_idx: edge_idx,
+                edge_idx,
                 reverse: false,
             })
     }
@@ -402,7 +402,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                         {
                             Some(GraphEdgeRef {
                                 start_idx: connected_from,
-                                edge_idx: edge_idx,
+                                edge_idx,
                                 reverse: true,
                             })
                         } else {
@@ -506,7 +506,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 {
                     Some(GraphEdgeRef {
                         start_idx: point_idx,
-                        edge_idx: edge_idx,
+                        edge_idx,
                         reverse: false,
                     })
                 } else {
@@ -594,7 +594,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Remove this edge if it's very short
                 let edge_ref = GraphEdgeRef {
                     start_idx: point_idx,
-                    edge_idx: edge_idx,
+                    edge_idx,
                     reverse: false,
                 };
                 if self.edge_is_very_short(edge_ref) {
@@ -989,7 +989,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // If this edge has a gap...
                 if self.edge_has_gap(GraphEdgeRef {
                     start_idx: point_idx,
-                    edge_idx: edge_idx,
+                    edge_idx,
                     reverse: false,
                 }) {
                     // ... try to heal it

@@ -50,7 +50,7 @@ impl<Point: Coordinate + Coordinate2D, Label> GraphPath<Point, Label> {
                     if edge.end_idx == edge_ref.start_idx {
                         return GraphEdgeRef {
                             start_idx: *connected_from,
-                            edge_idx: edge_idx,
+                            edge_idx,
                             reverse: true,
                         };
                     }

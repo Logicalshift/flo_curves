@@ -1,5 +1,4 @@
 use flo_curves::line::*;
-use flo_curves::*;
 
 #[test]
 fn intersection_at_0_0() {

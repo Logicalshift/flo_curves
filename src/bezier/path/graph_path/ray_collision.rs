@@ -80,7 +80,7 @@ where
             .into_iter()
             .map(move |edge_idx| GraphEdgeRef {
                 start_idx: point_idx,
-                edge_idx: edge_idx,
+                edge_idx,
                 reverse: false,
             })
             .collect()
@@ -102,7 +102,7 @@ where
                     })
                     .map(move |edge_idx| GraphEdgeRef {
                         start_idx: *connected_point_idx,
-                        edge_idx: edge_idx,
+                        edge_idx,
                         reverse: true,
                     })
             })
@@ -111,10 +111,7 @@ where
 
     #[inline]
     fn get_edge(&self, edge: GraphEdgeRef) -> Self::Curve {
-        GraphEdge {
-            graph: *self,
-            edge: edge,
-        }
+        GraphEdge { graph: *self, edge }
     }
 
     #[inline]

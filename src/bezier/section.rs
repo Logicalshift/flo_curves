@@ -32,9 +32,9 @@ impl<'a, C: 'a + BezierCurve> CurveSection<'a, C> {
         let t_m = t_max - t_c;
 
         CurveSection {
-            curve: curve,
-            t_m: t_m,
-            t_c: t_c,
+            curve,
+            t_m,
+            t_c,
             cached_control_points: RefCell::new(None),
         }
     }

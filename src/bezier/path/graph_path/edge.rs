@@ -50,10 +50,7 @@ impl<'a, Point: 'a, Label: 'a + Copy> GraphEdge<'a, Point, Label> {
         test_assert!(edge.start_idx < graph.points.len());
         test_assert!(edge.edge_idx < graph.points[edge.start_idx].forward_edges.len());
 
-        GraphEdge {
-            graph: graph,
-            edge: edge,
-        }
+        GraphEdge { graph, edge }
     }
 
     ///

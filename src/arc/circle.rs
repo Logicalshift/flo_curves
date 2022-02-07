@@ -38,10 +38,7 @@ impl<Coord: Coordinate2D + Coordinate> Circle<Coord> {
     /// Creates a new circle with a center and a radius
     ///
     pub fn new(center: Coord, radius: f64) -> Circle<Coord> {
-        Circle {
-            center: center,
-            radius: radius,
-        }
+        Circle { center, radius }
     }
 
     ///
@@ -50,8 +47,8 @@ impl<Coord: Coordinate2D + Coordinate> Circle<Coord> {
     pub fn arc<'a>(&'a self, start_radians: f64, end_radians: f64) -> CircularArc<'a, Coord> {
         CircularArc {
             circle: self,
-            start_radians: start_radians,
-            end_radians: end_radians,
+            start_radians,
+            end_radians,
         }
     }
 

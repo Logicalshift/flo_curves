@@ -1,6 +1,5 @@
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::*;
-use flo_curves::*;
 
 #[test]
 pub fn convert_path_to_bezier_curves() {

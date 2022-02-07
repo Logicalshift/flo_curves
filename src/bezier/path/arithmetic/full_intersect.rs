@@ -111,7 +111,7 @@ where
     let exterior_from_path_2 = merged_path.exterior_paths();
 
     PathIntersection {
-        intersecting_path: intersecting_path,
+        intersecting_path,
         exterior_paths: [exterior_from_path_1, exterior_from_path_2],
     }
 }

@@ -1,6 +1,5 @@
 use flo_curves::bezier::*;
 use flo_curves::line::*;
-use flo_curves::*;
 
 #[test]
 fn convert_line_to_bezier_curve() {

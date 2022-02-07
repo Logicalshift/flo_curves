@@ -18,14 +18,14 @@ pub fn walk_curve_unevenly<'a, Curve: BezierCurve>(
 ) -> impl 'a + Iterator<Item = CurveSection<'a, Curve>> {
     if num_subdivisions > 0 {
         UnevenWalkIterator {
-            curve: curve,
+            curve,
             step: (1.0) / (num_subdivisions as f64),
-            num_subdivisions: num_subdivisions,
+            num_subdivisions,
             last_subdivision: 0,
         }
     } else {
         UnevenWalkIterator {
-            curve: curve,
+            curve,
             step: 0.0,
             num_subdivisions: 0,
             last_subdivision: 0,
@@ -75,13 +75,13 @@ pub fn walk_curve_evenly<'a, Curve: BezierCurve>(
     };
 
     EvenWalkIterator {
-        curve: curve,
+        curve,
         derivative: (wn1, wn2, wn3),
         last_t: 0.0,
         last_point: curve.start_point(),
         last_increment: initial_increment,
-        distance: distance,
-        max_error: max_error,
+        distance,
+        max_error,
     }
 }
 

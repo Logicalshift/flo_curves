@@ -234,7 +234,7 @@ where
         for edge_idx in 0..(path.num_edges(point_idx)) {
             let edge_ref = GraphEdgeRef {
                 start_idx: point_idx,
-                edge_idx: edge_idx,
+                edge_idx,
                 reverse: false,
             };
             let edge = path.get_edge(edge_ref);
