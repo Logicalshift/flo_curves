@@ -374,7 +374,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     #[inline]
     pub fn point_position(&self, point_num: usize) -> Point {
-        self.points[point_num].position.clone()
+        self.points[point_num].position
     }
 
     ///
@@ -1120,7 +1120,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
 
                 // Start point of the path is the initial point we checked
-                let start_point = self.points[point_idx].position.clone();
+                let start_point = self.points[point_idx].position;
 
                 let new_path = POut::from_points(start_point, path_points);
                 exterior_paths.push(new_path);

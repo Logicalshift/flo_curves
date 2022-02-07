@@ -98,7 +98,7 @@ impl<Point: Coordinate + Clone> Line for (Point, Point) {
     ///
     #[inline]
     fn points(&self) -> (Self::Point, Self::Point) {
-        self.clone()
+        *self
     }
 }
 

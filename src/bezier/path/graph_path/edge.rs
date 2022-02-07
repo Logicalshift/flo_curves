@@ -119,7 +119,7 @@ impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> BezierCurve for GraphEdge<'a,
     ///
     #[inline]
     fn start_point(&self) -> Self::Point {
-        self.graph.points[self.start_point_index()].position.clone()
+        self.graph.points[self.start_point_index()].position
     }
 
     ///
@@ -127,7 +127,7 @@ impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> BezierCurve for GraphEdge<'a,
     ///
     #[inline]
     fn end_point(&self) -> Self::Point {
-        self.graph.points[self.end_point_index()].position.clone()
+        self.graph.points[self.end_point_index()].position
     }
 
     ///
@@ -138,9 +138,9 @@ impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> BezierCurve for GraphEdge<'a,
         let edge = self.edge();
 
         if self.edge.reverse {
-            (edge.cp2.clone(), edge.cp1.clone())
+            (edge.cp2, edge.cp1)
         } else {
-            (edge.cp1.clone(), edge.cp2.clone())
+            (edge.cp1, edge.cp2)
         }
     }
 

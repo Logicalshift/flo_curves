@@ -158,7 +158,7 @@ fn fill_concave_doughnut() {
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let inner_circle = circle_ray_cast(circle_center, inner_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        outer_circle(from.clone(), to.clone())
+        outer_circle(from, to)
             .into_iter()
             .chain(inner_circle(from, to))
     };
@@ -204,8 +204,8 @@ fn fill_doughnut_with_extra_holes() {
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let inner_circle = circle_ray_cast(circle_center, inner_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        let inner_collisions = inner_circle(from.clone(), to.clone());
-        let outer_collisions = outer_circle(from.clone(), to.clone());
+        let inner_collisions = inner_circle(from, to);
+        let outer_collisions = outer_circle(from, to);
 
         let ray = to - from;
         if (ray.x() / ray.y()).abs() < 0.1 || (ray.y() / ray.x()) < 0.1 {
@@ -258,8 +258,8 @@ fn fill_circle_without_escaping_gaps() {
     let enclosing_circle = circle_ray_cast(circle_center, enclosing_radius);
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        let enclosing_collisions = enclosing_circle(from.clone(), to.clone());
-        let outer_collisions = outer_circle(from.clone(), to.clone());
+        let enclosing_collisions = enclosing_circle(from, to);
+        let outer_collisions = outer_circle(from, to);
 
         let ray = to - from;
         if (ray.x() / ray.y()).abs() < 0.01 {
@@ -302,8 +302,8 @@ fn fill_circle_without_escaping_gaps_offset() {
     let enclosing_circle = circle_ray_cast(circle_center, enclosing_radius);
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        let enclosing_collisions = enclosing_circle(from.clone(), to.clone());
-        let outer_collisions = outer_circle(from.clone(), to.clone());
+        let enclosing_collisions = enclosing_circle(from, to);
+        let outer_collisions = outer_circle(from, to);
 
         let ray = to - from;
         if (ray.x() / ray.y()).abs() < 0.01 {
@@ -348,9 +348,9 @@ fn fill_doughnut_without_escaping_gaps() {
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let inner_circle = circle_ray_cast(circle_center, inner_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        let enclosing_collisions = enclosing_circle(from.clone(), to.clone());
-        let inner_collisions = inner_circle(from.clone(), to.clone());
-        let outer_collisions = outer_circle(from.clone(), to.clone());
+        let enclosing_collisions = enclosing_circle(from, to);
+        let inner_collisions = inner_circle(from, to);
+        let outer_collisions = outer_circle(from, to);
 
         let ray = to - from;
         if (ray.x() / ray.y()).abs() < 0.01 {

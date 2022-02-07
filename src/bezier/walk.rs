@@ -193,7 +193,7 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
         let mut t_increment = self.last_increment;
         let last_t = self.last_t;
         let mut next_t = last_t + t_increment;
-        let last_point = self.last_point.clone();
+        let last_point = self.last_point;
         let mut next_point;
 
         // If the next point appears to be after the end of the curve, and the end of the curve is further away than the closest distance, return None

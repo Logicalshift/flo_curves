@@ -224,7 +224,7 @@ pub fn characterize_cubic_bezier<Point: Coordinate + Coordinate2D>(
                 CurveCategory::Linear
             } else {
                 // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
-                let line = (w1.clone(), w3.clone());
+                let line = (*w1, *w3);
                 let (a, b, c) = line_coefficients_2d(&line);
 
                 let distance = a * w4.x() + b * w4.y() + c;
@@ -333,7 +333,7 @@ fn features_from_canonical_point<Point: Coordinate + Coordinate2D>(
             find_inflection_points((x, y)).into()
         }
         CurveCategory::Loop => {
-            let curve = Curve::from_points(w1.clone(), (w2.clone(), w3.clone()), w4.clone());
+            let curve = Curve::from_points(*w1, (*w2, *w3), *w4);
             let loop_pos = find_self_intersection_point(&curve, accuracy);
 
             // TODO: if we can't find the loop_pos, we could probably find a cusp position instead
@@ -381,7 +381,7 @@ pub fn features_for_cubic_bezier<Point: Coordinate + Coordinate2D>(
                 CurveFeatures::Linear
             } else {
                 // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
-                let line = (w1.clone(), w3.clone());
+                let line = (*w1, *w3);
                 let (a, b, c) = line_coefficients_2d(&line);
 
                 let distance = a * w4.x() + b * w4.y() + c;

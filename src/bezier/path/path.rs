@@ -106,7 +106,7 @@ impl<Point: Clone + Coordinate> BezierPath for (Point, Vec<(Point, Point, Point)
     /// Retrieves the initial point of this path
     ///
     fn start_point(&self) -> Self::Point {
-        self.0.clone()
+        self.0
     }
 
     ///

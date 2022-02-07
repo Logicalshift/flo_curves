@@ -97,7 +97,7 @@ fn trace_convex_doughnut() {
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let inner_circle = circle_ray_cast(circle_center, inner_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        outer_circle(from.clone(), to.clone())
+        outer_circle(from, to)
             .into_iter()
             .chain(inner_circle(from, to))
     };
@@ -130,7 +130,7 @@ fn fill_convex_doughnut() {
     let outer_circle = circle_ray_cast(circle_center, outer_radius);
     let inner_circle = circle_ray_cast(circle_center, inner_radius);
     let doughnut = |from: Coord2, to: Coord2| {
-        outer_circle(from.clone(), to.clone())
+        outer_circle(from, to)
             .into_iter()
             .chain(inner_circle(from, to))
     };

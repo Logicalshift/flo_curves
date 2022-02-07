@@ -184,7 +184,7 @@ where
                 let mid_ray = perform_ray_cast(center, mid_point, &cast_ray);
                 let mid_ray_pos = mid_ray
                     .as_ref()
-                    .map(|(collision, _)| collision.position.clone());
+                    .map(|(collision, _)| collision.position);
 
                 // If there's a discontinuity (eg, a corner we can't see around), we'll see that the mid point is very close to the end point and far from the start point
                 if let Some(mid_ray_pos) = mid_ray_pos {
@@ -227,7 +227,7 @@ where
                 let mid_ray = perform_ray_cast(center, mid_point, &cast_ray);
                 let mid_ray_pos = mid_ray
                     .as_ref()
-                    .map(|(collision, _)| collision.position.clone());
+                    .map(|(collision, _)| collision.position);
 
                 // Divide into two pairs of ranges (process the earlier one first)
                 stack.push(StackEntry {
@@ -272,7 +272,7 @@ where
     let curves = fit_curve::<Curve<Coord>>(
         &collisions
             .iter()
-            .map(|collision| collision.position.clone())
+            .map(|collision| collision.position)
             .collect::<Vec<_>>(),
         options.fit_error,
     );

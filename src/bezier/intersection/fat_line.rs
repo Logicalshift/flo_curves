@@ -585,7 +585,7 @@ mod test {
             Coord2(5.0, 8.0),
         );
 
-        let mut clipped = clip_curve.clone();
+        let mut clipped = clip_curve;
 
         // Should be able to iteratively refine to a curve clipped to the fat line
         for _x in 0..5 {
@@ -707,7 +707,7 @@ mod test {
             Coord2(5.0, 8.0),
         );
 
-        let mut clipped = clip_curve.clone();
+        let mut clipped = clip_curve;
 
         for _x in 0..100 {
             let next_clipped = fat_line.clip(&clipped);
