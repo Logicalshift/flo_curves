@@ -8,6 +8,8 @@ use crate::bezier::{CurveSection};
 use smallvec::*;
 use itertools::*;
 
+use std::cmp::*;
+
 // This is loosely based on the algorithm described at: https://pomax.github.io/bezierinfo/#offsetting,
 // with numerous changes to allow for variable-width offsets and consistent behaviour (in particular,
 // a much more reliable method of subdividing the curve)
@@ -151,7 +153,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
             let mut extremeties     = curve.find_extremities();
             extremeties.retain(|item| item > &0.01 && item < &0.99);
 
-            if extremeties.len() == 0 || true {
+            if extremeties.len() == 0 {
                 // No extremeties (or they're all too close to the edges)
                 let divide_point    = 0.5;
 
@@ -169,6 +171,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
                 let mut extremeties = extremeties;
                 extremeties.insert(0, 0.0);
                 extremeties.push(1.0);
+                extremeties.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
 
                 extremeties
                     .into_iter()
@@ -177,7 +180,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
                         let subsection  = curve.subsection(t1, t2);
                         let offset1     = initial_offset + (final_offset - initial_offset) * t1;
                         let offset2     = initial_offset + (final_offset - initial_offset) * t2;
-                        let res = subdivide_offset(&subsection, offset1, offset2, depth+1);
+                        let res         = subdivide_offset(&subsection, offset1, offset2, depth+1);
                         res
                     })
                     .collect()
