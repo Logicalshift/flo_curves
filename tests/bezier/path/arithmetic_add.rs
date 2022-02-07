@@ -12,7 +12,7 @@ fn add_two_overlapping_circles() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -65,7 +65,7 @@ fn add_two_identical_circles() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -94,7 +94,7 @@ fn add_two_very_close_circles() {
     let circle2 = Circle::new(Coord2(5.01, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     println!("{:?}", combined_circles.len());
     assert!(!combined_circles.is_empty());
@@ -123,7 +123,7 @@ fn add_two_close_circles() {
     let circle2 = Circle::new(Coord2(503.0002955064407, 5.0), 300.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(!combined_circles.is_empty());
     assert!(combined_circles.len() != 2);
@@ -225,7 +225,7 @@ fn add_circle_inside_circle() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -256,7 +256,7 @@ fn add_two_overlapping_circles_further_apart() {
     let circle2 = Circle::new(Coord2(12.9, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -310,7 +310,7 @@ fn add_two_overlapping_circles_with_one_reversed() {
     let circle2 = circle2.reversed::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     println!("{:?}", combined_circles);
     assert!(combined_circles.len() == 1);
@@ -364,7 +364,7 @@ fn add_two_non_overlapping_circles() {
     let circle2 = Circle::new(Coord2(20.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_add::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+    let combined_circles = path_add::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     println!("{:?}", combined_circles);
     assert!(combined_circles.len() == 2);
@@ -385,8 +385,8 @@ fn add_two_doughnuts() {
 
     // Combine them
     let combined_circles = path_add::<_, _, SimpleBezierPath>(
-        &vec![circle1, inner_circle1],
-        &vec![circle2, inner_circle2],
+        &[circle1, inner_circle1],
+        &[circle2, inner_circle2],
         0.09,
     );
 
@@ -396,7 +396,7 @@ fn add_two_doughnuts() {
         "{:?}",
         combined_circles
             .iter()
-            .map(|path| svg_path_string(path))
+            .map(svg_path_string)
             .collect::<Vec<_>>()
     );
     assert!(combined_circles.len() == 4);
@@ -405,7 +405,7 @@ fn add_two_doughnuts() {
 #[test]
 fn remove_interior_from_circle_removes_nothing() {
     let circle = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
-    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![circle.clone()], 0.1);
+    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&[circle.clone()], 0.1);
 
     assert!(removed.len() == 1);
     assert!(removed[0].1.len() == circle.1.len());
@@ -423,7 +423,7 @@ fn remove_interior_for_ring_removes_center() {
     let ring2 = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
 
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone()],
+        &[ring1.clone(), ring2],
         0.01,
     );
 
@@ -448,7 +448,7 @@ fn remove_interior_for_ring_with_crossbar_removes_center() {
         .build();
 
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone(), crossbar1.clone()],
+        &[ring1.clone(), ring2, crossbar1],
         0.01,
     );
 
@@ -490,7 +490,7 @@ fn remove_interior_for_ring_with_offset_crossbar_removes_center() {
 
     // Try the actual removing operation
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone(), crossbar1.clone()],
+        &[ring1, ring2, crossbar1],
         0.01,
     );
 
@@ -509,7 +509,7 @@ fn ring_with_offset_crossbar_ray_casting_issue() {
         .line_to(Coord2(0.2, 0.9))
         .build();
 
-    let path = vec![ring1.clone(), ring2.clone(), crossbar1.clone()];
+    let path = vec![ring1, ring2, crossbar1];
     let mut merged_path = GraphPath::new();
     merged_path = merged_path.merge(GraphPath::from_merged_paths(
         path.iter()
@@ -543,12 +543,10 @@ fn remove_interior_for_ring_with_cross_removes_center() {
         .build();
 
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(
-        &vec![
-            ring1.clone(),
-            ring2.clone(),
-            crossbar1.clone(),
-            crossbar2.clone(),
-        ],
+        &[ring1.clone(),
+            ring2,
+            crossbar1,
+            crossbar2],
         0.01,
     );
 
@@ -568,7 +566,7 @@ fn remove_overlapped_for_ring_does_not_remove_center() {
     let ring2 = Circle::new(Coord2(2.0, 2.0), 1.5).to_path::<SimpleBezierPath>();
 
     let removed = path_remove_overlapped_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone()],
+        &[ring1.clone(), ring2.clone()],
         0.01,
     );
 
@@ -600,7 +598,7 @@ fn remove_overlapped_for_ring_with_overlapping_crossbar() {
         .build();
 
     let removed = path_remove_overlapped_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone(), crossbar1.clone()],
+        &[ring1, ring2, crossbar1],
         0.01,
     );
 
@@ -619,7 +617,7 @@ fn remove_overlapped_for_ring_with_crossbar_in_space() {
         .build();
 
     let removed = path_remove_overlapped_points::<_, SimpleBezierPath>(
-        &vec![ring1.clone(), ring2.clone(), crossbar1.clone()],
+        &[ring1, ring2, crossbar1],
         0.01,
     );
 
@@ -638,7 +636,7 @@ fn remove_interior_points_basic() {
         .build();
 
     let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&vec![with_interior_point], 0.1);
+        path_remove_interior_points(&[with_interior_point], 0.1);
 
     // Should be 5 points in the path with points removed
     assert!(with_points_removed.len() == 1);
@@ -725,7 +723,7 @@ fn rectangle_add() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -763,7 +761,7 @@ fn rectangle_add_with_shared_point() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -801,7 +799,7 @@ fn rectangle_add_with_shared_point_2() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -841,7 +839,7 @@ fn rectangle_add_with_shared_point_3() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -890,7 +888,7 @@ fn rectangle_add_with_shared_point_4() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -931,7 +929,7 @@ fn rectangle_add_with_shared_point_5() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 
@@ -970,7 +968,7 @@ fn rectangle_add_with_shared_point_6() {
 
     // Add them
     let shared_point =
-        path_add::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_add::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(shared_point.len() == 1);
 

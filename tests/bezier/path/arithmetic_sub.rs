@@ -9,7 +9,7 @@ fn subtract_circles() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -62,7 +62,7 @@ fn create_doughnut() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.01);
 
     assert!(combined_circles.len() == 2);
 }
@@ -74,7 +74,7 @@ fn erase_all() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
+    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&[circle2], &[circle1], 0.01);
 
     assert!(combined_circles.is_empty());
 }
@@ -92,7 +92,7 @@ fn subtract_from_self_rectangles_1() {
 
     // Create a hole in the larger circle
     let combined_rectangles =
-        path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_sub::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -112,7 +112,7 @@ fn subtract_from_self_rectangles_2() {
 
     // Create a hole in the larger circle
     let combined_rectangles =
-        path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+        path_sub::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -126,7 +126,7 @@ fn subtract_from_self_circles() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
+    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&[circle2], &[circle1], 0.01);
 
     assert!(combined_circles.is_empty());
 }
@@ -148,7 +148,7 @@ fn cut_corners() {
         .build();
 
     // Subtract them
-    let cut_corner = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let cut_corner = path_sub::<_, _, SimpleBezierPath>(&[rectangle1], &[rectangle2], 0.01);
 
     assert!(cut_corner.len() == 1);
 

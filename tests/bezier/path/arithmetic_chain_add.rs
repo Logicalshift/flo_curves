@@ -239,7 +239,7 @@ fn add_two_doughnuts() {
         "{:?}",
         combined_circles
             .iter()
-            .map(|path| svg_path_string(path))
+            .map(svg_path_string)
             .collect::<Vec<_>>()
     );
     assert!(combined_circles.len() == 4);
@@ -257,7 +257,7 @@ fn remove_interior_points_basic() {
         .build();
 
     let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&vec![with_interior_point], 0.1);
+        path_remove_interior_points(&[with_interior_point], 0.1);
 
     // Should be 5 points in the path with points removed
     assert!(with_points_removed.len() == 1);

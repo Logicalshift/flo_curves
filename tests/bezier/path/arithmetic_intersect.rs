@@ -16,8 +16,8 @@ fn intersect_two_doughnuts() {
 
     // Combine them
     let combined_circles = path_intersect::<_, _, SimpleBezierPath>(
-        &vec![circle1, inner_circle1],
-        &vec![circle2, inner_circle2],
+        &[circle1, inner_circle1],
+        &[circle2, inner_circle2],
         0.1,
     );
 
@@ -36,8 +36,8 @@ fn full_intersect_two_doughnuts() {
 
     // Combine them
     let intersection = path_full_intersect::<_, _, SimpleBezierPath>(
-        &vec![circle1, inner_circle1],
-        &vec![circle2, inner_circle2],
+        &[circle1, inner_circle1],
+        &[circle2, inner_circle2],
         0.1,
     );
 
@@ -53,7 +53,7 @@ fn full_intersect_two_partially_overlapping_circles() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].len() == 1);
@@ -66,7 +66,7 @@ fn full_intersect_two_non_overlapping_circles() {
     let circle2 = Circle::new(Coord2(15.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.is_empty());
     assert!(intersection.exterior_paths[0].len() == 1);
@@ -79,7 +79,7 @@ fn full_intersect_interior_circles_1() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.5).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].len() == 2);
@@ -92,7 +92,7 @@ fn full_intersect_interior_circles_2() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].is_empty());
@@ -105,7 +105,7 @@ fn fintersect_two_fully_overlapping_circles() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.len() == 1);
 }
@@ -116,7 +116,7 @@ fn full_intersect_two_fully_overlapping_circles() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.1);
+        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     println!("{:?}", intersection);
 
@@ -168,7 +168,7 @@ fn repeatedly_full_intersect_circle() {
 
         // Cut the circle via the fragment
         let cut_circle =
-            path_full_intersect::<_, _, SimpleBezierPath>(&vec![fragment], &remaining, 0.01);
+            path_full_intersect::<_, _, SimpleBezierPath>(&[fragment], &remaining, 0.01);
 
         // Add the slice and the remaining part of the circle
         slices.push(cut_circle.intersecting_path);
@@ -356,7 +356,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
 
         // Cut the circle via the fragment
         let cut_circle = path_full_intersect::<_, _, SimpleBezierPath>(
-            &vec![fragment.clone()],
+            &[fragment.clone()],
             &remaining,
             0.01,
         );
@@ -401,7 +401,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         // Reduce and re-increase the precision of the remaining path (this happens in FlowBetween: even though the points will be in slightly different positions we should still be able to slice using this curve)
         remaining = remaining
             .into_iter()
-            .map(|path| convert_path_to_f32_and_back(path))
+            .map(convert_path_to_f32_and_back)
             .collect();
     }
 

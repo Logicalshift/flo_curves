@@ -956,7 +956,7 @@ fn set_simple_path_as_interior() {
     let mut rectangle1 = GraphPath::from_path(&rectangle1, ());
 
     // Mark everything as an exterior path
-    let first_edge_ref = rectangle1.all_edges().nth(0).unwrap().into();
+    let first_edge_ref = rectangle1.all_edges().next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge_ref, GraphPathEdgeKind::Interior);
 
     // All edges should be exterior
@@ -990,7 +990,7 @@ fn set_collision_as_exterior() {
     let mut collided = rectangle1.collide(rectangle2, 0.01);
 
     // Mark everything as an exterior path
-    let first_edge_ref = collided.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge_ref = collided.edges_for_point(0).next().unwrap().into();
     collided.set_edge_kind_connected(first_edge_ref, GraphPathEdgeKind::Exterior);
 
     // Edges 0 -> 1, 1 -> <x>, <y> -> 2, 2 -> 3 and 3 -> 0 should all be exterior
@@ -1031,7 +1031,7 @@ fn get_path_from_exterior_lines() {
     let mut rectangle1 = GraphPath::from_path(&rectangle1, ());
 
     // Mark everything as an exterior path
-    let first_edge = rectangle1.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(0).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
     // Turn back into a path
@@ -1071,10 +1071,10 @@ fn get_path_from_exterior_lines_multiple_paths() {
     let mut rectangle1 = rectangle1.merge(rectangle2);
 
     // Mark everything as an exterior path
-    let first_edge = rectangle1.edges_for_point(0).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(0).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
-    let first_edge = rectangle1.edges_for_point(4).nth(0).unwrap().into();
+    let first_edge = rectangle1.edges_for_point(4).next().unwrap().into();
     rectangle1.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
 
     // Turn back into a path
@@ -1138,7 +1138,7 @@ fn collide_circles() {
     assert!(graph_path.edges_for_point(3).collect::<Vec<_>>().len() == 1);
 
     // Point 1 should lead to the intersection point
-    let to_intersection = graph_path.edges_for_point(0).nth(0).unwrap();
+    let to_intersection = graph_path.edges_for_point(0).next().unwrap();
     let intersection_point = to_intersection.end_point_index();
 
     assert!(intersection_point > 3);
@@ -1167,9 +1167,7 @@ fn collide_circles() {
 
     // The following intersection point should have one point that leads back into our path
     let following_intersection = intersection_edges
-        .iter()
-        .filter(|edge| is_intersection(edge.end_point_index()))
-        .nth(0)
+        .iter().find(|edge| is_intersection(edge.end_point_index()))
         .unwrap();
     let second_intersection_edges = graph_path
         .edges_for_point(following_intersection.end_point_index())
@@ -1634,7 +1632,7 @@ fn heal_one_line_gap() {
     let mut graph_path = GraphPath::from_path(&path, ());
     let edges = (0..4)
         .into_iter()
-        .map(|point_idx| graph_path.edges_for_point(point_idx).nth(0).unwrap().into())
+        .map(|point_idx| graph_path.edges_for_point(point_idx).next().unwrap().into())
         .collect::<Vec<_>>();
 
     graph_path.set_edge_kind(edges[0], GraphPathEdgeKind::Exterior);
@@ -1660,7 +1658,7 @@ fn heal_two_line_gap() {
     let mut graph_path = GraphPath::from_path(&path, ());
     let edges = (0..4)
         .into_iter()
-        .map(|point_idx| graph_path.edges_for_point(point_idx).nth(0).unwrap().into())
+        .map(|point_idx| graph_path.edges_for_point(point_idx).next().unwrap().into())
         .collect::<Vec<_>>();
 
     graph_path.set_edge_kind(edges[0], GraphPathEdgeKind::Exterior);

@@ -421,13 +421,13 @@ fn remove_interior_points_1() {
 
     println!("{:?}", svg_path_string(&curve));
     let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&vec![curve], 0.01);
+        path_remove_interior_points(&[curve], 0.01);
 
     println!(
         "{:?}",
         with_points_removed
             .iter()
-            .map(|path| svg_path_string(path))
+            .map(svg_path_string)
             .collect::<Vec<_>>()
     );
 
@@ -498,13 +498,13 @@ fn remove_interior_points_1_without_failing_section() {
 
     println!("{:?}", svg_path_string(&curve));
     let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&vec![curve], 0.01);
+        path_remove_interior_points(&[curve], 0.01);
 
     println!(
         "{:?}",
         with_points_removed
             .iter()
-            .map(|path| svg_path_string(path))
+            .map(svg_path_string)
             .collect::<Vec<_>>()
     );
 
@@ -1289,7 +1289,7 @@ fn remove_interior_points_complex_2() {
 
     // This path has generated an error that indicates that no result path was generated (unfortunately it seems this version does not produce the error)
     let without_interior_points =
-        path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
+        path_remove_interior_points::<_, SimpleBezierPath>(&[path], 0.01);
 
     /*
     // Bug appears to be that not all collisions are generated (so two self-collides in a row will generate more points)
@@ -2652,7 +2652,7 @@ fn remove_interior_points_3() {
             )
             .build();
 
-    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
+    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&[path.clone()], 0.01);
     assert!(!removed.is_empty());
 
     let mut graph_path = GraphPath::from_path(&path, PathLabel(0, PathDirection::Clockwise));
@@ -3025,7 +3025,7 @@ fn remove_interior_points_4() {
             .build();
 
     // Fails an internal assertion (cannot determine if a line is in or outside)
-    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
+    let removed = path_remove_interior_points::<_, SimpleBezierPath>(&[path], 0.01);
     assert!(!removed.is_empty());
 
     /* -- we do generate extra points right now, indicating that lines are overlapping

@@ -148,7 +148,7 @@ fn overlaps_with_known_curve_1() {
             || curve2.t_for_point(&curve1.end_point()).is_some()
     );
 
-    assert!(!overlapping_region(&curve1, &curve2).is_some());
+    assert!(overlapping_region(&curve1, &curve2).is_none());
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn overlaps_with_known_curve_2() {
 
     // They currently don't
     assert!(
-        !curve1.t_for_point(&curve2.start_point()).is_some()
+        curve1.t_for_point(&curve2.start_point()).is_none()
             || curve2.t_for_point(&curve1.start_point()).is_some()
     );
     assert!(
@@ -181,7 +181,7 @@ fn overlaps_with_known_curve_2() {
             || curve2.t_for_point(&curve1.end_point()).is_some()
     );
 
-    assert!(!overlapping_region(&curve1, &curve2).is_some());
+    assert!(overlapping_region(&curve1, &curve2).is_none());
 }
 
 #[test]

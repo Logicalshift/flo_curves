@@ -342,7 +342,7 @@ fn find_gaps() {
     let mut graph_path = GraphPath::from_path(&path, ());
     let edges = (0..4)
         .into_iter()
-        .map(|point_idx| graph_path.edges_for_point(point_idx).nth(0).unwrap().into())
+        .map(|point_idx| graph_path.edges_for_point(point_idx).next().unwrap().into())
         .collect::<Vec<_>>();
 
     graph_path.set_edge_kind(edges[0], GraphPathEdgeKind::Exterior);

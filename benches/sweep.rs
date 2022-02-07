@@ -80,9 +80,9 @@ fn create_graph_path(rng: &mut StdRng, n: usize) -> GraphPath<Coord2, ()> {
     }
 
     let path = path_builder.build();
-    let graph_path = GraphPath::from_path(&path, ());
+    
 
-    graph_path
+    GraphPath::from_path(&path, ())
 }
 
 fn detect_collisions(mut graph_path: GraphPath<Coord2, ()>) {
