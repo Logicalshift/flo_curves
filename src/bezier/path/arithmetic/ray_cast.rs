@@ -107,7 +107,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 let ray_direction   = ray.1 - ray.0;
                 let collisions      = self.ordered_ray_collisions(&ray);
 
-                // Work out which edges are interior or exterior
+                // Work out which edges are interior or exterior for every edge the ray has crossed
                 for (collision, curve_t, _line_t, _pos) in collisions {
                     let is_intersection = collision.is_intersection();
                     let edge            = collision.edge();
@@ -123,7 +123,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         PathDirection::Anticlockwise    => { -side }
                     };
 
-                    // Extend the path_crossings vector
+                    // Extend the path_crossings vector to accomodate all of the paths included by this ray
                     while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
 
                     let was_inside = is_inside(&path_crossings);
@@ -133,6 +133,9 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         path_crossings[path_number as usize] += 1;
                     }
                     let is_inside = is_inside(&path_crossings);
+
+                    // At an intersection, we'll hit both edges but we haven't got enough information to see whether or not they're moving into or
+                    // out of the shape, so we can't set their kind here as we may encounter them in any order
 
                     // If this isn't an intersection, set whether or not the edge is exterior
                     let edge_kind = self.edge_kind(edge);
