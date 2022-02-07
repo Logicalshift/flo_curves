@@ -1,12 +1,14 @@
-use super::characteristics::*;
-use super::curve::*;
-use super::normal::*;
+use super::characteristics::{
+    characterize_curve, features_for_curve, CurveCategory, CurveFeatures,
+};
+use super::curve::{BezierCurve, BezierCurveFactory};
+use super::normal::{NormalCurve, Normalize};
 use crate::bezier::CurveSection;
-use crate::geo::*;
-use crate::line::*;
+use crate::geo::{Coordinate, Coordinate2D};
+use crate::line::ray_intersects_ray;
 
-use itertools::*;
-use smallvec::*;
+use itertools::Itertools;
+use smallvec::{smallvec, SmallVec};
 
 // This is loosely based on the algorithm described at: https://pomax.github.io/bezierinfo/#offsetting,
 // with numerous changes to allow for variable-width offsets and consistent behaviour (in particular,

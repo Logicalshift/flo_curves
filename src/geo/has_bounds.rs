@@ -1,5 +1,5 @@
-use super::bounding_box::*;
-use super::geo::*;
+use super::bounding_box::BoundingBox;
+use super::geo::Geo;
 
 ///
 /// Trait implemented by types that have a bounding box associated with them

@@ -1,9 +1,9 @@
-use super::super::super::geo::*;
-use super::super::curve::*;
-use super::bounds::*;
-use super::to_curves::*;
+use super::super::super::geo::{BoundingBox, Coord2, Coordinate, Geo};
+use super::super::curve::BezierCurveFactory;
+use super::bounds::{path_bounding_box, path_fast_bounding_box};
+use super::to_curves::path_to_curves;
 
-use itertools::*;
+use itertools::Itertools;
 use std::iter;
 use std::vec;
 

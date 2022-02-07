@@ -1,7 +1,7 @@
-use super::super::bezier::path::*;
-use super::super::geo::*;
+use super::super::bezier::path::BezierPath;
+use super::super::geo::{Coordinate, Coordinate2D};
 
-use std::fmt::*;
+use std::fmt::Write;
 
 ///
 /// Writes out a path as a Rust simple bezier path definition

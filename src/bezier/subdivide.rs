@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::basis::*;
+use super::super::geo::Coordinate;
+use super::basis::de_casteljau2;
 
 ///
 /// Subdivides a cubic bezier curve at a particular point, returning the weights of

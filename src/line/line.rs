@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::coefficients::*;
+use super::super::geo::{Coordinate, Coordinate2D, Geo};
+use super::coefficients::line_coefficients_2d;
 
 ///
 /// Represents a straight line

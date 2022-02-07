@@ -1,6 +1,9 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    BezierPath, BezierPathBuilder, BezierPathFactory, GraphEdge, GraphPath, GraphPathEdgeKind,
+    GraphRayCollision, PathDirection, PathLabel, SimpleBezierPath,
+};
+use flo_curves::{BezierCurve, BoundingBox, Coord2, Coordinate, Coordinate2D, Coordinate3D, Line};
 
 use std::f64;
 
@@ -1167,7 +1170,8 @@ fn collide_circles() {
 
     // The following intersection point should have one point that leads back into our path
     let following_intersection = intersection_edges
-        .iter().find(|edge| is_intersection(edge.end_point_index()))
+        .iter()
+        .find(|edge| is_intersection(edge.end_point_index()))
         .unwrap();
     let second_intersection_edges = graph_path
         .edges_for_point(following_intersection.end_point_index())

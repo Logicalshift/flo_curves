@@ -1,5 +1,5 @@
-use super::super::bezier::path::*;
-use super::super::bezier::*;
+use super::super::bezier::path::BezierPathFactory;
+use super::super::bezier::{BezierCurve, BezierCurveFactory, Coordinate, Coordinate2D, Curve};
 
 use std::f64;
 
@@ -152,7 +152,10 @@ impl<'a, Coord: Coordinate2D + Coordinate> CircularArc<'a, Coord> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::f64;
+    use crate::{
+        bezier::path::{path_to_curves, SimpleBezierPath},
+        Coord2,
+    };
 
     #[test]
     fn can_convert_unit_arc() {

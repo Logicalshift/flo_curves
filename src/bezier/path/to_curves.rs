@@ -1,7 +1,7 @@
-use super::super::curve::*;
-use super::path::*;
+use super::super::curve::BezierCurveFactory;
+use super::path::BezierPath;
 
-use itertools::*;
+use itertools::Itertools;
 
 ///
 /// Converts a path to a series of bezier curves

@@ -1,6 +1,9 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_sub, BezierPath, BezierPathBuilder, GraphPath, GraphPathEdgeKind, GraphRayCollision,
+    PathDirection, PathLabel, SimpleBezierPath,
+};
+use flo_curves::{BezierCurve, BoundingBox, Coord2, Coordinate, Line};
 
 #[test]
 fn subtract_circles() {
@@ -166,7 +169,7 @@ fn cut_corners() {
 
 #[test]
 fn subtract_triangle_from_partial_circle_graph() {
-    use flo_curves::debug::*;
+    use flo_curves::debug::graph_path_svg_string;
     use std::collections::HashMap;
 
     // This regenerates a failing test from arithmetic_intersection: problem seems to be that there are overlapping (or near-overlapping lines) that cause two outer edges when subtracting

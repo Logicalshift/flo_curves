@@ -1,6 +1,6 @@
-use super::basis::*;
-use super::curve::*;
-use super::derivative::*;
+use super::basis::de_casteljau3;
+use super::curve::BezierCurve;
+use super::derivative::derivative4;
 
 ///
 /// A structure that can be used to compute the tangent of a bezier curve

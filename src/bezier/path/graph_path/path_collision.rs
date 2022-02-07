@@ -1,10 +1,12 @@
 use super::{GraphEdge, GraphEdgeRef, GraphPath, GraphPathEdge, GraphPathPoint};
-use crate::bezier::curve::*;
-use crate::bezier::intersection::*;
-use crate::consts::*;
-use crate::geo::*;
+use crate::bezier::curve::{BezierCurve, BezierCurveFactory, Curve};
+use crate::bezier::intersection::{curve_intersects_curve_clip, find_self_intersection_point};
+use crate::consts::{CLOSE_DISTANCE, SMALL_T_DISTANCE};
+use crate::geo::{
+    sweep_against, sweep_self, BoundingBox, Bounds, Coordinate, Coordinate2D, Geo, HasBoundingBox,
+};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 use std::cmp::Ordering;
 use std::mem;

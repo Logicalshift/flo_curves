@@ -1,4 +1,4 @@
-use super::*;
+use super::approx_equal;
 
 use flo_curves::bezier;
 

@@ -1,6 +1,6 @@
 use flo_curves::bezier;
 use flo_curves::bezier::NormalCurve;
-use flo_curves::*;
+use flo_curves::{BezierCurveFactory, Coord2, Coordinate, Coordinate2D, Coordinate3D, Line};
 
 #[test]
 fn normal_for_line_is_straight_up() {

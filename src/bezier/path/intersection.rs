@@ -1,9 +1,9 @@
-use super::super::super::geo::*;
-use super::super::super::line::*;
-use super::super::curve::*;
-use super::super::intersection::*;
-use super::path::*;
-use super::to_curves::*;
+use super::super::super::geo::{BoundingBox, Bounds, Coordinate2D};
+use super::super::super::line::Line;
+use super::super::curve::{BezierCurve, Curve};
+use super::super::intersection::{curve_intersects_curve_clip, curve_intersects_line};
+use super::path::BezierPath;
+use super::to_curves::path_to_curves;
 
 ///
 /// Determines the intersections of a path and a line

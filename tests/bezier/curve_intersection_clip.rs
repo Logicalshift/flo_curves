@@ -1,6 +1,6 @@
 use flo_curves::bezier;
 use flo_curves::line;
-use flo_curves::*;
+use flo_curves::{BezierCurve, BezierCurveFactory, BoundingBox, Coord2, Coordinate, Line};
 
 #[test]
 fn find_intersection_on_straight_line_not_middle() {
@@ -969,7 +969,7 @@ fn intersection_very_close_to_start_1() {
 
 #[test]
 fn solve_t_close_to_start() {
-    use flo_curves::bezier::*;
+    use flo_curves::bezier::{BezierCurve, BezierCurve2D, Coord2, Coordinate, CurveCategory};
 
     // Same curve as above, but we try to solve the closest point for one curve against another
     let fragment = bezier::Curve {

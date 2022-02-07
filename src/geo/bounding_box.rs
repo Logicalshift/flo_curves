@@ -1,6 +1,6 @@
-use super::coordinate::*;
-use super::geo::*;
-use super::has_bounds::*;
+use super::coordinate::Coordinate;
+use super::geo::Geo;
+use super::has_bounds::HasBoundingBox;
 
 ///
 /// Trait implemented by things representing axis-aligned bounding boxes

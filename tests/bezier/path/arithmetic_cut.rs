@@ -1,5 +1,5 @@
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::bezier::path::{path_cut, BezierPath, BezierPathBuilder, SimpleBezierPath};
+use flo_curves::{BoundingBox, Coord2, Coordinate, Line};
 
 #[test]
 fn cut_square() {

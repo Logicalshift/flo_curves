@@ -1,6 +1,6 @@
-use super::super::geo::*;
-use super::bounds::*;
-use super::subdivide::*;
+use super::super::geo::Coordinate;
+use super::bounds::bounding_box4;
+use super::subdivide::subdivide4;
 
 ///
 /// Performs a subdivision search on a curve for a point matching a function

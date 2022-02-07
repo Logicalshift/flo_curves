@@ -1,4 +1,7 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    chord_length, curve_length, walk_curve_evenly, walk_curve_unevenly, BezierCurveFactory, Coord2,
+    Coordinate, Curve,
+};
 
 #[test]
 fn uneven_walk_1() {

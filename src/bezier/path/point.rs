@@ -1,12 +1,12 @@
-use super::super::super::geo::*;
-use super::super::curve::*;
-use super::super::normal::*;
-use super::graph_path::*;
-use super::path::*;
-use super::ray::*;
-use super::to_curves::*;
+use super::super::super::geo::{Coordinate, Coordinate2D, Geo};
+use super::super::curve::{BezierCurve, Curve};
+use super::super::normal::NormalCurve;
+use super::graph_path::GraphEdgeRef;
+use super::path::BezierPath;
+use super::ray::{ray_collisions, RayPath};
+use super::to_curves::path_to_curves;
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 ///
 /// Represents a curve that can be represented either forwards or backwards

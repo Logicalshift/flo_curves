@@ -1,4 +1,4 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{BezierCurve, BezierCurveFactory, Coord2, Coordinate, Curve};
 
 #[test]
 fn section_points_match() {

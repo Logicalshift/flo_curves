@@ -1,6 +1,10 @@
-use flo_curves::bezier::path::algorithms::*;
-use flo_curves::bezier::path::*;
-use flo_curves::bezier::*;
+use flo_curves::bezier::path::algorithms::{
+    flood_fill_convex, trace_outline_convex, FillSettings, RayCollision,
+};
+use flo_curves::bezier::path::{BezierPath, SimpleBezierPath};
+use flo_curves::bezier::{
+    BezierCurve, BoundingBox, Coord2, Coordinate, Coordinate2D, Coordinate3D, Curve,
+};
 
 fn circle_ray_cast(
     circle_center: Coord2,

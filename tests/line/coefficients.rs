@@ -1,4 +1,6 @@
-use flo_curves::line::*;
+use flo_curves::line::{
+    line_coefficients_2d, Coord2, Coordinate, Coordinate2D, Coordinate3D, Line, Line2D,
+};
 
 #[test]
 fn points_on_line_are_on_line_1() {

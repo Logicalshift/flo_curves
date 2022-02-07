@@ -1,4 +1,6 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    chord_length, curve_length, walk_curve_unevenly, BezierCurve, BezierCurveFactory, Coord2, Curve,
+};
 
 ///
 /// Estimates a curve's length by subdividing it a lot

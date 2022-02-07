@@ -1,8 +1,8 @@
-use super::super::consts::*;
-use super::super::geo::*;
-use super::super::line::*;
-use super::curve::*;
-use super::intersection::*;
+use super::super::consts::SMALL_DISTANCE;
+use super::super::geo::{Coordinate, Coordinate2D};
+use super::super::line::line_coefficients_2d;
+use super::curve::{BezierCurve, BezierCurveFactory, Curve};
+use super::intersection::find_self_intersection_point;
 
 use std::f64;
 
@@ -456,6 +456,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::Coord2;
 
     #[test]
     fn canonical_curve_coeffs_are_valid_1() {

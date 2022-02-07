@@ -1,6 +1,6 @@
-use crate::geo::*;
+use crate::geo::{BoundingBox, Bounds, Coordinate2D, HasBoundingBox};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 use std::cmp::Ordering;
 

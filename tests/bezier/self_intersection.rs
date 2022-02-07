@@ -1,4 +1,6 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    find_self_intersection_point, BezierCurve, BezierCurveFactory, Coord2, Coordinate, Curve,
+};
 
 #[test]
 fn find_simple_self_intersection() {

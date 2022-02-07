@@ -1,6 +1,8 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::bezier::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_intersects_line, path_intersects_path, BezierPath, SimpleBezierPath,
+};
+use flo_curves::bezier::{BezierCurve, BoundingBox, Coord2, Coordinate, Curve};
 
 use std::f64;
 

@@ -1,8 +1,8 @@
-use super::super::super::geo::*;
-use super::super::characteristics::*;
-use super::super::curve::*;
-use super::super::section::*;
-use super::curve_curve_clip::*;
+use super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::characteristics::CurveCategory;
+use super::super::curve::{BezierCurve, BezierCurve2D};
+use super::super::section::CurveSection;
+use super::curve_curve_clip::curve_intersects_curve_clip;
 
 ///
 /// If a cubic curve contains a loop, finds the t values where the curve self-intersects

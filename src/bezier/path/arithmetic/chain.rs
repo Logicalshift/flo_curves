@@ -1,9 +1,9 @@
-use super::super::super::super::geo::*;
-use super::super::path::*;
-use super::add::*;
-use super::chain_add::*;
-use super::intersect::*;
-use super::sub::*;
+use super::super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::path::{BezierPath, BezierPathFactory};
+use super::add::path_remove_interior_points;
+use super::chain_add::path_add_chain;
+use super::intersect::path_intersect;
+use super::sub::path_sub;
 
 ///
 /// Description of an arithmetic operation to perform on a bezier path

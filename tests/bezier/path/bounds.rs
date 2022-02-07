@@ -1,6 +1,6 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{BezierPath, SimpleBezierPath};
+use flo_curves::{BezierCurve, Coord2, Coordinate, Coordinate2D, Coordinate3D};
 
 #[test]
 fn circle_path_bounds() {

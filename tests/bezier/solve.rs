@@ -1,4 +1,6 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    basis, solve_basis_for_t, BezierCurve, BezierCurveFactory, Coord2, Curve,
+};
 
 #[test]
 fn basis_solve_middle() {

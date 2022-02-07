@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::basis::*;
+use super::super::geo::{BoundingBox, Coordinate};
+use super::basis::de_casteljau4;
 
 ///
 /// Finds the t values of the extremities of a curve (these are the points at which

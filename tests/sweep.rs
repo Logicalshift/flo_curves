@@ -1,4 +1,6 @@
-use flo_curves::geo::*;
+use flo_curves::geo::{
+    sweep_against, sweep_self, BoundingBox, Bounds, Coord2, Coordinate, Coordinate2D, Coordinate3D,
+};
 
 use rand::prelude::*;
 use std::cmp::Ordering;

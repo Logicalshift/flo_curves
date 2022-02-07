@@ -1,5 +1,5 @@
-use flo_curves::bezier::*;
-use flo_curves::line::*;
+use flo_curves::bezier::{BezierCurve, Coord2, Coordinate, Curve};
+use flo_curves::line::{line_to_bezier, Line2D};
 
 #[test]
 fn convert_line_to_bezier_curve() {

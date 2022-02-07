@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::line::*;
+use super::super::geo::{Coordinate, Coordinate2D};
+use super::line::Line;
 
 ///
 /// For a two-dimensional line, computes the coefficients of the line equation ax+by+c=0

@@ -1,8 +1,11 @@
-use flo_curves::bezier::path::*;
-use flo_curves::debug::*;
-use flo_curves::*;
+use flo_curves::bezier::path::{
+    path_remove_interior_points, BezierPathBuilder, BezierPathFactory, GraphPath,
+    GraphPathEdgeKind, PathDirection, PathLabel, SimpleBezierPath,
+};
+use flo_curves::debug::graph_path_svg_string;
+use flo_curves::{BoundingBox, Coord2, Coordinate};
 
-use super::svg::*;
+use super::svg::svg_path_string;
 
 #[test]
 fn remove_interior_points_1() {
@@ -420,8 +423,7 @@ fn remove_interior_points_1() {
     println!("{}", graph_path_svg_string(&merged_path, vec![]));
 
     println!("{:?}", svg_path_string(&curve));
-    let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&[curve], 0.01);
+    let with_points_removed: Vec<SimpleBezierPath> = path_remove_interior_points(&[curve], 0.01);
 
     println!(
         "{:?}",
@@ -497,8 +499,7 @@ fn remove_interior_points_1_without_failing_section() {
         .build();
 
     println!("{:?}", svg_path_string(&curve));
-    let with_points_removed: Vec<SimpleBezierPath> =
-        path_remove_interior_points(&[curve], 0.01);
+    let with_points_removed: Vec<SimpleBezierPath> = path_remove_interior_points(&[curve], 0.01);
 
     println!(
         "{:?}",
@@ -1288,8 +1289,7 @@ fn remove_interior_points_complex_2() {
             .build();
 
     // This path has generated an error that indicates that no result path was generated (unfortunately it seems this version does not produce the error)
-    let without_interior_points =
-        path_remove_interior_points::<_, SimpleBezierPath>(&[path], 0.01);
+    let without_interior_points = path_remove_interior_points::<_, SimpleBezierPath>(&[path], 0.01);
 
     /*
     // Bug appears to be that not all collisions are generated (so two self-collides in a row will generate more points)

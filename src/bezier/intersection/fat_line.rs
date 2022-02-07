@@ -1,7 +1,7 @@
-use super::super::super::consts::*;
-use super::super::super::geo::*;
-use super::super::super::line::*;
-use super::super::curve::*;
+use super::super::super::consts::SMALL_DISTANCE;
+use super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::super::line::{line_coefficients_2d, Line};
+use super::super::curve::{BezierCurve, BezierCurveFactory, Curve};
 
 use std::f64;
 
@@ -375,6 +375,8 @@ impl FatLine {
 
 #[cfg(test)]
 mod test {
+    use crate::{line::line_to_bezier, Coord2};
+
     use super::*;
 
     impl FatLine {

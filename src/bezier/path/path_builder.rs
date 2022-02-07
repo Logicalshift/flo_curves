@@ -1,4 +1,4 @@
-use super::path::*;
+use super::path::{BezierPath, BezierPathFactory};
 
 ///
 /// Used to build a bezier path

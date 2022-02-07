@@ -1,9 +1,9 @@
-use super::super::consts::*;
-use super::super::geo::*;
-use super::curve::*;
+use super::super::consts::SMALL_DISTANCE;
+use super::super::geo::Coordinate;
+use super::curve::BezierCurve;
 
 use roots::{find_roots_cubic, find_roots_quadratic, Roots};
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 pub(crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 

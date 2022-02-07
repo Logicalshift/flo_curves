@@ -1,5 +1,5 @@
 use flo_curves::bezier;
-use flo_curves::*;
+use flo_curves::{BezierCurve, BezierCurveFactory, Coord2, Coordinate, Line};
 
 mod algorithms;
 mod path;

@@ -1,6 +1,6 @@
 use flo_curves::bezier;
 use flo_curves::line;
-use flo_curves::*;
+use flo_curves::{BezierCurve, BezierCurveFactory, BoundingBox, Coord2, Coordinate, Line};
 
 #[test]
 fn find_intersection_on_straight_line() {
@@ -391,7 +391,7 @@ fn ray_intersects_curve_1e() {
 
 #[test]
 fn roots_library_does_not_have_missing_root_bug() {
-    use roots::*;
+    use roots::{find_roots_cubic, FloatType, Roots};
 
     // Known root of a set of coefficients (which happen to be the coefficients from the failing tests above)
     let a = -0.000000000000000040410628481035;
@@ -421,7 +421,7 @@ fn roots_library_does_not_have_missing_root_bug() {
 
 #[test]
 fn ray_missing_root_2() {
-    use roots::*;
+    use roots::{find_roots_cubic, FloatType, Roots};
 
     // As above but with the slightly weird coefficent a set to 0.0
     let a = -0.0;
@@ -451,7 +451,7 @@ fn ray_missing_root_2() {
 
 #[test]
 fn ray_missing_root_3() {
-    use roots::*;
+    use roots::{find_roots_cubic, FloatType, Roots};
 
     // Again, but with the smallest value of a that we get a sensible answer for
     let a = -0.0000000002;

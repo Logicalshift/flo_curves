@@ -1,10 +1,10 @@
-use super::characteristics::*;
-use super::curve::*;
-use super::fit::*;
-use super::normal::*;
-use crate::geo::*;
+use super::characteristics::{features_for_curve, CurveFeatures};
+use super::curve::BezierCurveFactory;
+use super::fit::fit_curve_cubic;
+use super::normal::{NormalCurve, Normalize};
+use crate::geo::{Coordinate, Coordinate2D};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 use std::iter;
 
 ///

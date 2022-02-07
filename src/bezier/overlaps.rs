@@ -1,7 +1,7 @@
-use super::super::consts::*;
-use super::super::geo::*;
-use super::super::line::*;
-use super::curve::*;
+use super::super::consts::{SMALL_DISTANCE, SMALL_T_DISTANCE};
+use super::super::geo::{Coordinate, Coordinate2D};
+use super::super::line::Line2D;
+use super::curve::BezierCurve;
 
 ///
 /// If `curve2` overlaps `curve1`, returns two sets of `t` values (those for `curve1` and those for `curve2`)

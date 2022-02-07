@@ -1,5 +1,8 @@
 use flo_curves::bezier::NormalCurve;
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    curve_intersects_ray, offset, offset_lms_sampling, BezierCurve, BezierCurveFactory,
+    BoundingBox, Coord2, Coordinate, Coordinate2D, Coordinate3D, Curve, Normalize,
+};
 use flo_curves::line;
 use flo_curves::line::Line2D;
 
@@ -276,7 +279,7 @@ fn normals_for_line_do_not_meet_at_intersection() {
 
 #[test]
 fn offset_lms_sampling_arc_start_tangent() {
-    use flo_curves::arc::*;
+    use flo_curves::arc::Circle;
 
     // 90 degree circle arc
     let circle = Circle::new(Coord2(0.0, 0.0), 100.0);
@@ -297,7 +300,7 @@ fn offset_lms_sampling_arc_start_tangent() {
 
 #[test]
 fn offset_lms_sampling_arc_end_tangent() {
-    use flo_curves::arc::*;
+    use flo_curves::arc::Circle;
 
     // 90 degree circle arc
     let circle = Circle::new(Coord2(0.0, 0.0), 100.0);
@@ -320,7 +323,7 @@ fn offset_lms_sampling_arc_end_tangent() {
 
 #[test]
 fn offset_lms_sampling_arc_end_point() {
-    use flo_curves::arc::*;
+    use flo_curves::arc::Circle;
 
     // 90 degree circle arc
     let circle = Circle::new(Coord2(0.0, 0.0), 100.0);
@@ -343,7 +346,7 @@ fn offset_lms_sampling_arc_end_point() {
 
 #[test]
 fn offset_lms_sampling_arc_fit_single_curve() {
-    use flo_curves::arc::*;
+    use flo_curves::arc::Circle;
 
     // 90 degree circle arc
     let circle = Circle::new(Coord2(0.0, 0.0), 100.0);

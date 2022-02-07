@@ -1,7 +1,7 @@
-use super::super::super::geo::*;
-use super::super::curve::*;
-use super::path::*;
-use super::to_curves::*;
+use super::super::super::geo::{BoundingBox, Coordinate};
+use super::super::curve::{BezierCurve, Curve};
+use super::path::BezierPath;
+use super::to_curves::path_to_curves;
 
 ///
 /// Finds the bounds of a path

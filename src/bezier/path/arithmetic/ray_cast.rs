@@ -1,12 +1,12 @@
-use super::super::super::super::geo::*;
-use super::super::super::curve::*;
-use super::super::super::normal::*;
-use super::super::graph_path::*;
-use super::super::is_clockwise::*;
-use super::super::path::*;
-use crate::line::*;
+use super::super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::super::curve::BezierCurve;
+use super::super::super::normal::NormalCurve;
+use super::super::graph_path::{GraphPath, GraphPathEdgeKind, GraphRayCollision};
+use super::super::is_clockwise::PathWithIsClockwise;
+use super::super::path::BezierPath;
+use crate::line::Line;
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 ///
 /// Winding direction of a particular path

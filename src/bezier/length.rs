@@ -1,6 +1,6 @@
-use super::curve::*;
-use super::section::*;
-use crate::geo::*;
+use super::curve::BezierCurve;
+use super::section::CurveSection;
+use crate::geo::Coordinate;
 
 ///
 /// Returns the length of the control polygon for a bezier curve

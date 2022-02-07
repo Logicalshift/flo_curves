@@ -1,8 +1,11 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_add_chain, path_remove_interior_points, BezierPath, BezierPathBuilder, BezierPathFactory,
+    GraphPath, SimpleBezierPath,
+};
+use flo_curves::{BezierCurve, Coord2, Coordinate, Line};
 
-use super::svg::*;
+use super::svg::svg_path_string;
 
 #[test]
 fn add_two_overlapping_circles() {

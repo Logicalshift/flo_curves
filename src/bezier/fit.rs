@@ -1,6 +1,6 @@
-use super::basis::*;
-use super::curve::*;
-use crate::geo::*;
+use super::basis::{de_casteljau2, de_casteljau3};
+use super::curve::{BezierCurve, BezierCurveFactory};
+use crate::geo::Coordinate;
 
 /// Maximum number of iterations to perform when trying to improve the curve fit
 const MAX_ITERATIONS: usize = 4;

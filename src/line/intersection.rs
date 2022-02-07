@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::line::*;
+use super::super::geo::{Coordinate, Coordinate2D};
+use super::line::Line;
 
 /// Smallest divisor magnitude to use in ray_intersects_ray (the closer the divisor is to 0, the more close to parallel the lines are), so this
 /// determines the shallowest angle allowed between two lines before we consider them to be parallel.

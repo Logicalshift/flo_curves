@@ -1,11 +1,11 @@
-use super::super::basis::*;
-use super::super::curve::*;
-use crate::consts::*;
-use crate::geo::*;
-use crate::line::*;
+use super::super::basis::{bezier_coefficients, de_casteljau4};
+use super::super::curve::BezierCurve;
+use crate::consts::SMALL_DISTANCE;
+use crate::geo::Coordinate2D;
+use crate::line::Line;
 
 use roots::{find_roots_cubic, find_roots_quadratic, Roots};
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 ///
 /// Solves the roots for a set of cubic coefficients

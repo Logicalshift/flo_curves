@@ -1,7 +1,7 @@
-use super::super::super::super::geo::*;
-use super::super::graph_path::*;
-use super::super::path::*;
-use super::ray_cast::*;
+use super::super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::graph_path::GraphPath;
+use super::super::path::{BezierPath, BezierPathFactory};
+use super::ray_cast::{PathDirection, PathLabel};
 
 ///
 /// The result of a path cut operation

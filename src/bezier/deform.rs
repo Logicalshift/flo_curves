@@ -1,5 +1,5 @@
-use super::super::geo::*;
-use super::curve::*;
+use super::super::geo::Coordinate;
+use super::curve::{BezierCurve, BezierCurveFactory};
 
 ///
 /// Moves the point at 't' on the curve by the offset vector

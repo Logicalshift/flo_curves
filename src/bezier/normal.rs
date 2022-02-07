@@ -1,7 +1,7 @@
-use super::super::geo::*;
-use super::basis::*;
-use super::curve::*;
-use super::derivative::*;
+use super::super::geo::{Coordinate, Coordinate2D};
+use super::basis::{de_casteljau3, de_casteljau4};
+use super::curve::BezierCurve;
+use super::derivative::derivative4;
 
 // TODO: normalize should be a trait associated with coordinate rather than bezier curves (move outwards)
 

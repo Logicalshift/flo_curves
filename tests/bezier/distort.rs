@@ -1,4 +1,7 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{
+    distort_curve, walk_curve_evenly, BezierCurve, BezierCurveFactory, Coord2, Coordinate2D,
+    Coordinate3D, Curve,
+};
 
 #[test]
 fn line_to_sine_wave() {

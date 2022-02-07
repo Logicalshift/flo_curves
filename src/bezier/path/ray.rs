@@ -1,12 +1,12 @@
-use super::super::super::consts::*;
-use super::super::super::geo::*;
-use super::super::super::line::*;
-use super::super::curve::*;
-use super::super::intersection::*;
-use super::super::normal::*;
-use super::graph_path::*;
+use super::super::super::consts::{CLOSE_DISTANCE, SMALL_DISTANCE};
+use super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::super::line::{Line, Line2D};
+use super::super::curve::BezierCurve;
+use super::super::intersection::curve_intersects_ray;
+use super::super::normal::NormalCurve;
+use super::graph_path::{GraphEdgeRef, GraphRayCollision};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 use std::cmp::Ordering;
 
 ///
@@ -84,7 +84,8 @@ where
     // The curve is collinear if all of the points lie on the ray
     (start_point.x() * a + start_point.y() * b + c).abs() < SMALL_DISTANCE
         && (end_point.x() * a + end_point.y() * b + c).abs() < SMALL_DISTANCE
-        && (cp1.x() * a + cp1.y() * b + c).abs() < SMALL_DISTANCE && (cp2.x() * a + cp2.y() * b + c).abs() < SMALL_DISTANCE
+        && (cp1.x() * a + cp1.y() * b + c).abs() < SMALL_DISTANCE
+        && (cp2.x() * a + cp2.y() * b + c).abs() < SMALL_DISTANCE
 }
 
 #[derive(PartialEq)]
@@ -326,7 +327,8 @@ where
                 let end_point = path.point_position(end_point_idx);
 
                 // If any following edge is collinear, remove this collision
-                !(position.is_near_to(&end_point, CLOSE_DISTANCE) && path
+                !(position.is_near_to(&end_point, CLOSE_DISTANCE)
+                    && path
                         .edges_for_point(end_point_idx)
                         .into_iter()
                         .map(|edge| path.get_edge(edge))
@@ -336,7 +338,8 @@ where
                 let start_point = path.point_position(start_point_idx);
 
                 // If any preceding edge is collinear, remove this collision
-                !(position.is_near_to(&start_point, CLOSE_DISTANCE) && path
+                !(position.is_near_to(&start_point, CLOSE_DISTANCE)
+                    && path
                         .reverse_edges_for_point(start_point_idx)
                         .into_iter()
                         .map(|edge| path.get_edge(edge))
@@ -772,6 +775,8 @@ mod test {
     use super::super::path::*;
     use super::super::path_builder::*;
     use super::*;
+    use crate::bezier::path::GraphPath;
+    use crate::Coord2;
 
     #[test]
     fn raw_donut_collisions() {

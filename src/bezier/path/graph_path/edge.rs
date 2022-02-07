@@ -1,9 +1,9 @@
 use super::{GraphEdge, GraphEdgeRef, GraphPath, GraphPathEdge, GraphPathEdgeKind};
-use crate::bezier::bounds::*;
-use crate::bezier::curve::*;
-use crate::geo::*;
+use crate::bezier::bounds::bounding_box4;
+use crate::bezier::curve::BezierCurve;
+use crate::geo::{BoundingBox, Coordinate, Geo, HasBoundingBox};
 
-use std::cell::*;
+use std::cell::RefCell;
 use std::fmt;
 
 impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {

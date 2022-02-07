@@ -1,5 +1,8 @@
-use flo_curves::bezier::*;
-use flo_curves::*;
+use flo_curves::bezier::{
+    characterize_curve, features_for_curve, BezierCurve, BezierCurve2D, BezierCurveFactory, Coord2,
+    Coordinate, Curve, CurveFeatures,
+};
+use flo_curves::{bezier, Line};
 
 #[test]
 fn detect_loop_1() {

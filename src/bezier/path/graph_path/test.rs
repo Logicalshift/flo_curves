@@ -2,6 +2,7 @@ use super::*;
 use crate::arc::*;
 use crate::bezier::normal::*;
 use crate::bezier::path::*;
+use crate::Coord2;
 
 pub(crate) fn donut() -> GraphPath<Coord2, ()> {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();

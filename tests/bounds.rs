@@ -1,6 +1,6 @@
 extern crate flo_curves;
 
-use flo_curves::*;
+use flo_curves::{BoundingBox, Bounds, Coord2};
 
 #[test]
 fn overlapping_rects() {

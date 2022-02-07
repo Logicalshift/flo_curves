@@ -1,6 +1,6 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{path_contains_point, SimpleBezierPath};
+use flo_curves::Coord2;
 
 #[test]
 fn simple_path_contains_point() {

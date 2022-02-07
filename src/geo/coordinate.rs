@@ -10,9 +10,9 @@
 //! any type for which the `Coordinate2D` trait is defined.
 //!
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
-use std::ops::*;
+use std::ops::{Add, Mul, Sub};
 
 ///
 /// Represents a value that can be used as a coordinate in a bezier curve

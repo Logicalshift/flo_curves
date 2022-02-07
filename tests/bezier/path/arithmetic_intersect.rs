@@ -1,7 +1,13 @@
-use flo_curves::arc::*;
-use flo_curves::bezier::path::*;
-use flo_curves::bezier::*;
-use flo_curves::line::*;
+use flo_curves::arc::Circle;
+use flo_curves::bezier::path::{
+    path_full_intersect, path_intersect, BezierPath, BezierPathBuilder, BezierPathFactory,
+    GraphPath, PathDirection, PathLabel, SimpleBezierPath,
+};
+use flo_curves::bezier::{
+    curve_intersects_curve_clip, BezierCurve, BezierCurveFactory, BoundingBox, Coord2, Coordinate,
+    Coordinate2D, Coordinate3D, Curve,
+};
+use flo_curves::line::{line_to_bezier, Line, Line2D};
 
 use std::f64;
 use std::iter;
@@ -52,8 +58,7 @@ fn full_intersect_two_partially_overlapping_circles() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].len() == 1);
@@ -65,8 +70,7 @@ fn full_intersect_two_non_overlapping_circles() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(15.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.is_empty());
     assert!(intersection.exterior_paths[0].len() == 1);
@@ -78,8 +82,7 @@ fn full_intersect_interior_circles_1() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.5).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].len() == 2);
@@ -91,8 +94,7 @@ fn full_intersect_interior_circles_2() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 3.5).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.intersecting_path.len() == 1);
     assert!(intersection.exterior_paths[0].is_empty());
@@ -104,8 +106,7 @@ fn fintersect_two_fully_overlapping_circles() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     assert!(intersection.len() == 1);
 }
@@ -115,8 +116,7 @@ fn full_intersect_two_fully_overlapping_circles() {
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
-    let intersection =
-        path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
+    let intersection = path_full_intersect::<_, _, SimpleBezierPath>(&[circle1], &[circle2], 0.1);
 
     println!("{:?}", intersection);
 
@@ -355,14 +355,11 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         );
 
         // Cut the circle via the fragment
-        let cut_circle = path_full_intersect::<_, _, SimpleBezierPath>(
-            &[fragment.clone()],
-            &remaining,
-            0.01,
-        );
+        let cut_circle =
+            path_full_intersect::<_, _, SimpleBezierPath>(&[fragment.clone()], &remaining, 0.01);
 
         if cut_circle.exterior_paths[1].len() != 1 {
-            use flo_curves::debug::*;
+            use flo_curves::debug::graph_path_svg_string;
 
             let mut merged_path = GraphPath::new();
             merged_path = merged_path.merge(GraphPath::from_merged_paths(

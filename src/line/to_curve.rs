@@ -1,5 +1,5 @@
-use super::super::bezier::*;
-use super::line::*;
+use super::super::bezier::BezierCurveFactory;
+use super::line::Line;
 
 ///
 /// Changes a line to a bezier curve

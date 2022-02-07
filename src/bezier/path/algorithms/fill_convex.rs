@@ -1,7 +1,7 @@
-use super::super::super::super::geo::*;
-use super::super::super::*;
-use super::super::*;
-use super::fill_settings::*;
+use super::super::super::super::geo::{Coordinate, Coordinate2D};
+use super::super::super::{fit_curve, BezierCurve, Curve};
+use super::super::BezierPathFactory;
+use super::fill_settings::FillSettings;
 
 use std::f64;
 use std::ops::Range;
@@ -182,9 +182,7 @@ where
                 // Divide the entry into two by casting a ray between the two points
                 let mid_point = (entry.angle.start + entry.angle.end) / 2.0;
                 let mid_ray = perform_ray_cast(center, mid_point, &cast_ray);
-                let mid_ray_pos = mid_ray
-                    .as_ref()
-                    .map(|(collision, _)| collision.position);
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position);
 
                 // If there's a discontinuity (eg, a corner we can't see around), we'll see that the mid point is very close to the end point and far from the start point
                 if let Some(mid_ray_pos) = mid_ray_pos {
@@ -225,9 +223,7 @@ where
                 // Cast a ray between the two points
                 let mid_point = (entry.angle.start + entry.angle.end) / 2.0;
                 let mid_ray = perform_ray_cast(center, mid_point, &cast_ray);
-                let mid_ray_pos = mid_ray
-                    .as_ref()
-                    .map(|(collision, _)| collision.position);
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position);
 
                 // Divide into two pairs of ranges (process the earlier one first)
                 stack.push(StackEntry {

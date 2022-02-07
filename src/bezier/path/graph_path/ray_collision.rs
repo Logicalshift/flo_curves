@@ -1,9 +1,9 @@
 use super::{GraphEdge, GraphEdgeRef, GraphPath};
-use crate::bezier::path::ray::*;
-use crate::geo::*;
-use crate::line::*;
+use crate::bezier::path::ray::{ray_collisions, RayPath};
+use crate::geo::{Coordinate, Coordinate2D};
+use crate::line::Line;
 
-use smallvec::*;
+use smallvec::SmallVec;
 
 ///
 /// Represents a collision between a ray and a GraphPath

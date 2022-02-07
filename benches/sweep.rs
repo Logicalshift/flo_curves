@@ -1,7 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use flo_curves::bezier::path::*;
-use flo_curves::geo::*;
+use flo_curves::bezier::path::{BezierPathBuilder, BezierPathFactory, GraphPath, SimpleBezierPath};
+use flo_curves::geo::{
+    sweep_self, BoundingBox, Bounds, Coord2, Coordinate, Coordinate2D, Coordinate3D,
+};
 
 use rand::prelude::*;
 use std::cmp::Ordering;
@@ -80,7 +82,6 @@ fn create_graph_path(rng: &mut StdRng, n: usize) -> GraphPath<Coord2, ()> {
     }
 
     let path = path_builder.build();
-    
 
     GraphPath::from_path(&path, ())
 }

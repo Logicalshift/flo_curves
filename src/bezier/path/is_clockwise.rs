@@ -1,7 +1,7 @@
-use super::super::super::geo::*;
-use super::path::*;
+use super::super::super::geo::{Coordinate, Coordinate2D};
+use super::path::BezierPath;
 
-use itertools::*;
+use itertools::Itertools;
 
 ///
 /// Determines if a set of points are in a clockwise ordering (assuming that a positive y value indicates an upwards direction)

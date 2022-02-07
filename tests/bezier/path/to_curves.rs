@@ -1,5 +1,5 @@
-use flo_curves::bezier::path::*;
-use flo_curves::bezier::*;
+use flo_curves::bezier::path::path_to_curves;
+use flo_curves::bezier::{BoundingBox, Coord2, Coordinate, Curve};
 
 #[test]
 pub fn convert_path_to_bezier_curves() {

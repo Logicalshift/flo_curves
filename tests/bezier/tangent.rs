@@ -1,5 +1,5 @@
 use flo_curves::bezier;
-use flo_curves::*;
+use flo_curves::{BezierCurveFactory, Coord2, Coordinate2D, Coordinate3D, Line};
 
 #[test]
 fn calculate_tangent_for_straight_line() {

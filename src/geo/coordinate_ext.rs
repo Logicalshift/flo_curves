@@ -1,4 +1,4 @@
-use crate::geo::coordinate::*;
+use crate::geo::coordinate::{Coordinate, Coordinate2D};
 
 ///
 /// Extra functions provided for coordinate types

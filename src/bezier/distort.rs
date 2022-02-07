@@ -1,9 +1,9 @@
-use super::curve::*;
-use super::fit::*;
-use super::normal::*;
-use super::path::*;
-use super::walk::*;
-use crate::geo::*;
+use super::curve::{BezierCurve, BezierCurveFactory, Curve};
+use super::fit::fit_curve;
+use super::normal::Normalize;
+use super::path::{BezierPath, BezierPathFactory};
+use super::walk::walk_curve_evenly;
+use crate::geo::Coordinate2D;
 
 use std::iter;
 

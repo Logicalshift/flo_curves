@@ -1,14 +1,16 @@
-use super::basis::*;
-use super::bounds::*;
-use super::characteristics::*;
-use super::fit::*;
-use super::length::*;
-use super::search::*;
-use super::section::*;
-use super::solve::*;
-use super::subdivide::*;
+use super::basis::basis;
+use super::bounds::{bounding_box4, find_extremities};
+use super::characteristics::{
+    characterize_cubic_bezier, features_for_cubic_bezier, CurveCategory, CurveFeatures,
+};
+use super::fit::fit_curve;
+use super::length::curve_length;
+use super::search::search_bounds4;
+use super::section::CurveSection;
+use super::solve::solve_curve_for_t;
+use super::subdivide::subdivide4;
 
-use crate::geo::*;
+use crate::geo::{BoundingBox, Coordinate, Coordinate2D, Geo, HasBoundingBox};
 
 ///
 /// Trait implemented by bezier curves that can create new versions of themselves

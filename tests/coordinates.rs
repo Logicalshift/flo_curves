@@ -1,6 +1,6 @@
 extern crate flo_curves;
 
-use flo_curves::*;
+use flo_curves::{Coord2, Coordinate, Coordinate2DExt};
 
 use std::f64;
 

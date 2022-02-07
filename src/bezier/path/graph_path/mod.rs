@@ -1,11 +1,11 @@
-use super::path::*;
-use crate::bezier::curve::*;
-use crate::consts::*;
-use crate::geo::*;
+use super::path::{BezierPath, BezierPathFactory};
+use crate::bezier::curve::BezierCurve;
+use crate::consts::CLOSE_DISTANCE;
+use crate::geo::{Coordinate, Coordinate2D, Geo};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
-use std::cell::*;
+use std::cell::RefCell;
 use std::fmt;
 
 mod edge;
@@ -164,10 +164,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Creates a graph path from a bezier path
     ///
-    pub fn from_path<P: BezierPath<Point = Point>>(
-        path: &P,
-        label: Label,
-    ) -> Self {
+    pub fn from_path<P: BezierPath<Point = Point>>(path: &P, label: Label) -> Self {
         // All edges are exterior for a single path
         let mut points = vec![];
 
@@ -541,7 +538,9 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // For all the connected points, update the following edge refs
             let mut still_connected = false;
 
-            self.points[edge_ref.start_idx].connected_from.sort_unstable();
+            self.points[edge_ref.start_idx]
+                .connected_from
+                .sort_unstable();
             self.points[edge_ref.start_idx].connected_from.dedup();
             for connected_point_idx in self.points[edge_ref.start_idx].connected_from.clone() {
                 for edge_idx in 0..(self.points[connected_point_idx].forward_edges.len()) {
@@ -649,11 +648,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// to specify edge types - knowing if an edge is an interior or exterior edge makes it possible to tell the difference
     /// between a hole cut into a shape and an intersection.
     ///
-    pub fn collide(
-        mut self,
-        collide_path: Self,
-        accuracy: f64,
-    ) -> Self {
+    pub fn collide(mut self, collide_path: Self, accuracy: f64) -> Self {
         // Generate a merged path with all of the edges
         let collision_offset = self.points.len();
         self = self.merge(collide_path);

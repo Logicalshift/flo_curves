@@ -1,10 +1,10 @@
-use super::curve_line::*;
-use super::fat_line::*;
-use crate::bezier::solve::*;
-use crate::bezier::*;
-use crate::geo::*;
+use super::curve_line::curve_intersects_ray;
+use super::fat_line::FatLine;
+use crate::bezier::solve::{solve_curve_for_t, CLOSE_ENOUGH};
+use crate::bezier::{overlapping_region, BezierCurve, CurveSection};
+use crate::geo::{BoundingBox, Bounds, Coordinate, Coordinate2D};
 
-use smallvec::*;
+use smallvec::{smallvec, SmallVec};
 
 ///
 /// Determines the length of a curve's hull as a sum of squares

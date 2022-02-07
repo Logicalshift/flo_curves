@@ -1,9 +1,9 @@
-use super::basis::*;
-use super::curve::*;
-use super::derivative::*;
-use super::section::*;
+use super::basis::de_casteljau3;
+use super::curve::BezierCurve;
+use super::derivative::derivative4;
+use super::section::CurveSection;
 
-use crate::geo::*;
+use crate::geo::Coordinate;
 
 ///
 /// Walks a bezier curve by dividing it into a number of sections

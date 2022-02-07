@@ -1,5 +1,5 @@
-use flo_curves::bezier::path::*;
-use flo_curves::geo::*;
+use flo_curves::bezier::path::BezierPath;
+use flo_curves::geo::{Coordinate2D, Coordinate3D};
 
 use std::fmt::Write;
 

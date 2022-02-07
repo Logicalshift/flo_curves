@@ -1,7 +1,7 @@
-use super::super::geo::*;
-use super::curve::*;
-use super::normal::*;
-use super::offset_scaling::*;
+use super::super::geo::Coordinate2D;
+use super::curve::BezierCurveFactory;
+use super::normal::{NormalCurve, Normalize};
+use super::offset_scaling::offset_scaling;
 
 ///
 /// Computes a series of curves that approximate an offset curve from the specified origin curve.

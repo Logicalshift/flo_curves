@@ -1,4 +1,4 @@
-use flo_curves::bezier::*;
+use flo_curves::bezier::{overlapping_region, BezierCurve, BezierCurveFactory, Coord2, Curve};
 
 #[test]
 fn simple_overlapping_curves() {

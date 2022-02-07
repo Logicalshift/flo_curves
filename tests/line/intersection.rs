@@ -1,4 +1,7 @@
-use flo_curves::line::*;
+use flo_curves::line::{
+    line_clip_to_bounds, line_intersects_line, line_intersects_ray, ray_intersects_ray, Coord2,
+    Coordinate, Line2D,
+};
 
 #[test]
 fn intersection_at_0_0() {

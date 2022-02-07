@@ -1,4 +1,4 @@
-use super::super::geo::*;
+use super::super::geo::Coordinate;
 
 ///
 /// Returns the 1st derivative of a cubic bezier curve

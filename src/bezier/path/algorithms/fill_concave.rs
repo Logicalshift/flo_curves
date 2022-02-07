@@ -1,10 +1,10 @@
-use super::fill_convex::*;
-use super::fill_settings::*;
+use super::fill_convex::{trace_outline_convex, trace_outline_convex_partial, RayCollision};
+use super::fill_settings::FillSettings;
 
-use crate::bezier::path::*;
-use crate::bezier::*;
-use crate::geo::*;
-use crate::line::*;
+use crate::bezier::path::{path_remove_interior_points, BezierPathFactory};
+use crate::bezier::{fit_curve, BezierCurve, Curve};
+use crate::geo::{Coordinate, Coordinate2D};
+use crate::line::{line_intersects_ray, Line};
 
 use std::f64;
 

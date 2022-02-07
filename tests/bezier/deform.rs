@@ -1,5 +1,7 @@
 use flo_curves::bezier;
-use flo_curves::*;
+use flo_curves::{
+    BezierCurve, BezierCurveFactory, Coord2, Coordinate, Coordinate2D, Coordinate3D, Line,
+};
 
 #[test]
 fn deform_line_upwards() {

@@ -1,5 +1,7 @@
-use super::super::bezier::path::*;
-use super::super::bezier::*;
+use super::super::bezier::path::{GraphPath, GraphPathEdgeKind, PathDirection, PathLabel};
+use super::super::bezier::{
+    BezierCurve, BoundingBox, Bounds, Coordinate, Coordinate2D, NormalCurve,
+};
 
 use std::fmt::Write;
 
@@ -62,7 +64,13 @@ pub fn graph_path_svg_string<P: Coordinate + Coordinate2D>(
                 cp2.x(), cp2.y(),
                 end_point.x(), end_point.y(),
                 kind).unwrap();
-            writeln!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />", end_point.x(), end_point.y()).unwrap();
+            writeln!(
+                result,
+                "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />",
+                end_point.x(),
+                end_point.y()
+            )
+            .unwrap();
 
             writeln!(
                 result,
@@ -99,9 +107,15 @@ pub fn graph_path_svg_string<P: Coordinate + Coordinate2D>(
         let p1 = p1 - (point_offset * 1000.0);
         let p2 = p2 + (point_offset * 1000.0);
 
-        writeln!(result, "<path d=\"M {} {} L {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"red\" />",
-            p1.x(), p1.y(),
-            p2.x(), p2.y()).unwrap();
+        writeln!(
+            result,
+            "<path d=\"M {} {} L {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"red\" />",
+            p1.x(),
+            p1.y(),
+            p2.x(),
+            p2.y()
+        )
+        .unwrap();
 
         let ray_direction = p2 - p1;
         let mut collision_count = 0;
