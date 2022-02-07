@@ -179,18 +179,14 @@ fn characterize_from_canonical_point(b4: (f64, f64)) -> CurveCategory {
             // Loop is outside of 0<=t<=1 (double point is t > 1)
             CurveCategory::Arch
         }
+    } else if y >= 1.0 {
+        CurveCategory::SingleInflectionPoint
+    } else if x <= 0.0 {
+        CurveCategory::DoubleInflectionPoint
+    } else if (x - 3.0).abs() <= f64::EPSILON && (y - 0.0).abs() <= f64::EPSILON {
+        CurveCategory::Parabolic
     } else {
-        if y >= 1.0 {
-            CurveCategory::SingleInflectionPoint
-        } else if x <= 0.0 {
-            CurveCategory::DoubleInflectionPoint
-        } else {
-            if (x - 3.0).abs() <= f64::EPSILON && (y - 0.0).abs() <= f64::EPSILON {
-                CurveCategory::Parabolic
-            } else {
-                CurveCategory::Arch
-            }
-        }
+        CurveCategory::Arch
     }
 }
 
@@ -296,12 +292,10 @@ fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
             } else {
                 InflectionPoints::One(t2)
             }
+        } else if t2 < 0.0 || t2 > 1.0 {
+            InflectionPoints::One(t1)
         } else {
-            if t2 < 0.0 || t2 > 1.0 {
-                InflectionPoints::One(t1)
-            } else {
-                InflectionPoints::Two(t1, t2)
-            }
+            InflectionPoints::Two(t1, t2)
         }
     }
 }

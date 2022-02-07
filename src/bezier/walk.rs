@@ -201,13 +201,11 @@ impl<'a, Curve: BezierCurve> Iterator for EvenWalkIterator<'a, Curve> {
             return None;
         }
 
-        if next_t >= 1.0 {
-            if last_point.distance_to(&curve.point_at_pos(1.0)) < distance {
-                // End point is closer than the target distance
-                let last_section = curve.section(last_t, 1.0);
-                self.last_t = 1.0;
-                return Some(last_section);
-            }
+        if next_t >= 1.0 && last_point.distance_to(&curve.point_at_pos(1.0)) < distance {
+            // End point is closer than the target distance
+            let last_section = curve.section(last_t, 1.0);
+            self.last_t = 1.0;
+            return Some(last_section);
         }
 
         let mut count = 0;

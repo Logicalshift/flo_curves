@@ -130,12 +130,10 @@ where
     fn edge_end_point_idx(&self, edge: GraphEdgeRef) -> usize {
         if edge.reverse {
             unimplemented!()
+        } else if edge.start_idx + 1 == self.len() {
+            0
         } else {
-            if edge.start_idx + 1 == self.len() {
-                0
-            } else {
-                edge.start_idx + 1
-            }
+            edge.start_idx + 1
         }
     }
 
