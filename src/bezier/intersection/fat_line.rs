@@ -259,11 +259,7 @@ impl FatLine {
     /// Returns true if this line is flat (indicating the source curve is a straight line)
     ///
     pub fn is_flat(&self) -> bool {
-        if self.d_min.abs() < SMALL_DISTANCE && self.d_max.abs() < SMALL_DISTANCE {
-            true
-        } else {
-            false
-        }
+        self.d_min.abs() < SMALL_DISTANCE && self.d_max.abs() < SMALL_DISTANCE
     }
 }
 

@@ -82,15 +82,9 @@ where
     let (cp1, cp2) = edge.control_points();
 
     // The curve is collinear if all of the points lie on the ray
-    if (start_point.x() * a + start_point.y() * b + c).abs() < SMALL_DISTANCE
+    (start_point.x() * a + start_point.y() * b + c).abs() < SMALL_DISTANCE
         && (end_point.x() * a + end_point.y() * b + c).abs() < SMALL_DISTANCE
-        && (cp1.x() * a + cp1.y() * b + c).abs() < SMALL_DISTANCE
-        && (cp2.x() * a + cp2.y() * b + c).abs() < SMALL_DISTANCE
-    {
-        true
-    } else {
-        false
-    }
+        && (cp1.x() * a + cp1.y() * b + c).abs() < SMALL_DISTANCE && (cp2.x() * a + cp2.y() * b + c).abs() < SMALL_DISTANCE
 }
 
 #[derive(PartialEq)]
@@ -332,34 +326,21 @@ where
                 let end_point = path.point_position(end_point_idx);
 
                 // If any following edge is collinear, remove this collision
-                if position.is_near_to(&end_point, CLOSE_DISTANCE)
-                    && path
+                !(position.is_near_to(&end_point, CLOSE_DISTANCE) && path
                         .edges_for_point(end_point_idx)
                         .into_iter()
                         .map(|edge| path.get_edge(edge))
-                        .any(|next| curve_is_collinear(&next, ray_coeffs))
-                {
-                    false
-                } else {
-                    true
-                }
+                        .any(|next| curve_is_collinear(&next, ray_coeffs)))
             } else if *curve_t < 0.1 {
                 let start_point_idx = path.edge_start_point_idx(*collision);
                 let start_point = path.point_position(start_point_idx);
 
                 // If any preceding edge is collinear, remove this collision
-                if position.is_near_to(&start_point, CLOSE_DISTANCE)
-                    && path
+                !(position.is_near_to(&start_point, CLOSE_DISTANCE) && path
                         .reverse_edges_for_point(start_point_idx)
                         .into_iter()
                         .map(|edge| path.get_edge(edge))
-                        .any(|previous| curve_is_collinear(&previous, ray_coeffs))
-                {
-                    // Collisions crossing collinear sections are taken care of during the collinear collision phase
-                    false
-                } else {
-                    true
-                }
+                        .any(|previous| curve_is_collinear(&previous, ray_coeffs)))
             } else {
                 // Not at the end of a curve
                 true
@@ -650,11 +631,7 @@ where
             let dot_product_mag = dot_product.abs() - 1.0;
 
             // Dot product of two unit vectors will be 1.0 or -1.0 for a tangent collision
-            if dot_product_mag > -0.00000001 && dot_product_mag < 0.00000001 {
-                false
-            } else {
-                true
-            }
+            !(dot_product_mag > -0.00000001 && dot_product_mag < 0.00000001)
         })
 }
 
