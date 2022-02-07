@@ -54,10 +54,11 @@ where
         PathCombine::Path(result) => result,
         PathCombine::RemoveInteriorPoints(path) => path_remove_interior_points(&path, accuracy),
         PathCombine::Add(paths) => path_add_chain(
-            &paths
+            paths
                 .into_iter()
                 .map(|path| path_combine(path, accuracy))
-                .collect(),
+                .collect::<Vec<_>>()
+                .as_slice(),
             accuracy,
         ),
 

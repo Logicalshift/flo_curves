@@ -101,7 +101,7 @@ where
 ///
 fn remove_small_gaps<Coord, Item>(
     center: &Coord,
-    edges: &mut Vec<RayCollision<Coord, Item>>,
+    edges: &mut [RayCollision<Coord, Item>],
     long_edges: &mut Vec<LongEdge<Coord>>,
     min_gap_size: f64,
 ) where

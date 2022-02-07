@@ -7,7 +7,7 @@ use super::ray_cast::*;
 /// Adds multiple paths in a single operation
 ///
 pub fn path_add_chain<P: BezierPath, POut: BezierPathFactory>(
-    paths: &Vec<Vec<P>>,
+    paths: &[Vec<P>],
     accuracy: f64,
 ) -> Vec<POut>
 where

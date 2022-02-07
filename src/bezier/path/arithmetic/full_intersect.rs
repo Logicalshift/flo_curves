@@ -19,8 +19,8 @@ pub struct PathIntersection<P: BezierPathFactory> {
 /// Intersects two paths, returning both the path that is the intersection and the paths that are outside
 ///
 pub fn path_full_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
-    path1: &Vec<P1>,
-    path2: &Vec<P2>,
+    path1: &[P1],
+    path2: &[P2],
     accuracy: f64,
 ) -> PathIntersection<POut>
 where

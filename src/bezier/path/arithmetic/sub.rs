@@ -22,8 +22,8 @@ impl<Point: Coordinate + Coordinate2D> GraphPath<Point, PathLabel> {
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
 pub fn path_sub<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
-    path1: &Vec<P1>,
-    path2: &Vec<P2>,
+    path1: &[P1],
+    path2: &[P2],
     accuracy: f64,
 ) -> Vec<POut>
 where

@@ -39,8 +39,8 @@ impl<Point: Coordinate + Coordinate2D> GraphPath<Point, PathLabel> {
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
 pub fn path_add<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
-    path1: &Vec<P1>,
-    path2: &Vec<P2>,
+    path1: &[P1],
+    path2: &[P2],
     accuracy: f64,
 ) -> Vec<POut>
 where
@@ -93,7 +93,7 @@ where
 /// See `path_remove_overlapped_points()` for a version that considers all edges within the path to be exterior edges.
 ///
 pub fn path_remove_interior_points<P1: BezierPath, POut: BezierPathFactory>(
-    path: &Vec<P1>,
+    path: &[P1],
     accuracy: f64,
 ) -> Vec<POut>
 where
@@ -136,7 +136,7 @@ where
 /// winding rules presuppose you can tell if a subpath is inside or outside of an existing path.
 ///
 pub fn path_remove_overlapped_points<P1: BezierPath, POut: BezierPathFactory>(
-    path: &Vec<P1>,
+    path: &[P1],
     accuracy: f64,
 ) -> Vec<POut>
 where

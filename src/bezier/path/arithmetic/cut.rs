@@ -19,8 +19,8 @@ pub struct PathCut<P: BezierPathFactory> {
 /// the part that was exterior in one operation
 ///
 pub fn path_cut<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(
-    path1: &Vec<P1>,
-    path2: &Vec<P2>,
+    path1: &[P1],
+    path2: &[P2],
     accuracy: f64,
 ) -> PathCut<POut>
 where
