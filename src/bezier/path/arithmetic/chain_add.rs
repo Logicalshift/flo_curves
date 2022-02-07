@@ -21,7 +21,7 @@ where
         let path_idx = path_idx as u32;
         merged_path = merged_path.collide(
             GraphPath::from_merged_paths(
-                path.into_iter()
+                path.iter()
                     .map(|path| (path, PathLabel(path_idx, PathDirection::from(path)))),
             ),
             accuracy,

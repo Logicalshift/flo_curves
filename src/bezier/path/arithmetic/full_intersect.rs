@@ -51,7 +51,7 @@ where
     let mut merged_path = GraphPath::new();
     merged_path = merged_path.merge(GraphPath::from_merged_paths(
         path1
-            .into_iter()
+            .iter()
             .map(|path| (path, PathLabel(0, PathDirection::from(path)))),
     ));
 
@@ -59,7 +59,7 @@ where
     merged_path = merged_path.collide(
         GraphPath::from_merged_paths(
             path2
-                .into_iter()
+                .iter()
                 .map(|path| (path, PathLabel(1, PathDirection::from(path)))),
         ),
         accuracy,
@@ -91,13 +91,13 @@ where
     let mut merged_path = GraphPath::new();
     merged_path = merged_path.merge(GraphPath::from_merged_paths(
         path2
-            .into_iter()
+            .iter()
             .map(|path| (path, PathLabel(0, PathDirection::from(path)))),
     ));
     merged_path = merged_path.collide(
         GraphPath::from_merged_paths(
             path1
-                .into_iter()
+                .iter()
                 .map(|path| (path, PathLabel(1, PathDirection::from(path)))),
         ),
         accuracy,
