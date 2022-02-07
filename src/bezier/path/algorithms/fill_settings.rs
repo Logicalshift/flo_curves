@@ -23,7 +23,7 @@ impl FillSettings {
     /// The step size defines how accurately the flood-filled region reflects the area defined by the
     /// ray-casting function. Higher steps will result in a faster but less accurate result.
     ///
-    pub fn with_step(self, new_step: f64) -> FillSettings {
+    pub fn with_step(self, new_step: f64) -> Self {
         let mut new_options = self;
         new_options.step = new_step;
         new_options
@@ -37,7 +37,7 @@ impl FillSettings {
     /// fit, which may produce a simpler (and smoother) resulting path but which will not necessarily
     /// fit the points as well.
     ///
-    pub fn with_fit_error(self, new_fit_error: f64) -> FillSettings {
+    pub fn with_fit_error(self, new_fit_error: f64) -> Self {
         let mut new_options = self;
         new_options.fit_error = new_fit_error;
         new_options
@@ -48,7 +48,7 @@ impl FillSettings {
     ///
     /// This makes it possible to fill regions that are not perfectly enclosed
     ///
-    pub fn with_min_gap(self, new_min_gap: Option<f64>) -> FillSettings {
+    pub fn with_min_gap(self, new_min_gap: Option<f64>) -> Self {
         let mut new_options = self;
         new_options.min_gap = new_min_gap;
         new_options
@@ -59,8 +59,8 @@ impl Default for FillSettings {
     ///
     /// Creates the default set of fill options
     ///
-    fn default() -> FillSettings {
-        FillSettings {
+    fn default() -> Self {
+        Self {
             step: 2.0,
             fit_error: 0.5,
             min_gap: Some(5.0),

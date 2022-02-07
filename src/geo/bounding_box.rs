@@ -135,7 +135,7 @@ impl<Point: Coordinate> Geo for Bounds<Point> {
 impl<Point: Coordinate> BoundingBox for Bounds<Point> {
     #[inline]
     fn from_min_max(min: Self::Point, max: Self::Point) -> Self {
-        Bounds(min, max)
+        Self(min, max)
     }
 
     #[inline]

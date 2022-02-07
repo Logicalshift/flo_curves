@@ -28,8 +28,8 @@ where
     ///
     /// Creates a new collision at a specific point
     ///
-    pub fn new(position: Coord, what: Item) -> RayCollision<Coord, Item> {
-        RayCollision { position, what }
+    pub fn new(position: Coord, what: Item) -> Self {
+        Self { position, what }
     }
 }
 

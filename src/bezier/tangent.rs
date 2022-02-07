@@ -14,10 +14,10 @@ impl<'a, Curve: BezierCurve> From<&'a Curve> for Tangent<Curve> {
     ///
     /// Creates a structure that can computes the tangents for a bezier curve
     ///
-    fn from(curve: &'a Curve) -> Tangent<Curve> {
+    fn from(curve: &'a Curve) -> Self {
         let control_points = curve.control_points();
 
-        Tangent {
+        Self {
             derivative: derivative4(
                 curve.start_point(),
                 control_points.0,

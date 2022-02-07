@@ -17,8 +17,8 @@ impl<Point: Coordinate, Label> GraphPathEdge<Point, Label> {
         end_idx: usize,
         label: Label,
         following_edge_idx: usize,
-    ) -> GraphPathEdge<Point, Label> {
-        GraphPathEdge {
+    ) -> Self {
+        Self {
             label,
             kind,
             cp1,

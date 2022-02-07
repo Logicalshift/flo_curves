@@ -5,7 +5,7 @@ impl GraphEdgeRef {
     ///
     /// Creates a reversed version of this edge ref
     ///
-    pub fn reversed(mut self) -> GraphEdgeRef {
+    pub fn reversed(mut self) -> Self {
         self.reverse = !self.reverse;
         self
     }
@@ -17,7 +17,7 @@ impl GraphEdgeRef {
 impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> From<GraphEdge<'a, Point, Label>>
     for GraphEdgeRef
 {
-    fn from(edge: GraphEdge<'a, Point, Label>) -> GraphEdgeRef {
+    fn from(edge: GraphEdge<'a, Point, Label>) -> Self {
         edge.edge
     }
 }
@@ -28,7 +28,7 @@ impl<'a, Point: 'a + Coordinate, Label: 'a + Copy> From<GraphEdge<'a, Point, Lab
 impl<'a, 'b, Point: 'a + Coordinate, Label: 'a + Copy> From<&'b GraphEdge<'a, Point, Label>>
     for GraphEdgeRef
 {
-    fn from(edge: &'b GraphEdge<'a, Point, Label>) -> GraphEdgeRef {
+    fn from(edge: &'b GraphEdge<'a, Point, Label>) -> Self {
         edge.edge
     }
 }

@@ -21,7 +21,7 @@ enum ConcaveItem<Item> {
 }
 
 impl<Item> From<ConcaveItem<Item>> for Option<Item> {
-    fn from(ci: ConcaveItem<Item>) -> Option<Item> {
+    fn from(ci: ConcaveItem<Item>) -> Self {
         match ci {
             ConcaveItem::Edge(item) => Some(item),
             ConcaveItem::SelfIntersection(_) => None,

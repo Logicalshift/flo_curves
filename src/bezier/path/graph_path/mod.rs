@@ -111,8 +111,8 @@ impl<Point, Label> GraphPathPoint<Point, Label> {
         position: Point,
         forward_edges: SmallVec<[GraphPathEdge<Point, Label>; 2]>,
         connected_from: SmallVec<[usize; 2]>,
-    ) -> GraphPathPoint<Point, Label> {
-        GraphPathPoint {
+    ) -> Self {
+        Self {
             position,
             forward_edges,
             connected_from,
@@ -154,8 +154,8 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Creates a new graph path with no points
     ///
-    pub fn new() -> GraphPath<Point, Label> {
-        GraphPath {
+    pub fn new() -> Self {
+        Self {
             points: vec![],
             next_path_index: 0,
         }
@@ -167,7 +167,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     pub fn from_path<P: BezierPath<Point = Point>>(
         path: &P,
         label: Label,
-    ) -> GraphPath<Point, Label> {
+    ) -> Self {
         // All edges are exterior for a single path
         let mut points = vec![];
 
@@ -242,7 +242,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
 
         // Create the graph path from the points
-        let mut path = GraphPath {
+        let mut path = Self {
             points,
             next_path_index: 1,
         };
@@ -259,13 +259,13 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         PathIter: IntoIterator<Item = (&'a P, Label)>,
     >(
         paths: PathIter,
-    ) -> GraphPath<Point, Label> {
+    ) -> Self {
         // Create an empty path
-        let mut merged_path = GraphPath::new();
+        let mut merged_path = Self::new();
 
         // Merge each path in turn
         for (path, label) in paths {
-            let path = GraphPath::from_path(path, label);
+            let path = Self::from_path(path, label);
             merged_path = merged_path.merge(path);
         }
 
@@ -417,7 +417,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// This adds the edges in the new path to this path without considering if they are internal or external
     ///
-    pub fn merge(self, merge_path: GraphPath<Point, Label>) -> GraphPath<Point, Label> {
+    pub fn merge(self, merge_path: Self) -> Self {
         // Copy the points from this graph
         let mut new_points = self.points;
         let next_path_idx = self.next_path_index;
@@ -439,7 +439,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }));
 
         // Combined path
-        GraphPath {
+        Self {
             points: new_points,
             next_path_index: next_path_idx + merge_path.next_path_index,
         }
@@ -619,7 +619,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     pub fn collide_or_merge(
         mut self,
-        collide_path: GraphPath<Point, Label>,
+        collide_path: Self,
         accuracy: f64,
     ) -> CollidedGraphPath<Point, Label> {
         // Generate a merged path with all of the edges
@@ -651,9 +651,9 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     pub fn collide(
         mut self,
-        collide_path: GraphPath<Point, Label>,
+        collide_path: Self,
         accuracy: f64,
-    ) -> GraphPath<Point, Label> {
+    ) -> Self {
         // Generate a merged path with all of the edges
         let collision_offset = self.points.len();
         self = self.merge(collide_path);

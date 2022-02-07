@@ -22,11 +22,11 @@ where
     P::Point: Coordinate2D,
 {
     #[inline]
-    fn from(path: &'a P) -> PathDirection {
+    fn from(path: &'a P) -> Self {
         if path.is_clockwise() {
-            PathDirection::Clockwise
+            Self::Clockwise
         } else {
-            PathDirection::Anticlockwise
+            Self::Anticlockwise
         }
     }
 }

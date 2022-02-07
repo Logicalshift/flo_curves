@@ -206,12 +206,12 @@ pub trait Coordinate3D {
 }
 
 impl Coordinate for f64 {
-    fn from_components(components: &[f64]) -> f64 {
+    fn from_components(components: &[f64]) -> Self {
         components[0]
     }
 
     #[inline]
-    fn origin() -> f64 {
+    fn origin() -> Self {
         0.0
     }
     #[inline]
@@ -224,7 +224,7 @@ impl Coordinate for f64 {
     }
 
     #[inline]
-    fn from_biggest_components(p1: f64, p2: f64) -> f64 {
+    fn from_biggest_components(p1: Self, p2: Self) -> Self {
         if p1 > p2 {
             p1
         } else {
@@ -233,7 +233,7 @@ impl Coordinate for f64 {
     }
 
     #[inline]
-    fn from_smallest_components(p1: f64, p2: f64) -> f64 {
+    fn from_smallest_components(p1: Self, p2: Self) -> Self {
         if p1 < p2 {
             p1
         } else {
@@ -242,11 +242,11 @@ impl Coordinate for f64 {
     }
 
     #[inline]
-    fn distance_to(&self, target: &f64) -> f64 {
-        f64::abs(self - target)
+    fn distance_to(&self, target: &Self) -> f64 {
+        Self::abs(self - target)
     }
 
-    fn dot(&self, target: &f64) -> f64 {
+    fn dot(&self, target: &Self) -> f64 {
         self * target
     }
 }
@@ -273,36 +273,36 @@ impl Coordinate2D for Coord2 {
     }
 }
 
-impl Add<Coord2> for Coord2 {
-    type Output = Coord2;
+impl Add<Self> for Coord2 {
+    type Output = Self;
 
     #[inline]
-    fn add(self, rhs: Coord2) -> Coord2 {
-        Coord2(self.0 + rhs.0, self.1 + rhs.1)
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
 
-impl Sub<Coord2> for Coord2 {
-    type Output = Coord2;
+impl Sub<Self> for Coord2 {
+    type Output = Self;
 
     #[inline]
-    fn sub(self, rhs: Coord2) -> Coord2 {
-        Coord2(self.0 - rhs.0, self.1 - rhs.1)
+    fn sub(self, rhs: Self) -> Self {
+        Self(self.0 - rhs.0, self.1 - rhs.1)
     }
 }
 
 impl Mul<f64> for Coord2 {
-    type Output = Coord2;
+    type Output = Self;
 
     #[inline]
-    fn mul(self, rhs: f64) -> Coord2 {
-        Coord2(self.0 * rhs, self.1 * rhs)
+    fn mul(self, rhs: f64) -> Self {
+        Self(self.0 * rhs, self.1 * rhs)
     }
 }
 
 impl From<(f64, f64)> for Coord2 {
-    fn from((x, y): (f64, f64)) -> Coord2 {
-        Coord2(x, y)
+    fn from((x, y): (f64, f64)) -> Self {
+        Self(x, y)
     }
 }
 
@@ -313,8 +313,8 @@ impl From<Coord2> for (f64, f64) {
 }
 
 impl From<(f32, f32)> for Coord2 {
-    fn from((x, y): (f32, f32)) -> Coord2 {
-        Coord2(x as _, y as _)
+    fn from((x, y): (f32, f32)) -> Self {
+        Self(x as _, y as _)
     }
 }
 
@@ -326,13 +326,13 @@ impl From<Coord2> for (f32, f32) {
 
 impl Coordinate for Coord2 {
     #[inline]
-    fn from_components(components: &[f64]) -> Coord2 {
-        Coord2(components[0], components[1])
+    fn from_components(components: &[f64]) -> Self {
+        Self(components[0], components[1])
     }
 
     #[inline]
-    fn origin() -> Coord2 {
-        Coord2(0.0, 0.0)
+    fn origin() -> Self {
+        Self(0.0, 0.0)
     }
 
     #[inline]
@@ -349,22 +349,22 @@ impl Coordinate for Coord2 {
         }
     }
 
-    fn from_biggest_components(p1: Coord2, p2: Coord2) -> Coord2 {
-        Coord2(
+    fn from_biggest_components(p1: Self, p2: Self) -> Self {
+        Self(
             f64::from_biggest_components(p1.0, p2.0),
             f64::from_biggest_components(p1.1, p2.1),
         )
     }
 
-    fn from_smallest_components(p1: Coord2, p2: Coord2) -> Coord2 {
-        Coord2(
+    fn from_smallest_components(p1: Self, p2: Self) -> Self {
+        Self(
             f64::from_smallest_components(p1.0, p2.0),
             f64::from_smallest_components(p1.1, p2.1),
         )
     }
 
     #[inline]
-    fn distance_to(&self, target: &Coord2) -> f64 {
+    fn distance_to(&self, target: &Self) -> f64 {
         let dist_x = target.0 - self.0;
         let dist_y = target.1 - self.1;
 

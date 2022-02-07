@@ -37,8 +37,8 @@ impl<Coord: Coordinate2D + Coordinate> Circle<Coord> {
     ///
     /// Creates a new circle with a center and a radius
     ///
-    pub fn new(center: Coord, radius: f64) -> Circle<Coord> {
-        Circle { center, radius }
+    pub fn new(center: Coord, radius: f64) -> Self {
+        Self { center, radius }
     }
 
     ///

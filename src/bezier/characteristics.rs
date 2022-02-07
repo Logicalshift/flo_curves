@@ -302,11 +302,11 @@ fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
 
 impl From<InflectionPoints> for CurveFeatures {
     #[inline]
-    fn from(ip: InflectionPoints) -> CurveFeatures {
+    fn from(ip: InflectionPoints) -> Self {
         match ip {
-            InflectionPoints::Zero => CurveFeatures::Arch,
-            InflectionPoints::One(t) => CurveFeatures::SingleInflectionPoint(t),
-            InflectionPoints::Two(t1, t2) => CurveFeatures::DoubleInflectionPoint(t1, t2),
+            InflectionPoints::Zero => Self::Arch,
+            InflectionPoints::One(t) => Self::SingleInflectionPoint(t),
+            InflectionPoints::Two(t1, t2) => Self::DoubleInflectionPoint(t1, t2),
         }
     }
 }

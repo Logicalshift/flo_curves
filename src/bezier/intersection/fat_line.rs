@@ -267,7 +267,7 @@ impl FatLine {
     ///
     /// Creates a new fatline from a central line and two points representing its outer edges
     ///
-    fn from_line_and_points<L: Line>(line: L, p1: L::Point, p2: L::Point) -> FatLine
+    fn from_line_and_points<L: Line>(line: L, p1: L::Point, p2: L::Point) -> Self
     where
         L::Point: Coordinate + Coordinate2D,
     {
@@ -293,7 +293,7 @@ impl FatLine {
             )
         };
 
-        FatLine {
+        Self {
             d_min,
             d_max,
             coeff: (a, b, c),
@@ -303,7 +303,7 @@ impl FatLine {
     ///
     /// Creates a new fatline from a curve
     ///
-    pub fn from_curve<C: BezierCurve>(curve: &C) -> FatLine
+    pub fn from_curve<C: BezierCurve>(curve: &C) -> Self
     where
         C::Point: Coordinate + Coordinate2D,
     {
@@ -324,7 +324,7 @@ impl FatLine {
     ///
     /// Creates a perpendicular fatline from a curve
     ///
-    pub fn from_curve_perpendicular<C: BezierCurve>(curve: &C) -> FatLine
+    pub fn from_curve_perpendicular<C: BezierCurve>(curve: &C) -> Self
     where
         C::Point: Coordinate + Coordinate2D,
     {
@@ -365,7 +365,7 @@ impl FatLine {
         let d_min = d1.min(d2).min(d3).min(d4);
         let d_max = d1.max(d2).max(d3).max(d4);
 
-        FatLine {
+        Self {
             coeff: (a, b, c),
             d_min,
             d_max,
@@ -381,13 +381,13 @@ mod test {
         ///
         /// Creates a new fat line
         ///
-        pub fn new<L: Line>(line: L, d_min: f64, d_max: f64) -> FatLine
+        pub fn new<L: Line>(line: L, d_min: f64, d_max: f64) -> Self
         where
             L::Point: Coordinate2D,
         {
             let (a, b, c) = line_coefficients_2d(&line);
 
-            FatLine {
+            Self {
                 d_min,
                 d_max,
                 coeff: (a, b, c),

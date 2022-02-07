@@ -15,8 +15,8 @@ impl<P: BezierPathFactory> BezierPathBuilder<P> {
     ///
     /// Creates a new bezier path builder with the specified start point
     ///
-    pub fn start(start: P::Point) -> BezierPathBuilder<P> {
-        BezierPathBuilder {
+    pub fn start(start: P::Point) -> Self {
+        Self {
             start_point: start,
             points: vec![],
         }

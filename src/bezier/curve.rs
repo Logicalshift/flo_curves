@@ -219,7 +219,7 @@ impl<Coord: Coordinate> BezierCurveFactory for Curve<Coord> {
         (control_point1, control_point2): (Coord, Coord),
         end: Coord,
     ) -> Self {
-        Curve {
+        Self {
             start_point: start,
             control_points: (control_point1, control_point2),
             end_point: end,
