@@ -2,7 +2,6 @@ use flo_curves::bezier::NormalCurve;
 use flo_curves::bezier::*;
 use flo_curves::line;
 use flo_curves::line::Line2D;
-use flo_curves::*;
 
 use std::f64;
 

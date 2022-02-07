@@ -1,7 +1,6 @@
 use flo_curves::bezier::path::algorithms::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::*;
-use flo_curves::*;
 
 fn circle_ray_cast(
     circle_center: Coord2,

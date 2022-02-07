@@ -1,5 +1,4 @@
 use flo_curves::bezier::*;
-use flo_curves::*;
 
 #[test]
 fn find_simple_self_intersection() {

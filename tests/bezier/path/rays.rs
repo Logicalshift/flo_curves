@@ -1,6 +1,5 @@
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::*;
-use flo_curves::*;
 
 use std::collections::HashMap;
 
