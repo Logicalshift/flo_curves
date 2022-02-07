@@ -525,10 +525,9 @@ where
                         .reverse_edges_for_point(edge.start_idx)
                         .into_iter()
                         .map(|previous_edge| previous_edge.reversed())
-                        .filter(|previous_edge| {
+                        .find(|previous_edge| {
                             path.edge_following_edge_idx(*previous_edge) == edge.edge_idx
                         })
-                        .next()
                         .expect("Previous edge for a collision at start");
 
                     (previous_edge, edge)
