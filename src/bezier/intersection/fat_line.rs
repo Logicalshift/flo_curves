@@ -186,7 +186,7 @@ impl FatLine {
             // The y axis indicates where the hull crosses from inside to outside the fat line
             if let Some(t1a) = t1a {
                 // Line crossed d_min
-                if t1a >= 0.0 && t1a <= 1.0 {
+                if (0.0..=1.0).contains(&t1a) {
                     t1 = t1.min(t1a);
                     t2 = t2.max(t1a);
                 }
@@ -194,7 +194,7 @@ impl FatLine {
 
             if let Some(t2a) = t2a {
                 // Line crossed d_max
-                if t2a >= 0.0 && t2a <= 1.0 {
+                if (0.0..=1.0).contains(&t2a) {
                     t1 = t1.min(t2a);
                     t2 = t2.max(t2a);
                 }

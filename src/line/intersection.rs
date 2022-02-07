@@ -27,7 +27,7 @@ where
     let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3))
         / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 
-    if ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0 {
+    if (0.0..=1.0).contains(&ua) && ub >= 0.0 && ub <= 1.0 {
         Some(L::Point::from_components(&[
             x1 + (ua * (x2 - x1)),
             y1 + (ua * (y2 - y1)),
@@ -57,7 +57,7 @@ where
     let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3))
         / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 
-    if ua >= 0.0 && ua <= 1.0 {
+    if (0.0..=1.0).contains(&ua) {
         Some(L::Point::from_components(&[
             x1 + (ua * (x2 - x1)),
             y1 + (ua * (y2 - y1)),
