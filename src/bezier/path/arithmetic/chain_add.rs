@@ -37,7 +37,7 @@ where
                 return true;
             }
         }
-        return false;
+        false
     });
     merged_path.heal_exterior_gaps();
 

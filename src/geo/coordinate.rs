@@ -112,7 +112,7 @@ pub trait Coordinate:
             }
         }
 
-        return false;
+        false
     }
 
     ///
