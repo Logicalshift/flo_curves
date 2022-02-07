@@ -169,7 +169,7 @@ fn remove_small_gaps<Coord, Item>(
 
     // Remove any long edges that were affected by the gap removal operation
     if !long_edges_to_remove.is_empty() {
-        long_edges_to_remove.sort();
+        long_edges_to_remove.sort_unstable();
         for long_edge_num in long_edges_to_remove.into_iter().rev() {
             long_edges.remove(long_edge_num);
         }

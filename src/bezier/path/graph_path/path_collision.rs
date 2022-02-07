@@ -726,7 +726,7 @@ impl<Point: Coordinate + Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
                 // If we introduced duplicates, remove them
                 if remapped {
-                    point.connected_from.sort();
+                    point.connected_from.sort_unstable();
                     point.connected_from.dedup();
                 }
             }
