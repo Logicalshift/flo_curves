@@ -76,6 +76,58 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     }
 
     ///
+    /// Computes the collision count for a point along an edge in the graph
+    ///
+    /// The result is 'None' if the point described is at an intersection
+    ///
+    pub fn edge_collision_count(&self, target_edge: GraphEdgeRef, t: f64) -> Option<i64> {
+        // Fetch the point that the ray is being 'fired' at
+        let real_edge       = self.get_edge(target_edge);
+        let point           = real_edge.point_at_pos(t);
+        let normal          = real_edge.normal_at_pos(t);
+
+        // Work out what the ray collides with
+        let ray             = (point - normal, point);
+        let ray_direction   = ray.1 - ray.0;
+        let collisions      = self.ordered_ray_collisions(&ray);
+
+        // Count collisions until we hit the point requested
+        let mut count = 0;
+        for (collision, curve_t, _line_t, _pos) in collisions {
+            let edge                    = collision.edge();
+            let PathLabel(_, direction) = self.edge_label(edge);
+
+            // The relative direction of the tangent to the ray indicates the direction we're crossing in
+            let normal  = self.get_edge(edge).normal_at_pos(curve_t);
+
+            let side    = ray_direction.dot(&normal).signum() as i32;
+            let side    = match direction {
+                PathDirection::Clockwise        => { side },
+                PathDirection::Anticlockwise    => { -side }
+            };
+
+            // Add this collision to the count
+            if side < 0 {
+                count -= 1;
+            } else if side > 0 {
+                count += 1;
+            }
+
+            // Stop if we're in the approximate location of the requested target
+            if edge == target_edge && (curve_t-t).abs() < 0.001 {
+                if collision.is_intersection() {
+                    // Intersections have uncertain counts as it's not clear which order the edge would be crossed by the ray (they're all crossed simultaneously)
+                    return None;
+                } else {
+                    return Some(count);
+                }
+            }
+        }
+
+        Some(count)
+    }
+
+    ///
     /// Sets the edge kinds by performing ray casting
     /// 
     /// The function passed in to this method takes two parameters: these are the number of times edges have been crossed in
