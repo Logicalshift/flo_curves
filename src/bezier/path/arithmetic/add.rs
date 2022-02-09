@@ -14,6 +14,9 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
     /// Given a labelled graph path, marks exterior edges by adding `PathSource::Path1` and `PathSource::Path2`
     ///
+    /// This is used to implement the `path_add()` arithmetic function, and is generally called after using `collide()`
+    /// to combine the two input paths.
+    ///
     pub fn set_exterior_by_adding(&mut self) {
         // Use an even-odd winding rule (all edges are considered 'external')
         self.set_edge_kinds_by_ray_casting(|path_crossings| (path_crossings[0]&1) != 0 || (path_crossings[1]&1) != 0);
