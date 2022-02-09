@@ -66,6 +66,17 @@ pub (crate) trait RayPath {
     /// (the edge start from the end point index that continues the path the edge is a part of)
     ///
     fn edge_following_edge_idx(&self, edge: GraphEdgeRef) -> usize;
+
+    ///
+    /// Returns true if two edges overlap
+    ///
+    fn edges_overlap(&self, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
+        if edge_a.start_idx != edge_b.start_idx {
+            false
+        } else {
+            true
+        }
+    }
 }
 
 ///
@@ -591,6 +602,8 @@ where   Path::Point:    Coordinate+Coordinate2D,
 
         if dx.abs() > SMALL_DISTANCE || dy.abs() > SMALL_DISTANCE {
             // Order by position on the ray
+            line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
+        } else if !path.edges_overlap(edge_a.edge(), edge_b.edge()) {
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else {
             // Position on the line is the same (stabilise ordering by checking the edges)
