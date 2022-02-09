@@ -89,7 +89,17 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
         // Work out what the ray collides with
         let ray             = (point - normal, point);
         let ray_direction   = ray.1 - ray.0;
-        let collisions      = self.ordered_ray_collisions(&ray);
+        let mut collisions  = self.ordered_ray_collisions(&ray);
+        collisions.sort_by(|(_, _, a_line_t, _), (_, _, b_line_t, _)| {
+            use std::cmp::*;
+            if a_line_t < b_line_t {
+                Ordering::Less
+            } else if a_line_t > b_line_t {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
 
         // Count collisions until we hit the point requested
         let mut count = 0;
