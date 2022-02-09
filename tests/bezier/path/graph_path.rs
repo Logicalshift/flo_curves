@@ -1769,6 +1769,8 @@ pub fn ray_cast_converging_curves() {
 
     // Ray-casting along each of the edges in the path should always produce the same number of collisions
     use std::collections::{HashMap};
+    use flo_curves::bezier::*;
+
     let mut num_collisions = HashMap::new();
 
     for t in [0.5, 0.1, 0.9, 0.01, 0.99, 0.001, 0.999] {
@@ -1777,7 +1779,9 @@ pub fn ray_cast_converging_curves() {
             let expected_collisions = *num_collisions.entry(edge)
                 .or_insert_with(|| actual_collisions.unwrap());
 
-            println!("actual_collisions = {:?}, expected_collisions = {:?}, t = {:?}, edge = {:?}", actual_collisions, expected_collisions, t, edge);
+            let normal              = path.get_edge(edge).normal_at_pos(t);
+
+            println!("actual_collisions = {:?}, expected_collisions = {:?}, t = {:?}, edge = {:?}, normal = {:?}", actual_collisions, expected_collisions, t, edge, normal);
             assert!(actual_collisions.is_none() || actual_collisions == Some(expected_collisions));
         }
     }
