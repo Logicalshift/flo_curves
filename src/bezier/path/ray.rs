@@ -618,6 +618,8 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let earlier_normal          = earlier_edge.normal_at_pos(edge_t);
                 let earlier_direction       = ray_direction.dot(&earlier_normal);
 
+                // TODO: reverse earlier_direction based if edge_a and edge_b are from shapes moving in different directions
+
                 if earlier_direction < 0.0 {
                     edge_order.reverse()
                 } else {

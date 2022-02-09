@@ -64,6 +64,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         let earlier_edge                    = if edge_a.edge_idx < edge_b.edge_idx { edge_a } else { edge_b };
                         let PathLabel(_, edge_direction)    = self.edge_label(earlier_edge);
 
+                        // TODO: if the direction of the two edges is different, reverse them - or better: do this ordering in ray_collisions()
                         if edge_direction == PathDirection::Anticlockwise {
                             collisions.swap(collision_idx, collision_idx+1);
                         }
