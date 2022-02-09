@@ -124,7 +124,8 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
             }
         }
 
-        Some(count)
+        // Did not intercept the target edge (or target edge was not included as a collision)
+        None
     }
 
     ///
