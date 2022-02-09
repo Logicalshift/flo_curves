@@ -73,6 +73,8 @@ pub (crate) trait RayPath {
     fn edges_overlap(&self, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
         if edge_a.start_idx != edge_b.start_idx {
             false
+        } else if self.edge_end_point_idx(edge_a) != self.edge_end_point_idx(edge_b) {
+            false
         } else {
             true
         }
@@ -604,6 +606,7 @@ where   Path::Point:    Coordinate+Coordinate2D,
             // Order by position on the ray
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else if !path.edges_overlap(edge_a.edge(), edge_b.edge()) {
+            // Only enforce edge ordering if the two edges overlap: otherwise, continue to use ordering along the ray
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else {
             // Position on the line is the same (stabilise ordering by checking the edges)
