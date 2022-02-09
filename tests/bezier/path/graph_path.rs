@@ -1734,6 +1734,8 @@ pub fn ray_cast_identical_rectangles() {
 
 #[test]
 pub fn ray_cast_converging_curves() {
+    // TODO: failure seems to be because the ray snaps to the following point when it passes close enough, and edge_collision_count doesn't take account of this
+
     // The y offset for the end of the curve (which moves down in the y direction)
     let y_offset    = 0.1;
     let x_offset    = 4.0;
