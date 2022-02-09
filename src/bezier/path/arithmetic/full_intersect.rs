@@ -18,6 +18,10 @@ pub struct PathIntersection<P: BezierPathFactory> {
 ///
 /// Intersects two paths, returning both the path that is the intersection and the paths that are outside
 ///
+/// Each of the two paths passed into this function is assumed not to overlap themselves. IE, this does not perform self-intersection 
+/// on either `path1` or `path2`. This provides both a performance optimisation and finer control over how self-intersecting paths are
+/// handled. See `path_remove_interior_points()` and `path_remove_overlapped_points()` for a way to eliminate overlaps.
+///
 pub fn path_full_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> PathIntersection<POut>
 where   P1::Point:  Coordinate+Coordinate2D,
         P2:         BezierPath<Point=P1::Point>,

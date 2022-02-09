@@ -30,6 +30,10 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 
 ///
 /// Generates the path formed by adding two sets of paths
+///
+/// Each of the two paths passed into this function is assumed not to overlap themselves. IE, this does not perform self-intersection 
+/// on either `path1` or `path2`. This provides both a performance optimisation and finer control over how self-intersecting paths are
+/// handled. See `path_remove_interior_points()` and `path_remove_overlapped_points()` for a way to eliminate overlaps.
 /// 
 /// The input vectors represent the external edges of the path to add (a single BezierPath cannot have any holes in it, so a set of them
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
