@@ -106,7 +106,7 @@ where Curve::Point: Coordinate2D {
             // This should not happen with path graphs where all the curve intersections have been eliminated
 
             // If it does happen, for ordering purposes (which is what this is ultimately used for), we can still consider the curves
-            // overlapping when a ray intersects both of them: there will be inconsistent results when the curve intersects either one
+            // overlapping when a ray intersects both of them: there will be inconsistent results when the ray intersects either one
             // first, but this is more related to the missed curve intersections than the ordering problem.
 
             // All the control points are a very small distance from the line joining the two curves
