@@ -66,18 +66,45 @@ pub (crate) trait RayPath {
     /// (the edge start from the end point index that continues the path the edge is a part of)
     ///
     fn edge_following_edge_idx(&self, edge: GraphEdgeRef) -> usize;
+}
 
-    ///
-    /// Returns true if two edges overlap
-    ///
-    fn edges_overlap(&self, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
-        if edge_a.start_idx != edge_b.start_idx {
-            false
-        } else if self.edge_end_point_idx(edge_a) != self.edge_end_point_idx(edge_b) {
-            false
-        } else {
-            true
-        }
+///
+/// Returns true if the control points of the two curves are 'close enough' to be considered overlapping
+///
+fn control_points_overlap<Curve: BezierCurve>(curve1: &Curve, curve2: &Curve) -> bool
+where Curve::Point: Coordinate2D {
+    const SMALL_DISTANCE: f64       = 0.01;
+    const SMALL_DISTANCE_SQ: f64    = SMALL_DISTANCE * SMALL_DISTANCE;
+
+    // To be considered as overlapping, two curves must have control points in approximately the same position
+    // (We say approximately because two separately derived floating point values will have some margin of error)
+    let (cp1_a, cp2_a)  = curve1.control_points();
+    let (cp1_b, cp2_b)  = curve2.control_points();
+
+    let distance_1      = cp1_a - cp1_b;
+    let distance_2      = cp2_a - cp2_b;
+
+    let distance_1      = distance_1.dot(&distance_1);
+    let distance_2      = distance_2.dot(&distance_2);
+
+    distance_1 <= SMALL_DISTANCE_SQ && distance_2 <= SMALL_DISTANCE_SQ
+}
+
+///
+/// Returns true if two edges overlap
+///
+fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
+    let start_idx_a = edge_a.start_idx;
+    let end_idx_a   = path.edge_end_point_idx(edge_a);
+    let start_idx_b = edge_b.start_idx;
+    let end_idx_b   = path.edge_end_point_idx(edge_b);
+
+    if start_idx_a == start_idx_b && end_idx_a == end_idx_b {
+        control_points_overlap(&path.get_edge(edge_a), &path.get_edge(edge_b))
+    } else if start_idx_a == end_idx_b && end_idx_a == start_idx_b {
+        control_points_overlap(&path.get_edge(edge_a), &path.get_edge(edge_b.reversed()))
+    } else {
+        false
     }
 }
 
@@ -605,7 +632,7 @@ where   Path::Point:    Coordinate+Coordinate2D,
         if dx.abs() > SMALL_DISTANCE || dy.abs() > SMALL_DISTANCE {
             // Order by position on the ray
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
-        } else if !path.edges_overlap(edge_a.edge(), edge_b.edge()) {
+        } else if !edges_overlap(path, edge_a.edge(), edge_b.edge()) {
             // Only enforce edge ordering if the two edges overlap: otherwise, continue to use ordering along the ray
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else {
