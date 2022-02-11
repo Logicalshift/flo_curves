@@ -73,7 +73,6 @@ pub (crate) trait RayPath {
 ///
 fn control_points_overlap<Curve: BezierCurve>(curve1: &Curve, curve2: &Curve) -> bool
 where Curve::Point: Coordinate2D {
-    const SMALL_DISTANCE: f64       = 0.001;
     const SMALL_DISTANCE_SQ: f64    = SMALL_DISTANCE * SMALL_DISTANCE;
 
     // To be considered as overlapping, two curves must have control points in approximately the same position
