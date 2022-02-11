@@ -73,7 +73,7 @@ pub (crate) trait RayPath {
 ///
 fn control_points_overlap<Curve: BezierCurve>(curve1: &Curve, curve2: &Curve) -> bool
 where Curve::Point: Coordinate2D {
-    const SMALL_DISTANCE: f64       = 0.01;
+    const SMALL_DISTANCE: f64       = 0.001;
     const SMALL_DISTANCE_SQ: f64    = SMALL_DISTANCE * SMALL_DISTANCE;
 
     // To be considered as overlapping, two curves must have control points in approximately the same position
@@ -87,7 +87,36 @@ where Curve::Point: Coordinate2D {
     let distance_1      = distance_1.dot(&distance_1);
     let distance_2      = distance_2.dot(&distance_2);
 
-    distance_1 <= SMALL_DISTANCE_SQ && distance_2 <= SMALL_DISTANCE_SQ
+    if distance_1 <= SMALL_DISTANCE_SQ && distance_2 <= SMALL_DISTANCE_SQ {
+        // Control points are in the same position
+        true
+    } else {
+        // If the points on curve1 and curve2 are collinear (to some degree of precision), then they overlap even if the control points are far apart as they're both lines
+        // This assumes curve1 and curve2 have the same start point, which is true when called from edges_overlap()
+        let start       = curve1.start_point();
+        let end         = curve2.end_point();
+        let (a, b, c)   = (start, end).coefficients();
+
+        let dist_cp1_a  = a*cp1_a.x() + b*cp1_a.y() + c;
+        let dist_cp2_a  = a*cp2_a.x() + b*cp2_a.y() + c;
+        let dist_cp1_b  = a*cp2_b.x() + b*cp2_b.y() + c;
+        let dist_cp2_b  = a*cp2_b.x() + b*cp2_b.y() + c;
+
+        if dist_cp1_a <= SMALL_DISTANCE && dist_cp1_b <= SMALL_DISTANCE && dist_cp2_a <= SMALL_DISTANCE && dist_cp2_b < SMALL_DISTANCE {
+            // TODO: weird edge case: if the control points are 'outside' the start and end points, part of the curve does not overlap
+            // This should not happen with path graphs where all the curve intersections have been eliminated
+
+            // If it does happen, for ordering purposes (which is what this is ultimately used for), we can still consider the curves
+            // overlapping when a ray intersects both of them: there will be inconsistent results when the curve intersects either one
+            // first, but this is more related to the missed curve intersections than the ordering problem.
+
+            // All the control points are a very small distance from the line joining the two curves
+            true
+        } else {
+            // Control points are different and one or both of the curves is not a line
+            false
+        }
+    }
 }
 
 ///
