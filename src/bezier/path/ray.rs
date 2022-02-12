@@ -121,7 +121,7 @@ where Curve::Point: Coordinate2D {
 ///
 /// Returns true if two edges overlap
 ///
-fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
+pub (crate) fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
     let start_idx_a = edge_a.start_idx;
     let end_idx_a   = path.edge_end_point_idx(edge_a);
     let start_idx_b = edge_b.start_idx;
