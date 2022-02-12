@@ -133,14 +133,19 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         // Usually the ray will not collide with any overlapping edges
                         overlapping_group
                     } else {
-                        // Overlapping edges are processed in ascending order when entering the shape, and descending order when leaving
+                        // Overlapping edges are processed in ascending order when entering the first shape, and descending order when leaving it
+                        // (This has the effect that when the ray is considered 'outside' the first shape it will hit the second shape first, which is the correct
+                        // ordering for the subtraction operation)
                         let mut overlapping_group   = overlapping_group;
 
-                        if !is_inside(&path_crossings) {
-                            // Later shapes are crossed before earlier shapes when the ray is outside the shape
+                        // We use the supplied function to determine if the ray should be considered 'inside' or not
+                        let first_shape_crossings   = smallvec![path_crossings[0], 0];
+
+                        if !is_inside(&first_shape_crossings) {
+                            // Later shapes are crossed before earlier shapes when the ray is outside the first shape
                             overlapping_group.sort_by(|(collision_a, _, _, _), (collision_b, _, _, _)| collision_b.edge().edge_idx.cmp(&collision_a.edge().edge_idx))
                         } else {
-                            // Earlier shapes are crossed before later shapes when the ray is inside the shape
+                            // Earlier shapes are crossed before later shapes when the ray is inside the first shape
                             overlapping_group.sort_by(|(collision_a, _, _, _), (collision_b, _, _, _)| collision_a.edge().edge_idx.cmp(&collision_b.edge().edge_idx))
                         }
 
