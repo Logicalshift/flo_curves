@@ -4,7 +4,6 @@ use crate::bezier::path::is_clockwise::*;
 use crate::bezier::curve::*;
 use crate::bezier::normal::*;
 use crate::geo::*;
-use crate::line::*;
 
 use smallvec::*;
 
