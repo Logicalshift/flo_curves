@@ -121,7 +121,7 @@ where Curve::Point: Coordinate2D {
 ///
 /// Takes a list of GraphRayCollisions and groups any that are for overlapping edges so they can be processed together
 ///
-pub (crate) fn group_overlapped_collisions<Path: RayPath>(path: &Path, collisions: Vec<(GraphRayCollision, f64, f64, Path::Point)>) -> Vec<SmallVec<[(GraphRayCollision, f64, f64, Path::Point); 1]>> {
+pub (crate) fn group_overlapped_collisions<Path: RayPath>(path: Path, collisions: Vec<(GraphRayCollision, f64, f64, Path::Point)>) -> Vec<SmallVec<[(GraphRayCollision, f64, f64, Path::Point); 1]>> {
     // Most collisions do not hit overlapping edges (so we use a smallvec of size 1, and we expect the result to have the same number of entries)
     let mut grouped_collisions  = Vec::with_capacity(collisions.len());
 
@@ -152,7 +152,7 @@ pub (crate) fn group_overlapped_collisions<Path: RayPath>(path: &Path, collision
         if dx >= SMALL_DISTANCE || dy >= SMALL_DISTANCE {
             // Collisions do not overlap: start a new group (most common case)
             grouped_collisions.push(smallvec![next_collision]);
-        } else if !edges_overlap(path, last_edge.edge(), next_edge.edge()) {
+        } else if !edges_overlap(&path, last_edge.edge(), next_edge.edge()) {
             // Collisions occur very close to each other but the edges are different so this isn't considered an overlapping collision
             // Note that ordering becomes uncertain for collision points that are very close to each other due to numeric methods
             grouped_collisions.push(smallvec![next_collision]);
