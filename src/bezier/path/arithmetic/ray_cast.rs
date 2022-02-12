@@ -1,3 +1,4 @@
+use crate::bezier::path::ray::*;
 use crate::bezier::path::path::*;
 use crate::bezier::path::graph_path::*;
 use crate::bezier::path::is_clockwise::*;
@@ -9,7 +10,7 @@ use smallvec::*;
 
 ///
 /// Winding direction of a particular path
-///  
+///
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum PathDirection {
     Clockwise,
@@ -30,9 +31,9 @@ where P::Point: Coordinate2D {
 
 ///
 /// Label attached to a path used for arithmetic
-/// 
+///
 /// The parameters are the path number (counting from 0) and the winding direction of the path
-/// 
+///
 #[derive(Clone, Copy, Debug)]
 pub struct PathLabel(pub u32, pub PathDirection);
 
@@ -122,61 +123,66 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                 let ray_direction   = ray.1 - ray.0;
                 let collisions      = self.ray_collisions(&ray);
 
+                // Overlapping edges need special treatment
+                let collisions      = group_overlapped_collisions(self as &Self, collisions);
+
                 // Work out which edges are interior or exterior for every edge the ray has crossed
-                for (collision, curve_t, _line_t, _pos) in collisions {
-                    let is_intersection = collision.is_intersection();
-                    let edge            = collision.edge();
+                for overlapping_group in collisions {
+                    for (collision, curve_t, _line_t, _pos) in overlapping_group {
+                        let is_intersection = collision.is_intersection();
+                        let edge            = collision.edge();
 
-                    let PathLabel(path_number, direction) = self.edge_label(edge);
+                        let PathLabel(path_number, direction) = self.edge_label(edge);
 
-                    // The relative direction of the tangent to the ray indicates the direction we're crossing in
-                    let normal  = self.get_edge(edge).normal_at_pos(curve_t);
+                        // The relative direction of the tangent to the ray indicates the direction we're crossing in
+                        let normal  = self.get_edge(edge).normal_at_pos(curve_t);
 
-                    let side    = ray_direction.dot(&normal).signum() as i32;
-                    let side    = match direction {
-                        PathDirection::Clockwise        => { side },
-                        PathDirection::Anticlockwise    => { -side }
-                    };
+                        let side    = ray_direction.dot(&normal).signum() as i32;
+                        let side    = match direction {
+                            PathDirection::Clockwise        => { side },
+                            PathDirection::Anticlockwise    => { -side }
+                        };
 
-                    // Extend the path_crossings vector to accomodate all of the paths included by this ray
-                    while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
+                        // Extend the path_crossings vector to accomodate all of the paths included by this ray
+                        while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
 
-                    let was_inside = is_inside(&path_crossings);
-                    if side < 0 {
-                        path_crossings[path_number as usize] -= 1;
-                    } else if side > 0 {
-                        path_crossings[path_number as usize] += 1;
-                    }
-                    let is_inside = is_inside(&path_crossings);
-
-                    // At an intersection, we'll hit both edges but we haven't got enough information to see whether or not they're moving into or
-                    // out of the shape, so we can't set their kind here as we may encounter them in any order
-
-                    // If this isn't an intersection, set whether or not the edge is exterior
-                    let edge_kind = self.edge_kind(edge);
-                    if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
-                        // Exterior edges move from inside to outside or vice-versa
-                        if curve_t > 0.1 && curve_t < 0.9 {
-                            if was_inside ^ is_inside {
-                                // Exterior edge
-                                self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                            } else {
-                                // Interior edge
-                                self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
-                            }
+                        let was_inside = is_inside(&path_crossings);
+                        if side < 0 {
+                            path_crossings[path_number as usize] -= 1;
+                        } else if side > 0 {
+                            path_crossings[path_number as usize] += 1;
                         }
-                    } else if !is_intersection && curve_t > 0.1 && curve_t < 0.9 {
-                        if was_inside ^ is_inside {
-                            if edge_kind != GraphPathEdgeKind::Exterior {
-                                // We've likely got a missing collision in the graph so an edge is both inside and outside
-                                // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
-                                self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                            }
+                        let is_inside = is_inside(&path_crossings);
 
-                            // This is a bug so fail in debug builds
-                            test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
-                        } else {
-                            test_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                        // At an intersection, we'll hit both edges but we haven't got enough information to see whether or not they're moving into or
+                        // out of the shape, so we can't set their kind here as we may encounter them in any order
+
+                        // If this isn't an intersection, set whether or not the edge is exterior
+                        let edge_kind = self.edge_kind(edge);
+                        if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
+                            // Exterior edges move from inside to outside or vice-versa
+                            if curve_t > 0.1 && curve_t < 0.9 {
+                                if was_inside ^ is_inside {
+                                    // Exterior edge
+                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
+                                } else {
+                                    // Interior edge
+                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
+                                }
+                            }
+                        } else if !is_intersection && curve_t > 0.1 && curve_t < 0.9 {
+                            if was_inside ^ is_inside {
+                                if edge_kind != GraphPathEdgeKind::Exterior {
+                                    // We've likely got a missing collision in the graph so an edge is both inside and outside
+                                    // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
+                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
+                                }
+
+                                // This is a bug so fail in debug builds
+                                test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
+                            } else {
+                                test_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                            }
                         }
                     }
                 }
