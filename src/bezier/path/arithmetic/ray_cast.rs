@@ -51,7 +51,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
         // Work out what the ray collides with
         let ray             = (point - normal, point);
         let ray_direction   = ray.1 - ray.0;
-        let collisions      = self.ray_collisions(&ray); // TODO: == ordered_ray_collisions
+        let collisions      = self.ray_collisions(&ray);
 
         // Count collisions until we hit the point requested
         let mut count = 0;
