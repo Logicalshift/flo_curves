@@ -128,6 +128,26 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 
                 // Work out which edges are interior or exterior for every edge the ray has crossed
                 for overlapping_group in collisions {
+                    // Re-order overlapping edges according to whether or not the ray is inside the shape or not
+                    let overlapping_group = if overlapping_group.len() <= 1 {
+                        // Usually the ray will not collide with any overlapping edges
+                        overlapping_group
+                    } else {
+                        // Overlapping edges are processed in ascending order when entering the shape, and descending order when leaving
+                        let mut overlapping_group   = overlapping_group;
+
+                        if !is_inside(&path_crossings) {
+                            // Later shapes are crossed before earlier shapes when the ray is outside the shape
+                            overlapping_group.sort_by(|(collision_a, _, _, _), (collision_b, _, _, _)| collision_b.edge().edge_idx.cmp(&collision_a.edge().edge_idx))
+                        } else {
+                            // Earlier shapes are crossed before later shapes when the ray is inside the shape
+                            overlapping_group.sort_by(|(collision_a, _, _, _), (collision_b, _, _, _)| collision_a.edge().edge_idx.cmp(&collision_b.edge().edge_idx))
+                        }
+
+                        overlapping_group
+                    };
+
+                    // Process the edges in the group
                     for (collision, curve_t, _line_t, _pos) in overlapping_group {
                         let is_intersection = collision.is_intersection();
                         let edge            = collision.edge();
