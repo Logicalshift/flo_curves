@@ -1731,3 +1731,60 @@ pub fn ray_cast_identical_rectangles() {
     // when the edges precisely overlap)
     assert!(edge1.label() != edge3.label());
 }
+
+#[test]
+pub fn ray_cast_converging_curves() {
+    // TODO: failure seems to be because the ray snaps to the following point when it passes close enough, and edge_collision_count doesn't take account of this
+
+    // The y offset for the end of the curve (which moves down in the y direction)
+    let y_offset    = 0.1;
+    let x_offset    = 4.0;
+
+    // We'll converge a curve against a rectangle
+    let rectangle       = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    // The curves at the top and bottom of this shape converge with the lines of the rectangle without ever quite meeting them (this means they eventually get close enough to
+    // 'overlap', initially by `SMALL_DISTANCE` which flo_curves often uses to detect points close enough to be considered the same, and eventually by the limits of precision
+    // of the f64 type: rays hitting 'overlapping' points cross in an uncertain order). Smaller features - relative to SMALL_DISTANCE - will hit issues with this more often
+    // (for this reason, GraphPath combines nearby points according to the accuracy figure)
+    let curved_shape    = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0 - x_offset, 1.0 - y_offset))
+        .curve_to((Coord2(1.0, 1.0 - y_offset), Coord2(2.0, 1.0)), Coord2(5.0, 1.0 - y_offset))
+        .line_to(Coord2(5.0, 5.0))
+        .curve_to((Coord2(2.0, 5.0), Coord2(1.0, 5.0 - y_offset)), Coord2(1.0 - x_offset, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+
+    // Merge into a graph
+    let rectangle       = GraphPath::from_path(&rectangle, PathLabel(0, PathDirection::Clockwise));
+    let curved_shape    = GraphPath::from_path(&curved_shape, PathLabel(1, PathDirection::Clockwise));
+
+    let path            = rectangle.collide(curved_shape, 0.01);
+
+    // If the paths converge too much, they'll have the wrong number of points in the graph
+    println!("path.num_points() = {:?}", path.num_points());
+    assert!(path.num_points() == 10);
+
+    // Ray-casting along each of the edges in the path should always produce the same number of collisions
+    use std::collections::{HashMap};
+    use flo_curves::bezier::*;
+
+    let mut num_collisions = HashMap::new();
+
+    for t in [0.5, 0.1, 0.9, 0.01, 0.99, 0.001, 0.999] {
+        for edge in path.all_edge_refs() {
+            let actual_collisions   = path.edge_collision_count(edge, t);
+            let expected_collisions = *num_collisions.entry(edge)
+                .or_insert_with(|| actual_collisions.unwrap());
+
+            let normal              = path.get_edge(edge).normal_at_pos(t);
+
+            println!("actual_collisions = {:?}, expected_collisions = {:?}, t = {:?}, edge = {:?}, normal = {:?}", actual_collisions, expected_collisions, t, edge, normal);
+            assert!(actual_collisions.is_none() || actual_collisions == Some(expected_collisions));
+        }
+    }
+}

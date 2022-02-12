@@ -69,6 +69,121 @@ pub (crate) trait RayPath {
 }
 
 ///
+/// Returns true if the control points of the two curves are 'close enough' to be considered overlapping
+///
+fn control_points_overlap<Curve: BezierCurve>(curve1: &Curve, curve2: &Curve) -> bool
+where Curve::Point: Coordinate2D {
+    const SMALL_DISTANCE_SQ: f64    = SMALL_DISTANCE * SMALL_DISTANCE;
+
+    // To be considered as overlapping, two curves must have control points in approximately the same position
+    // (We say approximately because two separately derived floating point values will have some margin of error)
+    let (cp1_a, cp2_a)  = curve1.control_points();
+    let (cp1_b, cp2_b)  = curve2.control_points();
+
+    let distance_1      = cp1_a - cp1_b;
+    let distance_2      = cp2_a - cp2_b;
+
+    let distance_1      = distance_1.dot(&distance_1);
+    let distance_2      = distance_2.dot(&distance_2);
+
+    if distance_1 <= SMALL_DISTANCE_SQ && distance_2 <= SMALL_DISTANCE_SQ {
+        // Control points are in the same position
+        true
+    } else {
+        // If the points on curve1 and curve2 are collinear (to some degree of precision), then they overlap even if the control points are far apart as they're both lines
+        // This assumes curve1 and curve2 have the same start point, which is true when called from edges_overlap()
+        let start       = curve1.start_point();
+        let end         = curve2.end_point();
+        let (a, b, c)   = (start, end).coefficients();
+
+        let dist_cp1_a  = a*cp1_a.x() + b*cp1_a.y() + c;
+        let dist_cp2_a  = a*cp2_a.x() + b*cp2_a.y() + c;
+        let dist_cp1_b  = a*cp2_b.x() + b*cp2_b.y() + c;
+        let dist_cp2_b  = a*cp2_b.x() + b*cp2_b.y() + c;
+
+        if dist_cp1_a <= SMALL_DISTANCE && dist_cp1_b <= SMALL_DISTANCE && dist_cp2_a <= SMALL_DISTANCE && dist_cp2_b < SMALL_DISTANCE {
+            // TODO: weird edge case: if the control points are 'outside' the start and end points, part of the curve does not overlap
+            // This should not happen with path graphs where all the curve intersections have been eliminated
+
+            // If it does happen, for ordering purposes (which is what this is ultimately used for), we can still consider the curves
+            // overlapping when a ray intersects both of them: there will be inconsistent results when the ray intersects either one
+            // first, but this is more related to the missed curve intersections than the ordering problem.
+
+            // All the control points are a very small distance from the line joining the two curves
+            true
+        } else {
+            // Control points are different and one or both of the curves is not a line
+            false
+        }
+    }
+}
+
+///
+/// Takes a list of GraphRayCollisions and groups any that are for overlapping edges so they can be processed together
+///
+pub (crate) fn group_overlapped_collisions<Path: RayPath>(path: Path, collisions: Vec<(GraphRayCollision, f64, f64, Path::Point)>) -> Vec<SmallVec<[(GraphRayCollision, f64, f64, Path::Point); 1]>> {
+    // Most collisions do not hit overlapping edges (so we use a smallvec of size 1, and we expect the result to have the same number of entries)
+    let mut grouped_collisions  = Vec::with_capacity(collisions.len());
+
+    // Drain the collisions to find the overlapping edges (as ray_collisions returns collisions in order, overlapping edges will be next to each other)
+    let mut collisions          = collisions;
+    let mut collision_iter      = collisions.drain(..);
+    let next_collision          = collision_iter.next();
+    let next_collision          = if let Some(next_collision) = next_collision { next_collision } else { return grouped_collisions };
+
+    // Start with a single collision in the group
+    grouped_collisions.push(smallvec![next_collision]);
+
+    loop {
+        // Fetch the next collision from the original list
+        let next_collision = collision_iter.next();
+        let next_collision = if let Some(next_collision) = next_collision { next_collision } else { break; };
+
+        // Take apart the vectors to see if the next collision overlaps the previous group
+        let last_group                      = grouped_collisions.last_mut().unwrap();
+
+        let (ref last_edge, _, _, last_pos) = last_group.last().unwrap();
+        let (ref next_edge, _, _, next_pos) = next_collision;
+
+        // Overlapped collisions occur at approximately the same position
+        let dx  = last_pos.x() - next_pos.x();
+        let dy  = last_pos.y() - next_pos.y();
+
+        if dx >= SMALL_DISTANCE || dy >= SMALL_DISTANCE {
+            // Collisions do not overlap: start a new group (most common case)
+            grouped_collisions.push(smallvec![next_collision]);
+        } else if !edges_overlap(&path, last_edge.edge(), next_edge.edge()) {
+            // Collisions occur very close to each other but the edges are different so this isn't considered an overlapping collision
+            // Note that ordering becomes uncertain for collision points that are very close to each other due to numeric methods
+            grouped_collisions.push(smallvec![next_collision]);
+        } else {
+            // Edges overlap: put both collisions in the same group
+            last_group.push(next_collision);
+        }
+    }
+
+    grouped_collisions
+}
+
+///
+/// Returns true if two edges overlap
+///
+pub (crate) fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, edge_b: GraphEdgeRef) -> bool {
+    let start_idx_a = edge_a.start_idx;
+    let end_idx_a   = path.edge_end_point_idx(edge_a);
+    let start_idx_b = edge_b.start_idx;
+    let end_idx_b   = path.edge_end_point_idx(edge_b);
+
+    if start_idx_a == start_idx_b && end_idx_a == end_idx_b {
+        control_points_overlap(&path.get_edge(edge_a), &path.get_edge(edge_b))
+    } else if start_idx_a == end_idx_b && end_idx_a == start_idx_b {
+        control_points_overlap(&path.get_edge(edge_a), &path.get_edge(edge_b.reversed()))
+    } else {
+        false
+    }
+}
+
+///
 /// Returns true if a curve is collinear given the set of coefficients for a ray
 ///
 #[inline]
@@ -559,6 +674,8 @@ where   Path::Point: Coordinate+Coordinate2D {
 
 ///
 /// Finds all collisions between a ray and this path
+///
+/// The result is ordered by the position along the ray. For a closed path, there should always be an even number of collisions.
 /// 
 pub (crate) fn ray_collisions<Path: RayPath, L: Line>(path: &Path, ray: &L) -> Vec<(GraphRayCollision, f64, f64, Path::Point)>
 where   Path::Point:    Coordinate+Coordinate2D,
@@ -592,6 +709,9 @@ where   Path::Point:    Coordinate+Coordinate2D,
         if dx.abs() > SMALL_DISTANCE || dy.abs() > SMALL_DISTANCE {
             // Order by position on the ray
             line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
+        } else if !edges_overlap(path, edge_a.edge(), edge_b.edge()) {
+            // Only enforce edge ordering if the two edges overlap: otherwise, continue to use ordering along the ray
+            line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
         } else {
             // Position on the line is the same (stabilise ordering by checking the edges)
             let edge_a = edge_a.edge();
@@ -617,6 +737,8 @@ where   Path::Point:    Coordinate+Coordinate2D,
                 let earlier_edge            = path.get_edge(earlier_edge);
                 let earlier_normal          = earlier_edge.normal_at_pos(edge_t);
                 let earlier_direction       = ray_direction.dot(&earlier_normal);
+
+                // TODO: reverse earlier_direction based if edge_a and edge_b are from shapes moving in different directions
 
                 if earlier_direction < 0.0 {
                     edge_order.reverse()
