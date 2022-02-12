@@ -98,6 +98,16 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     /// path 1 and path 2. It should return true if this number of crossings represents a point inside the final shape, or false
     /// if it represents a point outside of the shape.
     ///
+    /// Path crossings are processed in the order they're hit by the ray, with some exceptions:
+    ///
+    /// If a ray hits an intersection or hits very close to an intersection, the order is arbitrary and the edge kinds are not
+    /// updated for that intersection (but are updated later on).
+    ///
+    /// If a ray crosses a set of overlapping edges, the order that the edges are crossed in depends on whether or not the ray
+    /// is considered to be entering or leaving the 'inner' of the two shapes. If it's found to be entering the shape, the ray
+    /// will hit the edge belonging to the second shape first, and if it's leaving it will hit the edge belonging to the first
+    /// shape first. This ensures that the behaviour is consistent when the ray's direction is reversed.
+    ///
     pub fn set_edge_kinds_by_ray_casting<FnIsInside: Fn(&SmallVec<[i32; 8]>) -> bool>(&mut self, is_inside: FnIsInside) {
         for point_idx in 0..self.num_points() {
             for next_edge in self.edge_refs_for_point(point_idx) {
