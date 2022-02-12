@@ -152,6 +152,54 @@ fn subtract_from_self_rectangles_4() {
 }
 
 #[test]
+fn subtract_from_self_rectangles_5() {
+    // Two doughnuts
+    let rectangle1_outer = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let rectangle1_inner = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(4.0, 2.0))
+        .line_to(Coord2(4.0, 4.0))
+        .line_to(Coord2(2.0, 4.0))
+        .line_to(Coord2(2.0, 2.0))
+        .build();
+
+    // Create a hole in the larger circle
+    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_outer, rectangle1_inner], 0.01);
+    println!("{:?}", combined_rectangles);
+
+    assert!(combined_rectangles.len() != 1);
+    assert!(combined_rectangles.len() == 0);
+}
+
+#[test]
+fn subtract_from_self_rectangles_6() {
+    // Two doughnuts
+    let rectangle1_outer = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(5.0, 1.0))
+        .line_to(Coord2(5.0, 5.0))
+        .line_to(Coord2(1.0, 5.0))
+        .line_to(Coord2(1.0, 1.0))
+        .build();
+    let rectangle1_inner = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(1.0, 1.0))
+        .line_to(Coord2(4.0, 2.0))
+        .line_to(Coord2(4.0, 4.0))
+        .line_to(Coord2(2.0, 4.0))
+        .line_to(Coord2(2.0, 2.0))
+        .build();
+
+    // Create a hole in the larger circle
+    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_inner, rectangle1_outer], 0.01);
+    println!("{:?}", combined_rectangles);
+
+    assert!(combined_rectangles.len() != 1);
+    assert!(combined_rectangles.len() == 0);
+}
+
+#[test]
 fn subtract_from_self_circles() {
     // Two overlapping/identical circles
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
