@@ -41,9 +41,15 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
     /// Computes the collision count for a point along an edge in the graph
     ///
-    /// The result is 'None' if the point described is at an intersection
+    /// The result is 'None' if the point described is at an intersection or if a ray cast at the specified point does not intersect the edge.
+    ///
+    /// The collision count is uncertain if it occurs on two overlapping edges, as any ordering of the edges is valid. `set_edge_kinds_by_ray_casting()`
+    /// has rules for this so that crossing counts are consistent when entering and leaving a shape. This call uses simpler rules and might switch which
+    /// shape is hit first when two shapes have edges is common.
     ///
     pub fn edge_collision_count(&self, target_edge: GraphEdgeRef, t: f64) -> Option<i64> {
+        // TODO: the 'simpler rules' described above are defined in ray_collisions and probably should be changed to 'earlier edges are hit first', but this would be an API change and must be done at a major revision
+
         // Fetch the point that the ray is being 'fired' at
         let real_edge       = self.get_edge(target_edge);
         let point           = real_edge.point_at_pos(t);
