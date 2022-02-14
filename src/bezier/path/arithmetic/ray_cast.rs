@@ -197,6 +197,8 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
                             // Exterior edges move from inside to outside or vice-versa
                             if curve_t > 0.1 && curve_t < 0.9 {
+                                // Collisions close to an intersection are more likely subject to ordering or numeric errors,
+                                // so we leave those for another ray to resolve. Eg: a curve might be inside the shape until the very end.
                                 if was_inside ^ is_inside {
                                     // Exterior edge
                                     self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
