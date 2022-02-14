@@ -14,9 +14,23 @@ For the most part the style is 'normal Rust with some exceptions'. In general I 
 
 Those last two are probably the most contentious, though really they shouldn't be.
 
+## Why be different?
+
+Really, the question is why not use a mechanical format with a tool like rustfmt? Isn't that easier?
+
+Sometimes easier isn't the point. The problem with a mechanical styling is that it doesn't take the reader into account at all: we don't yet have software sophisticated enough to empathize with a reader and highlight what's important about an algorithm or try to show how different pieces of data flow through it. All these tools know how to do is change whitespace to match the structure of the language. This takes away a tool that can be used to communicate meaning, and programming languages are already a very hard medium to use to communicate in.
+
+The advantage of mechanical formatting is that it's standardised. Traits like 'readability' are inherently subjective and there's something about the software developer mindset that assumes that everything can be objectively boiled down to an algorithm, so the idea that something that looks good to one developer might not look so good to another developer is anathema and the source of many arguments. 
+
+Picking a mechanical tool as the only means of formatting means giving up on the idea that code can look better than it does as a trade-off for fewer disputes about which format looks best. This choice would be along the grain for most commercial software, but FlowBetween is built around the conceit that vector editing and animation software can be much better than they are, something that extends to the layout of the codebase itself.
+
+It's always possible that this just makes things worse, but that isn't the goal: none of this is done to spite anyone.
+
+So the idea is this: FlowBetween starts with what rustfmt does but is fearless about changing that when a different format seems like it might be clearer. I'm hopeful that discussions can be steered to why particular approaches are better or worse rather than trying to follow the argumentative approach of assuming things are either right or wrong.
+
 ## Whitespace to create 'table alignments'
 
-This is a tricky one. Developers tend to get quite emotional about code formatting for some reason, and this is pretty non-standard and thus potentially inflammatory. The goal here is to improve readability: I've stuck at it because I read a lot of code and I really miss this style in codebases that don't use it (which is most codebases, of course). There's a downside to this style: it doesn't work so well with formatting tools, and the upside is readability, which is something that's impossible to objectively measure.
+This is probably the most contraversial choice, as it really fights what the existing tooling does and is prone to getting wiped out. When done well this can highlight structures and dependencies that are otherwise difficult to pick out at a glance.
 
 The basic idea is that tables are a very readable way to present information, so that this:
 
@@ -75,8 +89,6 @@ beats
 for the same reason: picking out the variable names and their assignments is much easier, because they're visually separate.
 
 It's probably worth noting that this kind of visual separation is the important thing rather than the specifics: it's not something that formatting tools can really deal with as they just blindly enforce rules without considering that the purpose of any formatting is to help make the important parts of the code visible.
-
-A big problem is this isn't very tool-friendly right now, as formatting tools tend to strip this right out.
 
 ## The only bad comment is the one that was needed but left out
 
