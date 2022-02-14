@@ -207,18 +207,21 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                                     self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
                                 }
                             }
-                        } else if !is_intersection && curve_t > 0.1 && curve_t < 0.9 {
-                            if was_inside ^ is_inside {
-                                if edge_kind != GraphPathEdgeKind::Exterior {
-                                    // We've likely got a missing collision in the graph so an edge is both inside and outside
-                                    // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
-                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                                }
+                        } else if !is_intersection {
+                            // We've already categorized this edge: when running in a test, fail if it changes
+                            if curve_t > 0.1 && curve_t < 0.9 {
+                                if was_inside ^ is_inside {
+                                    if edge_kind != GraphPathEdgeKind::Exterior {
+                                        // We've likely got a missing collision in the graph so an edge is both inside and outside
+                                        // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
+                                        self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
+                                    }
 
-                                // This is a bug so fail in debug builds
-                                test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
-                            } else {
-                                test_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                                    // This is a bug so fail in debug builds
+                                    test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
+                                } else {
+                                    test_assert!(edge_kind == GraphPathEdgeKind::Interior);
+                                }
                             }
                         }
                     }
