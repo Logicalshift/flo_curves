@@ -1,6 +1,6 @@
 # Some notes on coding style in FlowBetween and related packages
 
-One of the things I do with personal projects (and for now at least, that's what FlowBetween is to me) is experiment with different ways of doing things, especially things that are quite radically different. Some of these things are apparent in FlowBetween and its related libraries, and sometimes they're more or less noticeable. Generally things that are obvious are things that have proved beneficial enough to me that they were worth keeping up the effort.
+FlowBetween is built around an aspirational goal: it tries to be better than similar projects. This involves a certain amount of faith as well as judgement: choosing to use a new approach to a problem, believing that problem is important enough to be worth it, and then refining that approach until it's superior to the existing one. This aspiration exists throughout the project, including the coding style.
 
 For the most part the style is 'normal Rust with some exceptions'. In general I think my policy with PRs and such will be that style can be fixed later as it's best treated as a 'squeaky wheel' kind of thing and far too easy to wind up spending a lot of time thinking about something that doesn't really matter all that much.
 
@@ -16,7 +16,7 @@ Those last two are probably the most contentious, though really they shouldn't b
 
 ## Why be different?
 
-Really, the question is why not use a mechanical format with a tool like rustfmt? Isn't that easier?
+Really, the question most asked is going to be 'why not use a mechanical format with a tool like rustfmt? Isn't that easier?'
 
 Sometimes easier isn't the point. The problem with a mechanical styling is that it doesn't take the reader into account at all: we don't yet have software sophisticated enough to empathize with a reader and highlight what's important about an algorithm or try to show how different pieces of data flow through it. All these tools know how to do is change whitespace to match the structure of the language. This takes away a tool that can be used to communicate meaning, and programming languages are already a very hard medium to use to communicate in.
 
