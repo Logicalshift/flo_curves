@@ -256,7 +256,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         // Sort and deduplicate them
         for point_idx in 0..(self.points.len()) {
-            self.points[point_idx].connected_from.sort();
+            self.points[point_idx].connected_from.sort_unstable();
             self.points[point_idx].connected_from.dedup();
         }
     }
@@ -273,7 +273,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Returns an iterator of all edges in this graph
     ///
     #[inline]
-    pub fn all_edges<'a>(&'a self) -> impl 'a+Iterator<Item=GraphEdge<'a, Point, Label>> {
+    pub fn all_edges(&self) -> impl '_+Iterator<Item=GraphEdge<'_, Point, Label>> {
         (0..(self.points.len()))
             .into_iter()
             .flat_map(move |point_num| self.edges_for_point(point_num))
@@ -283,7 +283,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Returns an iterator of all the edges in this graph, as references
     ///
     #[inline]
-    pub fn all_edge_refs<'a>(&'a self) -> impl 'a+Iterator<Item=GraphEdgeRef> {
+    pub fn all_edge_refs(&self) -> impl '_+Iterator<Item=GraphEdgeRef> {
         (0..(self.points.len()))
             .into_iter()
             .flat_map(move |point_idx| (0..(self.points[point_idx].forward_edges.len()))
@@ -301,7 +301,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Edges are directional: this will provide the edges that leave the supplied point
     ///
     #[inline]
-    pub fn edges_for_point<'a>(&'a self, point_num: usize) -> impl 'a+Iterator<Item=GraphEdge<'a, Point, Label>> {
+    pub fn edges_for_point(&self, point_num: usize) -> impl '_+Iterator<Item=GraphEdge<'_, Point, Label>> {
         (0..(self.points[point_num].forward_edges.len()))
             .into_iter()
             .map(move |edge_idx| GraphEdge::new(self, GraphEdgeRef { start_idx: point_num, edge_idx: edge_idx, reverse: false }))
@@ -321,7 +321,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     #[inline]
     pub fn point_position(&self, point_num: usize) -> Point {
-        self.points[point_num].position.clone()
+        self.points[point_num].position
     }
 
     ///
@@ -426,8 +426,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // ... and the preceding edge (by searching all of the connected points)
         let previous_edge_ref   = self.points[edge_ref.start_idx].connected_from
             .iter()
-            .map(|point_idx| { let point_idx = *point_idx; self.points[point_idx].forward_edges.iter().enumerate().map(move |(edge_idx, edge)| (point_idx, edge_idx, edge)) })
-            .flatten()
+            .flat_map(|point_idx| { let point_idx = *point_idx; self.points[point_idx].forward_edges.iter().enumerate().map(move |(edge_idx, edge)| (point_idx, edge_idx, edge)) })
             .filter_map(|(point_idx, edge_idx, edge)| {
                 if edge.end_idx == edge_ref.start_idx && edge.following_edge_idx == edge_ref.edge_idx {
                     Some(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
@@ -585,7 +584,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Returns the GraphEdge for an edgeref
     ///
     #[inline]
-    pub fn get_edge<'a>(&'a self, edge: GraphEdgeRef) -> GraphEdge<'a, Point, Label> {
+    pub fn get_edge(&self, edge: GraphEdgeRef) -> GraphEdge<'_, Point, Label> {
         GraphEdge::new(self, edge)
     }
 
@@ -965,7 +964,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
 
                 // Start point of the path is the initial point we checked
-                let start_point = self.points[point_idx].position.clone();
+                let start_point = self.points[point_idx].position;
 
                 let new_path    = POut::from_points(start_point, path_points);
                 exterior_paths.push(new_path);
