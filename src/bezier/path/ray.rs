@@ -554,8 +554,7 @@ where L: Line<Point=Path::Point> {
                     let previous_edge   = path.reverse_edges_for_point(edge.start_idx)
                         .into_iter()
                         .map(|previous_edge| previous_edge.reversed())
-                        .filter(|previous_edge| path.edge_following_edge_idx(*previous_edge) == edge.edge_idx)
-                        .next()
+                        .find(|previous_edge| path.edge_following_edge_idx(*previous_edge) == edge.edge_idx)
                         .expect("Previous edge for a collision at start");
 
                     (previous_edge, edge)

@@ -65,8 +65,7 @@ where C::Point: Coordinate+Coordinate2D {
             } else {
                 // Intersection may include the point between the left and right curves (ignore any point that's at t=1 on the left or t=0 on the right)
                 intersections.into_iter()
-                    .filter(|(t1, t2)| *t1 < 1.0 && *t2 > 0.0)
-                    .next()
+                    .find(|(t1, t2)| *t1 < 1.0 && *t2 > 0.0)
                     .map(|(t1, t2)| (left.t_for_t(t1), right.t_for_t(t2)))
             }
         }
