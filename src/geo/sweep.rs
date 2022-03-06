@@ -1,3 +1,5 @@
+#![allow(clippy::question_mark)]        // Want to explicitly 'return None' when escaping loops, the shorter '?' form makes the loops look infinite
+
 use crate::geo::*;
 
 use smallvec::*;
@@ -173,7 +175,11 @@ TItem::Point:   Coordinate2D {
 
             // Read a new target item. Target items determine the sweep position (we read things in order such that there'll be no collisions before this point)
             let next_tgt        = self.tgt_iterator.next();
-            let next_tgt        = if let Some(next_tgt) = next_tgt { next_tgt } else { return None };
+            let next_tgt        = if let Some(next_tgt) = next_tgt { 
+                next_tgt
+            } else { 
+                return None;
+            };
 
             let next_tgt_bounds = next_tgt.get_bounding_box::<Bounds<_>>();
 
