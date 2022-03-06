@@ -212,7 +212,6 @@ where   Coord:      Coordinate+Coordinate2D,
     collisions
 }
 
-
 ///
 /// Creates a Bezier path by flood-filling a convex area whose bounds can be determined by ray-casting.
 /// 
