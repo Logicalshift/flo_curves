@@ -102,7 +102,7 @@ where   Curve:          BezierCurveFactory+NormalCurve,
 ///
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
-fn subdivide_offset<'a, CurveIn, CurveOut>(curve: &CurveSection<'a, CurveIn>, initial_offset: f64, final_offset: f64, depth: usize) -> SmallVec<[CurveOut; 2]>
+fn subdivide_offset<CurveIn, CurveOut>(curve: &CurveSection<'_, CurveIn>, initial_offset: f64, final_offset: f64, depth: usize) -> SmallVec<[CurveOut; 2]>
 where   CurveIn:        NormalCurve+BezierCurve,
         CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
         CurveIn::Point: Coordinate2D+Normalize {

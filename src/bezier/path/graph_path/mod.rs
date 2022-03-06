@@ -329,7 +329,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// 
     /// Edges are directional: this will provide the edges that connect to the supplied point
     ///
-    pub fn reverse_edges_for_point<'a>(&'a self, point_num: usize) -> impl 'a+Iterator<Item=GraphEdge<'a, Point, Label>> {
+    pub fn reverse_edges_for_point(&self, point_num: usize) -> impl '_+Iterator<Item=GraphEdge<'_, Point, Label>> {
         // Fetch the points that connect to this point
         self.points[point_num].connected_from
             .iter()

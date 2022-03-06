@@ -35,7 +35,7 @@ pub fn curve_length<Curve: BezierCurve>(curve: &Curve, max_error: f64) -> f64 {
 ///
 /// Computes the length of a section of a bezier curve
 ///
-fn section_length<'a, Curve>(section: CurveSection<'a, Curve>, max_error: f64) -> f64
+fn section_length<Curve>(section: CurveSection<'_, Curve>, max_error: f64) -> f64
 where
 Curve: BezierCurve {
     // This algorithm is described in Graphics Gems V IV.7

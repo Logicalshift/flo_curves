@@ -53,7 +53,7 @@ impl<'a, Point: 'a, Label: 'a+Copy> GraphEdge<'a, Point, Label> {
     /// Retrieves a reference to the edge in the graph
     ///
     #[inline]
-    fn edge<'b>(&'b self) -> &'b GraphPathEdge<Point, Label> {
+    fn edge(&self) -> &GraphPathEdge<Point, Label> {
         &self.graph.points[self.edge.start_idx].forward_edges[self.edge.edge_idx]
     }
 

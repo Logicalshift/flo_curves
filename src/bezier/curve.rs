@@ -164,7 +164,7 @@ pub trait BezierCurve: Geo+Clone+Sized {
     /// Create a section from this curve. Consider calling `subsection` for curves
     /// that are already `CurveSections`.
     /// 
-    fn section<'a>(&'a self, t_min: f64, t_max: f64) -> CurveSection<'a, Self> {
+    fn section(&self, t_min: f64, t_max: f64) -> CurveSection<'_, Self> {
         CurveSection::new(self, t_min, t_max)
     }
 }
