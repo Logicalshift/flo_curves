@@ -22,6 +22,7 @@
 #![allow(clippy::ptr_arg)]
 #![allow(clippy::from_over_into)]
 #![allow(clippy::new_without_default)]
+#![allow(clippy::type_complexity)]
 
 // Breaks stylistic choices/algorithm readability
 #![allow(clippy::redundant_field_names)]                // Used for consistency when initialising some types
