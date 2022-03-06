@@ -21,7 +21,7 @@ pub trait BoundingBox : Geo+Sized {
         let first_point = points.next();
         if let Some(first_point) = first_point {
             // min, max is just the first point initially
-            let (mut min, mut max) = (first_point.clone(), first_point);
+            let (mut min, mut max) = (first_point, first_point);
 
             // Update with the remainder of the points
             for point in points {

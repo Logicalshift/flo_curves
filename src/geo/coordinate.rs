@@ -105,7 +105,7 @@ pub trait Coordinate : Sized+Copy+Add<Self, Output=Self>+Mul<f64, Output=Self>+S
             }
         }
 
-        return false;
+        false
     }
 
     ///
