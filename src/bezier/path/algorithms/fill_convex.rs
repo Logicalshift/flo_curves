@@ -149,7 +149,7 @@ where   Coord:      Coordinate+Coordinate2D,
                 // Divide the entry into two by casting a ray between the two points
                 let mid_point   = (entry.angle.start + entry.angle.end) / 2.0;
                 let mid_ray     = perform_ray_cast(center, mid_point, &cast_ray);
-                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position.clone());
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position);
 
                 // If there's a discontinuity (eg, a corner we can't see around), we'll see that the mid point is very close to the end point and far from the start point
                 if let Some(mid_ray_pos) = mid_ray_pos {
@@ -192,7 +192,7 @@ where   Coord:      Coordinate+Coordinate2D,
                 // Cast a ray between the two points
                 let mid_point   = (entry.angle.start + entry.angle.end) / 2.0;
                 let mid_ray     = perform_ray_cast(center, mid_point, &cast_ray);
-                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position.clone());
+                let mid_ray_pos = mid_ray.as_ref().map(|(collision, _)| collision.position);
 
                 // Divide into two pairs of ranges (process the earlier one first)
                 stack.push(StackEntry {
@@ -229,7 +229,7 @@ where   Path:       BezierPathFactory<Point=Coord>,
     let collisions = trace_outline_convex(center, options, cast_ray);
 
     // Build a path using the LMS algorithm
-    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position.clone()).collect::<Vec<_>>(), options.fit_error);
+    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position).collect::<Vec<_>>(), options.fit_error);
 
     if let Some(curves) = curves {
         if !curves.is_empty() {
