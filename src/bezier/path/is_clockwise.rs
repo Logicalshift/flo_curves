@@ -13,7 +13,7 @@ pub fn points_are_clockwise<Point: Coordinate+Coordinate2D, PointIter: Iterator<
     // The first point needs to be repeated at the end of the sequence
     let first_point = points.next();
     if let Some(first_point) = first_point {
-        let points = vec![first_point.clone()].into_iter().chain(points).chain(vec![first_point].into_iter());
+        let points = vec![first_point].into_iter().chain(points).chain(vec![first_point].into_iter());
 
         // Sum over the edges to determine if the points are clockwise
         for (start, end) in points.tuple_windows() {

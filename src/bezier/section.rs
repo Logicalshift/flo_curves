@@ -112,7 +112,7 @@ impl<'a, C: 'a+BezierCurve> BezierCurve for CurveSection<'a, C> {
     /// The control points in this curve
     /// 
     fn control_points(&self) -> (Self::Point, Self::Point) {
-        self.cached_control_points.borrow_mut()
+        *self.cached_control_points.borrow_mut()
             .get_or_insert_with(move || {
                 // This is the de-casteljau subdivision algorithm (ran twice to cut out a section of the curve)
                 let t_min = self.t_c;
@@ -152,7 +152,6 @@ impl<'a, C: 'a+BezierCurve> BezierCurve for CurveSection<'a, C> {
                 // Curve is (w1, wn1, wnn1, p) so control points are wn1 and wnn1
                 (wn1, wnn1)
             })
-            .clone()
     }
 
     ///

@@ -525,7 +525,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let end_point       = &self.points[end_point_idx].position;
 
                 if start_point.is_near_to(end_point, accuracy) {
-                    self.points[end_point_idx].position = self.points[point_idx].position.clone();
+                    self.points[end_point_idx].position = self.points[point_idx].position;
                 }
             }
         }
@@ -554,15 +554,15 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // To prevent averaging a whole bunch of points down to the same point because they're all close together, we re-check the distance if the one of the two close points has already been remapped
                 let moved               = p1_pos.is_some() || p2_pos.is_some();
 
-                let p1_pos              = if let Some(pos) = p1_pos { pos.clone() } else { self.points[*p1_idx].position.clone() };
-                let p2_pos              = if let Some(pos) = p2_pos { pos.clone() } else { self.points[*p2_idx].position.clone() };
+                let p1_pos              = if let Some(pos) = p1_pos { *pos } else { self.points[*p1_idx].position };
+                let p2_pos              = if let Some(pos) = p2_pos { *pos } else { self.points[*p2_idx].position };
 
                 if !moved || Self::point_is_near(&p1_pos, &p2_pos, min_distance_squared) {
                     // Remap both points to a common target position
                     let pos         = Self::snap_points(&p1_pos, &p2_pos);
                     let remap_idx   = usize::min(*p1_idx, *p2_idx);
 
-                    remapped_points[p1_orig_idx] = (remap_idx, Some(pos.clone()));
+                    remapped_points[p1_orig_idx] = (remap_idx, Some(pos));
                     remapped_points[p2_orig_idx] = (remap_idx, Some(pos));
                 }
 
@@ -580,7 +580,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             for original_idx in 0..self.points.len() {
                 if let (new_idx, Some(new_pos)) = &remapped_points[original_idx] {
                     // This point has been moved
-                    self.points[original_idx].position = new_pos.clone();
+                    self.points[original_idx].position = *new_pos;
 
                     // If this is the target point, then don't move any edges
                     if *new_idx == original_idx { continue; }
