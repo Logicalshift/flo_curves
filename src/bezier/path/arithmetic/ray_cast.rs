@@ -1,3 +1,5 @@
+#![allow(clippy::comparison_chain)]         // I think the two instances in here are clearer written the way they are
+
 use crate::bezier::path::ray::*;
 use crate::bezier::path::path::*;
 use crate::bezier::path::graph_path::*;
