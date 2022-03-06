@@ -21,6 +21,7 @@
 // Breaks the exported API if auto-fixed (can remove these with a version bump)
 #![allow(clippy::ptr_arg)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::new_without_default)]
 
 // Breaks stylistic choices/algorithm readability
 #![allow(clippy::redundant_field_names)]                // Used for consistency when initialising some types
