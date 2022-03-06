@@ -232,7 +232,7 @@ where   Path:       BezierPathFactory<Point=Coord>,
     let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position.clone()).collect::<Vec<_>>(), options.fit_error);
 
     if let Some(curves) = curves {
-        if curves.len() > 0 {
+        if !curves.is_empty() {
             // Convert the curves into a path
             let initial_point = curves[0].start_point();
             Some(Path::from_points(initial_point, curves.into_iter().map(|curve| {

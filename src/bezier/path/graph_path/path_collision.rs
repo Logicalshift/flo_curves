@@ -713,7 +713,7 @@ where C::Point: Coordinate+Coordinate2D {
     }
     
     // If the first point or the last point is close to the end of the source or target curve, clip to 0 or 1
-    if collisions.len() > 0 {
+    if !collisions.is_empty() {
         // Get the start/end points of the source and target
         let src_start   = src.start_point();
         let src_end     = src.end_point();
