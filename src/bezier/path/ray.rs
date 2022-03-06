@@ -1,3 +1,5 @@
+#![allow(clippy::needless_bool)]        // Couple of places where two different conditions have the same result: don't want to combine them as the algorithms are much harder to parse
+
 use super::graph_path::*;
 use super::super::curve::*;
 use super::super::normal::*;
