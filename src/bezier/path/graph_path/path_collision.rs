@@ -1,3 +1,5 @@
+#![allow(clippy::nonminimal_bool)]              // Don't think clippy's suggestion is more readable as it's kind of a double-negative: purpose of if statement is a bit unclear anyway here...
+
 use super::{GraphPath, GraphEdge, GraphEdgeRef, GraphPathPoint, GraphPathEdge};
 use crate::bezier::curve::*;
 use crate::bezier::intersection::*;
