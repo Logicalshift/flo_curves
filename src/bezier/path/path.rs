@@ -1,3 +1,5 @@
+#![allow(clippy::needless_collect)]     // Required for lifetime and type inference reasons, I think. At least, clippy's suggestion does not compile here.
+
 use super::bounds::*;
 use super::to_curves::*;
 use super::super::curve::*;
