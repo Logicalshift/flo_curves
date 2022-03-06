@@ -369,7 +369,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 for (t, end_point_idx) in collisions {
                     // Point the previous edge at the new edge we're adding
                     let new_edge_idx = self.points[last_point_idx].forward_edges.len();
-                    previous_edge.map(|(point_idx, edge_idx)| self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx);
+                    if let Some((point_idx, edge_idx)) = previous_edge {
+                        self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx;
+                    }
 
                     // Subdivide the remaining edge
                     let t2                      = (t - (1.0-remaining_t))/remaining_t;
@@ -395,7 +397,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 if found_collisions {
                     // Point the previous edge at the new edge we're adding
                     let new_edge_idx = self.points[last_point_idx].forward_edges.len();
-                    previous_edge.map(|(point_idx, edge_idx)| self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx);
+                    if let Some((point_idx, edge_idx)) = previous_edge {
+                        self.points[point_idx].forward_edges[edge_idx].following_edge_idx = new_edge_idx;
+                    }
 
                     // This edge ends where the original edge ended
                     let end_point_idx       = final_point_idx;
@@ -639,7 +643,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
                 // If we introduced duplicates, remove them
                 if remapped {
-                    point.connected_from.sort();
+                    point.connected_from.sort_unstable();
                     point.connected_from.dedup();
                 }
             }
