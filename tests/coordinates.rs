@@ -1,3 +1,5 @@
+#![allow(clippy::all)]  // Tests are lower priority to fix
+
 extern crate flo_curves;
 
 use flo_curves::*;

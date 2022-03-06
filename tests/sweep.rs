@@ -1,3 +1,5 @@
+#![allow(clippy::all)]  // Tests are lower priority to fix
+
 use flo_curves::geo::*;
 
 use rand::prelude::*;
