@@ -66,7 +66,7 @@ where   C1::Point:  Coordinate+Coordinate2D,
     // Start and end points match at t1, t2
     #[inline]
     fn close_enough<P: Coordinate>(p1: &P, p2: &P) -> bool {
-        p1.is_near_to(&p2, SMALL_DISTANCE)
+        p1.is_near_to(p2, SMALL_DISTANCE)
     }
 
     // Get the control points for the two curves
