@@ -23,8 +23,9 @@
 #![allow(clippy::from_over_into)]
 
 // Breaks stylistic choices/algorithm readability
-#![allow(clippy::redundant_field_names)]
-#![allow(clippy::collapsible_if)]
+#![allow(clippy::redundant_field_names)]                // Used for consistency when initialising some types
+#![allow(clippy::collapsible_if)]                       // Often used to clarify algorithm structure (rewrites need to be at least as clear)
+#![allow(clippy::collapsible_else_if)]                  // Often used to clarify algorithm structure
 
 #[macro_use] mod test_assert;
 mod consts;
