@@ -29,6 +29,7 @@
 #![allow(clippy::collapsible_else_if)]                  // Often used to clarify algorithm structure
 #![allow(clippy::if_same_then_else)]                    // Often used to clarify algorithm structure
 #![allow(clippy::module_inception)]                     // The 'line' module has a 'Line' type in it, for example. Makes sense the file is called 'line'...
+#![allow(clippy::let_and_return)]                       // Often we want to say what the return value means (eg: calling something 'tangent' instead of just 'de_cateljau3' is much more clear)
 
 #[macro_use] mod test_assert;
 mod consts;
