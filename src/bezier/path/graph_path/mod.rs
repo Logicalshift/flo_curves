@@ -452,7 +452,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // For all the connected points, update the following edge refs
             let mut still_connected = false;
 
-            self.points[edge_ref.start_idx].connected_from.sort();
+            self.points[edge_ref.start_idx].connected_from.sort_unstable();
             self.points[edge_ref.start_idx].connected_from.dedup();
             for connected_point_idx in self.points[edge_ref.start_idx].connected_from.clone() {
                 for edge_idx in 0..(self.points[connected_point_idx].forward_edges.len()) {
