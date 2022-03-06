@@ -25,7 +25,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let end_point   = edge.end_point();
             let (cp1, cp2)  = edge.control_points();
 
-            write!(result, "<!-- {}: Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->\n", 
+            writeln!(result, "<!-- {}: Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->", 
                 index, 
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),
@@ -44,22 +44,22 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
                 GraphPathEdgeKind::Interior         => "green"
             };
 
-            write!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />\n",
+            writeln!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />",
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),
                 cp2.x(), cp2.y(),
                 end_point.x(), end_point.y(),
                 kind).unwrap();
-            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />\n", end_point.x(), end_point.y()).unwrap();
+            writeln!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"magenta\" />", end_point.x(), end_point.y()).unwrap();
 
-            write!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>\n", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index).unwrap();
+            writeln!(result, "<text style=\"font-size: 8pt\" dx=\"{}\" dy=\"{}\">{} &lt;- {} - {}</text>", end_point.x()+4.0, end_point.y()+8.0, edge.end_point_index(), edge.start_point_index(), index).unwrap();
 
             index += 1;
         }
     }
 
     for (p1, p2) in rays {
-        write!(result, "<!-- Ray (Coord2({}, {}), Coord2({}, {})) -->\n", p1.x(), p1.y(), p2.x(), p2.y()).unwrap();
+        writeln!(result, "<!-- Ray (Coord2({}, {}), Coord2({}, {})) -->", p1.x(), p1.y(), p2.x(), p2.y()).unwrap();
         let collisions = path.ray_collisions(&(p1, p2));
         write!(result, "<!-- {} collisions -->", collisions.len()).unwrap();
 
@@ -70,7 +70,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
         let p1 = p1 - (point_offset * 1000.0);
         let p2 = p2 + (point_offset * 1000.0);
 
-        write!(result, "<path d=\"M {} {} L {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"red\" />\n",
+        writeln!(result, "<path d=\"M {} {} L {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"red\" />",
             p1.x(), p1.y(),
             p2.x(), p2.y()).unwrap();
 
@@ -101,7 +101,7 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let end_point   = edge.end_point();
             let (cp1, cp2)  = edge.control_points();
 
-            write!(result, "<!-- Collision {} ({}): Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->\n", 
+            writeln!(result, "<!-- Collision {} ({}): Curve::from_points(Coord2({}, {}), (Coord2({}, {}), Coord2({}, {})), Coord2({}, {})) -->", 
                 collision_num, path_number,
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),
@@ -113,15 +113,15 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
             let cp1         = (cp1 - offset)*scale;
             let cp2         = (cp2 - offset)*scale;
 
-            write!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />\n",
+            writeln!(result, "<path d=\"M {} {} C {} {}, {} {}, {} {}\" fill=\"transparent\" stroke-width=\"1\" stroke=\"{}\" />",
                 start_point.x(), start_point.y(),
                 cp1.x(), cp1.y(),
                 cp2.x(), cp2.y(),
                 end_point.x(), end_point.y(),
                 "cyan").unwrap();
 
-            write!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />\n", pos.x(), pos.y()).unwrap();
-            write!(result, "<text style=\"font-size: 6pt\" dx=\"{}\" dy=\"{}\">{}: C{} ({})</text>\n", pos.x() + 2.0, pos.y()+3.0, collision_num, collision_count, side).unwrap();
+            writeln!(result, "<circle cx=\"{}\" cy=\"{}\" r=\"1.0\" fill=\"transparent\" stroke=\"red\" />", pos.x(), pos.y()).unwrap();
+            writeln!(result, "<text style=\"font-size: 6pt\" dx=\"{}\" dy=\"{}\">{}: C{} ({})</text>", pos.x() + 2.0, pos.y()+3.0, collision_num, collision_count, side).unwrap();
         }
     }
 
