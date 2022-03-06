@@ -164,8 +164,8 @@ fn chords_for_points<Point: Coordinate>(points: &[Point]) -> Vec<f64> {
     }
 
     // Normalize to the range 0..1
-    for p in 0..points.len() {
-        distances[p] /= total_distance;
+    for distance in distances.iter_mut() {
+        *distance /= total_distance;
     }
 
     distances
