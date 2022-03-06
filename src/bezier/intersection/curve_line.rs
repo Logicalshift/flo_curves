@@ -101,7 +101,7 @@ where C::Point: Coordinate2D {
                 }
             } else { t };
 
-        if t >= 0.0 && t <= 1.0 {
+        if (0.0..=1.0).contains(&t) {
             // Calculate the position on the curve
             let pos = de_casteljau4(t, w1, w2, w3, w4);
 
@@ -134,7 +134,7 @@ where C::Point: Coordinate2D {
 pub fn curve_intersects_line<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
 where C::Point: Coordinate2D {
     let mut ray_intersections = curve_intersects_ray(curve, line);
-    ray_intersections.retain(|(_t, s, _pos)| s >= &mut 0.0 && s <= &mut 1.0);
+    ray_intersections.retain(|(_t, s, _pos)| (&mut 0.0..=&mut 1.0).contains(&s));
 
     ray_intersections
 }

@@ -77,7 +77,7 @@ pub fn solve_curve_for_t_along_axis<C: BezierCurve>(curve: &C, point: &C::Point,
 
         for possible_t in possible_t_values {
             // Ignore values outside the range of the curve
-            if possible_t < -0.001 || possible_t > 1.001 {
+            if !(-0.001..=1.001).contains(&possible_t) {
                 continue;
             }
 

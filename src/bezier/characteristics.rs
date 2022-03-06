@@ -276,14 +276,18 @@ fn find_inflection_points(b4: (f64, f64)) -> InflectionPoints {
         let t2  = lhs + rhs;
 
         // Want points between 0 and 1
-        if t1 < 0.0 || t1 > 1.0 {
-            if t2 < 0.0 || t2 > 1.0 {
+        if !(0.0..=1.0).contains(&t1) {
+            // T1 not an inflection point
+            if !(0.0..=1.0).contains(&t2) {
+                // Neither T1 nor T2 is an inflection point
                 InflectionPoints::Zero
             } else {
                 InflectionPoints::One(t2)
             }
         } else {
-            if t2 < 0.0 || t2 > 1.0 {
+            // T1 is an inflection point
+            if !(0.0..=1.0).contains(&t2) {
+                // ...but t2 is not
                 InflectionPoints::One(t1)
             } else {
                 InflectionPoints::Two(t1, t2)

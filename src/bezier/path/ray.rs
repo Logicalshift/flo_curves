@@ -236,8 +236,8 @@ where Edge::Point: Coordinate+Coordinate2D {
     if start_distance.abs() < SMALL_DISTANCE && end_distance.abs() < SMALL_DISTANCE && cp1_distance.abs() < SMALL_DISTANCE && cp2_distance.abs() < SMALL_DISTANCE {
         // If all the distances are small enough, this section is collinear
         RayCanIntersect::Collinear
-    } else if side < -3.99 || side > 3.99 {
-        // If the side sums to 4, all points are on the same side
+    } else if !(-3.99..=3.99).contains(&side) {
+        // If the side sums to approximately 4, all points are on the same side
         RayCanIntersect::WrongSide
     } else {
         // Otherwise, the ray can intersect this line
