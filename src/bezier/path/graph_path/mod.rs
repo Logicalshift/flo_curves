@@ -885,7 +885,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             // Loop until we find a previous point for the initial point (indicating we've got a loop of points)
             while previous_point[point_idx].is_none() {
-                if points_to_check.len() == 0 {
+                if points_to_check.is_empty() {
                     // Ran out of points to check to find a loop (there is no loop for this point)
                     break;
                 }

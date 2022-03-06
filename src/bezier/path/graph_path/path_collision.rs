@@ -93,7 +93,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (src_curve, tgt_curve) in sweep_self(ordered_edges.iter()) {
             // Find any collisions between the two edges (to the required accuracy)
             let mut edge_collisions = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
-            if edge_collisions.len() == 0 { continue; }
+            if edge_collisions.is_empty() { continue; }
 
             // Remove any pairs of collisions that are too close together
             remove_and_round_close_collisions(&mut edge_collisions, src_curve, tgt_curve);
@@ -165,7 +165,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (src_curve, tgt_curve) in sweep_against(collide_src.iter(), collide_tgt.iter()) {
             // Find any collisions between the two edges (to the required accuracy)
             let mut edge_collisions                 = curve_intersects_curve_clip(src_curve, tgt_curve, accuracy);
-            if edge_collisions.len() == 0 { continue; }
+            if edge_collisions.is_empty() { continue; }
 
             // Remove any pairs of collisions that are too close together
             remove_and_round_close_collisions(&mut edge_collisions, src_curve, tgt_curve);
@@ -281,7 +281,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     pub (crate) fn detect_collisions(&mut self, collide_from: Range<usize>, collide_to: Range<usize>, accuracy: f64) -> bool {
         // Find all of the collision points
         let all_collisions      = self.find_collisions(collide_from, collide_to, accuracy);
-        if all_collisions.len() == 0 {
+        if all_collisions.is_empty() {
             let collided_at_point = self.combine_overlapping_points(accuracy);
             self.remove_all_very_short_edges();
             return collided_at_point;
@@ -302,7 +302,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         for (point_idx, edge_collisions) in collisions_by_point {
             for (edge_idx, mut collisions) in edge_collisions.into_iter().enumerate() {
                 // Skip edges with no collisions
-                if collisions.len() == 0 { continue; }
+                if collisions.is_empty() { continue; }
 
                 self.check_following_edge_consistency();
 
@@ -688,7 +688,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 fn remove_and_round_close_collisions<C: BezierCurve>(collisions: &mut SmallVec<[(f64, f64); 8]>, src: &C, tgt: &C)
 where C::Point: Coordinate+Coordinate2D {
     // Nothing to do if there are no collisions
-    if collisions.len() == 0 {
+    if collisions.is_empty() {
         return;
     }
 

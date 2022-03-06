@@ -27,12 +27,12 @@ where   P1::Point:  Coordinate+Coordinate2D,
         P2:         BezierPath<Point=P1::Point>,
         POut:       BezierPathFactory<Point=P1::Point> {
     // If path1 is empty, then there are no points in the result. If path2 is empty, then all points are exterior
-    if path1.len() == 0 {
+    if path1.is_empty() {
         return PathIntersection { 
             intersecting_path:  vec![], 
             exterior_paths:     [vec![], path2.iter().map(|path| POut::from_path(path)).collect()]
         };
-    } else if path2.len() == 0 {
+    } else if path2.is_empty() {
         return PathIntersection { 
             intersecting_path:  vec![], 
             exterior_paths:     [path1.iter().map(|path| POut::from_path(path)).collect(), vec![]]

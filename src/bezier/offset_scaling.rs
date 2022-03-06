@@ -153,7 +153,7 @@ where   CurveIn:        NormalCurve+BezierCurve,
             let mut extremities     = curve.find_extremities();
             extremities.retain(|item| item > &0.01 && item < &0.99);
 
-            if extremities.len() == 0 {
+            if extremities.is_empty() {
                 // No extremities (or they're all too close to the edges)
                 let divide_point    = 0.5;
 

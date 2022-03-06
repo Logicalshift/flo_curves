@@ -44,7 +44,7 @@ where C::Point: 'a+Coordinate2D {
         .collect::<SmallVec<_>>();
 
     // Rarely: the linear section might be very short and the solver might miss that it's essentially a point
-    if curve_intersections.len() == 0 && ray_intersections.len() != 0 {
+    if curve_intersections.is_empty() && ray_intersections.len() != 0 {
         // If the linear section seems short
         if linear_section.point_at_pos(0.0).is_near_to(&linear_section.point_at_pos(1.0), 0.1) {
             let midpoint            = linear_section.point_at_pos(0.5);
@@ -126,10 +126,10 @@ where C::Point: 'a+Coordinate2D {
 /// 
 fn join_subsections<'a, C: BezierCurve>(curve1: &CurveSection<'a, C>, left: SmallVec<[(f64, f64); 8]>, right: SmallVec<[(f64, f64); 8]>, accuracy_squared: f64) -> SmallVec<[(f64, f64); 8]> 
 where C::Point: Coordinate2D {
-    if left.len() == 0 {
+    if left.is_empty() {
         // No further work to do
         right
-    } else if right.len() == 0 {
+    } else if right.is_empty() {
         // No further work to do
         left
     } else {
