@@ -60,8 +60,8 @@ where Coord: Coordinate+Coordinate2D {
         // Add to the list of long edges if it's long enough to need further ray-casting
         if edge_distance_squared >= edge_min_len_squared {
             long_edges.push(LongEdge { 
-                start:          edges[last_edge].position.clone(),
-                end:            edges[edge_num].position.clone(),
+                start:          edges[last_edge].position,
+                end:            edges[edge_num].position,
                 edge_index:     (last_edge, edge_num),
                 ray_collided:   false
             })
@@ -77,7 +77,7 @@ where Coord: Coordinate+Coordinate2D {
 fn ray_is_moving_outwards<Coord>(center: &Coord, from: &Coord, to: &Coord) -> bool
 where Coord: Coordinate+Coordinate2D {
     // Determine where the 'to' point is along this ray
-    let ray = (center.clone(), from.clone());
+    let ray = (*center, *from);
     let pos = ray.pos_for_point(to);
 
     // Position will be > 1.0 if the 'to' position is further away that 'from'
@@ -119,7 +119,7 @@ where   Coord:      Coordinate+Coordinate2D {
             if distance_sq <= min_gap_sq {
                 // Move all the points between the two 'long' edges onto a line between the start and end point
                 // Alternatively: could remove the points here to produce a smoother shape later on
-                let gap_line        = (edge1.start.clone(), edge2.end.clone());
+                let gap_line        = (edge1.start, edge2.end);
                 let mut edge_num    = edge1.edge_index.1;
 
                 loop {
@@ -130,8 +130,8 @@ where   Coord:      Coordinate+Coordinate2D {
 
                     // Map this edge to the gap line
                     let edge        = &mut edges[edge_num];
-                    let edge_ray    = (center.clone(), edge.position.clone());
-                    edge.position   = line_intersects_ray(&edge_ray, &gap_line).unwrap_or_else(|| edge.position.clone());
+                    let edge_ray    = (*center, edge.position);
+                    edge.position   = line_intersects_ray(&edge_ray, &gap_line).unwrap_or_else(|| edge.position);
 
                     // Move to the next edge
                     edge_num += 1;
@@ -147,7 +147,8 @@ where   Coord:      Coordinate+Coordinate2D {
 
     // Remove any long edges that were affected by the gap removal operation
     if !long_edges_to_remove.is_empty() {
-        long_edges_to_remove.sort();
+        // Unstable sort is OK because this uses primitive types
+        long_edges_to_remove.sort_unstable();
         for long_edge_num in long_edges_to_remove.into_iter().rev() {
             long_edges.remove(long_edge_num);
         }
@@ -226,8 +227,8 @@ where   Coord:      Coordinate+Coordinate2D,
             // Generate a version of the raycasting function that inspects the existing list of long edges
             let cast_ray_to_edges   = |from: Coord, to: Coord| {
                 // Generate the edge collisions from the main raycasting function
-                let edge_collisions     = cast_ray(from.clone(), to.clone());
-                let ray_line            = (from.clone(), to.clone());
+                let edge_collisions     = cast_ray(from, to);
+                let ray_line            = (from, to);
 
                 // Generate the collisions with the 'long edges' where we'll be considering casting more rays later on
                 let extra_collisions    = long_edges.iter()
@@ -235,7 +236,7 @@ where   Coord:      Coordinate+Coordinate2D,
                     .filter(|(edge_index, _edge)| *edge_index != long_edge_index)
                     .filter_map(move |(edge_index, edge)| {
                         // Create lines from the ray and the lines
-                        let edge_line   = (edge.start.clone(), edge.end.clone());
+                        let edge_line   = (edge.start, edge.end);
 
                         // Detect where they intersect
                         if let Some(intersection_point) = line_intersects_ray(&edge_line, &ray_line) {
@@ -291,13 +292,13 @@ where   Coord:      Coordinate+Coordinate2D,
                 edges.splice(edge_index..edge_index, new_edges.into_iter().take(num_new_edges));
 
                 // Update the remaining long edge indexes
-                for update_idx in long_edge_index..long_edges.len() {
-                    if long_edges[update_idx].edge_index.0 >= edge_index {
-                        long_edges[update_idx].edge_index.0 += num_new_edges;
+                for long_edge in long_edges.iter_mut() {
+                    if long_edge.edge_index.0 >= edge_index {
+                        long_edge.edge_index.0 += num_new_edges;
                     }
 
-                    if long_edges[update_idx].edge_index.1 >= edge_index {
-                        long_edges[update_idx].edge_index.1 += num_new_edges;
+                    if long_edge.edge_index.1 >= edge_index {
+                        long_edge.edge_index.1 += num_new_edges;
                     }
                 }
 
@@ -340,7 +341,7 @@ where   Path:       BezierPathFactory<Point=Coord>,
     let collisions = trace_outline_concave(center, options, cast_ray);
 
     // Build a path using the LMS algorithm
-    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position.clone()).collect::<Vec<_>>(), options.fit_error);
+    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position).collect::<Vec<_>>(), options.fit_error);
 
     if let Some(curves) = curves {
         if !curves.is_empty() {
