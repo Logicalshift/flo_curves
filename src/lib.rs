@@ -18,6 +18,14 @@
 
 #![warn(bare_trait_objects)]
 
+// Breaks the exported API if auto-fixed (can remove these with a version bump)
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::from_over_into)]
+
+// Breaks stylistic choices/algorithm readability
+#![allow(clippy::redundant_field_names)]
+#![allow(clippy::collapsible_if)]
+
 #[macro_use] mod test_assert;
 mod consts;
 pub mod bezier;
