@@ -26,6 +26,7 @@
 #![allow(clippy::redundant_field_names)]                // Used for consistency when initialising some types
 #![allow(clippy::collapsible_if)]                       // Often used to clarify algorithm structure (rewrites need to be at least as clear)
 #![allow(clippy::collapsible_else_if)]                  // Often used to clarify algorithm structure
+#![allow(clippy::module_inception)]                     // The 'line' module has a 'Line' type in it, for example. Makes sense the file is called 'line'...
 
 #[macro_use] mod test_assert;
 mod consts;
