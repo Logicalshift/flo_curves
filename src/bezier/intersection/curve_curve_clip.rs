@@ -44,7 +44,7 @@ where C::Point: 'a+Coordinate2D {
         .collect::<SmallVec<_>>();
 
     // Rarely: the linear section might be very short and the solver might miss that it's essentially a point
-    if curve_intersections.is_empty() && ray_intersections.len() != 0 {
+    if curve_intersections.is_empty() && !ray_intersections.is_empty(){
         // If the linear section seems short
         if linear_section.point_at_pos(0.0).is_near_to(&linear_section.point_at_pos(1.0), 0.1) {
             let midpoint            = linear_section.point_at_pos(0.5);
