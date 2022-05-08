@@ -6,5 +6,5 @@ description = "Demonstrates path arithmetic in flo_curves"
 edition     = "2018"
 
 [dependencies]
-flo_curves  = "0.6"
+flo_curves  = "0.7"
 flo_draw    = "0.4"
