@@ -102,8 +102,12 @@ impl<Point: Coordinate+Clone> Line for (Point, Point) {
     }
 }
 
-impl<Point: Coordinate2D+Coordinate+Clone, L: Line<Point=Point>> Line2D for L {
-    type Point=Point;
+impl<L> Line2D for L 
+where
+    L:          Line,
+    L::Point:   Coordinate2D + Coordinate + Clone,
+{
+    type Point = L::Point;
 
     ///
     /// Returns the coefficients (a, b, c) for this line, such that ax+by+c = 0 for
