@@ -166,3 +166,16 @@ fn y_for_x_along_line() {
         assert!((point_y - point.y()).abs() < 0.001);
     }
 }
+
+#[test]
+fn perpendicular_line() {
+    let line                = (Coord2(2.0, 3.0), Coord2(7.0, 6.0));
+    let coeff               = line.coefficients();
+    let coeff_perpendicular = coeff.to_perpendicular_line(&(Coord2(2.0 - (6.0-3.0), 3.0 - (7.0-2.0))));
+
+    assert!(coeff.distance_to(&Coord2(2.0, 3.0)) < 0.001);
+    assert!(coeff.distance_to(&Coord2(7.0, 6.0)) < 0.001);
+
+    assert!(coeff_perpendicular.distance_to(&Coord2(2.0, 3.0)) < 0.001);
+    assert!(coeff_perpendicular.distance_to(&Coord2(2.0 - (6.0-3.0), 3.0 - (7.0-2.0))) < 0.001);
+}

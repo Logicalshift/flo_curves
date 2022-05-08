@@ -97,6 +97,23 @@ impl LineCoefficients {
     }
 
     ///
+    /// Returns the coefficients for a perpendicular line passing through the specified point
+    ///
+    #[inline]
+    pub fn to_perpendicular_line<Point>(&self, pass_through: &Point) -> LineCoefficients
+    where
+        Point: Coordinate2D,
+    {
+        let LineCoefficients(a, b, _c) = self;
+
+        let a2 = *b;
+        let b2 = *a;
+        let c2 = -a2 * pass_through.x() - b2 * pass_through.y();
+
+        LineCoefficients(a2, b2, c2)
+    }
+
+    ///
     /// Given a y coordinate, returns the corresponding x coordinate on the line
     ///
     #[inline]
