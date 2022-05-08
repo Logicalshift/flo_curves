@@ -215,7 +215,7 @@ pub fn characterize_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
             } else {
                 // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
                 let line        = (*w1, *w3);
-                let (a, b, c)   = line_coefficients_2d(&line);
+                let (a, b, c)   = line_coefficients_2d(&line).into();
 
                 let distance    = a*w4.x() + b*w4.y() + c;
                 if distance.abs() < SMALL_DISTANCE {
@@ -362,7 +362,7 @@ pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
             } else {
                 // w2 and w3 are the same. If w1, w2, w3 and w4 are collinear then we have a straight line, otherwise we have a curve with an inflection point.
                 let line        = (*w1, *w3);
-                let (a, b, c)   = line_coefficients_2d(&line);
+                let (a, b, c)   = line_coefficients_2d(&line).into();
 
                 let distance    = a*w4.x() + b*w4.y() + c;
                 if distance.abs() < SMALL_DISTANCE {

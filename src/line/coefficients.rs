@@ -2,12 +2,28 @@ use super::line::*;
 use super::super::geo::*;
 
 ///
+/// The coefficients for a line
+///
+/// This is the value `LineCoefficients(a, b, c)` such that `a*x + b*y + c = 0`. If a, b, c are set to 0 then this
+/// represents a point instead of a line. Typically, line coefficients are normalized such that `a*a + b*b = 1`.
+///
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct LineCoefficients(pub f64, pub f64, pub f64);
+
+impl Into<(f64, f64, f64)> for LineCoefficients {
+    #[inline]
+    fn into(self) -> (f64, f64, f64) {
+        (self.0, self.1, self.2)
+    }
+}
+
+///
 /// For a two-dimensional line, computes the coefficients of the line equation ax+by+c=0
 /// These coefficients are not normalized, which is slightly more efficient than computing the normalized form. 
 /// 
 /// This will return (0,0,0) for a line where the start and end point are the same.
 /// 
-pub fn line_coefficients_2d_unnormalized<L: Line+?Sized>(line: &L) -> (f64, f64, f64)
+pub fn line_coefficients_2d_unnormalized<L: Line+?Sized>(line: &L) -> LineCoefficients
 where
     L::Point: Coordinate+Coordinate2D,
 {
@@ -16,9 +32,9 @@ where
     let offset      = to - from;
 
     // Compute values for a, b, c
-    let (a, b, c)   = if offset.x() == 0.0 && offset.y() == 0.0 {
+    let LineCoefficients(a, b, c) = if offset.x() == 0.0 && offset.y() == 0.0 {
         // This is a point rather than a line
-        return (0.0, 0.0, 0.0);
+        return LineCoefficients(0.0, 0.0, 0.0);
     } else if offset.x().abs() > offset.y().abs() {
         // Derive a, b, c from y = ax+c
         let a = offset.y() / offset.x();
@@ -26,9 +42,9 @@ where
         let c = -(a*from.x() + b*from.y());
 
         if offset.x() > 0.0 {
-            (-a, -b, -c)
+            LineCoefficients(-a, -b, -c)
         } else {
-            (a, b, c)
+            LineCoefficients(a, b, c)
         }
     } else {
         // Derive a, b, c from x = by+c
@@ -37,13 +53,13 @@ where
         let c = -(a*from.x() + b*from.y());
 
         if offset.y() > 0.0 {
-            (-a, -b, -c)
+            LineCoefficients(-a, -b, -c)
         } else {
-            (a, b, c)
+            LineCoefficients(a, b, c)
         }
     };
 
-    (a, b, c)
+    LineCoefficients(a, b, c)
 }
 
 ///
@@ -53,15 +69,15 @@ where
 /// 
 /// This will return (0,0,0) for a line where the start and end point are the same.
 /// 
-pub fn line_coefficients_2d<L: Line+?Sized>(line: &L) -> (f64, f64, f64)
+pub fn line_coefficients_2d<L: Line+?Sized>(line: &L) -> LineCoefficients
 where
     L::Point: Coordinate+Coordinate2D,
 {
-    let (a, b, c) = line_coefficients_2d_unnormalized(line);
+    let LineCoefficients(a, b, c) = line_coefficients_2d_unnormalized(line);
 
     // Normalise so that a^2+b^2 = 1
     let factor      = (a*a + b*b).sqrt();
     let (a, b, c)   = (a/factor, b/factor, c/factor);
 
-    (a, b, c)
+    LineCoefficients(a, b, c)
 }

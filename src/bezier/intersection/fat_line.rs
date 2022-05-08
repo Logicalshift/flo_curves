@@ -243,7 +243,7 @@ impl FatLine {
         L::Point: Coordinate+Coordinate2D,
     {
         // Coefficients for the line
-        let (a, b, c)   = line_coefficients_2d(&line);
+        let LineCoefficients(a, b, c) = line_coefficients_2d(&line);
 
         // Compute the distances to the control points
         let d1          = a*p1.x() + b*p1.y() + c;
@@ -325,7 +325,7 @@ impl FatLine {
 
         // Compute the distances to all of the points
         let (cp1, cp2)      = curve.control_points();
-        let (a, b, c)       = line_coefficients_2d(&line);
+        let (a, b, c)       = line_coefficients_2d(&line).into();
 
         let d1              = a*start_point.x() + b*start_point.y() + c;
         let d2              = a*cp1.x() + b*cp1.y() + c;
@@ -356,7 +356,7 @@ mod test {
         where
             L::Point: Coordinate2D,
         {
-            let (a, b, c)   = line_coefficients_2d(&line);
+            let (a, b, c)   = line_coefficients_2d(&line).into();
 
             FatLine {
                 d_min:  d_min,

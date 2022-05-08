@@ -60,7 +60,7 @@ pub trait Line2D {
     /// Returns the coefficients (a, b, c) for this line, such that ax+by+c = 0 for
     /// any point on the line and also such that a^2 + b^2 = 1
     /// 
-    fn coefficients(&self) -> (f64, f64, f64);
+    fn coefficients(&self) -> LineCoefficients;
 
     ///
     /// Returns the distance from a point to the closest point along this line
@@ -125,7 +125,7 @@ where
     /// any point on the line and also such that a^2 + b^2 = 1
     /// 
     #[inline]
-    fn coefficients(&self) -> (f64, f64, f64) {
+    fn coefficients(&self) -> LineCoefficients {
         line_coefficients_2d(self)
     }
 
@@ -134,7 +134,7 @@ where
     /// 
     #[inline]
     fn distance_to(&self, p: &Self::Point) -> f64 {
-        let (a, b, c) = self.coefficients();
+        let (a, b, c) = self.coefficients().into();
 
         a*p.x() + b*p.y() + c
     }

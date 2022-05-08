@@ -98,7 +98,7 @@ where
         // This assumes curve1 and curve2 have the same start point, which is true when called from edges_overlap()
         let start       = curve1.start_point();
         let end         = curve2.end_point();
-        let (a, b, c)   = (start, end).coefficients();
+        let (a, b, c)   = (start, end).coefficients().into();
 
         let dist_cp1_a  = a*cp1_a.x() + b*cp1_a.y() + c;
         let dist_cp2_a  = a*cp2_a.x() + b*cp2_a.y() + c;
@@ -191,7 +191,7 @@ pub (crate) fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, e
 /// Returns true if a curve is collinear given the set of coefficients for a ray
 ///
 #[inline]
-fn curve_is_collinear<Edge: BezierCurve>(edge: &Edge, (a, b, c): (f64, f64, f64)) -> bool
+fn curve_is_collinear<Edge: BezierCurve>(edge: &Edge, LineCoefficients(a, b, c): LineCoefficients) -> bool
 where 
     Edge::Point: Coordinate+Coordinate2D,
 {
@@ -221,7 +221,7 @@ enum RayCanIntersect {
 ///
 /// Given the coefficients of a ray, returns whether or not an edge can intersect it
 ///
-fn ray_can_intersect<Edge: BezierCurve>(edge: &Edge, (a, b, c): (f64, f64, f64)) -> RayCanIntersect
+fn ray_can_intersect<Edge: BezierCurve>(edge: &Edge, LineCoefficients(a, b, c): LineCoefficients) -> RayCanIntersect
 where 
     Edge::Point: Coordinate+Coordinate2D,
 {
@@ -254,7 +254,7 @@ where
 ///
 /// Given a list of points, returns the edges that cross the line given by the specified set of coefficients
 ///
-fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points: Vec<usize>) -> Vec<GraphEdgeRef> {
+fn crossing_edges<Path: RayPath>(path: &Path, coefficients: LineCoefficients, points: Vec<usize>) -> Vec<GraphEdgeRef> {
     let mut crossing_edges = vec![];
 
     for point_idx in points.into_iter() {
@@ -264,7 +264,7 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
             let incoming        = path.get_edge(incoming_ref);
 
             // Ignore collinear incoming edges
-            if curve_is_collinear(&incoming, (a, b, c)) {
+            if curve_is_collinear(&incoming, coefficients) {
                 continue;
             }
 
@@ -274,7 +274,7 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
             let mut leaving     = path.get_edge(leaving_ref);
 
             // Follow the path until we complete a loop or find a leaving edge that's not collinear
-            while curve_is_collinear(&leaving, (a, b, c)) {
+            while curve_is_collinear(&leaving, coefficients) {
                 let (next_ref, next_edge) = path.get_next_edge(leaving_ref);
 
                 leaving_ref = next_ref;
@@ -288,7 +288,8 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
             }
 
             // If it's not colinear, add to the set of crossing edges
-            if !curve_is_collinear(&leaving, (a, b, c)) {
+            if !curve_is_collinear(&leaving, coefficients) {
+                let (a, b, c)       = coefficients.into();
                 let incoming_cp2    = incoming.control_points().1;
                 let leaving_cp1     = leaving.control_points().0;
 
@@ -398,10 +399,12 @@ where
 /// Given a list of collisions, removes any that are at the end just before a collinear section
 ///
 #[inline]
-fn remove_collisions_before_or_after_collinear_section<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
+fn remove_collisions_before_or_after_collinear_section<'a, Path, L, Collisions>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
 where
+    Path:           RayPath,
     Path::Point:    Coordinate+Coordinate2D,
     L:              Line<Point=Path::Point>,
+    Collisions:     'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>,
 {
     let ray_coeffs = ray.coefficients();
 
@@ -553,7 +556,7 @@ fn filter_collisions_near_vertices<'a, Path: RayPath, L: Line, Collisions: 'a+In
 where 
     L: Line<Point=Path::Point>,
 {
-    let (a, b, c)           = ray.coefficients();
+    let (a, b, c)           = ray.coefficients().into();
     let mut visited_start   = None;
 
     collisions.into_iter()

@@ -48,7 +48,7 @@ where   C1::Point:  Coordinate+Coordinate2D,
 
     // If curve1 and curve2 are collinear - two overlapping lines - we've already got the results (and the control points will differ anyway)
     #[inline]
-    fn is_collinear<P: Coordinate2D>(p: &P, &(a, b, c): &(f64, f64, f64)) -> bool {
+    fn is_collinear<P: Coordinate2D>(p: &P, LineCoefficients(a, b, c): &LineCoefficients) -> bool {
         (a*p.x() + b*p.y() + c).abs() < SMALL_DISTANCE
     }
 
