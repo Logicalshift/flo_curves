@@ -75,16 +75,27 @@ pub trait Line2D {
     /// Returns a value indicating which side of the line the specified point is on (+1, 0 or -1)
     ///
     fn which_side(&self, p: &Self::Point) -> i8;
+
+    ///
+    /// Returns the t values of the closest point on the line to the specified point
+    ///
+    fn nearest_pos(&self, point: &Self::Point) -> f64;
 }
 
-impl<Point: Coordinate+Clone> Geo for (Point, Point) {
+impl<Point> Geo for (Point, Point) 
+where
+    Point: Coordinate + Clone,
+{
     type Point = Point;
 }
 
 ///
 /// Simplest line is just a tuple of two points
 /// 
-impl<Point: Coordinate+Clone> Line for (Point, Point) {
+impl<Point> Line for (Point, Point) 
+where
+    Point: Coordinate+ Clone,
+{
     ///
     /// Creates a new line from points
     ///
@@ -144,5 +155,12 @@ where
         } else {
             0
         }
+    }
+
+    ///
+    /// Returns the t values of the closest point on the line to the specified point
+    ///
+    fn nearest_pos(&self, point: &Self::Point) -> f64 {
+        todo!()
     }
 }
