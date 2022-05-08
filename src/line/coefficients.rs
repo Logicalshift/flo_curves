@@ -95,4 +95,24 @@ impl LineCoefficients {
 
         a*p.x() + b*p.y() + c
     }
+
+    ///
+    /// Given a y coordinate, returns the corresponding x coordinate on the line
+    ///
+    #[inline]
+    pub fn x_for_y(&self, y: f64) -> f64 {
+        let LineCoefficients(a, b, c) = self;
+
+        (-b*y - c) / a
+    }
+
+    ///
+    /// Given am x coordinate, returns the corresponding y coordinate on the line
+    ///
+    #[inline]
+    pub fn y_for_x(&self, x: f64) -> f64 {
+        let LineCoefficients(a, b, c) = self;
+
+        (-a*x - c) / b
+    }
 }
