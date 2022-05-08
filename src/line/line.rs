@@ -134,9 +134,7 @@ where
     /// 
     #[inline]
     fn distance_to(&self, p: &Self::Point) -> f64 {
-        let (a, b, c) = self.coefficients().into();
-
-        a*p.x() + b*p.y() + c
+        self.coefficients().distance_to(p)
     }
 
     ///

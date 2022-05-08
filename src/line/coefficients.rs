@@ -81,3 +81,18 @@ where
 
     LineCoefficients(a, b, c)
 }
+
+impl LineCoefficients {
+    ///
+    /// Returns the distance from a point to this line
+    /// 
+    #[inline]
+    pub fn distance_to<Point>(&self, p: &Point) -> f64 
+    where
+        Point: Coordinate2D,
+    {
+        let LineCoefficients(a, b, c) = self;
+
+        a*p.x() + b*p.y() + c
+    }
+}
