@@ -77,6 +77,11 @@ pub trait Line2D {
     fn which_side(&self, p: &Self::Point) -> i8;
 
     ///
+    /// Returns the nearest point on the line to the specified point
+    ///
+    fn nearest_point(&self, point: &Self::Point) -> Self::Point;
+
+    ///
     /// Returns the t values of the closest point on the line to the specified point
     ///
     fn nearest_pos(&self, point: &Self::Point) -> f64;
@@ -156,9 +161,18 @@ where
     }
 
     ///
+    /// Returns the nearest point on the line to the specified point
+    ///
+    #[inline]
+    fn nearest_point(&self, point: &Self::Point) -> Self::Point {
+        self.coefficients().nearest_point(point)
+    }
+
+    ///
     /// Returns the t values of the closest point on the line to the specified point
     ///
+    #[inline]
     fn nearest_pos(&self, point: &Self::Point) -> f64 {
-        todo!()
+        self.pos_for_point(&self.nearest_point(point))
     }
 }

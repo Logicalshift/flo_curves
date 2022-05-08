@@ -84,6 +84,14 @@ where
 
 impl LineCoefficients {
     ///
+    /// Returns true if these coefficients are for a point rather than a line
+    ///
+    #[inline]
+    pub fn is_point(&self) -> bool {
+        self.0 == 0.0 && self.1 == 0.0 && self.2 == 0.0
+    }
+
+    ///
     /// Returns the distance from a point to this line
     /// 
     #[inline]
@@ -111,6 +119,28 @@ impl LineCoefficients {
         let c2 = -a2 * pass_through.x() - b2 * pass_through.y();
 
         LineCoefficients(a2, b2, c2)
+    }
+
+    ///
+    /// Returns the nearest point on this line to the specified point
+    ///
+    #[inline]
+    pub fn nearest_point<Point>(&self, p: &Point) -> Point
+    where
+        Point: Coordinate + Coordinate2D,
+    {
+        let x                           = p.x();
+        let y                           = p.y();
+        let LineCoefficients(a, b, c)   = self;
+
+        // Perpendicular line has form bx + ay + c2
+        let c2      = -b*x - a*y;
+
+        // Solve where the two lines meet (this is the nearest point)
+        let near_x  = (-a*c + b*c2) / (a*a - b*b);
+        let near_y  = (-a*c2 + b*c) / (a*a - b*b);
+
+        Point::from_components(&[near_x, near_y])
     }
 
     ///
