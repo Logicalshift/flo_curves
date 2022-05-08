@@ -20,7 +20,9 @@ pub enum PathDirection {
 }
 
 impl<'a, P: BezierPath> From<&'a P> for PathDirection
-where P::Point: Coordinate2D {
+where 
+    P::Point: Coordinate2D,
+{
     #[inline]
     fn from(path: &'a P) -> PathDirection {
         if path.is_clockwise() {

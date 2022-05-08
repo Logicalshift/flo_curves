@@ -235,7 +235,9 @@ pub trait BezierCurve2D: BezierCurve {
 }
 
 impl<T: BezierCurve> BezierCurve2D for T
-where T::Point: Coordinate+Coordinate2D {
+where
+    T::Point: Coordinate+Coordinate2D,
+{
     #[inline]
     fn characteristics(&self) -> CurveCategory {
         let start_point = self.start_point();

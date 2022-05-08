@@ -53,8 +53,10 @@ impl GraphRayCollision {
 }
 
 impl<'a, Point, Label> RayPath for &'a GraphPath<Point, Label> 
-where   Point: Coordinate+Coordinate2D,
-        Label: Copy {
+where
+    Point: Coordinate+Coordinate2D,
+    Label: Copy
+{
     type Point = Point;
     type Curve = GraphEdge<'a, Point, Label>;
 

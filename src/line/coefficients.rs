@@ -8,7 +8,9 @@ use super::super::geo::*;
 /// This will return (0,0,0) for a line where the start and end point are the same.
 /// 
 pub fn line_coefficients_2d_unnormalized<L: Line+?Sized>(line: &L) -> (f64, f64, f64)
-where L::Point: Coordinate+Coordinate2D {
+where
+    L::Point: Coordinate+Coordinate2D,
+{
     // Compute the offset 
     let (from, to)  = line.points();
     let offset      = to - from;
@@ -52,7 +54,9 @@ where L::Point: Coordinate+Coordinate2D {
 /// This will return (0,0,0) for a line where the start and end point are the same.
 /// 
 pub fn line_coefficients_2d<L: Line+?Sized>(line: &L) -> (f64, f64, f64)
-where L::Point: Coordinate+Coordinate2D {
+where
+    L::Point: Coordinate+Coordinate2D,
+{
     let (a, b, c) = line_coefficients_2d_unnormalized(line);
 
     // Normalise so that a^2+b^2 = 1

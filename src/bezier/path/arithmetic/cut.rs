@@ -19,9 +19,11 @@ pub struct PathCut<P: BezierPathFactory> {
 /// the part that was exterior in one operation
 ///
 pub fn path_cut<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> PathCut<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        P2:         BezierPath<Point=P1::Point>,
-        POut:       BezierPathFactory<Point=P1::Point> {
+where
+    P1::Point:  Coordinate+Coordinate2D,
+    P2:         BezierPath<Point=P1::Point>,
+    POut:       BezierPathFactory<Point=P1::Point>,
+{
     // If path1 is empty, then there are no points in the result. If path2 is empty, then all points are exterior
     if path1.is_empty() {
         return PathCut { 

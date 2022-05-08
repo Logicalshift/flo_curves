@@ -78,7 +78,9 @@ pub trait NormalCurve : BezierCurve {
 }
 
 impl<Curve: BezierCurve> NormalCurve for Curve
-where Curve::Point: Normalize {
+where
+    Curve::Point: Normalize,
+{
     fn tangent_at_pos(&self, t: f64) -> Curve::Point {
         // Extract the points that make up this curve
         let w1          = self.start_point();

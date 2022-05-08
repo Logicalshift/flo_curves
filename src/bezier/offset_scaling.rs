@@ -43,8 +43,10 @@ use std::cmp::*;
 /// errors, especially if the initial and final offsets are very different from one another.
 ///
 pub fn offset_scaling<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
-where   Curve:          BezierCurveFactory+NormalCurve,
-        Curve::Point:   Normalize+Coordinate2D {
+where
+    Curve:          BezierCurveFactory+NormalCurve,
+    Curve::Point:   Normalize+Coordinate2D,
+{
     // Split at the location of any features the curve might have
     let sections: SmallVec<[_; 4]>  = match features_for_curve(curve, 0.01) {
         CurveFeatures::DoubleInflectionPoint(t1, t2)  => {
@@ -103,9 +105,11 @@ where   Curve:          BezierCurveFactory+NormalCurve,
 /// Attempts a simple offset of a curve, and subdivides it if the midpoint is too far away from the expected distance
 ///
 fn subdivide_offset<CurveIn, CurveOut>(curve: &CurveSection<'_, CurveIn>, initial_offset: f64, final_offset: f64, depth: usize) -> SmallVec<[CurveOut; 2]>
-where   CurveIn:        NormalCurve+BezierCurve,
-        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
-        CurveIn::Point: Coordinate2D+Normalize {
+where
+    CurveIn:        NormalCurve+BezierCurve,
+    CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+    CurveIn::Point: Coordinate2D+Normalize,
+{
     const MAX_DEPTH: usize = 5;
 
     // Fetch the original points
@@ -201,9 +205,11 @@ where   CurveIn:        NormalCurve+BezierCurve,
 ///
 #[inline]
 fn offset_by_scaling<CurveIn, CurveOut>(curve: &CurveIn, initial_offset: f64, final_offset: f64, intersect_point: CurveIn::Point, unit_normal_start: CurveIn::Point, unit_normal_end: CurveIn::Point) -> CurveOut
-where   CurveIn:        NormalCurve+BezierCurve,
-        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
-        CurveIn::Point: Coordinate2D+Normalize {
+where
+    CurveIn:        NormalCurve+BezierCurve,
+    CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+    CurveIn::Point: Coordinate2D+Normalize,
+{
     let start           = curve.start_point();
     let end             = curve.end_point();
     let (cp1, cp2)      = curve.control_points();
@@ -230,9 +236,11 @@ where   CurveIn:        NormalCurve+BezierCurve,
 ///
 #[inline]
 fn offset_by_moving<CurveIn, CurveOut>(curve: &CurveIn, initial_offset: f64, final_offset: f64, unit_normal_start: CurveIn::Point, unit_normal_end: CurveIn::Point) -> CurveOut
-where   CurveIn:        NormalCurve+BezierCurve,
-        CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
-        CurveIn::Point: Coordinate2D+Normalize {
+where
+    CurveIn:        NormalCurve+BezierCurve,
+    CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+    CurveIn::Point: Coordinate2D+Normalize,
+{
     let start           = curve.start_point();
     let end             = curve.end_point();
     let (cp1, cp2)      = curve.control_points();

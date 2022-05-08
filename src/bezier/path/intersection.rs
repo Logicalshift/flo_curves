@@ -12,7 +12,9 @@ use super::super::super::line::*;
 /// ie: `(path_point_idx, curve_t, line_t)`. 
 /// 
 pub fn path_intersects_line<'a, Path: BezierPath, L: Line<Point=Path::Point>>(path: &'a Path, line: &'a L) -> impl 'a+Iterator<Item=(usize, f64, f64)> 
-where Path::Point: 'a+Coordinate2D {
+where
+    Path::Point: 'a+Coordinate2D,
+{
     path_to_curves::<_, Curve<_>>(path)
         .enumerate()
         .flat_map(move |(section_id, curve)| curve_intersects_line(&curve, line).into_iter().map(move |(t, s, _pos)| (section_id, t, s)))
@@ -28,7 +30,9 @@ where Path::Point: 'a+Coordinate2D {
 /// It's possible to filter for matches that occur after the start of the line by looking for results with an `s` value >= 0
 /// 
 pub fn path_intersects_ray<'a, Path: BezierPath, L: Line<Point=Path::Point>>(path: &'a Path, line: &'a L) -> impl 'a+Iterator<Item=(usize, f64, f64)> 
-where Path::Point: 'a+Coordinate2D {
+where
+    Path::Point: 'a+Coordinate2D,
+{
     path_to_curves::<_, Curve<_>>(path)
         .enumerate()
         .flat_map(move |(section_id, curve)| curve_intersects_line(&curve, line).into_iter().map(move |(t, s, _pos)| (section_id, t, s)))
@@ -44,7 +48,9 @@ where Path::Point: 'a+Coordinate2D {
 /// intersection algorithm is approximate.
 /// 
 pub fn path_intersects_path<'a, Path: BezierPath>(path1: &'a Path, path2: &'a Path, accuracy: f64) -> Vec<((usize, f64), (usize, f64))> 
-where Path::Point: 'a+Coordinate2D {
+where
+    Path::Point: 'a+Coordinate2D,
+{
     // Convert both paths to sections: also compute the bounding boxes for quick rejection of sections with no intersections
     let path1_sections = path_to_curves::<_, Curve<_>>(path1)
         .enumerate()

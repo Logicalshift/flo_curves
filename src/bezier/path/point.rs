@@ -51,7 +51,9 @@ impl<Curve: BezierCurve> BezierCurve for ReversableCurve<Curve> {
 }
 
 impl<Curve: BezierCurve> RayPath for Vec<Curve> 
-where Curve::Point: Coordinate2D {
+where
+    Curve::Point: Coordinate2D,
+{
     type Curve = ReversableCurve<Curve>;
     type Point = Curve::Point;
 
@@ -121,7 +123,9 @@ where Curve::Point: Coordinate2D {
 /// Returns true if a particular point is within a bezier path
 /// 
 pub fn path_contains_point<P: BezierPath>(path: &P, point: &P::Point) -> bool
-where P::Point: Coordinate2D {
+where 
+    P::Point: Coordinate2D,
+{
     // We want to cast a ray from the outer edge of the bounds to our point
     let (min_bounds, max_bounds) = path.bounding_box();
 

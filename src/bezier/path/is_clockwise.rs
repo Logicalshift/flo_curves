@@ -34,7 +34,10 @@ pub trait PathWithIsClockwise {
     fn is_clockwise(&self) -> bool;
 }
 
-impl<P: BezierPath> PathWithIsClockwise for P where P::Point: Coordinate+Coordinate2D {
+impl<P: BezierPath> PathWithIsClockwise for P
+where 
+    P::Point: Coordinate+Coordinate2D,
+{
     #[inline]
     fn is_clockwise(&self) -> bool {
         points_are_clockwise(self.points().map(|(_cp1, _cp2, p)| p))

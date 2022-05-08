@@ -13,7 +13,9 @@ use super::super::super::super::geo::*;
 ///
 #[derive(Clone, Debug)]
 pub enum PathCombine<P: BezierPath>
-where P::Point : Coordinate+Coordinate2D {
+where
+    P::Point : Coordinate+Coordinate2D,
+{
     /// Sets the result to a particular path
     Path(Vec<P>),
 
@@ -43,7 +45,9 @@ where P::Point : Coordinate+Coordinate2D {
 /// Performs a series of path combining operations to generate an output path
 ///
 pub fn path_combine<P: BezierPathFactory>(operation: PathCombine<P>, accuracy: f64) -> Vec<P>
-where P::Point: Coordinate+Coordinate2D {
+where
+    P::Point: Coordinate+Coordinate2D,
+{
     // TODO: it's probably possible to combine add, subtract and intersect into a single ray-casting operation using a similar technique to how path_add_chain works
 
     match operation {

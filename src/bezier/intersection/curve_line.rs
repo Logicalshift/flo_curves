@@ -38,7 +38,9 @@ fn solve_roots(p: (f64, f64, f64, f64)) -> Roots<f64> {
 /// original line, so this will return all the points on the curve that lie on a line of infinite length.
 /// 
 pub fn curve_intersects_ray<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
-where C::Point: Coordinate2D {
+where 
+    C::Point: Coordinate2D,
+{
     // Based upon https://www.particleincell.com/2013/cubic-line-intersection/
 
     // Line coefficients
@@ -132,7 +134,9 @@ where C::Point: Coordinate2D {
 /// Return value is a vector of (curve_t, line_t, intersection_point) values
 /// 
 pub fn curve_intersects_line<C: BezierCurve, L: Line<Point=C::Point>>(curve: &C, line: &L) -> SmallVec<[(f64, f64, C::Point); 4]>
-where C::Point: Coordinate2D {
+where
+    C::Point: Coordinate2D,
+{
     let mut ray_intersections = curve_intersects_ray(curve, line);
     ray_intersections.retain(|(_t, s, _pos)| (&mut 0.0..=&mut 1.0).contains(&s));
 

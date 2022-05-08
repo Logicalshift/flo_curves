@@ -15,10 +15,12 @@ use std::iter;
 /// result in artifacts caused by overfitting.
 ///
 pub fn offset_lms_sampling<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
-where   Curve:              BezierCurveFactory+NormalCurve,
-        Curve::Point:       Normalize+Coordinate2D,
-        NormalOffsetFn:     Fn(f64) -> f64,
-        TangentOffsetFn:    Fn(f64) -> f64 {
+where
+    Curve:              BezierCurveFactory+NormalCurve,
+    Curve::Point:       Normalize+Coordinate2D,
+    NormalOffsetFn:     Fn(f64) -> f64,
+    TangentOffsetFn:    Fn(f64) -> f64,
+{
     if subdivisions < 2 { return None; }
 
     // Subdivide the curve by its major features

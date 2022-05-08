@@ -8,7 +8,9 @@ use super::super::super::geo::*;
 /// If a cubic curve contains a loop, finds the t values where the curve self-intersects
 ///
 pub fn find_self_intersection_point<C: BezierCurve>(curve: &C, accuracy: f64) -> Option<(f64, f64)>
-where C::Point: Coordinate+Coordinate2D {
+where
+    C::Point: Coordinate+Coordinate2D,
+{
     let curve_type = curve.characteristics();
 
     if curve_type == CurveCategory::Loop {
@@ -23,7 +25,9 @@ where C::Point: Coordinate+Coordinate2D {
 /// Given a curve known to have a loop in it, subdivides it in order to determine where the intersection lies
 ///
 fn find_intersection_point_in_loop<C: BezierCurve>(curve: CurveSection<C>, accuracy: f64) -> Option<(f64, f64)>
-where C::Point: Coordinate+Coordinate2D {
+where
+    C::Point: Coordinate+Coordinate2D,
+{
     use self::CurveCategory::*;
 
     // The algorithm here is to divide the curve into two. We'll either find a smaller curve with a loop or split the curve in the middle of the loop

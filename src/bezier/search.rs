@@ -13,8 +13,10 @@ use super::super::geo::*;
 /// it may produce multiple matches (as it will find a nearby point on either side of the subdivision)
 /// 
 pub fn search_bounds4<Point, MatchFn>(min_size: f64, w1: Point, w2: Point, w3: Point, w4: Point, match_fn: MatchFn) -> Vec<f64> 
-where   Point:      Coordinate,
-        MatchFn:    Fn(Point, Point) -> bool {
+where
+    Point:      Coordinate,
+    MatchFn:    Fn(Point, Point) -> bool,
+{
     // Helper function to determine if a bounding box is below the minimum size
     let min_size_squared    = min_size * min_size;
     let is_valid_match      = |p1: Point, p2: Point| {

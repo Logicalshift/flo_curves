@@ -12,10 +12,11 @@ use std::iter;
 ///
 pub fn distort_curve<CurveIn, DistortFn, CurveOut>(curve: &CurveIn, distort_fn: DistortFn, step_len: f64, max_error: f64) -> Option<Vec<CurveOut>>
 where
-CurveIn:        BezierCurve,
-CurveIn::Point: Normalize+Coordinate2D,
-CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
-DistortFn:      Fn(CurveIn::Point, f64) -> CurveOut::Point {
+    CurveIn:        BezierCurve,
+    CurveIn::Point: Normalize+Coordinate2D,
+    CurveOut:       BezierCurveFactory<Point=CurveIn::Point>,
+    DistortFn:      Fn(CurveIn::Point, f64) -> CurveOut::Point,
+{
     // Walk the curve at roughly step_len increments
     let sections    = walk_curve_evenly(curve, step_len, step_len / 4.0);
 
@@ -39,9 +40,10 @@ DistortFn:      Fn(CurveIn::Point, f64) -> CurveOut::Point {
 ///
 pub fn distort_path<PathIn, DistortFn, PathOut>(path: &PathIn, distort_fn: DistortFn, step_len: f64, max_error: f64) -> Option<PathOut> 
 where
-PathIn:     BezierPath,
-PathOut:    BezierPathFactory<Point=PathIn::Point>,
-DistortFn:  Fn(PathIn::Point, &Curve<PathIn::Point>, f64) -> PathOut::Point {
+    PathIn:     BezierPath,
+    PathOut:    BezierPathFactory<Point=PathIn::Point>,
+    DistortFn:  Fn(PathIn::Point, &Curve<PathIn::Point>, f64) -> PathOut::Point,
+{
     // The initial point is derived from the first curve
     let start_point         = path.start_point();
     let mut path_points     = path.points();

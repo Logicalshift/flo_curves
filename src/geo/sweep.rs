@@ -13,9 +13,10 @@ use std::cmp::{Ordering};
 ///
 pub fn sweep_self<'a, TItem, BoundsIter>(ordered_items: BoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
 where
-BoundsIter:     'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    BoundsIter:     'a+Iterator<Item=&'a TItem>,
+    TItem:          'a+HasBoundingBox,
+    TItem::Point:   Coordinate2D,
+{
     SweepSelfIterator {
         bounds_iterator:    ordered_items,
         pending:            smallvec![],
@@ -31,10 +32,11 @@ TItem::Point:   Coordinate2D {
 ///
 pub fn sweep_against<'a, TItem, SrcBoundsIter, TgtBoundsIter>(src: SrcBoundsIter, tgt: TgtBoundsIter) -> impl 'a+Iterator<Item=(&'a TItem, &'a TItem)>
 where
-SrcBoundsIter:  'a+Iterator<Item=&'a TItem>,
-TgtBoundsIter:  'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcBoundsIter:  'a+Iterator<Item=&'a TItem>,
+    TgtBoundsIter:  'a+Iterator<Item=&'a TItem>,
+    TItem:          'a+HasBoundingBox,
+    TItem::Point:   Coordinate2D,
+{
     SweepAgainstIterator {
         src_iterator:   Some(src),
         tgt_iterator:   tgt,
@@ -65,9 +67,10 @@ TItem::Point:   Coordinate2D {
 
 impl<'a, TItem, BoundsIter> Iterator for SweepSelfIterator<'a, TItem, BoundsIter>
 where
-BoundsIter:     'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    BoundsIter:     'a+Iterator<Item=&'a TItem>,
+    TItem:          'a+HasBoundingBox,
+    TItem::Point:   Coordinate2D,
+{
     type Item = (&'a TItem, &'a TItem);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -138,10 +141,11 @@ TItem::Point:   Coordinate2D {
 ///
 struct SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
 where
-SrcIterator:    'a+Iterator<Item=&'a TItem>,
-TgtIterator:    'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcIterator:    'a+Iterator<Item=&'a TItem>,
+    TgtIterator:    'a+Iterator<Item=&'a TItem>,
+    TItem:          'a+HasBoundingBox,
+    TItem::Point:   Coordinate2D,
+{
     /// Iterator, ordered by minimum X position
     src_iterator: Option<SrcIterator>,
 
@@ -160,10 +164,11 @@ TItem::Point:   Coordinate2D {
 
 impl<'a, TItem, SrcIterator, TgtIterator> Iterator for SweepAgainstIterator<'a, TItem, SrcIterator, TgtIterator>
 where
-SrcIterator:    'a+Iterator<Item=&'a TItem>,
-TgtIterator:    'a+Iterator<Item=&'a TItem>,
-TItem:          'a+HasBoundingBox,
-TItem::Point:   Coordinate2D {
+    SrcIterator:    'a+Iterator<Item=&'a TItem>,
+    TgtIterator:    'a+Iterator<Item=&'a TItem>,
+    TItem:          'a+HasBoundingBox,
+    TItem::Point:   Coordinate2D,
+{
     type Item = (&'a TItem, &'a TItem);
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -40,7 +40,9 @@ impl FatLine {
     /// curve clips against this line.
     /// 
     pub fn distance_curve<FromCurve: BezierCurve, ToCurve: BezierCurveFactory<Point=FromCurve::Point>>(&self, curve: &FromCurve) -> ToCurve
-    where FromCurve::Point: Coordinate2D {
+    where 
+        FromCurve::Point: Coordinate2D,
+    {
         let (cp1, cp2)  = curve.control_points();
 
         let start       = FromCurve::Point::from_components(&[self.distance(&curve.start_point()), 0.0]);
@@ -59,7 +61,9 @@ impl FatLine {
     /// so we only need to know if the two control points are on the same side or not)
     /// 
     fn distance_curve_convex_hull<C: BezierCurve>(distance_curve: &C) -> Vec<C::Point> 
-    where C::Point: Coordinate2D {
+    where 
+        C::Point: Coordinate2D,
+    {
         // Read the points from the curve
         let start       = distance_curve.start_point();
         let (cp1, cp2)  = distance_curve.control_points();
@@ -136,7 +140,9 @@ impl FatLine {
     /// usually possible to iterate to improve the precision of the match)
     /// 
     pub fn clip_t<C: BezierCurve>(&self, curve: &C) -> Option<(f64, f64)> 
-    where C::Point: Coordinate2D {
+    where 
+        C::Point: Coordinate2D,
+    {
         // The 'distance' curve is a bezier curve where 'x' is the distance to the central line from the curve and 'y' is the t value where that distance occurs
         let distance_curve          = self.distance_curve::<_, Curve<C::Point>>(curve);
 
@@ -233,7 +239,9 @@ impl FatLine {
     /// Creates a new fatline from a central line and two points representing its outer edges
     /// 
     fn from_line_and_points<L: Line>(line: L, p1: L::Point, p2: L::Point) -> FatLine
-    where L::Point: Coordinate+Coordinate2D {
+    where 
+        L::Point: Coordinate+Coordinate2D,
+    {
         // Coefficients for the line
         let (a, b, c)   = line_coefficients_2d(&line);
 
@@ -267,7 +275,9 @@ impl FatLine {
     /// Creates a new fatline from a curve
     /// 
     pub fn from_curve<C: BezierCurve>(curve: &C) -> FatLine
-    where C::Point: Coordinate+Coordinate2D {
+    where 
+        C::Point: Coordinate+Coordinate2D,
+    {
         // Line between the start and end points of the curve
         let line        = (curve.start_point(), curve.end_point());
         let (cp1, cp2)  = curve.control_points();
@@ -286,7 +296,9 @@ impl FatLine {
     /// Creates a perpendicular fatline from a curve
     /// 
     pub fn from_curve_perpendicular<C: BezierCurve>(curve: &C) -> FatLine
-    where C::Point: Coordinate+Coordinate2D {
+    where
+        C::Point: Coordinate+Coordinate2D,
+    {
         let (start_point, end_point) = (curve.start_point(), curve.end_point());
 
         // If the start point and the end point are at the same location, use the gap between the control points to set the line direction instead
@@ -341,7 +353,9 @@ mod test {
         /// Creates a new fat line
         /// 
         pub fn new<L: Line>(line: L, d_min: f64, d_max: f64) -> FatLine
-        where L::Point: Coordinate2D {
+        where
+            L::Point: Coordinate2D,
+        {
             let (a, b, c)   = line_coefficients_2d(&line);
 
             FatLine {
@@ -360,7 +374,9 @@ mod test {
         /// in the case where the curve is not within the line.
         /// 
         pub fn clip<FromCurve: BezierCurve, ToCurve: BezierCurveFactory<Point=FromCurve::Point>>(&self, curve: &FromCurve) -> Option<ToCurve> 
-        where FromCurve::Point: Coordinate2D {
+        where
+            FromCurve::Point: Coordinate2D,
+        {
             if let Some((t1, t2)) = self.clip_t(curve) {
                 Some(ToCurve::from_curve(&curve.section(t1, t2)))
             } else {

@@ -42,9 +42,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
 pub fn path_add<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        P2:         BezierPath<Point=P1::Point>,
-        POut:       BezierPathFactory<Point=P1::Point> {
+where
+    P1::Point:  Coordinate+Coordinate2D,
+    P2:         BezierPath<Point=P1::Point>,
+    POut:       BezierPathFactory<Point=P1::Point>,
+{
     // If either path is empty, short-circuit by returning the other
     if path1.is_empty() {
         return path2.iter()
@@ -83,8 +85,10 @@ where   P1::Point:  Coordinate+Coordinate2D,
 /// See `path_remove_overlapped_points()` for a version that considers all edges within the path to be exterior edges.
 ///
 pub fn path_remove_interior_points<P1: BezierPath, POut: BezierPathFactory>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        POut:       BezierPathFactory<Point=P1::Point> {
+where
+    P1::Point:  Coordinate+Coordinate2D,
+    POut:       BezierPathFactory<Point=P1::Point>,
+{
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
     merged_path         = merged_path.merge(GraphPath::from_merged_paths(path.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
@@ -118,8 +122,10 @@ where   P1::Point:  Coordinate+Coordinate2D,
 /// winding rules presuppose you can tell if a subpath is inside or outside of an existing path.
 ///
 pub fn path_remove_overlapped_points<P1: BezierPath, POut: BezierPathFactory>(path: &Vec<P1>, accuracy: f64) -> Vec<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        POut:       BezierPathFactory<Point=P1::Point> {
+where
+    P1::Point:  Coordinate+Coordinate2D,
+    POut:       BezierPathFactory<Point=P1::Point>,
+{
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
     merged_path         = merged_path.merge(GraphPath::from_merged_paths(path.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));

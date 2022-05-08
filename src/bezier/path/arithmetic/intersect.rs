@@ -24,9 +24,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
 pub fn path_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
-where   P1::Point:  Coordinate+Coordinate2D,
-        P2:         BezierPath<Point=P1::Point>,
-        POut:       BezierPathFactory<Point=P1::Point> {
+where
+    P1::Point:  Coordinate+Coordinate2D,
+    P2:         BezierPath<Point=P1::Point>,
+    POut:       BezierPathFactory<Point=P1::Point>,
+{
     // If either path is empty, short-circuit by returning the other
     if path1.is_empty() {
         return path2.iter()

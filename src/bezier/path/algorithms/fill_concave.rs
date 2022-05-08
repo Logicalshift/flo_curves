@@ -43,7 +43,9 @@ struct LongEdge<Coord> {
 /// Retrieves the 'long' edges from a set of edges returned by a raycast tracing operation
 ///
 fn find_long_edges<Coord, Item>(edges: &[RayCollision<Coord, Item>], edge_min_len_squared: f64) -> Vec<LongEdge<Coord>>
-where Coord: Coordinate+Coordinate2D {
+where 
+    Coord: Coordinate+Coordinate2D,
+{
     // Find the edges where we need to cast extra rays
     let mut long_edges      = vec![];
     for edge_num in 0..edges.len() {
@@ -75,7 +77,9 @@ where Coord: Coordinate+Coordinate2D {
 /// Determines if the 'to' position is further away from the 'center' position than the 'from' position
 ///
 fn ray_is_moving_outwards<Coord>(center: &Coord, from: &Coord, to: &Coord) -> bool
-where Coord: Coordinate+Coordinate2D {
+where 
+    Coord: Coordinate+Coordinate2D,
+{
     // Determine where the 'to' point is along this ray
     let ray = (*center, *from);
     let pos = ray.pos_for_point(to);
@@ -93,7 +97,9 @@ where Coord: Coordinate+Coordinate2D {
 /// side into a line.
 ///
 fn remove_small_gaps<Coord, Item>(center: &Coord, edges: &mut Vec<RayCollision<Coord, Item>>, long_edges: &mut Vec<LongEdge<Coord>>, min_gap_size: f64)
-where   Coord:      Coordinate+Coordinate2D {
+where
+    Coord: Coordinate+Coordinate2D,
+{
     // To avoid calculating a lot of square roots, square the min gap size
     let min_gap_sq          = min_gap_size * min_gap_size;
 
@@ -170,9 +176,11 @@ where   Coord:      Coordinate+Coordinate2D {
 /// optional by this call)
 ///
 pub fn trace_outline_concave<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Vec<RayCollision<Coord, Option<Item>>> 
-where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     // Modify the raycasting function to return concave items (so we can distinguish between edges we introduced and ones matched by the original raycasting algorithm)
     // TODO: this just ensures we return optional items
     let cast_ray                    = &cast_ray;
@@ -333,10 +341,12 @@ where   Coord:      Coordinate+Coordinate2D,
 /// generated between the gaps.
 ///
 pub fn flood_fill_concave<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Option<Vec<Path>>
-where   Path:       BezierPathFactory<Point=Coord>,
-        Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where  
+    Path:       BezierPathFactory<Point=Coord>,
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     // Trace where the ray casting algorithm indicates collisions with the specified center
     let collisions = trace_outline_concave(center, options, cast_ray);
 

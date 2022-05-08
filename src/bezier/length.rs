@@ -37,7 +37,8 @@ pub fn curve_length<Curve: BezierCurve>(curve: &Curve, max_error: f64) -> f64 {
 ///
 fn section_length<Curve>(section: CurveSection<'_, Curve>, max_error: f64) -> f64
 where
-Curve: BezierCurve {
+    Curve: BezierCurve,
+{
     // This algorithm is described in Graphics Gems V IV.7
 
     // The MIN_ERROR guards against cases where the length of a section fails to converge for some reason

@@ -692,7 +692,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 /// errors.
 ///
 fn remove_and_round_close_collisions<C: BezierCurve>(collisions: &mut SmallVec<[(f64, f64); 8]>, src: &C, tgt: &C)
-where C::Point: Coordinate+Coordinate2D {
+where
+    C::Point: Coordinate+Coordinate2D 
+{
     // Nothing to do if there are no collisions
     if collisions.is_empty() {
         return;

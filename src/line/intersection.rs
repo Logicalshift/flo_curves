@@ -13,7 +13,9 @@ const RAY_DIVISOR_SMALLEST_VALUE: f64 = 2e-12;
 /// in higher dimensions)
 /// 
 pub fn line_intersects_line<L: Line>(line1: &L, line2: &L) -> Option<L::Point> 
-where L::Point: Coordinate2D {
+where
+    L::Point: Coordinate2D,
+{
     let line1_points = line1.points();
     let line2_points = line2.points();
 
@@ -41,7 +43,9 @@ where L::Point: Coordinate2D {
 /// in higher dimensions)
 /// 
 pub fn line_intersects_ray<L: Line>(line: &L, ray: &L) -> Option<L::Point> 
-where L::Point: Coordinate2D {
+where
+    L::Point: Coordinate2D,
+{
     let line_points = line.points();
     let ray_points  = ray.points();
 
@@ -67,7 +71,9 @@ where L::Point: Coordinate2D {
 /// in higher dimensions)
 /// 
 pub fn ray_intersects_ray<L: Line>(line: &L, ray: &L) -> Option<L::Point> 
-where L::Point: Coordinate2D {
+where
+    L::Point: Coordinate2D,
+{
     let line_points = line.points();
     let ray_points  = ray.points();
 
@@ -92,7 +98,9 @@ where L::Point: Coordinate2D {
 /// Determines if a 2D line has intersected a bounding box (and returns the intersection if it exists)
 /// 
 pub fn line_clip_to_bounds<L: Line>(line: &L, bounds: &(L::Point, L::Point)) -> Option<L>
-where L::Point: Coordinate2D {
+where
+    L::Point: Coordinate2D,
+{
     // Fetch the points for the line
     let line_points             = line.points();
     let ((x1, y1), (x2, y2))    = (line_points.0.coords(), line_points.1.coords());

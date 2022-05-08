@@ -74,7 +74,9 @@ pub (crate) trait RayPath {
 /// Returns true if the control points of the two curves are 'close enough' to be considered overlapping
 ///
 fn control_points_overlap<Curve: BezierCurve>(curve1: &Curve, curve2: &Curve) -> bool
-where Curve::Point: Coordinate2D {
+where 
+    Curve::Point: Coordinate2D,
+{
     const SMALL_DISTANCE_SQ: f64    = SMALL_DISTANCE * SMALL_DISTANCE;
 
     // To be considered as overlapping, two curves must have control points in approximately the same position
@@ -190,7 +192,9 @@ pub (crate) fn edges_overlap<Path: RayPath>(path: &Path, edge_a: GraphEdgeRef, e
 ///
 #[inline]
 fn curve_is_collinear<Edge: BezierCurve>(edge: &Edge, (a, b, c): (f64, f64, f64)) -> bool
-where Edge::Point: Coordinate+Coordinate2D {
+where 
+    Edge::Point: Coordinate+Coordinate2D,
+{
     // Fetch the points of the curve
     let start_point = edge.start_point();
     let end_point   = edge.end_point();
@@ -218,7 +222,9 @@ enum RayCanIntersect {
 /// Given the coefficients of a ray, returns whether or not an edge can intersect it
 ///
 fn ray_can_intersect<Edge: BezierCurve>(edge: &Edge, (a, b, c): (f64, f64, f64)) -> RayCanIntersect
-where Edge::Point: Coordinate+Coordinate2D {
+where 
+    Edge::Point: Coordinate+Coordinate2D,
+{
     // Fetch the points of the curve
     let start_point = edge.start_point();
     let end_point   = edge.end_point();
@@ -308,8 +314,10 @@ fn crossing_edges<Path: RayPath>(path: &Path, (a, b, c): (f64, f64, f64), points
 ///
 #[inline(never)]
 fn crossing_and_collinear_collisions<Path: RayPath, L: Line>(path: &Path, ray: &L) -> (SmallVec<[(GraphEdgeRef, f64, f64, Path::Point); 32]>, SmallVec<[(GraphEdgeRef, f64, f64, Path::Point); 8]>)
-where   Path::Point:    Coordinate+Coordinate2D,
-        L:              Line<Point=Path::Point> {
+where
+    Path::Point:    Coordinate+Coordinate2D,
+    L:              Line<Point=Path::Point>,
+{
     let mut raw_collisions                                  = smallvec![];
 
     // If there are multiple collinear sections grouped together, these give them each a common identifier
@@ -391,8 +399,10 @@ where   Path::Point:    Coordinate+Coordinate2D,
 ///
 #[inline]
 fn remove_collisions_before_or_after_collinear_section<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
-where   Path::Point:    Coordinate+Coordinate2D,
-        L:              Line<Point=Path::Point> {
+where
+    Path::Point:    Coordinate+Coordinate2D,
+    L:              Line<Point=Path::Point>,
+{
     let ray_coeffs = ray.coefficients();
 
     collisions.into_iter()
@@ -433,8 +443,10 @@ where   Path::Point:    Coordinate+Coordinate2D,
 ///
 #[inline]
 fn move_collinear_collisions_to_end<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)> 
-where   Path::Point:    Coordinate+Coordinate2D,
-        L:              Line<Point=Path::Point> {
+where
+    Path::Point:    Coordinate+Coordinate2D,
+    L:              Line<Point=Path::Point>,
+{
     let ray_coeffs = ray.coefficients();
 
     collisions.into_iter()
@@ -538,7 +550,9 @@ fn edges_are_glancing<Path: RayPath>(path: &Path, ray: (f64, f64, f64), previous
 /// particular collision is a glancing collision or a crossing collision.
 ///
 fn filter_collisions_near_vertices<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
-where L: Line<Point=Path::Point> {
+where 
+    L: Line<Point=Path::Point>,
+{
     let (a, b, c)           = ray.coefficients();
     let mut visited_start   = None;
 
@@ -624,7 +638,9 @@ where L: Line<Point=Path::Point> {
 ///
 #[inline]
 fn remove_tangent_collisions<'a, Path: RayPath, L: Line, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, ray: &'a L, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>
-where L: Line<Point=Path::Point> {
+where 
+    L: Line<Point=Path::Point>,
+{
     let ray_vector  = (ray.point_at_pos(1.0) - ray.point_at_pos(0.0)).to_unit_vector();
 
     collisions.into_iter()
@@ -653,7 +669,9 @@ where L: Line<Point=Path::Point> {
 ///
 #[inline]
 fn flag_collisions_at_intersections<'a, Path: RayPath, Collisions: 'a+IntoIterator<Item=(GraphEdgeRef, f64, f64, Path::Point)>>(path: &'a Path, collisions: Collisions) -> impl 'a+Iterator<Item=(GraphRayCollision, f64, f64, Path::Point)>
-where   Path::Point: Coordinate+Coordinate2D {
+where
+    Path::Point: Coordinate+Coordinate2D,
+{
     collisions
         .into_iter()
         .map(move |(collision, curve_t, line_t, position)| {
@@ -679,8 +697,10 @@ where   Path::Point: Coordinate+Coordinate2D {
 /// The result is ordered by the position along the ray. For a closed path, there should always be an even number of collisions.
 /// 
 pub (crate) fn ray_collisions<Path: RayPath, L: Line>(path: &Path, ray: &L) -> Vec<(GraphRayCollision, f64, f64, Path::Point)>
-where   Path::Point:    Coordinate+Coordinate2D,
-        L:              Line<Point=Path::Point> {
+where
+    Path::Point:    Coordinate+Coordinate2D,
+    L:              Line<Point=Path::Point>,
+{
     let (p1, p2)        = ray.points();
     let ray_direction   = p2 - p1;
 

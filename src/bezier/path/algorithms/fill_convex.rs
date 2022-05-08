@@ -11,7 +11,9 @@ use std::ops::{Range};
 ///
 #[derive(Clone)]
 pub struct RayCollision<Coord, Item>
-where Coord: Coordinate+Coordinate2D {
+where
+    Coord: Coordinate+Coordinate2D,
+{
     /// Where this collision occurred
     pub position: Coord,
 
@@ -20,7 +22,9 @@ where Coord: Coordinate+Coordinate2D {
 }
 
 impl<Coord, Item> RayCollision<Coord, Item>
-where Coord: Coordinate+Coordinate2D {
+where
+    Coord: Coordinate+Coordinate2D,
+{
     ///
     /// Creates a new collision at a specific point
     ///
@@ -40,9 +44,11 @@ where Coord: Coordinate+Coordinate2D {
 /// intersection in the direction of the ray defined by the two coordinates.
 ///
 pub fn trace_outline_convex<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
-where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     trace_outline_convex_partial(center, options, (0.0)..(2.0*f64::consts::PI), cast_ray)
 }
 
@@ -50,8 +56,10 @@ where   Coord:      Coordinate+Coordinate2D,
 /// Finds the nearest collision and the square of its distance from the center from the results of a ray-casting operation
 ///
 fn find_nearest_collision<Coord, Item, RayList>(candidates: RayList, center: Coord, ray_vector: Coord) -> Option<(RayCollision<Coord, Item>, f64)>
-where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>> {
+where
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+{
     // Pick the first positive collision in the direction of the ray
     let mut nearest_collision           = None;
     let mut nearest_distance_squared    = f64::MAX;
@@ -78,9 +86,11 @@ where   Coord:      Coordinate+Coordinate2D,
 /// Performs a raycast from a center point at a particular angle
 ///
 fn perform_ray_cast<Coord, Item, RayList, RayFn>(center: Coord, theta: f64, cast_ray: RayFn) -> Option<(RayCollision<Coord, Item>, f64)>
-where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     // Work out the direction of the ray
     let ray_vector          = [1.0 * theta.sin(), 1.0 * theta.cos()];
     let ray_vector          = Coord::from_components(&ray_vector);
@@ -97,9 +107,11 @@ where   Coord:      Coordinate+Coordinate2D,
 /// Ray traces around a specified range of angles to find the shape of the outline. Angles are in radians
 ///
 pub (super) fn trace_outline_convex_partial<Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, angles: Range<f64>, cast_ray: RayFn) -> Vec<RayCollision<Coord, Item>>
-where   Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     // The minimum number of radians to move forward when a ray does not find a collision
     let min_step            = 0.02;
 
@@ -220,10 +232,12 @@ where   Coord:      Coordinate+Coordinate2D,
 /// generated between the gaps.
 ///
 pub fn flood_fill_convex<Path, Coord, Item, RayList, RayFn>(center: Coord, options: &FillSettings, cast_ray: RayFn) -> Option<Path>
-where   Path:       BezierPathFactory<Point=Coord>,
-        Coord:      Coordinate+Coordinate2D,
-        RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
-        RayFn:      Fn(Coord, Coord) -> RayList {
+where
+    Path:       BezierPathFactory<Point=Coord>,
+    Coord:      Coordinate+Coordinate2D,
+    RayList:    IntoIterator<Item=RayCollision<Coord, Item>>,
+    RayFn:      Fn(Coord, Coord) -> RayList,
+{
     // Trace where the ray casting algorithm indicates collisions with the specified center
     let collisions = trace_outline_convex(center, options, cast_ray);
 

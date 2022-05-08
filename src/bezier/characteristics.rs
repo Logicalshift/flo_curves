@@ -404,7 +404,9 @@ pub fn features_for_cubic_bezier<Point: Coordinate+Coordinate2D>(w1: &Point, w2:
 ///
 #[inline]
 pub fn characterize_curve<C: BezierCurve>(curve: &C) -> CurveCategory
-where C::Point: Coordinate+Coordinate2D {
+where 
+    C::Point: Coordinate+Coordinate2D,
+{
     let start_point = curve.start_point();
     let (cp1, cp2)  = curve.control_points();
     let end_point   = curve.end_point();
@@ -417,7 +419,9 @@ where C::Point: Coordinate+Coordinate2D {
 ///
 #[inline]
 pub fn features_for_curve<C: BezierCurve>(curve: &C, accuracy: f64) -> CurveFeatures
-where C::Point: Coordinate+Coordinate2D {
+where 
+    C::Point: Coordinate+Coordinate2D,
+{
     let start_point = curve.start_point();
     let (cp1, cp2)  = curve.control_points();
     let end_point   = curve.end_point();

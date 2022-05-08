@@ -21,7 +21,9 @@ pub trait Coordinate2DExt {
 }
 
 impl<T> CoordinateExt for T 
-where T: Coordinate {
+where 
+    T: Coordinate,
+{
     fn unit_vector() -> Self {
         let mut components  = vec![0.0; Self::len()];
         components[0]       = 1.0;
@@ -31,7 +33,9 @@ where T: Coordinate {
 }
 
 impl<T> Coordinate2DExt for T
-where T: Coordinate+Coordinate2D {
+where
+    T: Coordinate+Coordinate2D,
+{
     fn unit_vector_at_angle(radians: impl Into<f64>) -> Self {
         let radians = radians.into();
 
