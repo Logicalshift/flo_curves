@@ -154,7 +154,7 @@ impl LineCoefficients {
     }
 
     ///
-    /// Given am x coordinate, returns the corresponding y coordinate on the line
+    /// Given an x coordinate, returns the corresponding y coordinate on the line
     ///
     #[inline]
     pub fn y_for_x(&self, x: f64) -> f64 {
