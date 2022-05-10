@@ -70,8 +70,35 @@ fn nearest_point_on_curve_newton_raphson_1() {
     let iterate_t       = nearest_t_value_iteration(&curve, &point);
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    println!("{:?} {:?}", curve_near, iterate_point);
-    println!("{:?} {:?}", curve_near_t, iterate_t);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+}
+
+#[test]
+fn nearest_point_on_curve_newton_raphson_2() {
+    // Point nearest to the start of the curve
+    let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
+    let point = Coord2(-10.0, 100.0);
+
+    let curve_near_t    = nearest_point_on_curve_newton_raphson(&curve, &point);
+    let curve_near      = curve.point_at_pos(curve_near_t);
+
+    let iterate_t       = nearest_t_value_iteration(&curve, &point);
+    let iterate_point   = curve.point_at_pos(iterate_t);
+
+    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+}
+
+#[test]
+fn nearest_point_on_curve_newton_raphson_3() {
+    // Point nearest to the end of the curve 
+    let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
+    let point = Coord2(240.0, 220.0);
+
+    let curve_near_t    = nearest_point_on_curve_newton_raphson(&curve, &point);
+    let curve_near      = curve.point_at_pos(curve_near_t);
+
+    let iterate_t       = nearest_t_value_iteration(&curve, &point);
+    let iterate_point   = curve.point_at_pos(iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
 }
