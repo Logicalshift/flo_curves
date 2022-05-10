@@ -1,7 +1,112 @@
 use super::curve::*;
+use super::basis::*;
 use super::section::*;
+use super::characteristics::*;
 use crate::geo::*;
 use crate::line::*;
+
+///
+/// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
+///
+pub fn nearest_point_on_curve_newton_raphson<C>(curve: &C, point: &C::Point) -> f64
+where
+    C: BezierCurve + BezierCurve2D
+{
+    use CurveFeatures::*;
+
+    // Choose the initial test points based on the curve features
+    let test_positions = match curve.features(0.01) {
+        Point                           => vec![0.5],
+        Linear                          => vec![0.5],
+        Arch                            => vec![0.5],
+        Parabolic                       => vec![0.5],
+        Cusp                            => vec![0.5],
+        SingleInflectionPoint(t)        => vec![t/2.0, (1.0-t)/2.0 + t],
+        DoubleInflectionPoint(t1, t2)   => vec![t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2],
+        Loop(t1, t2)                    => vec![t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2],
+    };
+
+    // Find the test point nearest to the point we're trying to get the nearest point for
+    let mut estimated_t     = 0.5;
+    let mut min_distance    = f64::MAX;
+
+    for t in test_positions {
+        let curve_pos   = curve.point_at_pos(t);
+        let offset      = *point - curve_pos;
+        let distance_sq = offset.dot(&offset);
+
+        if distance_sq < min_distance {
+            estimated_t = t;
+            min_distance = distance_sq;
+        }
+    }
+
+    // Optimise the guess
+    nearest_point_on_curve_newton_raphson_with_estimate(curve, point, estimated_t)    
+}
+
+///
+/// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
+///
+pub fn nearest_point_on_curve_newton_raphson_with_estimate<C>(curve: &C, point: &C::Point, estimated_t: f64) -> f64
+where
+    C: BezierCurve
+{
+    // This uses the fact that the nearest point must be perpendicular to the curve, so it optimises for the point where
+    // the tangent to the curve is at 90 degrees to the vector to the point
+    const EPSILON: f64 = 1e-8;
+
+    // Get the control vertices for the curves
+    let q1          = curve.start_point();
+    let q4          = curve.end_point();
+    let (q2, q3)    = curve.control_points();
+    
+    // Generate control vertices for the derivatives
+    let qn1         = (q2-q1)*3.0;
+    let qn2         = (q3-q2)*3.0;
+    let qn3         = (q4-q3)*3.0;
+
+    let qnn1        = (qn2-qn1)*2.0;
+    let qnn2        = (qn3-qn2)*2.0;
+
+    let mut estimated_t = estimated_t;
+
+    // Attempt to optimise the solution with up to 12 rounds of newton-raphson
+    for _ in 0..12 {
+        // Determine the quality of the guess
+        if estimated_t < -0.01 { return 0.0; }
+        if estimated_t > 1.01 { return 1.0; }
+
+        // Compute Q(t) (where Q is our curve)
+        let qt          = de_casteljau4(estimated_t, q1, q2, q3, q4);
+
+        // Compute Q'(t) and Q''(t)
+        let qnt         = de_casteljau3(estimated_t, qn1, qn2, qn3);
+        let qnnt        = de_casteljau2(estimated_t, qnn1, qnn2);
+
+        // Compute f(u)/f'(u)
+        let numerator   = (qt-*point).dot(&qnt);
+        let denominator = qnt.dot(&qnt) + (qt-*point).dot(&qnnt);
+
+        // The numerator will converge to 0 as the guess improves
+        if numerator.abs() < EPSILON { 
+            return estimated_t;
+        }
+
+        // u = u - f(u)/f'(u)
+        let next_t = if denominator == 0.0 {
+            // Found a singularity
+            return estimated_t;
+        } else {
+            estimated_t - (numerator/denominator)
+        };
+
+        // Update the guess for the next iteration
+        estimated_t = next_t;
+    }
+
+    estimated_t
+}
 
 ///
 /// Computes the t position of the nearest point on a curve using a subdivision algorithm
