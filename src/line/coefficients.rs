@@ -133,12 +133,12 @@ impl LineCoefficients {
         let y                           = p.y();
         let LineCoefficients(a, b, c)   = self;
 
-        // Perpendicular line has form bx + ay + c2
-        let c2      = -b*x - a*y;
+        // Perpendicular line has form bx - ay + c2
+        let c2      = -b*x + a*y;
 
         // Solve where the two lines meet (this is the nearest point)
-        let near_x  = (-a*c + b*c2) / (a*a - b*b);
-        let near_y  = (-a*c2 + b*c) / (a*a - b*b);
+        let near_x  = (-a*c - b*c2) / (a*a + b*b);
+        let near_y  = (a*c2 - b*c) / (a*a + b*b);
 
         Point::from_components(&[near_x, near_y])
     }

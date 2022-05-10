@@ -39,7 +39,7 @@ fn nearest_point_on_straight_line_newton_raphson() {
     println!("{:?} {:?}", curve_near_t, iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
-    // assert!(line_near.distance_to(&curve_near) < 0.1); // -- TODO: this looks like a bug with the line algorithm
+    assert!(line_near.distance_to(&curve_near) < 0.1);
 }
 
 #[test]
