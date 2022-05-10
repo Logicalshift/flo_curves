@@ -77,6 +77,11 @@ pub trait BezierCurve: Geo+Clone+Sized {
     /// Given a point that is on or very close to the curve, returns the t value where the point can be found
     /// (or None if the point is not very close to the curve)
     ///
+    /// To find the nearest points on the curve where the point is far away, consider using `nearest_t()`, and 
+    /// `nearest_point_on_curve_newton_raphson()` instead. For interactive applications, ray casting with
+    /// `curve_intersects_ray()` might be better used to find which area of a curve a user might be trying
+    /// to indicate.
+    ///
     #[inline]
     fn t_for_point(&self, point: &Self::Point) -> Option<f64> {
         solve_curve_for_t(self, point)
@@ -237,10 +242,20 @@ pub trait BezierCurve2D: BezierCurve {
     ///
     /// Returns the t value of the nearest point on the curve to the specified point
     ///
-    fn nearest_pos(&self, point: &Self::Point) -> f64;
+    /// Note that in interactive applications the true 'closest' point may not be the most useful for the user trying to indicate
+    /// a point on the curve. This is because on the inside of convex regions of the curve, a moving point far enough away will
+    /// jump between the end points of the convex region. Consider using ray-casting instead via `curve_intersects_ray()` instead
+    /// to find points that the user might be indicating instead.
+    ///
+    fn nearest_t(&self, point: &Self::Point) -> f64;
 
     ///
     /// Returns the the nearest point on the curve to the specified point
+    ///
+    /// Note that in interactive applications the true 'closest' point may not be the most useful for the user trying to indicate
+    /// a point on the curve. This is because on the inside of convex regions of the curve, a moving point far enough away will
+    /// jump between the end points of the convex region. Consider using ray-casting instead via `curve_intersects_ray()` instead
+    /// to find points that the user might be indicating instead.
     ///
     fn nearest_point(&self, point: &Self::Point) -> Self::Point;
 }
@@ -268,7 +283,7 @@ where
     }
 
     #[inline]
-    fn nearest_pos(&self, point: &Self::Point) -> f64 {
+    fn nearest_t(&self, point: &Self::Point) -> f64 {
         nearest_point_on_curve_newton_raphson(self, point)
     }
 
