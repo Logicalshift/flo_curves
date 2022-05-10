@@ -5,6 +5,8 @@ use super::characteristics::*;
 use crate::geo::*;
 use crate::line::*;
 
+use smallvec::*;
+
 ///
 /// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
 ///
@@ -15,15 +17,15 @@ where
     use CurveFeatures::*;
 
     // Choose the initial test points based on the curve features
-    let test_positions = match curve.features(0.01) {
-        Point                           => vec![0.5],
-        Linear                          => vec![0.5],
-        Arch                            => vec![0.5],
-        Parabolic                       => vec![0.5],
-        Cusp                            => vec![0.5],
-        SingleInflectionPoint(t)        => vec![t/2.0, (1.0-t)/2.0 + t],
-        DoubleInflectionPoint(t1, t2)   => vec![t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2],
-        Loop(t1, t2)                    => vec![t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2],
+    let test_positions: SmallVec<[f64; 5]> = match curve.features(0.01) {
+        Point                           => smallvec![0.0, 0.5, 1.0],
+        Linear                          => smallvec![0.0, 0.5, 1.0],
+        Arch                            => smallvec![0.0, 0.5, 1.0],
+        Parabolic                       => smallvec![0.0, 0.5, 1.0],
+        Cusp                            => smallvec![0.0, 0.5, 1.0],
+        SingleInflectionPoint(t)        => smallvec![0.0, t/2.0, (1.0-t)/2.0 + t, 1.0],
+        DoubleInflectionPoint(t1, t2)   => smallvec![0.0, t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2, 1.0],
+        Loop(t1, t2)                    => smallvec![0.0, t1/2.0, (t2-t1)/2.0 + t1, (1.0-t2)/2.0 + t2, 1.0],
     };
 
     // Find the test point nearest to the point we're trying to get the nearest point for
