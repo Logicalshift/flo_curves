@@ -6,6 +6,7 @@ use super::search::*;
 use super::bounds::*;
 use super::section::*;
 use super::subdivide::*;
+use super::nearest_point::*;
 use super::characteristics::*;
 
 use crate::geo::*;
@@ -232,6 +233,16 @@ pub trait BezierCurve2D: BezierCurve {
     /// Finds the features of this curve (the characteristics and where they occur on the curve)
     ///
     fn features(&self, accuracy: f64) -> CurveFeatures;
+
+    ///
+    /// Returns the t value of the nearest point on the curve to the specified point
+    ///
+    fn nearest_pos(&self, point: &Self::Point) -> f64;
+
+    ///
+    /// Returns the the nearest point on the curve to the specified point
+    ///
+    fn nearest_point(&self, point: &Self::Point) -> Self::Point;
 }
 
 impl<T: BezierCurve> BezierCurve2D for T
@@ -254,5 +265,15 @@ where
         let (cp1, cp2)  = self.control_points();
 
         features_for_cubic_bezier(&start_point, &cp1, &cp2, &end_point, accuracy)
+    }
+
+    #[inline]
+    fn nearest_pos(&self, point: &Self::Point) -> f64 {
+        nearest_point_on_curve_newton_raphson(self, point)
+    }
+
+    #[inline]
+    fn nearest_point(&self, point: &Self::Point) -> Self::Point {
+        self.point_at_pos(nearest_point_on_curve_newton_raphson(self, point))
     }
 }
