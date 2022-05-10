@@ -1,9 +1,7 @@
 use super::curve::*;
 use super::basis::*;
-use super::section::*;
 use super::characteristics::*;
 use crate::geo::*;
-use crate::line::*;
 
 use smallvec::*;
 
