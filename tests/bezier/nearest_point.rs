@@ -23,13 +23,13 @@ where
 }
 
 #[test]
-fn nearest_point_on_straight_line_subdivision() {
+fn nearest_point_on_straight_line_newton_raphson() {
     // Create a curve from a line
     let line            = (Coord2(0.0, 0.0), Coord2(10.0, 7.0));
     let curve           = line_to_bezier::<_, bezier::Curve<_>>(&line);
 
     let line_near       = line.nearest_point(&Coord2(1.0, 5.0));
-    let curve_near_t    = nearest_point_on_curve_subdivision(&curve, &Coord2(1.0, 5.0), 0.001);
+    let curve_near_t    = nearest_point_on_curve_newton_raphson(&curve, &Coord2(1.0, 5.0));
     let curve_near      = curve.point_at_pos(curve_near_t);
 
     let iterate_t       = nearest_t_value_iteration(&curve, &Coord2(1.0, 5.0));
@@ -40,23 +40,6 @@ fn nearest_point_on_straight_line_subdivision() {
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
     // assert!(line_near.distance_to(&curve_near) < 0.1); // -- TODO: this looks like a bug with the line algorithm
-}
-
-#[test]
-fn nearest_point_on_curve_subdivision_1() {
-    let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
-    let point = Coord2(100.0, 130.0);
-
-    let curve_near_t    = nearest_point_on_curve_subdivision(&curve, &point, 0.001);
-    let curve_near      = curve.point_at_pos(curve_near_t);
-
-    let iterate_t       = nearest_t_value_iteration(&curve, &point);
-    let iterate_point   = curve.point_at_pos(iterate_t);
-
-    println!("{:?} {:?}", curve_near, iterate_point);
-    println!("{:?} {:?}", curve_near_t, iterate_t);
-
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
 }
 
 #[test]
