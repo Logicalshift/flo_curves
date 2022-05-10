@@ -258,6 +258,11 @@ pub trait BezierCurve2D: BezierCurve {
     /// to find points that the user might be indicating instead.
     ///
     fn nearest_point(&self, point: &Self::Point) -> Self::Point;
+
+    ///
+    /// Computes the distance from a point to the closest point on this curve
+    ///
+    fn distance_to(&self, point: &Self::Point) -> f64;
 }
 
 impl<T: BezierCurve> BezierCurve2D for T
@@ -290,5 +295,10 @@ where
     #[inline]
     fn nearest_point(&self, point: &Self::Point) -> Self::Point {
         self.point_at_pos(nearest_point_on_curve_newton_raphson(self, point))
+    }
+
+    #[inline]
+    fn distance_to(&self, point: &Self::Point) -> f64 {
+        self.nearest_point(point).distance_to(point)
     }
 }
