@@ -74,5 +74,4 @@ fn nearest_point_on_curve_newton_raphson_1() {
     println!("{:?} {:?}", curve_near_t, iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
-    assert!(false);
 }
