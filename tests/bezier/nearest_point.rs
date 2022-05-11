@@ -22,6 +22,59 @@ where
     min_t
 }
 
+fn test_far_away_points<C>(curve: &C)
+where
+    C: BezierCurve<Point=Coord2>,
+{
+    // Generate the derivative coordinates
+    let start       = curve.start_point();
+    let end         = curve.end_point();
+    let (cp1, cp2)  = curve.control_points();
+    
+    // Generate control vertices
+    let qn1         = (cp1-start)*3.0;
+    let qn2         = (cp2-cp1)*3.0;
+    let qn3         = (end-cp2)*3.0;
+
+    // Construct a test line to compute closest points along
+    let baseline        = (curve.start_point(), curve.end_point());
+    let offset          = Coord2(100.0, 0.0);
+    let test_line       = (baseline.0 + offset, baseline.1 + offset);
+
+    // Check that the iterative algorithm finds similar points to all of the points on the test line
+    for t in 0..=100 {
+        let t               = (t as f64) / 100.0;
+        let test_point      = test_line.point_at_pos(t);
+        let nearest         = curve.nearest_point(&test_point);
+        let iter_nearest    = curve.point_at_pos(nearest_t_value_iteration(curve, &test_point));
+
+        let nearest_t       = curve.nearest_t(&test_point);
+        let tangent         = de_casteljau3(nearest_t, qn1, qn2, qn3);
+
+        // Log some information if there's a discrepency between the nearest point found by iteration and the nearest point found by the 'nearest point' algorithm
+        if iter_nearest.distance_to(&nearest) >= 0.1 {
+            // Log the t position and the distance between the curve, plus the distance between the point we found and the curve
+            println!("t={:?} distance={:?} ({:?} {:?}) to_curve={:?} to_curve_iter={:?}", t, iter_nearest.distance_to(&nearest), nearest, iter_nearest, test_point.distance_to(&nearest), test_point.distance_to(&iter_nearest));
+            println!("  t={:?} distance={:?} ({:?} {:?})", t-0.01, iter_nearest.distance_to(&curve.nearest_point(&test_line.point_at_pos(t-0.01))), curve.nearest_point(&test_line.point_at_pos(t-0.01)), iter_nearest);
+            println!("  t={:?} distance={:?} ({:?} {:?})", t+0.01, iter_nearest.distance_to(&curve.nearest_point(&test_line.point_at_pos(t+0.01))), curve.nearest_point(&test_line.point_at_pos(t+0.01)), iter_nearest);
+
+            let tangent = tangent.to_unit_vector();
+            let offset  = (test_point - nearest).to_unit_vector();
+            println!("  tangent={:?} tangent_dot_offset={:?}", tangent, tangent.dot(&offset));
+
+            // With the exceptions of cusps, we should have found a point perpendicular to the curve
+            assert!(tangent.dot(&offset).abs() < 0.001 || nearest_t <= 0.0 || nearest_t >= 1.0);
+
+            // The nearest point is prone to sudden discontinuities: if the iterative value and the the 'nearest' point value are of similar distances from the curve, it's likely that the problem is the iterative algorithm missed a discontinuity
+            let nearest_distance    = nearest.distance_to(&test_point);
+            let iter_distance       = iter_nearest.distance_to(&test_point);
+
+            // Find any point as good as or better than the iteration algorithm is a pass
+            assert!(nearest_distance < iter_distance+0.01);
+        }
+    }
+}
+
 #[test]
 fn nearest_point_on_straight_line_newton_raphson() {
     // Create a curve from a line
@@ -34,9 +87,6 @@ fn nearest_point_on_straight_line_newton_raphson() {
 
     let iterate_t       = nearest_t_value_iteration(&curve, &Coord2(1.0, 5.0));
     let iterate_point   = curve.point_at_pos(iterate_t);
-
-    println!("{:?} {:?} {:?}", line_near, curve_near, iterate_point);
-    println!("{:?} {:?}", curve_near_t, iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
     assert!(line_near.distance_to(&curve_near) < 0.1);
@@ -84,4 +134,11 @@ fn nearest_point_on_curve_newton_raphson_3() {
     let iterate_point   = curve.point_at_pos(iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
+}
+
+#[test]
+fn nearest_point_on_curve_newton_raphson_4() {
+    let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
+
+    test_far_away_points(&curve);
 }
