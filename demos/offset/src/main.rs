@@ -72,7 +72,7 @@ fn main() {
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
                 gc.stroke();
 
-                for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2, &offset_curve_3].into_iter() {
+                for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2].into_iter() {
                     gc.line_width(1.0);
                     gc.stroke_color(Color::Rgba(0.6, 0.0, 0.0, 0.25));
                     for c in curve.iter().nth(0) {
