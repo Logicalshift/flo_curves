@@ -15,14 +15,21 @@ fn main() {
         loop {
             thread::sleep(Duration::from_nanos(1_000_000_000 / 60));
 
-            counter             = (counter + 1) % 400;
+            counter             = counter + 1;
 
             let pos             = (counter as f64)/400.0 * 2.0*f64::consts::PI;
             let pos             = (pos.sin() + 1.0) * 200.0;
             let off1            = 200.0 - pos/2.0;
             let off2            = pos/2.0;
 
-            let initial_curve   = bezier::Curve::from_points(Coord2(100.0, 100.0), (Coord2(200.0, 800.0), Coord2(1000.5, 1000.0)), Coord2(900.0, 700.0));
+            // Borrowing the animation from https://www.shadertoy.com/view/4sKyzW because it's interesting (and because I'm interested in using distance fields to make an improved offset algorithm)
+            let t  = (counter as f64) / 40.0; 
+            let p0 = Coord2(-(t*1.0/2.0).cos() * 400.0, (t*1.0/3.0).sin() * 500.0) + Coord2(500.0, 500.0);
+            let p1 = Coord2(-(t*2.0/3.0).cos() * 400.0, (t*1.0/4.0).sin() * 200.0) + Coord2(500.0, 500.0);
+            let p2 = Coord2((t*1.0/4.0).cos() * 200.0, -(t*2.0/3.0).sin() * 400.0) + Coord2(500.0, 500.0);
+            let p3 = Coord2((t*1.0/3.0).cos() * 500.0, -(t*1.0/2.0).sin() * 200.0) + Coord2(500.0, 500.0);
+
+            let initial_curve   = bezier::Curve::from_points(p0, (p1, p2), p3);
             let offset_curve_1  = bezier::offset(&initial_curve, off1, off2);
             let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, 40, 1.0).unwrap();
             let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
@@ -62,7 +69,7 @@ fn main() {
                 for c in offset_curve_3.iter() {
                     gc.bezier_curve(c);
                 }
-                gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
+                gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
                 gc.stroke();
 
                 for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2, &offset_curve_3].into_iter() {
