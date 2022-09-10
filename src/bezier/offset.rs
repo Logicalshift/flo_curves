@@ -1,6 +1,6 @@
 use super::curve::*;
 use super::normal::*;
-use super::offset_scaling::*;
+use super::offset_lms::*;
 use super::super::geo::*;
 
 ///
@@ -11,5 +11,6 @@ where
     Curve:          BezierCurveFactory+NormalCurve,
     Curve::Point:   Normalize+Coordinate2D,
 {
-    offset_scaling(curve, initial_offset, final_offset)
+    offset_lms_sampling(curve, move |t| (final_offset - initial_offset) * t + initial_offset, |_| 0.0, 32, 0.1)
+        .unwrap_or_else(|| vec![])
 }
