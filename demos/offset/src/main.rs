@@ -1,5 +1,6 @@
 use flo_curves::*;
 use flo_curves::bezier;
+use flo_curves::bezier::{NormalCurve};
 use flo_draw::*;
 use flo_draw::canvas::*;
 
@@ -64,6 +65,7 @@ fn main() {
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
                 gc.stroke();
 
+                /*
                 gc.new_path();
                 gc.move_to(offset_curve_3[0].start_point().x() as _, offset_curve_3[0].start_point().y() as _);
                 for c in offset_curve_3.iter() {
@@ -71,6 +73,23 @@ fn main() {
                 }
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
                 gc.stroke();
+                */
+
+                gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
+
+                for circle_t in 0..=20 {
+                    let circle_t        = (circle_t as f64) / 20.0;
+                    let center          = initial_curve.point_at_pos(circle_t);
+                    let normal          = initial_curve.normal_at_pos(circle_t).to_unit_vector();
+                    let radius          = (off2-off1)*circle_t+off1;
+                    let normal_offset   = center + (normal * radius);
+
+                    gc.new_path();
+                    gc.circle(center.x() as _, center.y() as _, radius as _);
+                    gc.move_to(center.x() as _, center.y() as _);
+                    gc.line_to(normal_offset.x() as _, normal_offset.y() as _);
+                    gc.stroke();
+                }
 
                 for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2].into_iter() {
                     gc.line_width(1.0);
