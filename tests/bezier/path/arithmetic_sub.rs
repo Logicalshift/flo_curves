@@ -330,3 +330,44 @@ fn subtract_triangle_from_partial_circle() {
     // This should entirely subtract the triangle from the remaining path
     assert!(subtracted_path.len() == 1);
 }
+
+fn path_permutation(path: Vec<Coord2>, start_offset: usize, forward: bool) -> SimpleBezierPath {
+    let mut result = BezierPathBuilder::start(path[start_offset]);
+
+    for idx in 1..path.len() {
+        let pos = if forward {
+            (start_offset + idx) % path.len()
+        } else {
+            let idx = (path.len()) - idx;
+            (start_offset + idx) % path.len()
+        };
+
+        result = result.line_to(path[pos]);
+   }
+
+    result.build()
+}
+
+#[test]
+fn subtract_permutations() {
+    let path1   = vec![Coord2(64.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)];
+    let path2   = vec![Coord2(206.0, 391.0), Coord2(206.0, 63.0), Coord2(281.0, 66.0), Coord2(281.0, 320.0), Coord2(649.0, 320.0), Coord2(649.0, 63.0), Coord2(734.0, 63.0), Coord2(734.0, 391.0)];
+
+    for forward_1 in [true, false] {
+        for forward_2 in [true, false] {
+            for pos1 in 0..path1.len() {
+                let path1 = path_permutation(path1.clone(), pos1, forward_1);
+
+                for pos2 in 0..path2.len() {
+                    let path2 = path_permutation(path2.clone(), pos2, forward_2);
+
+                    println!();
+                    println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
+                    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+                    println!("  Num paths in result: {}", sub_path.len());
+                    assert!(sub_path.len() == 3);
+                }
+            }
+        }
+    }
+}
