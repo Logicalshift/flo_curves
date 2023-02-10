@@ -349,8 +349,34 @@ fn path_permutation(path: Vec<Coord2>, start_offset: usize, forward: bool) -> Si
 }
 
 #[test]
-fn subtract_permutations() {
+fn subtract_permutations_1() {
+    // Produces a path that has alternating 'forward' and 'backward' edges, which seems to produce no output path
     let path1   = vec![Coord2(64.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)];
+    let path2   = vec![Coord2(206.0, 391.0), Coord2(206.0, 63.0), Coord2(281.0, 66.0), Coord2(281.0, 320.0), Coord2(649.0, 320.0), Coord2(649.0, 63.0), Coord2(734.0, 63.0), Coord2(734.0, 391.0)];
+
+    for forward_1 in [true, false] {
+        for forward_2 in [true, false] {
+            for pos1 in 0..path1.len() {
+                let path1 = path_permutation(path1.clone(), pos1, forward_1);
+
+                for pos2 in 0..path2.len() {
+                    let path2 = path_permutation(path2.clone(), pos2, forward_2);
+
+                    println!();
+                    println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
+                    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+                    println!("  Num paths in result: {}", sub_path.len());
+                    assert!(sub_path.len() == 3);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn subtract_permutations_2() {
+    // As for above but with an extra point in the first path
+    let path1   = vec![Coord2(64.0, 263.0), Coord2(400.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)];
     let path2   = vec![Coord2(206.0, 391.0), Coord2(206.0, 63.0), Coord2(281.0, 66.0), Coord2(281.0, 320.0), Coord2(649.0, 320.0), Coord2(649.0, 63.0), Coord2(734.0, 63.0), Coord2(734.0, 391.0)];
 
     for forward_1 in [true, false] {
