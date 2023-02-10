@@ -427,14 +427,13 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let previous_edge_ref   = self.points[edge_ref.start_idx].connected_from
             .iter()
             .flat_map(|point_idx| { let point_idx = *point_idx; self.points[point_idx].forward_edges.iter().enumerate().map(move |(edge_idx, edge)| (point_idx, edge_idx, edge)) })
-            .filter_map(|(point_idx, edge_idx, edge)| {
+            .find_map(|(point_idx, edge_idx, edge)| {
                 if edge.end_idx == edge_ref.start_idx && edge.following_edge_idx == edge_ref.edge_idx {
                     Some(GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false })
                 } else {
                     None
                 }
-            })
-            .next();
+            });
 
         test_assert!(previous_edge_ref.is_some());
 
