@@ -527,8 +527,7 @@ fn remove_interior_points_3() {
     graph_path.set_exterior_by_removing_interior_points();
 
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
-    assert!(paths.len() != 0);
-    assert!(paths.len() == 3);
+    println!("{:?}", paths.len());
 
     // Must always be a following edge that's an exterior one
     for edge in graph_path.all_edges() {
@@ -538,6 +537,9 @@ fn remove_interior_points_3() {
             assert!(graph_path.edge_refs_for_point(end_point_idx).any(|edge| graph_path.edge_kind(edge) == GraphPathEdgeKind::Exterior));
         }
     }
+
+    assert!(paths.len() != 0);
+    assert!(paths.len() == 3);
 }
 
 #[test]
