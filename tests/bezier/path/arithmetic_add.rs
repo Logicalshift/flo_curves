@@ -341,15 +341,7 @@ fn remove_interior_for_ring_removes_center() {
 
     assert!(removed.len() == 1);
 
-    // TODO: need to compare all points, not just the end point
-    assert!(path_has_end_points_in_order(removed[0].clone(), ring1.1.iter().map(|(_, _, p)| p).cloned().collect(), 0.01));
-    /*
-    for idx in 0..removed[0].1.len() {
-        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
-        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
-        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
-    }
-    */
+    assert!(path_has_points_in_order(removed[0].clone(), ring1.1.iter().cloned().collect(), 0.01));
 }
 
 #[test]
