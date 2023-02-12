@@ -122,6 +122,8 @@ fn repeatedly_full_intersect_circle() {
     let mut slices      = vec![];
 
     for slice_idx in 0..16 {
+        println!("SLICE {}", slice_idx);
+
         // Angle in radians of this slice
         let middle_angle            = f64::consts::PI*2.0 / 16.0 * (slice_idx as f64);
         let start_angle             = middle_angle - (f64::consts::PI*2.0 / 32.0);
