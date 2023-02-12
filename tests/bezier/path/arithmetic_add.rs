@@ -432,11 +432,7 @@ fn remove_interior_for_ring_with_cross_removes_center() {
     // Check the removed result
     assert!(removed.len() == 1);
 
-    for idx in 0..removed[0].1.len() {
-        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
-        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
-        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
-    }
+    assert!(path_has_points_in_order(removed[0].clone(), ring1.1.iter().cloned().collect(), 0.01));
 }
 
 #[test]
@@ -448,17 +444,9 @@ fn remove_overlapped_for_ring_does_not_remove_center() {
 
     assert!(removed.len() == 2);
 
-    for idx in 0..removed[0].1.len() {
-        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
-        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
-        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
-    }
+    assert!(path_has_points_in_order(removed[0].clone(), ring1.1.iter().cloned().collect(), 0.01));
 
-    for idx in 0..removed[1].1.len() {
-        assert!(removed[1].1[idx].0.distance_to(&ring2.1[idx].0) < 0.01);
-        assert!(removed[1].1[idx].1.distance_to(&ring2.1[idx].1) < 0.01);
-        assert!(removed[1].1[idx].2.distance_to(&ring2.1[idx].2) < 0.01);
-    }
+    assert!(path_has_points_in_order(removed[1].clone(), ring2.1.iter().cloned().collect(), 0.01));
 }
 
 #[test]
