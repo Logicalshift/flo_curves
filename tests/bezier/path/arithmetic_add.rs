@@ -325,11 +325,7 @@ fn remove_interior_from_circle_removes_nothing() {
     assert!(removed.len() == 1);
     assert!(removed[0].1.len() == circle.1.len());
 
-    for idx in 0..removed[0].1.len() {
-        assert!(removed[0].1[idx].0.distance_to(&circle.1[idx].0) < 0.01);
-        assert!(removed[0].1[idx].1.distance_to(&circle.1[idx].1) < 0.01);
-        assert!(removed[0].1[idx].2.distance_to(&circle.1[idx].2) < 0.01);
-    }
+    assert!(path_has_points_in_order(removed[0].clone(), circle.1.iter().cloned().collect(), 0.01));
 }
 
 #[test]
@@ -359,11 +355,7 @@ fn remove_interior_for_ring_with_crossbar_removes_center() {
 
     assert!(removed.len() == 1);
 
-    for idx in 0..removed[0].1.len() {
-        assert!(removed[0].1[idx].0.distance_to(&ring1.1[idx].0) < 0.01);
-        assert!(removed[0].1[idx].1.distance_to(&ring1.1[idx].1) < 0.01);
-        assert!(removed[0].1[idx].2.distance_to(&ring1.1[idx].2) < 0.01);
-    }
+    assert!(path_has_points_in_order(removed[0].clone(), ring1.1.iter().cloned().collect(), 0.01));
 }
 
 #[test]
