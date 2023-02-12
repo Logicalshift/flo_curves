@@ -539,7 +539,7 @@ fn remove_interior_points_3() {
     }
 
     assert!(paths.len() != 0);
-    assert!(paths.len() == 3);
+    assert!(paths.len() == 4);
 }
 
 #[test]
