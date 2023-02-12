@@ -451,6 +451,12 @@ fn subtract_permutations_1() {
                     let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
                     println!("  Num paths in result: {}", sub_path.len());
                     assert!(sub_path.len() == 3);
+
+                    for path in sub_path.iter() {
+                        let path_len = path.points().count();
+                        println!("   Path len: {}", path_len);
+                        assert!(path_len == 4);
+                    }
                 }
             }
         }
