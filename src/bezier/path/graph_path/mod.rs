@@ -882,7 +882,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// back to the edge's start point
     ///
     #[inline]
-    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize) -> Option<Vec<GraphEdgeRef>> {
+    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize) -> Option<Vec<(usize, GraphEdgeRef)>> {
         // The algorithm here is a slight modification of Dijkstra's algorithm, we start knowing the path has to contain a particular edge
         let mut previous_point          = vec![None; connections.len()];
 
@@ -946,7 +946,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let (previous_idx, previous_edge) = previous_point[pos].unwrap();
 
             // Add to the loop, using the 'forward' variant of the edge
-            loop_points.push(previous_edge);
+            loop_points.push((pos, previous_edge));
 
             // Update to the earlier point
             pos = previous_idx;
@@ -964,7 +964,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Given a set of connected edges (can be connected in any direction), generates a suitable path
     ///
     #[inline]
-    fn generate_path<POut>(&self, edges: Vec<GraphEdgeRef>) -> POut
+    fn generate_path<POut>(&self, edges: Vec<(usize, GraphEdgeRef)>) -> POut
     where
         POut: BezierPathFactory<Point=Point>,
     {
@@ -979,10 +979,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let next_idx = if next_idx >= num_edges { 0 } else { next_idx };
 
             // We need the edge and the following edge (we want to represent the edge in the path as the edge that connects edge.start_idx to next_edge.start_idx)
-            let edge        = &edges[idx];
-            let next_edge   = &edges[next_idx];
+            let (_point_idx, edge)           = &edges[idx];
+            let (next_point_idx, _next_edge) = &edges[next_idx];
 
-            if self.points[edge.start_idx].forward_edges[edge.edge_idx].end_idx == next_edge.start_idx {
+            if self.points[edge.start_idx].forward_edges[edge.edge_idx].end_idx == *next_point_idx {
                 // Edge is a forward edge
                 let forward_edge    = &self.points[edge.start_idx].forward_edges[edge.edge_idx];
 
@@ -992,9 +992,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
                 path_points.push((cp1, cp2, end_point));
             } else {
-                // Edge is a backwards edge
-                let backwards_edge  = &self.points[next_edge.start_idx].forward_edges[next_edge.edge_idx];
-                debug_assert!(backwards_edge.end_idx == edge.start_idx);
+                // Edge is a backwards edge (from edge.start_idx to next_edge.start_idx)
+                let backwards_edge  = &self.points[edge.start_idx].forward_edges[edge.edge_idx];
+                debug_assert!(backwards_edge.end_idx == *_point_idx);
 
                 let end_point       = self.points[edge.start_idx].position;
                 let cp1             = backwards_edge.cp2;
@@ -1040,7 +1040,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 // Try to find a loop from this edge
                 if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx) {
                     // Mark all the loop edges as visited
-                    for edge in loop_edges.iter() {
+                    for (_, edge) in loop_edges.iter() {
                         included_edges[edge.start_idx] |= 1<<edge.edge_idx;
                     }
 
