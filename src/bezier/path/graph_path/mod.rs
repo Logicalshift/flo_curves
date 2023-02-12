@@ -710,16 +710,6 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
-    /// Returns true if the specified point has a single exterior edge attached to it
-    ///
-    fn has_single_exterior_edge(&self, point_idx: usize) -> bool {
-        self.edges_for_point(point_idx)
-            .chain(self.reverse_edges_for_point(point_idx))
-            .filter(|edge| edge.kind() == GraphPathEdgeKind::Exterior)
-            .count() == 1
-    }
-
-    ///
     /// Returns true if the specified edge has a gap (end point has no following exterior edge)
     ///
     fn edge_has_gap(&self, edge: GraphEdgeRef) -> bool {
