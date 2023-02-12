@@ -7,6 +7,7 @@ use smallvec::*;
 
 use std::fmt;
 use std::cell::*;
+use std::collections::{VecDeque};
 
 mod edge;
 mod edge_ref;
@@ -890,14 +891,15 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         previous_point[next_point_idx]  = Some((start_point_idx, edge_ref));
 
         // We keep a stack of points to visit next
-        let mut points_to_check: SmallVec<[_; 16]> = smallvec![(next_point_idx, edge_ref)];
+        let mut points_to_check = VecDeque::new();
+        points_to_check.push_front((next_point_idx, edge_ref));
 
         // Flags indicating which edges are visited for each point (allows up to 32 edges per point, will malfunction beyond that point)
         let mut visited_edges            = vec![0u32; self.num_points()];
 
         // Visit connected points until we find a loop or run out of unvisited connections
         loop {
-            let (next_point_idx, edge_ref) = if let Some(point_idx) = points_to_check.pop() {
+            let (next_point_idx, edge_ref) = if let Some(point_idx) = points_to_check.pop_back() {
                 point_idx
             } else {
                 // Ran out of points to check without finding a loop
@@ -931,7 +933,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
 
                 // Visit along this edge next
-                points_to_check.push((*following_point_idx, *following_edge));
+                points_to_check.push_front((*following_point_idx, *following_edge));
             }
         }
 
