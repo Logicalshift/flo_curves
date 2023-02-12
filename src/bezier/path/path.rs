@@ -75,7 +75,8 @@ pub trait BezierPath : Geo+Clone+Sized {
 ///
 pub trait BezierPathFactory : BezierPath {
     ///
-    /// Creates a new instance of this path from a set of points
+    /// Creates a new instance of this path from a set of points. The input here is a start point, followed by a set of points of the form
+    /// (control_point_1, control_point_2, end_point)
     /// 
     fn from_points<FromIter: IntoIterator<Item=(Self::Point, Self::Point, Self::Point)>>(start_point: Self::Point, points: FromIter) -> Self;
 
