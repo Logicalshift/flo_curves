@@ -235,13 +235,16 @@ fn cut_corners() {
     let cut_corner  = &cut_corner[0];
     let points      = cut_corner.points().collect::<Vec<_>>();
 
+    println!("{} points ({:?})", points.len(), points);
+
     assert!(cut_corner.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(5.0, 4.0)) < 0.1);
+    assert!(points[4].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
+    assert!(points[3].2.distance_to(&Coord2(5.0, 4.0)) < 0.1);
     assert!(points[2].2.distance_to(&Coord2(4.0, 4.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(4.0, 5.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
+    assert!(points[1].2.distance_to(&Coord2(4.0, 5.0)) < 0.1);
+    assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
     assert!(points[5].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(points.len() == 6);
 }
 
 #[test]
