@@ -912,12 +912,12 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             }
 
             // If this edge was already visited, don't visit it again
-            if (visited_edges[edge_ref.start_idx]&(1u32<<(edge_ref.edge_idx))) != 0 {
+            if (visited_edges[edge_ref.start_idx]&(1<<(edge_ref.edge_idx))) != 0 {
                 continue;
             }
 
             // Mark this edge as visited
-            visited_edges[edge_ref.start_idx] |= 1u32<<(edge_ref.edge_idx);
+            visited_edges[edge_ref.start_idx] |= 1<<(edge_ref.edge_idx);
 
             // Visit all the points reachable from this edge, ignoring any edges that we've already visited
             // TODO: case where there are two points connected by two edges (second edge will connect back to the original point, forming a loop)
