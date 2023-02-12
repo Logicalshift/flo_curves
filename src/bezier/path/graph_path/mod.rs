@@ -920,6 +920,11 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // Visit all the points reachable from this edge, ignoring any edges that we've already visited
             // TODO: case where there are two points connected by two edges (second edge will connect back to the original point, forming a loop)
             for (following_point_idx, following_edge) in connections[next_point_idx].iter() {
+                // Don't follow visited edges
+                if visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) != 0 {
+                    continue;
+                }
+
                 // Update the previous point for this point
                 if previous_point[*following_point_idx].is_none() {
                     previous_point[*following_point_idx] = Some((next_point_idx, *following_edge));
