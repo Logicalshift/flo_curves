@@ -852,9 +852,204 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     }
 
     ///
+    /// Generates a description of all the external connections of this graph
+    ///
+    #[inline]
+    fn all_exterior_connections(&self) -> Vec<SmallVec<[(usize, GraphEdgeRef); 4]>> {
+        // Create a copy of all the 'exterior' edge connections in this graph
+        // Max of 4 connections per point is typical for 2 merged paths
+        let mut connections = vec![smallvec![]; self.num_points()];
+
+        for (point_idx, point) in self.points.iter().enumerate() {
+            for (edge_idx, edge) in point.forward_edges.iter().enumerate() {
+                // Only add exterior edges
+                if edge.kind == GraphPathEdgeKind::Exterior {
+                    // Add both the forward and backwards indexes, if two edges reach the same point we add both edges (including the case where an edge reconnects to the same point)
+                    let edge_ref = GraphEdgeRef { start_idx: point_idx, edge_idx: edge_idx, reverse: false };
+
+                    connections[point_idx].push((edge.end_idx, edge_ref));
+                    connections[edge.end_idx].push((point_idx, edge_ref));
+                }
+            }
+        }
+
+        connections
+    }
+
+    ///
+    /// Given the index of a starting edge in a connections list, attempts to find the shortest loop of edges that returns
+    /// back to the edge's start point
+    ///
+    #[inline]
+    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize) -> Option<Vec<GraphEdgeRef>> {
+        // The algorithm here is a slight modification of Dijkstra's algorithm, we start knowing the path has to contain a particular edge
+        let mut previous_point          = vec![None; connections.len()];
+
+        // Mark the previous point of the edge we're checking as visited
+        let (next_point_idx, edge_ref)  = connections[start_point_idx][edge];
+        previous_point[next_point_idx]  = Some((start_point_idx, edge_ref));
+
+        // We keep a stack of points to visit next
+        let mut points_to_check: SmallVec<[_; 16]> = smallvec![(next_point_idx, edge_ref)];
+
+        // Flags indicating which edges are visited for each point (allows up to 32 edges per point, will malfunction beyond that point)
+        let mut visited_edges            = vec![0u32; self.num_points()];
+
+        // Visit connected points until we find a loop or run out of unvisited connections
+        loop {
+            let (next_point_idx, edge_ref) = if let Some(point_idx) = points_to_check.pop() {
+                point_idx
+            } else {
+                // Ran out of points to check without finding a loop
+                return None;
+            };
+
+            // We've found a loop if we've found a path arriving back at the start index
+            if next_point_idx == start_point_idx {
+                break;
+            }
+
+            // If this edge was already visited, don't visit it again
+            if (visited_edges[edge_ref.start_idx]&(1u32<<(edge_ref.edge_idx))) != 0 {
+                continue;
+            }
+
+            // Mark this edge as visited
+            visited_edges[edge_ref.start_idx] |= 1u32<<(edge_ref.edge_idx);
+
+            // Visit all the points reachable from this edge, ignoring any edges that we've already visited
+            // TODO: case where there are two points connected by two edges (second edge will connect back to the original point, forming a loop)
+            for (following_point_idx, following_edge) in connections[next_point_idx].iter() {
+                // Update the previous point for this point
+                if previous_point[*following_point_idx].is_none() {
+                    previous_point[*following_point_idx] = Some((next_point_idx, *following_edge));
+                }
+
+                // Visit along this edge next
+                points_to_check.push((*following_point_idx, *following_edge));
+            }
+        }
+
+        // We should find a loop by repeatedly reading the previous point from the start index
+        let mut loop_points = vec![];
+        let mut pos         = start_point_idx;
+
+        loop {
+            // Get the point preceding the current point
+            let (previous_idx, previous_edge) = previous_point[pos].unwrap();
+
+            // Add to the loop, using the 'forward' variant of the edge
+            loop_points.push(previous_edge);
+
+            // Update to the earlier point
+            pos = previous_idx;
+
+            // Stop once we reach the start point again (ie, after we've followed the entire loop)
+            if previous_idx == start_point_idx {
+                break;
+            }
+        }
+
+        return Some(loop_points);
+    }
+
+    ///
+    /// Given a set of connected edges (can be connected in any direction), generates a suitable path
+    ///
+    #[inline]
+    fn generate_path<POut>(&self, edges: Vec<GraphEdgeRef>) -> POut
+    where
+        POut: BezierPathFactory<Point=Point>,
+    {
+        // Build up a list of path points
+        let mut path_points = vec![];
+
+        let num_edges = edges.len();
+
+        // Add each edge to the path in turn
+        for idx in 0..num_edges {
+            let next_idx = idx+1;
+            let next_idx = if next_idx >= num_edges { 0 } else { next_idx };
+
+            // We need the edge and the following edge (we want to represent the edge in the path as the edge that connects edge.start_idx to next_edge.start_idx)
+            let edge        = &edges[idx];
+            let next_edge   = &edges[next_idx];
+
+            if self.points[edge.start_idx].forward_edges[edge.edge_idx].end_idx == next_edge.start_idx {
+                // Edge is a forward edge
+                let forward_edge    = &self.points[edge.start_idx].forward_edges[edge.edge_idx];
+
+                let end_point       = self.points[forward_edge.end_idx].position;
+                let cp1             = forward_edge.cp1;
+                let cp2             = forward_edge.cp2;
+
+                path_points.push((cp1, cp2, end_point));
+            } else {
+                // Edge is a backwards edge
+                let backwards_edge  = &self.points[next_edge.start_idx].forward_edges[next_edge.edge_idx];
+                debug_assert!(backwards_edge.end_idx == edge.start_idx);
+
+                let end_point       = self.points[edge.start_idx].position;
+                let cp1             = backwards_edge.cp2;
+                let cp2             = backwards_edge.cp1;
+
+                path_points.push((cp1, cp2, end_point));
+            }
+        }
+
+        // Start point matches end point
+        let start_point = path_points.last().unwrap().0;
+        POut::from_points(start_point, path_points)
+    }
+
+    ///
+    /// Finds the connected loops of exterior edges and turns them into a series of paths
+    ///
+    pub fn exterior_paths<POut>(&self) -> Vec<POut> 
+    where
+        POut: BezierPathFactory<Point=Point>,
+    {
+        let mut paths = vec![];
+
+        // Get the graph of exterior connections for the graph
+        let connections = self.all_exterior_connections();
+
+        // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
+        // Even a complex path very rarely has more than 2 edges per point
+        let mut included_edges = vec![0u32; self.num_points()];
+
+        // Each connection describes the exterior edges for a point
+        for (point_idx, edge_list) in connections.iter().enumerate() {
+            for (edge_idx, (_end_point_idx, edge_ref)) in edge_list.iter().enumerate() {
+                // Ignore visited/included edges
+                if included_edges[edge_ref.start_idx]&(1<<edge_ref.edge_idx) != 0 {
+                    continue;
+                }
+
+                // Mark the edge as included
+                debug_assert!(edge_ref.edge_idx < 32);
+                included_edges[edge_ref.start_idx] |= 1<<edge_ref.edge_idx;
+
+                // Try to find a loop from this edge
+                if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx) {
+                    // Mark all the loop edges as visited
+                    for edge in loop_edges.iter() {
+                        included_edges[edge.start_idx] |= 1<<edge.edge_idx;
+                    }
+
+                    // Generate a loop and add it to the paths
+                    paths.push(self.generate_path(loop_edges));
+                }
+            }
+        }
+
+        paths
+    }
+
+    ///
     /// Finds the exterior edges and turns them into a series of paths
     ///
-    pub fn exterior_paths<POut: BezierPathFactory<Point=Point>>(&self) -> Vec<POut> {
+    pub fn exterior_paths_old<POut: BezierPathFactory<Point=Point>>(&self) -> Vec<POut> {
         // List of paths returned by this function
         let mut exterior_paths = vec![];
 
@@ -881,6 +1076,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             points_to_check.clear();
             points_to_check.push((point_idx, point_idx));
 
+            // TODO: bug is that if there are mutliple edges leaving a point in different directions around the same loop, we don't end up finding/generating the shape
+
             // Loop until we find a previous point for the initial point (indicating we've got a loop of points)
             while previous_point[point_idx].is_none() {
                 if points_to_check.is_empty() {
@@ -894,7 +1091,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 for (previous_point_idx, current_point_idx) in points_to_check {
                     let mut edges = if current_point_idx == point_idx {
                         // For the first point, only search forward
-                        self.reverse_edges_for_point(current_point_idx).collect::<SmallVec<[_; 8]>>()
+                        self.reverse_edges_for_point(current_point_idx).take(1).collect::<SmallVec<[_; 8]>>()
                     } else {
                         // For all other points, search all edges
                         self.edges_for_point(current_point_idx)
