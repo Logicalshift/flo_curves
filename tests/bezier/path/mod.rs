@@ -1,4 +1,5 @@
 mod svg;
+mod checks;
 mod to_curves;
 mod point;
 mod path;
