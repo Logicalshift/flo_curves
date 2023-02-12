@@ -900,9 +900,9 @@ fn get_path_from_exterior_lines() {
     let points = rectangle2[0].points().collect::<Vec<_>>();
     assert!(points.len() == 4);
 
-    assert!(points[0].2 == Coord2(1.0, 5.0));
+    assert!(points[2].2 == Coord2(1.0, 5.0));
     assert!(points[1].2 == Coord2(5.0, 5.0));
-    assert!(points[2].2 == Coord2(5.0, 1.0));
+    assert!(points[0].2 == Coord2(5.0, 1.0));
     assert!(points[3].2 == Coord2(1.0, 1.0));
 }
 
@@ -944,17 +944,17 @@ fn get_path_from_exterior_lines_multiple_paths() {
     let points = rectangle3[0].points().collect::<Vec<_>>();
     assert!(points.len() == 4);
 
-    assert!(points[0].2 == Coord2(1.0, 5.0));
+    assert!(points[2].2 == Coord2(1.0, 5.0));
     assert!(points[1].2 == Coord2(5.0, 5.0));
-    assert!(points[2].2 == Coord2(5.0, 1.0));
+    assert!(points[0].2 == Coord2(5.0, 1.0));
     assert!(points[3].2 == Coord2(1.0, 1.0));
 
     let points = rectangle3[1].points().collect::<Vec<_>>();
     assert!(points.len() == 4);
 
-    assert!(points[0].2 == Coord2(11.0, 5.0));
+    assert!(points[2].2 == Coord2(11.0, 5.0));
     assert!(points[1].2 == Coord2(15.0, 5.0));
-    assert!(points[2].2 == Coord2(15.0, 1.0));
+    assert!(points[0].2 == Coord2(15.0, 1.0));
     assert!(points[3].2 == Coord2(11.0, 1.0));
 }
 
