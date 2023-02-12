@@ -1,5 +1,6 @@
 use super::*;
 use crate::bezier::path::*;
+use crate::bezier::curve::*;
 use crate::bezier::normal::*;
 use crate::arc::*;
 

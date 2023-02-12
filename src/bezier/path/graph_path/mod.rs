@@ -1,5 +1,4 @@
 use super::path::*;
-use crate::bezier::curve::*;
 use crate::geo::*;
 use crate::consts::*;
 
