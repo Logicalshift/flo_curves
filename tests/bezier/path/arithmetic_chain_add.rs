@@ -3,6 +3,7 @@ use flo_curves::arc::*;
 use flo_curves::bezier::path::*;
 
 use super::svg::*;
+use super::checks::*;
 
 #[test]
 fn add_two_overlapping_circles() {
@@ -261,17 +262,17 @@ fn rectangle_add() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(5.0, 1.0),
+        Coord2(5.0, 3.0),
+        Coord2(7.0, 3.0),
+        Coord2(7.0, 7.0),
+        Coord2(3.0, 7.0),
+        Coord2(3.0, 5.0),
+        Coord2(1.0, 5.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
 
 #[test]
@@ -298,17 +299,17 @@ fn rectangle_add_with_shared_point() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(5.0, 1.0),
+        Coord2(5.0, 3.0),
+        Coord2(7.0, 3.0),
+        Coord2(7.0, 7.0),
+        Coord2(3.0, 7.0),
+        Coord2(3.0, 5.0),
+        Coord2(1.0, 5.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
 
 #[test]
@@ -335,17 +336,17 @@ fn rectangle_add_with_shared_point_2() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(5.0, 1.0),
+        Coord2(5.0, 3.0),
+        Coord2(7.0, 3.0),
+        Coord2(7.0, 7.0),
+        Coord2(3.0, 7.0),
+        Coord2(3.0, 5.0),
+        Coord2(1.0, 5.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
 
 #[test]
@@ -374,17 +375,17 @@ fn rectangle_add_with_shared_point_3() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(5.0, 1.0),
+        Coord2(5.0, 3.0),
+        Coord2(7.0, 3.0),
+        Coord2(7.0, 7.0),
+        Coord2(3.0, 7.0),
+        Coord2(3.0, 5.0),
+        Coord2(1.0, 5.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
 
 #[test]
@@ -414,17 +415,17 @@ fn rectangle_add_with_shared_point_5() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(1.0, 5.0),
+        Coord2(3.0, 5.0),
+        Coord2(3.0, 7.0),
+        Coord2(7.0, 7.0),
+        Coord2(7.0, 3.0),
+        Coord2(5.0, 3.0),
+        Coord2(5.0, 1.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
 
 #[test]
@@ -452,15 +453,15 @@ fn rectangle_add_with_shared_point_6() {
     assert!(shared_point.len() == 1);
 
     let shared_point    = &shared_point[0];
-    let points          = shared_point.points().collect::<Vec<_>>();
 
-    assert!(shared_point.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(3.0, 5.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(3.0, 7.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(7.0, 7.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(7.0, 3.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(5.0, 3.0)) < 0.1);
-    assert!(points[6].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[7].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
+    assert!(path_has_end_points_in_order(shared_point.clone(), vec![
+        Coord2(1.0, 5.0),
+        Coord2(3.0, 5.0),
+        Coord2(3.0, 7.0),
+        Coord2(7.0, 7.0),
+        Coord2(7.0, 3.0),
+        Coord2(5.0, 3.0),
+        Coord2(5.0, 1.0),
+        Coord2(1.0, 1.0),
+    ], 0.1));
 }
