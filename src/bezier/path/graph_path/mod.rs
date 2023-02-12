@@ -1005,7 +1005,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
 
         // Start point matches end point
-        let start_point = path_points.last().unwrap().0;
+        let start_point = path_points.last().unwrap().2;
         POut::from_points(start_point, path_points)
     }
 
