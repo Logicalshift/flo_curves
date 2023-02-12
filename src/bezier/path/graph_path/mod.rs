@@ -895,7 +895,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         points_to_check.push_front((next_point_idx, edge_ref));
 
         // Flags indicating which edges are visited for each point (allows up to 32 edges per point, will malfunction beyond that point)
-        let mut visited_edges            = vec![0u32; self.num_points()];
+        let mut visited_edges            = vec![0u64; self.num_points()];
 
         // Visit connected points until we find a loop or run out of unvisited connections
         loop {
@@ -1023,7 +1023,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
         // Even a complex path very rarely has more than 2 edges per point
-        let mut included_edges = vec![0u32; self.num_points()];
+        let mut included_edges = vec![0u64; self.num_points()];
 
         // Each connection describes the exterior edges for a point
         for (point_idx, edge_list) in connections.iter().enumerate() {
@@ -1034,7 +1034,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 }
 
                 // Mark the edge as included
-                debug_assert!(edge_ref.edge_idx < 32);
+                debug_assert!(edge_ref.edge_idx < 64);
                 included_edges[edge_ref.start_idx] |= 1<<edge_ref.edge_idx;
 
                 // Try to find a loop from this edge
