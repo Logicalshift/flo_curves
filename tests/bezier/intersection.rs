@@ -369,3 +369,69 @@ fn ray_missing_root_3() {
     println!("{:?}", roots);
     assert!(roots.into_iter().any(|r| (r-x).abs() < 0.01));
 }
+
+#[test]
+fn collide_close_to_circle_1() {
+    use flo_curves::line::{line_to_bezier};
+    use flo_curves::bezier::{Curve, curve_intersects_ray, curve_intersects_curve_clip};
+    use flo_curves::arc::*;
+    use flo_curves::bezier::path::*;
+
+    // This was found to produce a bad set of collisions in `remove_interior_for_ring_with_offset_crossbar_removes_center_1`
+    // `close_line` here passes very close to the circle, and produced a collision both where it intersected the line and at the end, creating an odd subpath
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let close_line  = (Coord2(0.2, 1.1), Coord2(3.8, 1.1));
+
+    // Try using curve_intersects_ray first: should produce at most one intersection per line
+    for curve in ring1.to_curves::<Curve<_>>() {
+        let collisions = curve_intersects_ray(&curve, &close_line);
+        println!("{:?}", collisions);
+        assert!(collisions.len() <= 1);
+    }
+
+    // Try using curve_intersects_line next: should produce at most one intersection per line
+    let close_curve = line_to_bezier::<_, Curve<_>>(&close_line);
+
+    for curve in ring1.to_curves::<Curve<_>>() {
+        let collisions = curve_intersects_curve_clip(&curve, &close_curve, 0.01);
+        println!("{:?}", collisions);
+        assert!(collisions.len() <= 1);
+
+        let collisions = curve_intersects_curve_clip(&close_curve, &curve, 0.01);
+        println!("{:?}", collisions);
+        assert!(collisions.len() <= 1);
+    }
+}
+
+#[test]
+fn collide_close_to_circle_2() {
+    use flo_curves::line::{line_to_bezier};
+    use flo_curves::bezier::{Curve, curve_intersects_ray, curve_intersects_curve_clip};
+    use flo_curves::arc::*;
+    use flo_curves::bezier::path::*;
+
+    // This was found to produce a bad set of collisions in `remove_interior_for_ring_with_offset_crossbar_removes_center_1`
+    // `close_line` here passes very close to the circle, and produced a collision both where it intersected the line and at the end, creating an odd subpath
+    let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
+    let close_line  = (Coord2(3.8, 1.1), Coord2(3.8, 0.9));
+
+    // Try using curve_intersects_ray first: should produce at most one intersection per line
+    for curve in ring1.to_curves::<Curve<_>>() {
+        let collisions = curve_intersects_ray(&curve, &close_line);
+        println!("{:?}", collisions);
+        //assert!(collisions.len() <= 1);
+    }
+
+    // Try using curve_intersects_line next: this line does not intersect (it's quite close to the curve but does not actually intersect it)
+    let close_curve = line_to_bezier::<_, Curve<_>>(&close_line);
+
+    for curve in ring1.to_curves::<Curve<_>>() {
+        let collisions = curve_intersects_curve_clip(&curve, &close_curve, 0.01);
+        println!("{:?}", collisions);
+        assert!(collisions.len() == 0);
+
+        let collisions = curve_intersects_curve_clip(&close_curve, &curve, 0.01);
+        println!("{:?}", collisions);
+        assert!(collisions.len() == 0);
+    }
+}
