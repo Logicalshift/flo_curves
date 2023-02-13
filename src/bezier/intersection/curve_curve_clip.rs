@@ -28,7 +28,7 @@ fn curve_hull_length_sq<C: BezierCurve>(curve: &CurveSection<'_, C>) -> f64 {
 ///
 /// Given a line representing a linear section of a curve, finds the intersection with a curved section and returns the t values
 ///
-fn intersections_with_linear_section<'a, C: BezierCurve>(linear_section: &CurveSection<'a, C>, curved_section: &CurveSection<'a, C>) -> SmallVec<[(f64, f64); 4]>
+fn intersections_with_linear_section<'a, C: BezierCurve>(linear_section: &CurveSection<'a, C>, curved_section: &CurveSection<'a, C>, accuracy: f64) -> SmallVec<[(f64, f64); 4]>
 where 
     C::Point: 'a+Coordinate2D,
 {
@@ -39,7 +39,7 @@ where
     // Attempt to find where the 't' value is for each ray intersection against the linear section
     let curve_intersections = ray_intersections.iter()
         .filter_map(|(curved_t, _ray_t, pos)| {
-            let linear_t = solve_curve_for_t(linear_section, pos);
+            let linear_t = solve_curve_for_t_along_axis(linear_section, pos, accuracy);
 
             linear_t.map(|linear_t| (linear_t, *curved_t))
         })
@@ -178,7 +178,7 @@ where
 ///
 /// Determines the points at which two curves intersect using the Bezier clipping algorithm
 /// 
-fn curve_intersects_curve_clip_inner<'a, C: BezierCurve>(curve1: CurveSection<'a, C>, curve2: CurveSection<'a, C>, accuracy_squared: f64) -> SmallVec<[(f64, f64); 8]>
+fn curve_intersects_curve_clip_inner<'a, C: BezierCurve>(curve1: CurveSection<'a, C>, curve2: CurveSection<'a, C>, accuracy: f64, accuracy_squared: f64) -> SmallVec<[(f64, f64); 8]>
 where
     C::Point: 'a+Coordinate2D,
 {
@@ -221,7 +221,7 @@ where
                 ClipResult::None                    => { return smallvec![]; },
                 ClipResult::Some(clip_t)            => clip_t,
                 ClipResult::SecondCurveIsLinear     => { 
-                    return intersections_with_linear_section(&curve1, &curve2)
+                    return intersections_with_linear_section(&curve1, &curve2, accuracy)
                         .into_iter()
                         .map(|(t1, t2)| (curve1.t_for_t(t1), curve2.t_for_t(t2)))
                         .collect(); 
@@ -243,7 +243,7 @@ where
                 ClipResult::None                    => { return smallvec![]; },
                 ClipResult::Some(clip_t)            => clip_t,
                 ClipResult::SecondCurveIsLinear     => { 
-                    return intersections_with_linear_section(&curve2, &curve1)
+                    return intersections_with_linear_section(&curve2, &curve1, accuracy)
                         .into_iter()
                         .map(|(t2, t1)| (curve1.t_for_t(t1), curve2.t_for_t(t2)))
                         .collect(); 
@@ -276,15 +276,15 @@ where
             if curve1_len/curve1_last_len > curve2_len/curve2_last_len {
                 // Curve1 shrunk less than curve2
                 let (left, right)   = (curve1.subsection(0.0, 0.5), curve1.subsection(0.5, 1.0));
-                let left            = curve_intersects_curve_clip_inner(left, curve2.clone(), accuracy_squared);
-                let right           = curve_intersects_curve_clip_inner(right, curve2, accuracy_squared);
+                let left            = curve_intersects_curve_clip_inner(left, curve2.clone(), accuracy, accuracy_squared);
+                let right           = curve_intersects_curve_clip_inner(right, curve2, accuracy, accuracy_squared);
 
                 return join_subsections(&curve1, left, right, accuracy_squared);
             } else {
                 // Curve2 shrunk less than curve1
                 let (left, right)   = (curve2.subsection(0.0, 0.5), curve2.subsection(0.5, 1.0));
-                let left            = curve_intersects_curve_clip_inner(curve1.clone(), left, accuracy_squared);
-                let right           = curve_intersects_curve_clip_inner(curve1.clone(), right, accuracy_squared);
+                let left            = curve_intersects_curve_clip_inner(curve1.clone(), left, accuracy, accuracy_squared);
+                let right           = curve_intersects_curve_clip_inner(curve1.clone(), right, accuracy, accuracy_squared);
 
                 return join_subsections(&curve1, left, right, accuracy_squared);
             }
@@ -309,5 +309,5 @@ where
     let curve2 = curve2.section(0.0, 1.0);
 
     // Perform the clipping algorithm on these curves
-    curve_intersects_curve_clip_inner(curve1, curve2, accuracy*accuracy)
+    curve_intersects_curve_clip_inner(curve1, curve2, accuracy, accuracy*accuracy)
 }
