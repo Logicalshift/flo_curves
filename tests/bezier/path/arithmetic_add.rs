@@ -359,7 +359,6 @@ fn remove_interior_for_ring_with_crossbar_removes_center() {
 }
 
 #[test]
-#[ignore]   // TODO: this is failing due to an odd issue (generates a weird extra path, probably due to snapping)
 fn remove_interior_for_ring_with_offset_crossbar_removes_center_1() {
     let ring1       = Circle::new(Coord2(2.0, 2.0), 2.0).to_path::<SimpleBezierPath>();
     let ring2       = Circle::new(Coord2(2.0, 2.0), 1.7).to_path::<SimpleBezierPath>();
@@ -378,6 +377,16 @@ fn remove_interior_for_ring_with_offset_crossbar_removes_center_1() {
     // Collide the path with itself to find the intersections
     merged_path.self_collide(0.01);
     merged_path.round(0.01);
+
+    // Should be no overlapping or very close points in the result
+    let all_points = (0..merged_path.num_points()).into_iter().map(|point_idx| merged_path.point_position(point_idx)).collect::<Vec<_>>();
+    for point_idx in 0..all_points.len() {
+        let this_point = &all_points[point_idx];
+
+        assert!(!all_points.iter().enumerate().any(|(cmp_idx, pt)| {
+            cmp_idx != point_idx && pt.distance_to(this_point) < 0.01
+        }));
+    }
 
     merged_path.set_exterior_by_removing_interior_points();
 
