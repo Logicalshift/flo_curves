@@ -46,19 +46,19 @@ where
         .collect::<SmallVec<_>>();
 
     // Rarely: the linear section might be very short and the solver might miss that it's essentially a point
-    if curve_intersections.is_empty() && !ray_intersections.is_empty(){
+    if curve_intersections.is_empty() && !ray_intersections.is_empty() {
         // If the linear section seems short
         if linear_section.point_at_pos(0.0).is_near_to(&linear_section.point_at_pos(1.0), 0.1) {
             let midpoint            = linear_section.point_at_pos(0.5);
-            let curve_intersections = ray_intersections.iter()        
-            .filter_map(|(curved_t, _ray_t, pos)| {
-                if pos.is_near_to(&midpoint, CLOSE_ENOUGH) {
-                    Some((0.5, *curved_t))
-                } else {
-                    None
-                }
-            })
-            .collect::<SmallVec<_>>();
+            let curve_intersections = ray_intersections.iter()
+                .filter_map(|(curved_t, _ray_t, pos)| {
+                    if pos.is_near_to(&midpoint, CLOSE_ENOUGH) {
+                        Some((0.5, *curved_t))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<SmallVec<_>>();
 
             return curve_intersections;
         }
