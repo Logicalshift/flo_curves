@@ -143,19 +143,16 @@ fn repeatedly_full_intersect_circle() {
             .line_to(Coord2(x3, y3))
             .build();
 
-        if slice_idx == 7 {
+        if slice_idx == 1 {
             use flo_curves::debug::*;
 
-            // Write out an SVG path
+            // Write out an SVG path (of the subtract part of the intersection, which produces the extra sections)
             let mut merged_path = GraphPath::new();
-            merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-
-            // Collide with the target side to generate a full path
-            merged_path         = merged_path.collide(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
             merged_path.round(0.01);
 
-            // The interior edges are those found by intersecting the second path with the first
-            merged_path.set_exterior_by_intersecting();
+            merged_path.set_exterior_by_subtracting();
             merged_path.heal_exterior_gaps();
 
             println!();
@@ -169,6 +166,11 @@ fn repeatedly_full_intersect_circle() {
         // Add the slice and the remaining part of the circle
         slices.push(cut_circle.intersecting_path);
         remaining = cut_circle.exterior_paths[1].clone();
+
+        println!("{} paths in remaining, {}, {} paths in exterior paths", remaining.len(), cut_circle.exterior_paths[0].len(), cut_circle.exterior_paths[1].len());
+        assert!(remaining.len() == 1);
+        assert!(cut_circle.exterior_paths[0].len() == 1);
+        assert!(cut_circle.exterior_paths[1].len() == 1);
     }
 
     // Each fragment should consist of points that are either at the origin or on the circle
@@ -330,6 +332,8 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
 
         // Reduce and re-increase the precision of the remaining path (this happens in FlowBetween: even though the points will be in slightly different positions we should still be able to slice using this curve)
         remaining = remaining.into_iter().map(|path| convert_path_to_f32_and_back(path)).collect();
+
+        assert!(remaining.len() == 1);
     }
 
     // Each fragment should consist of points that are either at the origin or on the circle
