@@ -115,3 +115,21 @@ fn overlaps_with_known_curve_3() {
     assert!(overlapping_region(&curve1, &curve2).is_some());
     assert!(overlapping_region(&curve2, &curve1).is_some());
 }
+
+#[test]
+fn colinear_lines_1() {
+    let line1 = Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let overlaps = overlapping_region(&line1, &line2);
+    assert!(overlaps.is_some());    
+}
+
+#[test]
+fn colinear_lines_2() {
+    let line1 = Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let overlaps = overlapping_region(&line2, &line1);
+    assert!(overlaps.is_some());    
+}
