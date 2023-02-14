@@ -446,6 +446,16 @@ fn colinear_lines_1() {
     println!("{:?}", collisions);
 
     assert!(collisions.len() == 2);
+
+    for (curve_t, ray_t, _) in collisions {
+        let curve_pos   = line1.point_at_pos(curve_t);
+        let line_pos    = (line2.start_point(), line2.end_point()).point_at_pos(ray_t);
+        let distance    = curve_pos.distance_to(&line_pos);
+
+        println!("{},{}: {:?}", curve_t, ray_t, curve_pos);
+
+        assert!(distance < 0.01, "Distance between points {} at curve_t {}, line_t {}", distance, curve_t, ray_t);
+    }
 }
 
 #[test]
@@ -458,4 +468,14 @@ fn colinear_lines_2() {
     println!("{:?}", collisions);
 
     assert!(collisions.len() == 2);
+
+    for (curve_t, ray_t, _) in collisions {
+        let curve_pos   = line2.point_at_pos(curve_t);
+        let line_pos    = (line1.start_point(), line1.end_point()).point_at_pos(ray_t);
+        let distance    = curve_pos.distance_to(&line_pos);
+
+        println!("{},{}: {:?}", curve_t, ray_t, curve_pos);
+
+        assert!(distance < 0.01, "Distance between points {} at curve_t {}, line_t {}", distance, curve_t, ray_t);
+    }
 }
