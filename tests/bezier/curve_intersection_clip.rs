@@ -671,6 +671,7 @@ fn colinear_lines_1() {
     let collisions = bezier::curve_intersects_curve_clip(&line1, &line2, 0.01);
 
     println!("{:?}", collisions);
+    println!("{:?}", bezier::overlapping_region(&line1, &line2));
 
     assert!(collisions.len() == 2);
 }
@@ -683,6 +684,7 @@ fn colinear_lines_2() {
     let collisions = bezier::curve_intersects_curve_clip(&line2, &line1, 0.01);
 
     println!("{:?}", collisions);
+    println!("{:?}", bezier::overlapping_region(&line2, &line1));
 
     assert!(collisions.len() == 2);
 }
