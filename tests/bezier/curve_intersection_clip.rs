@@ -662,3 +662,27 @@ fn intersections_on_curve_sections() {
     // Second intersection should be at point 1.0 on curve1
     assert!((intersections[1].0 - 1.0).abs() < 0.01);
 }
+
+#[test]
+fn colinear_lines_1() {
+    let line1 = bezier::Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = bezier::Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let collisions = bezier::curve_intersects_curve_clip(&line1, &line2, 0.01);
+
+    println!("{:?}", collisions);
+
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn colinear_lines_2() {
+    let line1 = bezier::Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = bezier::Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let collisions = bezier::curve_intersects_curve_clip(&line2, &line1, 0.01);
+
+    println!("{:?}", collisions);
+
+    assert!(collisions.len() == 2);
+}

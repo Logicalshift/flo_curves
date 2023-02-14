@@ -435,3 +435,27 @@ fn collide_close_to_circle_2() {
         assert!(collisions.len() == 0);
     }
 }
+
+#[test]
+fn colinear_lines_1() {
+    let line1 = bezier::Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = bezier::Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let collisions = bezier::curve_intersects_ray(&line1, &(line2.start_point(), line2.end_point()));
+
+    println!("{:?}", collisions);
+
+    assert!(collisions.len() == 2);
+}
+
+#[test]
+fn colinear_lines_2() {
+    let line1 = bezier::Curve::from_points(Coord2(522.6328510802869, 613.7830260553299), (Coord2(516.1288877500185, 581.0853943497335), Coord2(509.6251664511383, 548.3889794180926)), Coord2(503.12144515225805, 515.6925644864517));
+    let line2 = bezier::Curve::from_points(Coord2(503.12144515225805, 515.6925644864517), (Coord2(521.5936893465483, 608.5588072325999), Coord2(540.0603929756934, 701.3971956767845)), Coord2(558.5270966048384, 794.2355841209692));
+
+    let collisions = bezier::curve_intersects_ray(&line2, &(line1.start_point(), line1.end_point()));
+
+    println!("{:?}", collisions);
+
+    assert!(collisions.len() == 2);
+}
