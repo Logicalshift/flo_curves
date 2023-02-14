@@ -287,7 +287,7 @@ fn crossing_edges<Path: RayPath>(path: &Path, coefficients: LineCoefficients, po
                 }
             }
 
-            // If it's not colinear, add to the set of crossing edges
+            // If it's not collinear, add to the set of crossing edges
             if !curve_is_collinear(&leaving, coefficients) {
                 let (a, b, c)       = coefficients.into();
                 let incoming_cp2    = incoming.control_points().1;
@@ -381,7 +381,7 @@ where
     // Collect any collinear collisions into a vec
     let collinear_collisions = collinear_sections
         .into_iter()
-        .flat_map(move |colinear_edge_points| crossing_edges(path, ray_coeffs, colinear_edge_points)
+        .flat_map(move |collinear_edge_points| crossing_edges(path, ray_coeffs, collinear_edge_points)
                 .into_iter()
                 .map(move |crossing_edge| {
                     let point   = path.edge_start_point_idx(crossing_edge);
