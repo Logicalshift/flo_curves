@@ -238,10 +238,20 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         let (x3, y3)                = (center_x + (f64::sin(start_angle) * 16.0),    center_y + (f64::cos(start_angle) * 16.0));
         let (x4, y4)                = (center_x + (f64::sin(end_angle) * 16.0),      center_y + (f64::cos(end_angle) * 16.0));
 
+        /* -- TODO: this will generate spurious '0 area' paths due to the TODO in ray.rs ('reverse earlier_direction based if edge_a and edge_b are from shapes moving in different directions')
+                note: another way to address this is to enforce a single path direction in graph_path, which would also save us needing to encode the path direction with the edges
         let fragment                = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x3, y3))
             .line_to(Coord2(x1, y1))
             .line_to(Coord2(x2, y2))
             .line_to(Coord2(x4, y4))
+            .line_to(Coord2(x3, y3))
+            .build();
+        */
+
+        let fragment                = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x3, y3))
+            .line_to(Coord2(x4, y4))
+            .line_to(Coord2(x2, y2))
+            .line_to(Coord2(x1, y1))
             .line_to(Coord2(x3, y3))
             .build();
 
