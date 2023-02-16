@@ -41,11 +41,10 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
 /// The input vectors represent the external edges of the path to add (a single BezierPath cannot have any holes in it, so a set of them
 /// effectively represents a path intended to be rendered with an even-odd winding rule)
 ///
-pub fn path_add<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> Vec<POut>
+pub fn path_add<POut: BezierPathFactory>(path1: &Vec<impl BezierPath<Point=POut::Point>>, path2: &Vec<impl BezierPath<Point=POut::Point>>, accuracy: f64) -> Vec<POut>
 where
-    P1::Point:  Coordinate+Coordinate2D,
-    P2:         BezierPath<Point=P1::Point>,
-    POut:       BezierPathFactory<Point=P1::Point>,
+    POut:           BezierPathFactory,
+    POut::Point:    Coordinate+Coordinate2D,
 {
     // If either path is empty, short-circuit by returning the other
     if path1.is_empty() {
