@@ -22,11 +22,10 @@ pub struct PathIntersection<P: BezierPathFactory> {
 /// on either `path1` or `path2`. This provides both a performance optimisation and finer control over how self-intersecting paths are
 /// handled. See `path_remove_interior_points()` and `path_remove_overlapped_points()` for a way to eliminate overlaps.
 ///
-pub fn path_full_intersect<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> PathIntersection<POut>
+pub fn path_full_intersect<POut>(path1: &Vec<impl BezierPath<Point=POut::Point>>, path2: &Vec<impl BezierPath<Point=POut::Point>>, accuracy: f64) -> PathIntersection<POut>
 where
-    P1::Point:  Coordinate+Coordinate2D,
-    P2:         BezierPath<Point=P1::Point>,
-    POut:       BezierPathFactory<Point=P1::Point>,
+    POut:           BezierPathFactory,
+    POut::Point:    Coordinate+Coordinate2D
 {
     // If path1 is empty, then there are no points in the result. If path2 is empty, then all points are exterior
     if path1.is_empty() {
