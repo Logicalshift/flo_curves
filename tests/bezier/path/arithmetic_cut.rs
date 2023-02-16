@@ -17,7 +17,7 @@ fn cut_square() {
         .line_to(Coord2(7.5, 7.5))
         .build();
 
-    let cut_square  = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
+    let cut_square  = path_cut::<SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
     assert!(cut_square.exterior_path.len() == 1);
     assert!(cut_square.interior_path.len() == 1);
@@ -42,7 +42,7 @@ fn cut_square_entirely_interior() {
         .line_to(Coord2(2.0, 2.0))
         .build();
 
-    let cut_square  = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
+    let cut_square  = path_cut::<SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
     assert!(cut_square.exterior_path.len() == 0);
     assert!(cut_square.interior_path.len() == 1);
@@ -67,7 +67,7 @@ fn cut_square_entirely_exterior() {
         .line_to(Coord2(20.0, 20.0))
         .build();
 
-    let cut_square  = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
+    let cut_square  = path_cut::<SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
     assert!(cut_square.exterior_path.len() == 1);
     assert!(cut_square.interior_path.len() == 0);
@@ -91,7 +91,7 @@ fn cut_square_center() {
         .line_to(Coord2(6.0, 6.0))
         .build();
 
-    let cut_square  = path_cut::<_, _, SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
+    let cut_square  = path_cut::<SimpleBezierPath>(&vec![square_1], &vec![square_2], 0.01);
 
     assert!(cut_square.exterior_path.len() == 2);
     assert!(cut_square.interior_path.len() == 1);

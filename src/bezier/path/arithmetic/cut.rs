@@ -18,11 +18,10 @@ pub struct PathCut<P: BezierPathFactory> {
 /// Cuts a path (`path1`) into two along another path (`path2`), returning the part of `path1` that was interior to `path2` and
 /// the part that was exterior in one operation
 ///
-pub fn path_cut<P1: BezierPath, P2: BezierPath, POut: BezierPathFactory>(path1: &Vec<P1>, path2: &Vec<P2>, accuracy: f64) -> PathCut<POut>
+pub fn path_cut<POut>(path1: &Vec<impl BezierPath<Point=POut::Point>>, path2: &Vec<impl BezierPath<Point=POut::Point>>, accuracy: f64) -> PathCut<POut>
 where
-    P1::Point:  Coordinate+Coordinate2D,
-    P2:         BezierPath<Point=P1::Point>,
-    POut:       BezierPathFactory<Point=P1::Point>,
+    POut:           BezierPathFactory,
+    POut::Point:    Coordinate+Coordinate2D,
 {
     // If path1 is empty, then there are no points in the result. If path2 is empty, then all points are exterior
     if path1.is_empty() {
