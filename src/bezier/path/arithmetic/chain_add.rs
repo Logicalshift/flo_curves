@@ -16,7 +16,7 @@ where
 
     for (path_idx, path) in paths.iter().enumerate() {
         let path_idx    = path_idx as u32;
-        merged_path     = merged_path.collide(GraphPath::from_merged_paths(path.iter().map(|path| (path, PathLabel(path_idx, PathDirection::from(path))))), accuracy);
+        merged_path     = merged_path.collide(GraphPath::from_merged_paths(path.iter().map(|path| (path, PathLabel(path_idx)))), accuracy);
     }
 
     merged_path.round(accuracy);

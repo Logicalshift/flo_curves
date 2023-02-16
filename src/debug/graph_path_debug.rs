@@ -80,15 +80,10 @@ pub fn graph_path_svg_string<P: Coordinate+Coordinate2D>(path: &GraphPath<P, Pat
 
         for (collision, curve_t, _line_t, pos) in collisions {
             // Determine which direction the ray is crossing
-            let edge                                = collision.edge();
-            let PathLabel(path_number, direction)   = path.edge_label(edge);
-            let normal                              = path.get_edge(edge).normal_at_pos(curve_t);
-
-            let side                                = ray_direction.dot(&normal).signum() as i32;
-            let side                                = match direction {
-                PathDirection::Clockwise        => { side },
-                PathDirection::Anticlockwise    => { -side }
-            };
+            let edge                    = collision.edge();
+            let PathLabel(path_number)  = path.edge_label(edge);
+            let normal                  = path.get_edge(edge).normal_at_pos(curve_t);
+            let side                    = ray_direction.dot(&normal).signum() as i32;
 
             // Update the collision count
             collision_count += side;

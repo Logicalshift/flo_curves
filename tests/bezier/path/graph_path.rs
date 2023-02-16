@@ -1120,7 +1120,7 @@ fn ray_collide_along_convex_edge() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise));
+    let gp = GraphPath::from_path(&rectangle1, PathLabel(0));
 
     let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
     let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
@@ -1145,7 +1145,7 @@ fn ray_collide_along_concave_edge() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&concave_shape, PathLabel(0, PathDirection::Clockwise));
+    let gp = GraphPath::from_path(&concave_shape, PathLabel(0));
 
     let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
     let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
@@ -1175,7 +1175,7 @@ fn ray_collide_along_seam_with_intersection() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise)).collide(GraphPath::from_path(&rectangle2, PathLabel(1, PathDirection::Clockwise)), 0.01);
+    let gp = GraphPath::from_path(&rectangle1, PathLabel(0)).collide(GraphPath::from_path(&rectangle2, PathLabel(1)), 0.01);
 
     println!("{:?}", gp);
 
@@ -1760,8 +1760,8 @@ pub fn ray_cast_converging_curves() {
         .build();
 
     // Merge into a graph
-    let rectangle       = GraphPath::from_path(&rectangle, PathLabel(0, PathDirection::Clockwise));
-    let curved_shape    = GraphPath::from_path(&curved_shape, PathLabel(1, PathDirection::Clockwise));
+    let rectangle       = GraphPath::from_path(&rectangle, PathLabel(0));
+    let curved_shape    = GraphPath::from_path(&curved_shape, PathLabel(1));
 
     let path            = rectangle.collide(curved_shape, 0.01);
 

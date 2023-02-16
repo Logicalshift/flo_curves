@@ -148,8 +148,8 @@ fn repeatedly_full_intersect_circle() {
 
             // Write out an SVG path (of the subtract part of the intersection, which produces the extra sections)
             let mut merged_path = GraphPath::new();
-            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1)))), 0.01);
             merged_path.round(0.01);
 
             merged_path.set_exterior_by_subtracting();
@@ -239,8 +239,8 @@ fn repeatedly_full_intersect_circle_reverse_direction() {
 
             // Write out an SVG path (of the subtract part of the intersection, which produces the extra sections)
             let mut merged_path = GraphPath::new();
-            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1)))), 0.01);
             merged_path.round(0.01);
 
             merged_path.set_exterior_by_subtracting();
@@ -391,8 +391,8 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
 
         // Merge the paths and print out the number of edges
         let mut merged_path = GraphPath::new();
-        let fragment_graph  = GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0, PathDirection::from(path)))));
-        let remain_graph    = GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(1, PathDirection::from(path)))));
+        let fragment_graph  = GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0))));
+        let remain_graph    = GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(1))));
 
         println!("Slice {}: {} edges in 'remaining' before colliding with the next fragment", slice_idx, remain_graph.all_edges().count());
 
@@ -409,8 +409,8 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
             use flo_curves::debug::*;
 
             let mut merged_path = GraphPath::new();
-            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1)))), 0.01);
 
             //merged_path.round(0.01);
 

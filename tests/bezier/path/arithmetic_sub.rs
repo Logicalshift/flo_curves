@@ -262,8 +262,8 @@ fn subtract_triangle_from_partial_circle_graph() {
 
     // Merge the two paths
     let mut merged_path     = GraphPath::new();
-    merged_path             = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-    merged_path             = merged_path.collide(GraphPath::from_merged_paths(fragment.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+    merged_path             = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+    merged_path             = merged_path.collide(GraphPath::from_merged_paths(fragment.iter().map(|path| (path, PathLabel(1)))), 0.01);
 
     // Ray cast along the fragment edge
     let ypos                = 570.0;

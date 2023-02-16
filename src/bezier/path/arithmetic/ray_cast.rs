@@ -39,7 +39,7 @@ where
 /// The parameters are the path number (counting from 0) and the winding direction of the path
 ///
 #[derive(Clone, Copy, Debug)]
-pub struct PathLabel(pub u32, pub PathDirection);
+pub struct PathLabel(pub u32);
 
 impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
@@ -67,17 +67,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
         // Count collisions until we hit the point requested
         let mut count = 0;
         for (collision, curve_t, _line_t, _pos) in collisions {
-            let edge                    = collision.edge();
-            let PathLabel(_, direction) = self.edge_label(edge);
+            let edge    = collision.edge();
 
             // The relative direction of the tangent to the ray indicates the direction we're crossing in
             let normal  = self.get_edge(edge).normal_at_pos(curve_t);
-
             let side    = ray_direction.dot(&normal).signum() as i32;
-            let side    = match direction {
-                PathDirection::Clockwise        => { side },
-                PathDirection::Anticlockwise    => { -side }
-            };
 
             // Add this collision to the count
             if side < 0 {
@@ -177,16 +171,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         let is_intersection = collision.is_intersection();
                         let edge            = collision.edge();
 
-                        let PathLabel(path_number, direction) = self.edge_label(edge);
+                        let PathLabel(path_number) = self.edge_label(edge);
 
                         // The relative direction of the tangent to the ray indicates the direction we're crossing in
                         let normal  = self.get_edge(edge).normal_at_pos(curve_t);
-
                         let side    = ray_direction.dot(&normal).signum() as i32;
-                        let side    = match direction {
-                            PathDirection::Clockwise        => { side },
-                            PathDirection::Anticlockwise    => { -side }
-                        };
 
                         // Extend the path_crossings vector to accomodate all of the paths included by this ray
                         while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
