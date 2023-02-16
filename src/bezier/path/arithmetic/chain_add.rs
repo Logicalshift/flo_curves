@@ -6,10 +6,10 @@ use super::super::super::super::geo::*;
 ///
 /// Adds multiple paths in a single operation
 ///
-pub fn path_add_chain<P: BezierPath, POut: BezierPathFactory>(paths: &Vec<Vec<P>>, accuracy: f64) -> Vec<POut>
+pub fn path_add_chain<POut>(paths: &Vec<Vec<impl BezierPath<Point=POut::Point>>>, accuracy: f64) -> Vec<POut>
 where
-    P::Point:   Coordinate+Coordinate2D,
-    POut:       BezierPathFactory<Point=P::Point>,
+    POut:           BezierPathFactory,
+    POut::Point:    Coordinate+Coordinate2D,
 {
     // Build up the graph path from the supplied list
     let mut merged_path = GraphPath::new();
