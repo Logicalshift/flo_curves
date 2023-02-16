@@ -1,3 +1,4 @@
+use super::PathDirection;
 use super::path::*;
 use crate::geo::*;
 use crate::consts::*;
@@ -155,7 +156,27 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Creates a graph path from a bezier path
     /// 
-    pub fn from_path<P: BezierPath<Point=Point>>(path: &P, label: Label) -> GraphPath<Point, Label> {
+    pub fn from_path(path: &impl BezierPath<Point=Point>, label: Label) -> GraphPath<Point, Label> {
+        // Use a reversed path if the direction is anti-clockwise
+        let direction = PathDirection::from(path);
+
+        match direction {
+            PathDirection::Clockwise        => Self::from_clockwise_path(path, label),
+            PathDirection::Anticlockwise    => Self::from_anticlockwise_path(path, label),
+        }
+    }
+
+    ///
+    /// Creates a graph path from a bezier path moving in an anti-clockwise direction
+    /// 
+    fn from_anticlockwise_path(path: &impl BezierPath<Point=Point>, label: Label) -> GraphPath<Point, Label> {
+        Self::from_clockwise_path(&path.reversed::<(Point, Vec<(Point, Point, Point)>)>(), label)
+    }
+
+    ///
+    /// Creates a graph path from a bezier path moving in the clockwise direction
+    /// 
+    fn from_clockwise_path(path: &impl BezierPath<Point=Point>, label: Label) -> GraphPath<Point, Label> {
         // All edges are exterior for a single path
         let mut points = vec![];
 
