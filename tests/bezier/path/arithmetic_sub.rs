@@ -9,7 +9,7 @@ fn subtract_circles() {
     let circle2 = Circle::new(Coord2(7.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Combine them
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
 
     assert!(combined_circles.len() == 1);
 
@@ -48,7 +48,7 @@ fn create_doughnut() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
 
     assert!(combined_circles.len() == 2);
 }
@@ -60,7 +60,7 @@ fn erase_all() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
 
     assert!(combined_circles.len() == 0);
 }
@@ -77,7 +77,7 @@ fn subtract_from_self_rectangles_1() {
     let rectangle2 = rectangle1.clone();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -96,7 +96,7 @@ fn subtract_from_self_rectangles_2() {
     let rectangle2 = rectangle1.clone();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -120,7 +120,7 @@ fn subtract_from_self_rectangles_3() {
         .build();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -144,7 +144,7 @@ fn subtract_from_self_rectangles_4() {
         .build();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -168,7 +168,7 @@ fn subtract_from_self_rectangles_5() {
         .build();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_outer, rectangle1_inner], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_outer, rectangle1_inner], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -192,7 +192,7 @@ fn subtract_from_self_rectangles_6() {
         .build();
 
     // Create a hole in the larger circle
-    let combined_rectangles = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_inner, rectangle1_outer], 0.01);
+    let combined_rectangles = path_sub::<SimpleBezierPath>(&vec![rectangle1_outer.clone(), rectangle1_inner.clone()], &vec![rectangle1_inner, rectangle1_outer], 0.01);
     println!("{:?}", combined_rectangles);
 
     assert!(combined_rectangles.len() != 1);
@@ -206,7 +206,7 @@ fn subtract_from_self_circles() {
     let circle2 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
-    let combined_circles = path_sub::<_, _, SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle2], &vec![circle1], 0.01);
 
     assert!(combined_circles.len() == 0);
 }
@@ -228,7 +228,7 @@ fn cut_corners() {
         .build();
 
     // Subtract them
-    let cut_corner = path_sub::<_, _, SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
+    let cut_corner = path_sub::<SimpleBezierPath>(&vec![rectangle1], &vec![rectangle2], 0.01);
 
     assert!(cut_corner.len() == 1);
 
@@ -328,7 +328,7 @@ fn subtract_triangle_from_partial_circle() {
     // 491.11087 62716864, 513.3035 137968407
 
     // Merge the two paths
-    let subtracted_path     = path_sub::<_, _, SimpleBezierPath>(&remaining, &fragment, 0.01);
+    let subtracted_path     = path_sub::<SimpleBezierPath>(&remaining, &fragment, 0.01);
 
     // This should entirely subtract the triangle from the remaining path
     assert!(subtracted_path.len() == 1);
@@ -360,7 +360,7 @@ fn subtract_rect_1_a() {
     let path1   = path_permutation(path1.clone(), 0, false);
     let path2   = path_permutation(path2.clone(), 0, true);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 3);
 }
@@ -374,7 +374,7 @@ fn subtract_rect_1_b() {
     let path1   = path_permutation(path1.clone(), 0, false);
     let path2   = path_permutation(path2.clone(), 0, false);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 3);
 }
@@ -388,7 +388,7 @@ fn subtract_rect_2_a() {
     let path1   = path_permutation(path1.clone(), 0, false);
     let path2   = path_permutation(path2.clone(), 0, true);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 1);
 }
@@ -402,7 +402,7 @@ fn subtract_rect_2_b() {
     let path1   = path_permutation(path1.clone(), 0, true);
     let path2   = path_permutation(path2.clone(), 0, false);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 1);
 }
@@ -416,7 +416,7 @@ fn subtract_rect_3_a() {
     let path1   = path_permutation(path1.clone(), 0, false);
     let path2   = path_permutation(path2.clone(), 0, true);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 2);
 }
@@ -430,7 +430,7 @@ fn subtract_rect_3_b() {
     let path1   = path_permutation(path1.clone(), 0, false);
     let path2   = path_permutation(path2.clone(), 0, false);
 
-    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
     println!("  Num paths in result: {}", sub_path.len());
     assert!(sub_path.len() == 2);
 }
@@ -451,7 +451,7 @@ fn subtract_permutations_1() {
 
                     println!();
                     println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
-                    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+                    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
                     println!("  Num paths in result: {}", sub_path.len());
                     assert!(sub_path.len() == 3);
 
@@ -482,7 +482,7 @@ fn subtract_permutations_2() {
 
                     println!();
                     println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
-                    let sub_path = path_sub::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+                    let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
                     println!("  Num paths in result: {}", sub_path.len());
                     assert!(sub_path.len() == 3);
                 }
