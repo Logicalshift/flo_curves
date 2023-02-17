@@ -18,7 +18,9 @@ pub fn path_permutation(path: Vec<Coord2>, start_offset: usize, forward: bool) -
         };
 
         result = result.line_to(path[pos]);
-   }
+    }
+
+    result = result.line_to(path[start_offset]);
 
     result.build()
 }
