@@ -54,7 +54,10 @@ pub trait BezierPath : Geo+Clone+Sized {
     ///
     /// Creates a reversed version of this path
     ///
-    fn reversed<POut: BezierPathFactory<Point=Self::Point>>(&self) -> POut {
+    fn reversed<POut>(&self) -> POut
+    where
+        POut: BezierPathFactory<Point=Self::Point>,
+    {
         // Add in the first point (control points don't matter)
         let fake_first_point    = (Self::Point::origin(), Self::Point::origin(), self.start_point());
         let points              = self.points();
