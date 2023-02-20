@@ -143,13 +143,25 @@ fn repeatedly_full_intersect_circle() {
             .line_to(Coord2(x3, y3))
             .build();
 
-        if slice_idx == 1 {
+        // Cut the circle via the fragment
+        let cut_circle              = path_full_intersect::<SimpleBezierPath>(&vec![fragment.clone()], &remaining, 0.01);
+
+        // Add the slice and the remaining part of the circle
+        slices.push(cut_circle.intersecting_path);
+        let old_remaining = remaining;
+        remaining = cut_circle.exterior_paths[1].clone();
+
+        if remaining.len() != 1 || cut_circle.exterior_paths[0].len() != 1 || cut_circle.exterior_paths[1].len() != 1 {
             use flo_curves::debug::*;
 
             // Write out an SVG path (of the subtract part of the intersection, which produces the extra sections)
             let mut merged_path = GraphPath::new();
-            merged_path         = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+            /*
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(old_remaining.iter().map(|path| (path, PathLabel(0)))));
             merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(1)))), 0.01);
+            */
+            merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![fragment.clone()].iter().map(|path| (path, PathLabel(0)))));
+            merged_path         = merged_path.collide(GraphPath::from_merged_paths(old_remaining.iter().map(|path| (path, PathLabel(1)))), 0.01);
             merged_path.round(0.01);
 
             merged_path.set_exterior_by_subtracting();
@@ -159,13 +171,6 @@ fn repeatedly_full_intersect_circle() {
             println!("{}", graph_path_svg_string(&merged_path, vec![]));
             println!();
         }
-
-        // Cut the circle via the fragment
-        let cut_circle              = path_full_intersect::<SimpleBezierPath>(&vec![fragment], &remaining, 0.01);
-
-        // Add the slice and the remaining part of the circle
-        slices.push(cut_circle.intersecting_path);
-        remaining = cut_circle.exterior_paths[1].clone();
 
         println!("{} paths in remaining, {}, {} paths in exterior paths", remaining.len(), cut_circle.exterior_paths[0].len(), cut_circle.exterior_paths[1].len());
         assert!(remaining.len() == 1);
