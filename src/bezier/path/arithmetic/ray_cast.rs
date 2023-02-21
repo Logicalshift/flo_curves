@@ -213,45 +213,6 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         // If the ray is either still inside or outside the result, set all the edges to interior
                         edges_to_set.for_each(|edge| self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior));
                     }
-
-                    /*
-                        // At an intersection, we'll hit both edges but we haven't got enough information to see whether or not they're moving into or
-                        // out of the shape, so we can't set their kind here as we may encounter them in any order
-
-                        // If this isn't an intersection, set whether or not the edge is exterior
-                        let edge_kind = self.edge_kind(edge);
-                        if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
-                            // Exterior edges move from inside to outside or vice-versa
-                            if curve_t > 0.1 && curve_t < 0.9 {
-                                // Collisions close to an intersection are more likely subject to ordering or numeric errors,
-                                // so we leave those for another ray to resolve. Eg: a curve might be inside the shape until the very end.
-                                if was_inside ^ is_inside {
-                                    // Exterior edge
-                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                                } else {
-                                    // Interior edge
-                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
-                                }
-                            }
-                        } else if !is_intersection {
-                            // We've already categorized this edge: when running in a test, fail if it changes
-                            if curve_t > 0.1 && curve_t < 0.9 {
-                                if was_inside ^ is_inside {
-                                    if edge_kind != GraphPathEdgeKind::Exterior {
-                                        // We've likely got a missing collision in the graph so an edge is both inside and outside
-                                        // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
-                                        self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                                    }
-
-                                    // This is a bug so fail in debug builds
-                                    test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
-                                } else {
-                                    test_assert!(edge_kind == GraphPathEdgeKind::Interior);
-                                }
-                            }
-                        }
-                    }
-                    */
                 }
 
                 // The ray should exit and enter the path an even number of times
