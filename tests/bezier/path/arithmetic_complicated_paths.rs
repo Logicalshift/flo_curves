@@ -526,6 +526,10 @@ fn remove_interior_points_3() {
     graph_path.self_collide(0.01);
     graph_path.set_exterior_by_removing_interior_points();
 
+    println!();
+    println!("{}", graph_path_svg_string(&graph_path, vec![]));
+    println!();
+
     let paths = graph_path.exterior_paths::<SimpleBezierPath>();
     println!("{:?}", paths.len());
 
