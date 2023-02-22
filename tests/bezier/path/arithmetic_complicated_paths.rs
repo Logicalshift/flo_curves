@@ -70,7 +70,7 @@ fn remove_interior_points_1() {
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![&curve].into_iter().map(|path| (path, PathLabel(0)))));
 
     // Collide the path with itself to find the intersections
     merged_path.self_collide(0.01);
@@ -418,7 +418,7 @@ fn remove_interior_points_complex_2_without_healing() {
         .curve_to((Coord2(591.688232421875, 841.3230590820313), Coord2(585.3775024414063, 841.3017578125)), Coord2(589.6620483398438, 842.685791015625))
         .build();
 
-    let mut graph_path = GraphPath::from_path(&path, PathLabel(0, PathDirection::Clockwise));
+    let mut graph_path = GraphPath::from_path(&path, PathLabel(0));
     graph_path.self_collide(0.01);
     graph_path.set_exterior_by_removing_interior_points();
 
@@ -522,7 +522,7 @@ fn remove_interior_points_3() {
     let removed = path_remove_interior_points::<_, SimpleBezierPath>(&vec![path.clone()], 0.01);
     assert!(removed.len() != 0);
 
-    let mut graph_path = GraphPath::from_path(&path, PathLabel(0, PathDirection::Clockwise));
+    let mut graph_path = GraphPath::from_path(&path, PathLabel(0));
     graph_path.self_collide(0.01);
     graph_path.set_exterior_by_removing_interior_points();
 
@@ -539,7 +539,7 @@ fn remove_interior_points_3() {
     }
 
     assert!(paths.len() != 0);
-    assert!(paths.len() == 4);
+    assert!(paths.len() == 3);
 }
 
 #[test]

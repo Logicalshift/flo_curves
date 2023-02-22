@@ -41,10 +41,10 @@ where
 
     // Create the graph path from the source side
     let mut merged_path = GraphPath::new();
-    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+    merged_path         = merged_path.merge(GraphPath::from_merged_paths(path1.iter().map(|path| (path, PathLabel(0)))));
 
     // Collide with the target side to generate a full path
-    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), accuracy);
+    merged_path         = merged_path.collide(GraphPath::from_merged_paths(path2.iter().map(|path| (path, PathLabel(1)))), accuracy);
     merged_path.round(accuracy);
 
     // Set the exterior edges using the 'subtract' algorithm

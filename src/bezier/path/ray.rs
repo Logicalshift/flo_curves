@@ -153,7 +153,7 @@ pub (crate) fn group_overlapped_collisions<Path: RayPath>(path: Path, collisions
         let dx  = last_pos.x() - next_pos.x();
         let dy  = last_pos.y() - next_pos.y();
 
-        if dx >= SMALL_DISTANCE || dy >= SMALL_DISTANCE {
+        if dx.abs() >= SMALL_DISTANCE || dy.abs() >= SMALL_DISTANCE {
             // Collisions do not overlap: start a new group (most common case)
             grouped_collisions.push(smallvec![next_collision]);
         } else if !edges_overlap(&path, last_edge.edge(), next_edge.edge()) {

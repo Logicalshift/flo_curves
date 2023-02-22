@@ -125,7 +125,7 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 1);
-            assert!(edges[0].end_point().distance_to(&Coord2(5.0, 4.0)) < 0.1);
+            assert!(edges[0].end_point().distance_to(&Coord2(5.0, 4.0)) < 0.1 || edges[0].end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
             assert!(edges.iter().all(|edge| edge.label() == 1));
         }
 
@@ -133,7 +133,7 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 1);
-            assert!(edges[0].end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1);
+            assert!(edges[0].end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 || edges[0].end_point().distance_to(&Coord2(5.0, 4.0)) < 0.1);
             assert!(edges.iter().all(|edge| edge.label() == 1));
         }
 
@@ -141,7 +141,7 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 1);
-            assert!(edges[0].end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
+            assert!(edges[0].end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1 || edges[0].end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1);
             assert!(edges.iter().all(|edge| edge.label() == 1));
         }
 
@@ -149,7 +149,7 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 1);
-            assert!(edges[0].end_point().distance_to(&Coord2(5.0, 4.0)) < 0.1);
+            assert!(edges[0].end_point().distance_to(&Coord2(5.0, 4.0)) < 0.1 || edges[0].end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1);
             assert!(edges.iter().all(|edge| edge.label() == 2));
         }
 
@@ -158,8 +158,8 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 2);
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 4.0)) < 0.1));
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1));
+            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 4.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 9.0)) < 0.1));
+            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
             assert!(edges.iter().any(|edge| edge.label() == 1));
             assert!(edges.iter().any(|edge| edge.label() == 2));
         }
@@ -168,8 +168,8 @@ pub fn collide_two_rectangles() {
             check_count += 1;
 
             assert!(edges.len() == 2);
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(9.0, 4.0)) < 0.1));
-            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
+            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(9.0, 4.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 4.0)) < 0.1));
+            assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(5.0, 1.0)) < 0.1));
             assert!(edges.iter().any(|edge| edge.label() == 1));
             assert!(edges.iter().any(|edge| edge.label() == 2));
         }
@@ -306,17 +306,17 @@ fn multiple_collisions_on_one_edge_opposite_direction() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
@@ -387,17 +387,17 @@ fn collision_at_same_point() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
@@ -471,17 +471,17 @@ fn collision_exactly_on_edge_src() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
@@ -555,17 +555,17 @@ fn collision_exactly_on_edge_tgt() {
             num_intersects += 1;
 
             if edges[0].start_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 0.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 5.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(1.0, 1.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 1.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 0.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(2.0, 5.0)) < 0.1 {
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(2.0, 1.0)) < 0.1 || edge.end_point().distance_to(&Coord2(2.0, 6.0)) < 0.1));
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 5.0)) < 0.1));
             } else if edges[0].start_point().distance_to(&Coord2(4.0, 5.0)) < 0.1 {
                 assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1));
-                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1));
+                assert!(edges.iter().any(|edge| edge.end_point().distance_to(&Coord2(4.0, 6.0)) < 0.1 || edge.end_point().distance_to(&Coord2(4.0, 1.0)) < 0.1));
             } else {
                 // These are the only four intersection points that should exist
                 println!("{:?}", edges[0].start_point());
@@ -1070,8 +1070,8 @@ fn collide_at_shared_point() {
 
     assert!(edges_at_shared.len() == 2);
     assert!(edges_at_shared[0].start_point_index() == edges_at_shared[1].start_point_index());
-    assert!(edges_at_shared[0].end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(edges_at_shared[1].end_point().distance_to(&Coord2(3.0, 3.0)) < 0.1);
+    assert!(edges_at_shared[0].end_point().distance_to(&Coord2(1.0, 5.0)) < 0.1 || edges_at_shared[0].end_point().distance_to(&Coord2(5.0, 5.0)) < 0.1 );
+    assert!(edges_at_shared[1].end_point().distance_to(&Coord2(3.0, 3.0)) < 0.1 || edges_at_shared[1].end_point().distance_to(&Coord2(3.0, 7.0)) < 0.1);
 
     let points_at_shared = (0..(graph.num_points())).into_iter().filter(|point_idx| graph.point_position(*point_idx).distance_to(&Coord2(3.0, 5.0)) < 0.01).collect::<Vec<_>>();
     assert!(points_at_shared.len() == 2);
@@ -1120,7 +1120,7 @@ fn ray_collide_along_convex_edge() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise));
+    let gp = GraphPath::from_path(&rectangle1, PathLabel(0));
 
     let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
     let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
@@ -1145,7 +1145,7 @@ fn ray_collide_along_concave_edge() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&concave_shape, PathLabel(0, PathDirection::Clockwise));
+    let gp = GraphPath::from_path(&concave_shape, PathLabel(0));
 
     let collisions_seam     = gp.ray_collisions(&(Coord2(5.0, 0.0), Coord2(5.0, 5.0)));
     let collisions_no_seam  = gp.ray_collisions(&(Coord2(4.9, 0.0), Coord2(4.9, 5.0)));
@@ -1175,7 +1175,7 @@ fn ray_collide_along_seam_with_intersection() {
         .build();
 
     // Collide along the vertical seam of this graph
-    let gp = GraphPath::from_path(&rectangle1, PathLabel(0, PathDirection::Clockwise)).collide(GraphPath::from_path(&rectangle2, PathLabel(1, PathDirection::Clockwise)), 0.01);
+    let gp = GraphPath::from_path(&rectangle1, PathLabel(0)).collide(GraphPath::from_path(&rectangle2, PathLabel(1)), 0.01);
 
     println!("{:?}", gp);
 
@@ -1760,8 +1760,8 @@ pub fn ray_cast_converging_curves() {
         .build();
 
     // Merge into a graph
-    let rectangle       = GraphPath::from_path(&rectangle, PathLabel(0, PathDirection::Clockwise));
-    let curved_shape    = GraphPath::from_path(&curved_shape, PathLabel(1, PathDirection::Clockwise));
+    let rectangle       = GraphPath::from_path(&rectangle, PathLabel(0));
+    let curved_shape    = GraphPath::from_path(&curved_shape, PathLabel(1));
 
     let path            = rectangle.collide(curved_shape, 0.01);
 

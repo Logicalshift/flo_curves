@@ -1,3 +1,6 @@
+use super::checks::*;
+use super::permute::*;
+
 use flo_curves::*;
 use flo_curves::arc::*;
 use flo_curves::bezier::path::*;
@@ -232,19 +235,18 @@ fn cut_corners() {
 
     assert!(cut_corner.len() == 1);
 
-    let cut_corner  = &cut_corner[0];
-    let points      = cut_corner.points().collect::<Vec<_>>();
+    let points      = cut_corner[0].points().collect::<Vec<_>>();
 
     println!("{} points ({:?})", points.len(), points);
 
-    assert!(cut_corner.start_point().distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points[4].2.distance_to(&Coord2(5.0, 1.0)) < 0.1);
-    assert!(points[3].2.distance_to(&Coord2(5.0, 4.0)) < 0.1);
-    assert!(points[2].2.distance_to(&Coord2(4.0, 4.0)) < 0.1);
-    assert!(points[1].2.distance_to(&Coord2(4.0, 5.0)) < 0.1);
-    assert!(points[0].2.distance_to(&Coord2(1.0, 5.0)) < 0.1);
-    assert!(points[5].2.distance_to(&Coord2(1.0, 1.0)) < 0.1);
-    assert!(points.len() == 6);
+    assert!(path_has_end_points_in_order(cut_corner[0].clone(), vec![
+        Coord2(5.0, 1.0),
+        Coord2(5.0, 4.0),
+        Coord2(4.0, 4.0),
+        Coord2(4.0, 5.0),
+        Coord2(1.0, 5.0),
+        Coord2(1.0, 1.0),
+    ], 0.01));
 }
 
 #[test]
@@ -262,8 +264,8 @@ fn subtract_triangle_from_partial_circle_graph() {
 
     // Merge the two paths
     let mut merged_path     = GraphPath::new();
-    merged_path             = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
-    merged_path             = merged_path.collide(GraphPath::from_merged_paths(fragment.iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.01);
+    merged_path             = merged_path.merge(GraphPath::from_merged_paths(remaining.iter().map(|path| (path, PathLabel(0)))));
+    merged_path             = merged_path.collide(GraphPath::from_merged_paths(fragment.iter().map(|path| (path, PathLabel(1)))), 0.01);
 
     // Ray cast along the fragment edge
     let ypos                = 570.0;
@@ -332,23 +334,6 @@ fn subtract_triangle_from_partial_circle() {
 
     // This should entirely subtract the triangle from the remaining path
     assert!(subtracted_path.len() == 1);
-}
-
-fn path_permutation(path: Vec<Coord2>, start_offset: usize, forward: bool) -> SimpleBezierPath {
-    let mut result = BezierPathBuilder::start(path[start_offset]);
-
-    for idx in 1..path.len() {
-        let pos = if forward {
-            (start_offset + idx) % path.len()
-        } else {
-            let idx = (path.len()) - idx;
-            (start_offset + idx) % path.len()
-        };
-
-        result = result.line_to(path[pos]);
-   }
-
-    result.build()
 }
 
 #[test]
@@ -442,7 +427,7 @@ fn subtract_permutations_1() {
     let path2   = vec![Coord2(206.0, 391.0), Coord2(206.0, 63.0), Coord2(281.0, 66.0), Coord2(281.0, 320.0), Coord2(649.0, 320.0), Coord2(649.0, 63.0), Coord2(734.0, 63.0), Coord2(734.0, 391.0)];
 
     for forward_1 in [true, false] {
-        for forward_2 in [true, false] {
+        for forward_2 in [false, true] {
             for pos1 in 0..path1.len() {
                 let path1 = path_permutation(path1.clone(), pos1, forward_1);
 
@@ -453,6 +438,26 @@ fn subtract_permutations_1() {
                     println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
                     let sub_path = path_sub::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
                     println!("  Num paths in result: {}", sub_path.len());
+
+                    if sub_path.len() != 3 {
+                        let mut merged_path     = GraphPath::new();
+                        merged_path             = merged_path.merge(GraphPath::from_merged_paths(vec![path1.clone()].iter().map(|path| (path, PathLabel(0)))));
+                        merged_path             = merged_path.collide(GraphPath::from_merged_paths(vec![path2.clone()].iter().map(|path| (path, PathLabel(1)))), 0.01);
+
+                        // Ray cast along the fragment edge
+                        let ypos                = 570.0;
+                        let collisions          = merged_path.ray_collisions(&(Coord2(0.0, ypos), Coord2(1.0, ypos)));
+                        println!("{:?}", collisions);
+
+                        // Subtract fragment from remaining
+                        println!();
+                        merged_path.set_exterior_by_subtracting();
+                        println!();
+                        println!("{}", flo_curves::debug::graph_path_svg_string(&merged_path, vec![(Coord2(0.0, ypos), Coord2(1.0, ypos))]));
+                        println!();
+                        merged_path.heal_exterior_gaps();
+                    }
+
                     assert!(sub_path.len() == 3);
 
                     for path in sub_path.iter() {

@@ -54,19 +54,26 @@ pub trait BezierPath : Geo+Clone+Sized {
     ///
     /// Creates a reversed version of this path
     ///
-    fn reversed<POut: BezierPathFactory<Point=Self::Point>>(&self) -> POut {
+    fn reversed<POut>(&self) -> POut
+    where
+        POut: BezierPathFactory<Point=Self::Point>,
+    {
         // Add in the first point (control points don't matter)
         let fake_first_point    = (Self::Point::origin(), Self::Point::origin(), self.start_point());
         let points              = self.points();
         let points              = iter::once(fake_first_point).chain(points);
 
         // Reverse the direction of the path
-        let reversed_points = points
-            .tuple_windows()
-            .map(|((_, _, start_point), (cp1, cp2, _))| (cp2, cp1, start_point))
-            .collect::<Vec<_>>();
+        let mut end_point = self.start_point();
+        let mut reversed_points = vec![];
 
-        POut::from_points(self.start_point(), reversed_points.into_iter().rev())
+        for ((_, _, start_point), (cp1, cp2, last_point)) in points.tuple_windows() {
+            end_point = last_point;
+
+            reversed_points.push((cp2, cp1, start_point));
+        }
+
+        POut::from_points(end_point, reversed_points.into_iter().rev())
     }
 }
 

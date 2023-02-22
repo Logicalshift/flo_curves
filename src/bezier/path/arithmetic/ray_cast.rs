@@ -39,7 +39,7 @@ where
 /// The parameters are the path number (counting from 0) and the winding direction of the path
 ///
 #[derive(Clone, Copy, Debug)]
-pub struct PathLabel(pub u32, pub PathDirection);
+pub struct PathLabel(pub u32);
 
 impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
     ///
@@ -67,17 +67,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
         // Count collisions until we hit the point requested
         let mut count = 0;
         for (collision, curve_t, _line_t, _pos) in collisions {
-            let edge                    = collision.edge();
-            let PathLabel(_, direction) = self.edge_label(edge);
+            let edge    = collision.edge();
 
             // The relative direction of the tangent to the ray indicates the direction we're crossing in
             let normal  = self.get_edge(edge).normal_at_pos(curve_t);
-
             let side    = ray_direction.dot(&normal).signum() as i32;
-            let side    = match direction {
-                PathDirection::Clockwise        => { side },
-                PathDirection::Anticlockwise    => { -side }
-            };
 
             // Add this collision to the count
             if side < 0 {
@@ -172,68 +166,56 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         overlapping_group
                     };
 
+                    // Determine if the ray is already inside or outside of the path
+                    let was_inside = is_inside(&path_crossings);
+
                     // Process the edges in the group
-                    for (collision, curve_t, _line_t, _pos) in overlapping_group {
-                        let is_intersection = collision.is_intersection();
+                    for (collision, curve_t, _line_t, _pos) in overlapping_group.iter() {
                         let edge            = collision.edge();
 
-                        let PathLabel(path_number, direction) = self.edge_label(edge);
+                        let PathLabel(path_number) = self.edge_label(edge);
 
                         // The relative direction of the tangent to the ray indicates the direction we're crossing in
-                        let normal  = self.get_edge(edge).normal_at_pos(curve_t);
-
+                        let normal  = self.get_edge(edge).normal_at_pos(*curve_t);
                         let side    = ray_direction.dot(&normal).signum() as i32;
-                        let side    = match direction {
-                            PathDirection::Clockwise        => { side },
-                            PathDirection::Anticlockwise    => { -side }
-                        };
 
                         // Extend the path_crossings vector to accomodate all of the paths included by this ray
                         while path_crossings.len() <= path_number as usize { path_crossings.push(0); }
 
-                        let was_inside = is_inside(&path_crossings);
                         if side < 0 {
                             path_crossings[path_number as usize] -= 1;
                         } else if side > 0 {
                             path_crossings[path_number as usize] += 1;
                         }
-                        let is_inside = is_inside(&path_crossings);
+                    }
 
-                        // At an intersection, we'll hit both edges but we haven't got enough information to see whether or not they're moving into or
-                        // out of the shape, so we can't set their kind here as we may encounter them in any order
+                    // Determine if the ray is now inside or outside of the path
+                    let is_inside = is_inside(&path_crossings);
 
-                        // If this isn't an intersection, set whether or not the edge is exterior
-                        let edge_kind = self.edge_kind(edge);
-                        if !is_intersection && (edge_kind == GraphPathEdgeKind::Uncategorised || edge_kind == GraphPathEdgeKind::Visited) {
-                            // Exterior edges move from inside to outside or vice-versa
-                            if curve_t > 0.1 && curve_t < 0.9 {
-                                // Collisions close to an intersection are more likely subject to ordering or numeric errors,
-                                // so we leave those for another ray to resolve. Eg: a curve might be inside the shape until the very end.
-                                if was_inside ^ is_inside {
-                                    // Exterior edge
-                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                                } else {
-                                    // Interior edge
-                                    self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior);
-                                }
-                            }
-                        } else if !is_intersection {
-                            // We've already categorized this edge: when running in a test, fail if it changes
-                            if curve_t > 0.1 && curve_t < 0.9 {
-                                if was_inside ^ is_inside {
-                                    if edge_kind != GraphPathEdgeKind::Exterior {
-                                        // We've likely got a missing collision in the graph so an edge is both inside and outside
-                                        // Set the edge to be an 'exterior' one so that we increase the chances of finding a path
-                                        self.set_edge_kind_connected(edge, GraphPathEdgeKind::Exterior);
-                                    }
+                    // Filter the edges to those that are not hit by a ray close to the end or at an intersection
+                    let mut edges_to_set = overlapping_group.into_iter()
+                        .filter(|(collision, curve_t, _line_t, _pos)| {
+                            // Rays passing close to intersections or the end of a curve are more likely to be out-of-order
+                            let is_intersection = collision.is_intersection();
+                            let is_near_end     = *curve_t < 0.01 || *curve_t > 0.99;
 
-                                    // This is a bug so fail in debug builds
-                                    test_assert!(edge_kind == GraphPathEdgeKind::Exterior);
-                                } else {
-                                    test_assert!(edge_kind == GraphPathEdgeKind::Interior);
-                                }
-                            }
+                            !is_intersection && !is_near_end
+                        })
+                        .map(|(collision, _, _, _)| collision.edge());
+
+                    if was_inside ^ is_inside {
+                        // If the ray moved from outside to inside or vice-versa, set one of the edges as an exterior edge (doesn't matter which one)
+                        if let Some(first_edge) = edges_to_set.next() {
+                            self.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
                         }
+                        edges_to_set.for_each(|edge| self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior));
+                    } else {
+                        // If the ray is either still inside or outside the result, set all the edges to interior
+                        edges_to_set.for_each(|edge| {
+                            test_assert!(self.edge_kind(edge) != GraphPathEdgeKind::Exterior);
+
+                            self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior)
+                        });
                     }
                 }
 
