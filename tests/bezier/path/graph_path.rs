@@ -1757,7 +1757,6 @@ pub fn ray_cast_converging_curves() {
         .line_to(Coord2(5.0, 5.0))
         .curve_to((Coord2(2.0, 5.0), Coord2(1.0, 5.0 - y_offset)), Coord2(1.0 - x_offset, 5.0))
         .line_to(Coord2(1.0, 1.0))
-        .line_to(Coord2(1.0 - x_offset, 1.0 - y_offset))
         .build();
 
     // Merge into a graph
