@@ -211,7 +211,11 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                         edges_to_set.for_each(|edge| self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior));
                     } else {
                         // If the ray is either still inside or outside the result, set all the edges to interior
-                        edges_to_set.for_each(|edge| self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior));
+                        edges_to_set.for_each(|edge| {
+                            test_assert!(self.edge_kind(edge) != GraphPathEdgeKind::Exterior);
+
+                            self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior)
+                        });
                     }
                 }
 
