@@ -206,7 +206,7 @@ impl<Point: Coordinate+Coordinate2D> GraphPath<Point, PathLabel> {
                     if was_inside ^ is_inside {
                         // If the ray moved from outside to inside or vice-versa, set one of the edges as an exterior edge (doesn't matter which one)
                         if let Some(first_edge) = edges_to_set.next() {
-                            self.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior)
+                            self.set_edge_kind_connected(first_edge, GraphPathEdgeKind::Exterior);
                         }
                         edges_to_set.for_each(|edge| self.set_edge_kind_connected(edge, GraphPathEdgeKind::Interior));
                     } else {
