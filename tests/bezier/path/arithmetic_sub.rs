@@ -495,3 +495,35 @@ fn subtract_permutations_2() {
         }
     }
 }
+
+#[test]
+fn subtract_center_overlapping() {
+    // Plus sign
+    let plus = vec![Coord2(0.0, 10.0), Coord2(0.0, 20.0), Coord2(10.0, 20.0), Coord2(10.0, 30.0), Coord2(20.0, 30.0), Coord2(20.0, 20.0), 
+        Coord2(30.0, 20.0), Coord2(30.0, 10.0), Coord2(20.0, 10.0), Coord2(20.0, 0.0), Coord2(10.0, 0.0), Coord2(10.0, 10.0)];
+
+    // Remove the exact center using subtract
+    let center = vec![Coord2(10.0, 10.0), Coord2(10.0, 20.0), Coord2(20.0, 20.0), Coord2(20.0, 10.0)];
+
+    for forward_1 in [true, false] {
+        for forward_2 in [true, false] {
+            for pos1 in 0..plus.len() {
+                let plus = path_permutation(plus.clone(), pos1, forward_1);
+
+                for pos2 in 0..center.len() {
+                    let center = path_permutation(center.clone(), pos2, forward_2);
+
+                    println!();
+                    println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
+                    let sub_path = path_sub::<SimpleBezierPath>(&vec![plus.clone()], &vec![center.clone()], 0.1);
+                    println!("  Num paths in result: {}", sub_path.len());
+
+                    // Result should be either 2 paths (ie, the plus with the center removed) or 4 paths (four squares around the center)
+                    // 5 is the wrong answer (all 5 squares make a valid loop but we should never detect the center section as a separate path along with the
+                    // 4 other sections)
+                    assert!(sub_path.len() == 2 || sub_path.len() == 4);
+                }
+            }
+        }
+    }
+}
