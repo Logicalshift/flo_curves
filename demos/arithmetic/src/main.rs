@@ -50,10 +50,44 @@ fn main() {
             let path5           = path_permutation(vec![Coord2(64.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)], 0, false);
 
             // Add and subtract them to generate the final path
-            let path            = path_add::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
-            let path            = path_sub::<_, _, SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
+            let path            = path_add::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+            let path            = path_sub::<SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
 
-            let sub_path_test   = path_sub::<_, _, SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
+            let sub_path_test   = path_sub::<SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
+
+            // Chequerboard test
+            let mut chequerboard = vec![
+                BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+                    .line_to(Coord2(10.0, 0.0))
+                    .line_to(Coord2(10.0, 10.0))
+                    .line_to(Coord2(0.0, 10.0))
+                    .line_to(Coord2(0.0, 0.0))
+                    .build()
+            ];
+
+            // Subtract every other square
+            let num_rows = since_start / 1_000_000_000.0;
+            let num_rows = (num_rows as u64) % 10;
+
+            for y in 0..num_rows {
+                for x in 0..5 {
+                    let x = if y%2 == 0 {
+                        (x as f64)*2.0 + 1.0
+                    } else {
+                        (x as f64)*2.0
+                    };
+                    let y = y as f64;
+
+                    let inner_square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y))
+                        .line_to(Coord2(x+1.0, y))
+                        .line_to(Coord2(x+1.0, y+1.0))
+                        .line_to(Coord2(x, y+1.0))
+                        .line_to(Coord2(x, y))
+                        .build();
+
+                    chequerboard = path_sub(&chequerboard, &vec![inner_square], 0.01);
+                }
+            }
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
@@ -105,10 +139,10 @@ fn main() {
 
                 // Create the graph path from the source side
                 let mut merged_path = GraphPath::new();
-                merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![path5].iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+                merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![path5].iter().map(|path| (path, PathLabel(0)))));
 
                 // Collide with the target side to generate a full path
-                merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![path4].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.1);
+                merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![path4].iter().map(|path| (path, PathLabel(1)))), 0.1);
                 merged_path.round(0.1);
 
                 // Set the exterior edges using the 'subtract' algorithm
@@ -129,6 +163,20 @@ fn main() {
 
                     gc.stroke();
                 }
+
+                // Draw the chequerboard
+                gc.push_state();
+
+                gc.transform(Transform2D::translate(100.0, 600.0) * Transform2D::scale(20.0, 20.0));
+
+                gc.fill_color(Color::Rgba(0.0, 0.4, 0.6, 1.0));
+                gc.new_path();
+                for p in chequerboard.iter() {
+                    gc.bezier_path(p);
+                }
+                gc.fill();
+
+                gc.pop_state();
             });
         }
     });
