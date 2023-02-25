@@ -891,8 +891,10 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Given the index of a starting edge in a connections list, attempts to find the shortest loop of edges that returns
     /// back to the edge's start point
     ///
+    /// If there's a choice, this will not follow any previously used edge (but will follow them if that's the way to make progress with a loop of edges)
+    ///
     #[inline]
-    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize) -> Option<Vec<(usize, GraphEdgeRef)>> {
+    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize, used_edges: &Vec<u64>) -> Option<Vec<(usize, GraphEdgeRef)>> {
         // The algorithm here is a slight modification of Dijkstra's algorithm, we start knowing the path has to contain a particular edge
         let mut previous_point          = vec![None; connections.len()];
 
@@ -930,9 +932,28 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             visited_edges[edge_ref.start_idx] |= 1<<(edge_ref.edge_idx);
 
             // Visit all the points reachable from this edge, ignoring any edges that we've already visited
-            for (following_point_idx, following_edge) in connections[next_point_idx].iter() {
+            let following_connections = &connections[next_point_idx];
+
+            // Check the 'already used' list only if there are no alternative edges from this point
+            let avoid_already_used = if following_connections.len() > 1 {
+                // Use the 'used' array to exclude edges unless it would exclude all edges
+                following_connections.iter()
+                    .any(|(_following_point_idx, following_edge)| {
+                        visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
+                        && used_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
+                    })
+            } else {
+                false
+            };
+
+            for (following_point_idx, following_edge) in following_connections.iter() {
                 // Don't follow visited edges
                 if visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) != 0 {
+                    continue;
+                }
+
+                // Also avoid edges used for previous shapes unless they are the only way to make progress
+                if avoid_already_used && used_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) != 0 {
                     continue;
                 }
 
@@ -1047,7 +1068,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 included_edges[edge_ref.start_idx] |= 1<<edge_ref.edge_idx;
 
                 // Try to find a loop from this edge
-                if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx) {
+                if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx, &included_edges) {
                     // Mark all the loop edges as visited
                     for (_, edge) in loop_edges.iter() {
                         included_edges[edge.start_idx] |= 1<<edge.edge_idx;
