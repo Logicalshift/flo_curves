@@ -521,9 +521,56 @@ fn subtract_center_overlapping() {
                     // Result should be either 2 paths (ie, the plus with the center removed) or 4 paths (four squares around the center)
                     // 5 is the wrong answer (all 5 squares make a valid loop but we should never detect the center section as a separate path along with the
                     // 4 other sections)
+                    assert!(sub_path.len() != 5, "Should not generate center as a separate path");
                     assert!(sub_path.len() == 2 || sub_path.len() == 4);
                 }
             }
+        }
+    }
+}
+
+#[test]
+fn subtract_chequerboard() {
+    // This subtracts alternating squares from a 'main' square to make a chequerboard
+    // It's a more involved version of the '+' test above as each square after the first row will
+    // share edges with other squares so it's easy for the path finding algorithm to get confused and
+    // turn a 'hole' into a shape.
+    //
+    // The condition here isn't perfect, it's possible for the result to be 'bad' but the overall number
+    // of shapes in the result to be correct
+
+    // Outer square
+    let square = vec![Coord2(0.0, 0.0), Coord2(10.0, 0.0), Coord2(10.0, 10.0), Coord2(0.0, 10.0)];
+
+    for forward in [true, false] {
+        for pos in 0..square.len() {
+            println!("{:?} {:?}", forward, pos);
+
+            let mut chequerboard = vec![path_permutation(square.clone(), pos, forward)];
+
+            // Subtract every other square
+            for y in 0..10 {
+                for x in 0..5 {
+                    let x = if y%2 == 0 {
+                        (x as f64)*2.0 + 1.0
+                    } else {
+                        (x as f64)*2.0
+                    };
+                    let y = y as f64;
+
+                    let inner_square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y))
+                        .line_to(Coord2(x+1.0, y))
+                        .line_to(Coord2(x+1.0, y+1.0))
+                        .line_to(Coord2(x, y+1.0))
+                        .line_to(Coord2(x, y))
+                        .build();
+
+                    chequerboard = path_sub(&chequerboard, &vec![inner_square], 0.01);
+                }
+            }
+
+            println!("{:?}", chequerboard.len());
+            assert!(chequerboard.len() == 50);
         }
     }
 }
