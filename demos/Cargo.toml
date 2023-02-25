@@ -5,7 +5,6 @@ members = [
     "distort",
     "arithmetic",
     "curve_intersections",
-    "remove_interior_points"
 ]
 
 [patch.crates-io]
