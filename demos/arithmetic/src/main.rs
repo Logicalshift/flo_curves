@@ -66,11 +66,15 @@ fn main() {
             ];
 
             // Subtract every other square
-            let num_rows = since_start / 250_000_000.0;
-            let num_rows = (num_rows as u64) % 11;
+            let num_cols = since_start / 250_000_000.0;
+            let num_rows = num_cols/5.0;
+            let num_rows = (num_rows as u64) % 10 + 1;
+            let num_cols = (num_cols as u64) % 5 + 1;
 
             for y in 0..num_rows {
-                for x in 0..5 {
+                let num_cols = if y == (num_rows-1) { num_cols } else { 5 };
+
+                for x in 0..num_cols {
                     let x = if y%2 == 0 {
                         (x as f64)*2.0 + 1.0
                     } else {
