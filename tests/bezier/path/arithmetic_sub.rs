@@ -567,10 +567,45 @@ fn subtract_chequerboard() {
 
                     chequerboard = path_sub(&chequerboard, &vec![inner_square], 0.01);
                 }
+
+                // Always should be 10 collisions horizontally, and 2 on the following line. Vertical collisions should go up as we add new lines
+                let y               = y as f64;
+                let ray             = (Coord2(0.0, y+0.5), Coord2(1.0, y+0.5));
+                let collisions_1    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                let ray             = (Coord2(0.0, y+1.5), Coord2(1.0, y+1.5));
+                let collisions_2    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                let ray             = (Coord2(0.5, 0.0), Coord2(0.5, 1.0));
+                let collisions_3    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                println!("{} - {} {} {}", y, collisions_1.len(), collisions_2.len(), collisions_3.len());
             }
 
-            println!("{:?}", chequerboard.len());
-            assert!(chequerboard.len() == 50);
+            // Should produce a fixed number of collisions per row/column. Turn into a graph path and fire rays at it to see how it looks.
+            let chequerboard = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0))));
+            let mut row_collisions = vec![];
+            let mut col_collisions = vec![];
+
+            for y in 0..10 {
+                let y           = y as f64;
+                let ray         = (Coord2(0.0, y+0.5), Coord2(1.0, y+0.5));
+                let collisions  = chequerboard.ray_collisions(&ray);
+
+                row_collisions.push(collisions.len());
+            }
+
+            for x in 0..10 {
+                let x           = x as f64;
+                let ray         = (Coord2(x+0.5, 0.0), Coord2(x+0.5, 1.0));
+                let collisions  = chequerboard.ray_collisions(&ray);
+
+                col_collisions.push(collisions.len());
+            }
+
+            println!("{:?}", row_collisions);
+            println!("{:?}", col_collisions);
+
+            // All rows/columns should have 10 collisions on them
+            assert!(row_collisions == vec![10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+            assert!(col_collisions == vec![10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
         }
     }
 }
