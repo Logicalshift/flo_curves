@@ -569,12 +569,13 @@ fn subtract_chequerboard() {
                 }
 
                 // Always should be 10 collisions horizontally, and 2 on the following line. Vertical collisions should go up as we add new lines
+                let x               = if y%2 == 0 { 0.5 } else { 1.5 };
                 let y               = y as f64;
                 let ray             = (Coord2(0.0, y+0.5), Coord2(1.0, y+0.5));
                 let collisions_1    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
                 let ray             = (Coord2(0.0, y+1.5), Coord2(1.0, y+1.5));
                 let collisions_2    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
-                let ray             = (Coord2(0.5, 0.0), Coord2(0.5, 1.0));
+                let ray             = (Coord2(x, 0.0), Coord2(x, 1.0));
                 let collisions_3    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
                 println!("{} - {} {} {}", y, collisions_1.len(), collisions_2.len(), collisions_3.len());
             }
