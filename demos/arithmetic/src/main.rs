@@ -79,9 +79,9 @@ fn main() {
                     let y = y as f64;
 
                     let inner_square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y))
-                        .line_to(Coord2(x+1.1, y))
-                        .line_to(Coord2(x+1.1, y+1.1))
-                        .line_to(Coord2(x, y+1.1))
+                        .line_to(Coord2(x+1.0, y))
+                        .line_to(Coord2(x+1.0, y+1.0))
+                        .line_to(Coord2(x, y+1.0))
                         .line_to(Coord2(x, y))
                         .build();
 
