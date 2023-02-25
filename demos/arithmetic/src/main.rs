@@ -66,8 +66,8 @@ fn main() {
             ];
 
             // Subtract every other square
-            let num_rows = since_start / 1_000_000_000.0;
-            let num_rows = (num_rows as u64) % 10;
+            let num_rows = since_start / 250_000_000.0;
+            let num_rows = (num_rows as u64) % 11;
 
             for y in 0..num_rows {
                 for x in 0..5 {
