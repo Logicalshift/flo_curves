@@ -50,10 +50,10 @@ fn main() {
             let path5           = path_permutation(vec![Coord2(64.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)], 0, false);
 
             // Add and subtract them to generate the final path
-            let path            = path_add::<_, _, SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
-            let path            = path_sub::<_, _, SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
+            let path            = path_add::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
+            let path            = path_sub::<SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
 
-            let sub_path_test   = path_sub::<_, _, SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
+            let sub_path_test   = path_sub::<SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
@@ -105,10 +105,10 @@ fn main() {
 
                 // Create the graph path from the source side
                 let mut merged_path = GraphPath::new();
-                merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![path5].iter().map(|path| (path, PathLabel(0, PathDirection::from(path))))));
+                merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![path5].iter().map(|path| (path, PathLabel(0)))));
 
                 // Collide with the target side to generate a full path
-                merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![path4].iter().map(|path| (path, PathLabel(1, PathDirection::from(path))))), 0.1);
+                merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![path4].iter().map(|path| (path, PathLabel(1)))), 0.1);
                 merged_path.round(0.1);
 
                 // Set the exterior edges using the 'subtract' algorithm
