@@ -33,7 +33,7 @@ fn main() {
             let initial_curve   = bezier::Curve::from_points(p0, (p1, p2), p3);
             let offset_curve_1  = bezier::offset(&initial_curve, off1, off2);
             let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, 40, 1.0).unwrap();
-            let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
+            //let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
@@ -94,7 +94,7 @@ fn main() {
                 for curve in vec![&vec![initial_curve], &offset_curve_1, &offset_curve_2].into_iter() {
                     gc.line_width(1.0);
                     gc.stroke_color(Color::Rgba(0.6, 0.0, 0.0, 0.25));
-                    for c in curve.iter().nth(0) {
+                    if let Some(c) = curve.iter().next() {
                         let p = c.start_point();
                         gc.new_path();
                         gc.circle(p.x() as _, p.y() as _, 6.0);
