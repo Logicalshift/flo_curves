@@ -176,6 +176,17 @@ fn main() {
                 }
                 gc.fill();
 
+                gc.line_width_pixels(2.0);
+                let mut h = 0.0;
+                for p in chequerboard.iter() {
+                    gc.stroke_color(Color::Hsluv(h % 360.0, 75.0, 70.0, 1.0));
+                    h += 43.0;
+
+                    gc.new_path();
+                    gc.bezier_path(p);
+                    gc.stroke();
+                }
+
                 gc.pop_state();
             });
         }
