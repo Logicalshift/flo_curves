@@ -937,6 +937,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             // Check the 'already used' list only if there are no alternative edges from this point
             let avoid_already_used = if following_connections.len() > 1 {
                 // Use the 'used' array to exclude edges unless it would exclude all edges
+                // TODO: only do this if no loop is found that does not re-use edges (this is slightly too eager to re-use an edge)
                 following_connections.iter()
                     .any(|(_following_point_idx, following_edge)| {
                         visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
@@ -1052,6 +1053,14 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         let connections = self.all_exterior_connections();
 
         // Order points by x then y index (ie, generate paths by sweeping from left to right)
+        // This is to try to ensure that paths are matched from outside in: when there are paths that share vertices, just finding loops
+        // is insufficient to always build a valid result (it's possible to generate paths that share all of their edges, which will fill
+        // or clear path sections incorrectly)
+        //
+        // We try to avoid re-using edges but will re-use an edge to generate a loop if that's the only way, which can cause this same
+        // problem to show up. Ordering like this reduces the incidence of this issue by making it so we find paths by working inwards
+        // instead of randomly (though a most of the time this issue does not occur, so this is wasted effort, though having outer paths
+        // come before inner paths is a side-benefit)
         let mut points = (0..self.points.len()).into_iter().collect::<Vec<_>>();
         points.sort_by(|point_a, point_b| {
             use std::cmp::{Ordering};
