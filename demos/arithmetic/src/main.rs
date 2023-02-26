@@ -8,23 +8,6 @@ use std::f64;
 use std::thread;
 use std::time::{Duration, Instant};
 
-fn path_permutation(path: Vec<Coord2>, start_offset: usize, forward: bool) -> SimpleBezierPath {
-    let mut result = BezierPathBuilder::start(path[start_offset]);
-
-    for idx in 1..path.len() {
-        let pos = if forward {
-            (start_offset + idx) % path.len()
-        } else {
-            let idx = (path.len()) - idx;
-            (start_offset + idx) % path.len()
-        };
-
-        result = result.line_to(path[pos]);
-   }
-
-    result.build()
-}
-
 fn main() {
     with_2d_graphics(|| {
         let canvas          = create_canvas_window("Path arithmetic demonstration");
@@ -45,15 +28,9 @@ fn main() {
             let path2           = Circle::new(Coord2(500.0 - amplitude, 500.0), 100.0).to_path::<SimpleBezierPath>();
             let path3           = Circle::new(Coord2(500.0, 500.0 - amplitude), 60.0).to_path::<SimpleBezierPath>();
 
-            // Test path
-            let path4           = path_permutation(vec![Coord2(206.0, 391.0), Coord2(206.0, 63.0), Coord2(281.0, 66.0), Coord2(281.0, 320.0), Coord2(649.0, 320.0), Coord2(649.0, 63.0), Coord2(734.0, 63.0), Coord2(734.0, 391.0)], 0, true);
-            let path5           = path_permutation(vec![Coord2(64.0, 263.0), Coord2(877.0, 263.0), Coord2(877.0, 168.0), Coord2(64.0, 168.0)], 0, false);
-
             // Add and subtract them to generate the final path
             let path            = path_add::<SimpleBezierPath>(&vec![path1.clone()], &vec![path2.clone()], 0.1);
             let path            = path_sub::<SimpleBezierPath>(&path, &vec![path3.clone()], 0.1);
-
-            let sub_path_test   = path_sub::<SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
@@ -85,13 +62,6 @@ fn main() {
                 gc.fill();
                 gc.stroke();
 
-                gc.new_path();
-                sub_path_test.iter().for_each(|sub_path_test| {
-                    gc.bezier_path(sub_path_test);
-                });
-                gc.fill();
-                gc.stroke();
-
                 // Render the path points
                 gc.line_width(1.0);
 
@@ -101,33 +71,6 @@ fn main() {
                         gc.circle(point.x() as _, point.y() as _, 5.0);
                         gc.stroke();
                     }
-                }
-
-                // Create the graph path from the source side
-                let mut merged_path = GraphPath::new();
-                merged_path         = merged_path.merge(GraphPath::from_merged_paths(vec![path5].iter().map(|path| (path, PathLabel(0)))));
-
-                // Collide with the target side to generate a full path
-                merged_path         = merged_path.collide(GraphPath::from_merged_paths(vec![path4].iter().map(|path| (path, PathLabel(1)))), 0.1);
-                merged_path.round(0.1);
-
-                // Set the exterior edges using the 'subtract' algorithm
-                merged_path.set_exterior_by_subtracting();
-
-                gc.line_width(5.0);
-                for edge in merged_path.all_edges() {
-                    gc.new_path();
-                    gc.move_to(edge.start_point().x() as _, edge.start_point().y() as _);
-                    gc.bezier_curve(&edge);
-
-                    match edge.kind() {
-                        GraphPathEdgeKind::Uncategorised => gc.stroke_color(Color::Rgba(0.0, 0.0, 0.0, 1.0)),
-                        GraphPathEdgeKind::Visited => gc.stroke_color(Color::Rgba(0.0, 0.8, 0.0, 1.0)),
-                        GraphPathEdgeKind::Interior => gc.stroke_color(Color::Rgba(0.8, 0.5, 0.0, 1.0)),
-                        GraphPathEdgeKind::Exterior => gc.stroke_color(Color::Rgba(0.0, 0.5, 0.8, 1.0)),
-                    }
-
-                    gc.stroke();
                 }
             });
         }
