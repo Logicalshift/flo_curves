@@ -1051,12 +1051,32 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Get the graph of exterior connections for the graph
         let connections = self.all_exterior_connections();
 
+        // Order points by x then y index (ie, generate paths by sweeping from left to right)
+        let mut points = (0..self.points.len()).into_iter().collect::<Vec<_>>();
+        points.sort_by(|point_a, point_b| {
+            use std::cmp::{Ordering};
+
+            let x_a = self.points[*point_a].position.x();
+            let x_b = self.points[*point_b].position.x();
+
+            if x_a < x_b {
+                Ordering::Less
+            } else if x_a > x_b {
+                Ordering::Greater
+            } else {
+                let y_a = self.points[*point_a].position.y();
+                let y_b = self.points[*point_b].position.y();
+
+                y_a.partial_cmp(&y_b).unwrap_or(Ordering::Equal)
+            }
+        });
+
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
         // Even a complex path very rarely has more than 2 edges per point
         let mut included_edges = vec![0u64; self.num_points()];
 
         // Each connection describes the exterior edges for a point
-        for (point_idx, edge_list) in connections.iter().enumerate() {
+        for (point_idx, edge_list) in points.into_iter().map(|point_idx| (point_idx, &connections[point_idx])) {
             for (edge_idx, (_end_point_idx, edge_ref)) in edge_list.iter().enumerate() {
                 // Ignore visited/included edges
                 if included_edges[edge_ref.start_idx]&(1<<edge_ref.edge_idx) != 0 {
