@@ -936,6 +936,8 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
             // Check the 'already used' list only if there are no alternative edges from this point
             let avoid_already_used = if following_connections.len() > 1 {
+                true
+                /*
                 // Use the 'used' array to exclude edges unless it would exclude all edges
                 // TODO: only do this if no loop is found that does not re-use edges (this is slightly too eager to re-use an edge)
                 following_connections.iter()
@@ -943,6 +945,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                         visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
                         && used_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
                     })
+                */
             } else {
                 false
             };
@@ -1072,7 +1075,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 let y_a = self.points[*point_a].position.y();
                 let y_b = self.points[*point_b].position.y();
 
-                y_b.partial_cmp(&y_a).unwrap_or(Ordering::Equal)
+                y_a.partial_cmp(&y_b).unwrap_or(Ordering::Equal)
             } else if x_a < x_b {
                 Ordering::Less
             } else {
