@@ -1059,15 +1059,15 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let x_a = self.points[*point_a].position.x();
             let x_b = self.points[*point_b].position.x();
 
-            if x_a < x_b {
-                Ordering::Less
-            } else if x_a > x_b {
-                Ordering::Greater
-            } else {
+            if (x_a - x_b).abs() < 0.01 {
                 let y_a = self.points[*point_a].position.y();
                 let y_b = self.points[*point_b].position.y();
 
-                y_a.partial_cmp(&y_b).unwrap_or(Ordering::Equal)
+                y_b.partial_cmp(&y_a).unwrap_or(Ordering::Equal)
+            } else if x_a < x_b {
+                Ordering::Less
+            } else {
+                Ordering::Greater
             }
         });
 
