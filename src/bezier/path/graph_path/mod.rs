@@ -891,8 +891,9 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     /// Given the index of a starting edge in a connections list, attempts to find the shortest loop of edges that returns
     /// back to the edge's start point
     ///
-    #[inline]
-    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize) -> Option<Vec<(usize, GraphEdgeRef)>> {
+    /// If there's a choice, this will not follow any previously used edge (but will follow them if that's the way to make progress with a loop of edges)
+    ///
+    fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize, used_edges: &Vec<u64>) -> Option<Vec<(usize, GraphEdgeRef)>> {
         // The algorithm here is a slight modification of Dijkstra's algorithm, we start knowing the path has to contain a particular edge
         let mut previous_point          = vec![None; connections.len()];
 
@@ -930,9 +931,19 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             visited_edges[edge_ref.start_idx] |= 1<<(edge_ref.edge_idx);
 
             // Visit all the points reachable from this edge, ignoring any edges that we've already visited
-            for (following_point_idx, following_edge) in connections[next_point_idx].iter() {
+            let following_connections = &connections[next_point_idx];
+
+            // Check the 'already used' list only if there are no alternative edges from this point
+            let avoid_already_used = following_connections.len() > 1;
+
+            for (following_point_idx, following_edge) in following_connections.iter() {
                 // Don't follow visited edges
                 if visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) != 0 {
+                    continue;
+                }
+
+                // Also avoid edges used for previous shapes unless they are the only way to make progress
+                if avoid_already_used && used_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) != 0 {
                     continue;
                 }
 
@@ -1030,12 +1041,40 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // Get the graph of exterior connections for the graph
         let connections = self.all_exterior_connections();
 
+        // Order points by x then y index (ie, generate paths by sweeping from left to right)
+        // This is to try to ensure that paths are matched from outside in: when there are paths that share vertices, just finding loops
+        // is insufficient to always build a valid result (it's possible to generate paths that share all of their edges, which will fill
+        // or clear path sections incorrectly)
+        //
+        // We try to avoid re-using edges but will re-use an edge to generate a loop if that's the only way, which can cause this same
+        // problem to show up. Ordering like this reduces the incidence of this issue by making it so we find paths by working inwards
+        // instead of randomly (though a most of the time this issue does not occur, so this is wasted effort, though having outer paths
+        // come before inner paths is a side-benefit)
+        let mut points = (0..self.points.len()).into_iter().collect::<Vec<_>>();
+        points.sort_by(|point_a, point_b| {
+            use std::cmp::{Ordering};
+
+            let x_a = self.points[*point_a].position.x();
+            let x_b = self.points[*point_b].position.x();
+
+            if (x_a - x_b).abs() < 0.01 {
+                let y_a = self.points[*point_a].position.y();
+                let y_b = self.points[*point_b].position.y();
+
+                y_a.partial_cmp(&y_b).unwrap_or(Ordering::Equal)
+            } else if x_a < x_b {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
         // Even a complex path very rarely has more than 2 edges per point
         let mut included_edges = vec![0u64; self.num_points()];
 
         // Each connection describes the exterior edges for a point
-        for (point_idx, edge_list) in connections.iter().enumerate() {
+        for (point_idx, edge_list) in points.into_iter().map(|point_idx| (point_idx, &connections[point_idx])) {
             for (edge_idx, (_end_point_idx, edge_ref)) in edge_list.iter().enumerate() {
                 // Ignore visited/included edges
                 if included_edges[edge_ref.start_idx]&(1<<edge_ref.edge_idx) != 0 {
@@ -1047,7 +1086,16 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 included_edges[edge_ref.start_idx] |= 1<<edge_ref.edge_idx;
 
                 // Try to find a loop from this edge
-                if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx) {
+                let loop_edges = if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx, &included_edges) {
+                    // Loop was found without any re-used edges
+                    Some(loop_edges)
+                } else {
+                    // Loop was found with some re-used edges
+                    // TODO: this can produce bad path results when it occurs: see comment above
+                    self.find_loop(&connections, point_idx, edge_idx, &vec![0u64; self.num_points()])
+                };
+
+                if let Some(loop_edges) = loop_edges {
                     // Mark all the loop edges as visited
                     for (_, edge) in loop_edges.iter() {
                         included_edges[edge.start_idx] |= 1<<edge.edge_idx;

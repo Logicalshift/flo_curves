@@ -495,3 +495,118 @@ fn subtract_permutations_2() {
         }
     }
 }
+
+#[test]
+fn subtract_center_overlapping() {
+    // Plus sign
+    let plus = vec![Coord2(0.0, 10.0), Coord2(0.0, 20.0), Coord2(10.0, 20.0), Coord2(10.0, 30.0), Coord2(20.0, 30.0), Coord2(20.0, 20.0), 
+        Coord2(30.0, 20.0), Coord2(30.0, 10.0), Coord2(20.0, 10.0), Coord2(20.0, 0.0), Coord2(10.0, 0.0), Coord2(10.0, 10.0)];
+
+    // Remove the exact center using subtract
+    let center = vec![Coord2(10.0, 10.0), Coord2(10.0, 20.0), Coord2(20.0, 20.0), Coord2(20.0, 10.0)];
+
+    for forward_1 in [true, false] {
+        for forward_2 in [true, false] {
+            for pos1 in 0..plus.len() {
+                let plus = path_permutation(plus.clone(), pos1, forward_1);
+
+                for pos2 in 0..center.len() {
+                    let center = path_permutation(center.clone(), pos2, forward_2);
+
+                    println!();
+                    println!("=== {} {} {} {}", pos1, pos2, forward_1, forward_2);
+                    let sub_path = path_sub::<SimpleBezierPath>(&vec![plus.clone()], &vec![center.clone()], 0.1);
+                    println!("  Num paths in result: {}", sub_path.len());
+
+                    // Result should be either 2 paths (ie, the plus with the center removed) or 4 paths (four squares around the center)
+                    // 5 is the wrong answer (all 5 squares make a valid loop but we should never detect the center section as a separate path along with the
+                    // 4 other sections)
+                    assert!(sub_path.len() != 5, "Should not generate center as a separate path");
+                    assert!(sub_path.len() == 2 || sub_path.len() == 4);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn subtract_chequerboard() {
+    // This subtracts alternating squares from a 'main' square to make a chequerboard
+    // It's a more involved version of the '+' test above as each square after the first row will
+    // share edges with other squares so it's easy for the path finding algorithm to get confused and
+    // turn a 'hole' into a shape.
+    //
+    // The condition here isn't perfect, it's possible for the result to be 'bad' but the overall number
+    // of shapes in the result to be correct
+
+    // Outer square
+    let square = vec![Coord2(0.0, 0.0), Coord2(10.0, 0.0), Coord2(10.0, 10.0), Coord2(0.0, 10.0)];
+
+    for forward in [true, false] {
+        for pos in 0..square.len() {
+            println!("{:?} {:?}", forward, pos);
+
+            let mut chequerboard = vec![path_permutation(square.clone(), pos, forward)];
+
+            // Subtract every other square
+            for y in 0..10 {
+                for x in 0..5 {
+                    let x = if y%2 == 0 {
+                        (x as f64)*2.0 + 1.0
+                    } else {
+                        (x as f64)*2.0
+                    };
+                    let y = y as f64;
+
+                    let inner_square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y))
+                        .line_to(Coord2(x+1.0, y))
+                        .line_to(Coord2(x+1.0, y+1.0))
+                        .line_to(Coord2(x, y+1.0))
+                        .line_to(Coord2(x, y))
+                        .build();
+
+                    chequerboard = path_sub(&chequerboard, &vec![inner_square], 0.01);
+                }
+
+                // Always should be 10 collisions horizontally, and 2 on the following line. Vertical collisions should go up as we add new lines
+                let x               = if y%2 == 0 { 0.5 } else { 1.5 };
+                let y               = y as f64;
+                let ray             = (Coord2(0.0, y+0.5), Coord2(1.0, y+0.5));
+                let collisions_1    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                let ray             = (Coord2(0.0, y+1.5), Coord2(1.0, y+1.5));
+                let collisions_2    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                let ray             = (Coord2(x, 0.0), Coord2(x, 1.0));
+                let collisions_3    = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0)))).ray_collisions(&ray);
+                println!("{} - {} {} {}", y, collisions_1.len(), collisions_2.len(), collisions_3.len());
+            }
+
+            // Should produce a fixed number of collisions per row/column. Turn into a graph path and fire rays at it to see how it looks.
+            let chequerboard = GraphPath::from_merged_paths(chequerboard.iter().map(|path| (path, PathLabel(0))));
+            let mut row_collisions = vec![];
+            let mut col_collisions = vec![];
+
+            for y in 0..10 {
+                let y           = y as f64;
+                let ray         = (Coord2(0.0, y+0.5), Coord2(1.0, y+0.5));
+                let collisions  = chequerboard.ray_collisions(&ray);
+
+                row_collisions.push(collisions.len());
+            }
+
+            for x in 0..10 {
+                let x           = x as f64;
+                let ray         = (Coord2(x+0.5, 0.0), Coord2(x+0.5, 1.0));
+                let collisions  = chequerboard.ray_collisions(&ray);
+
+                col_collisions.push(collisions.len());
+            }
+
+            println!("{:?}", row_collisions);
+            println!("{:?}", col_collisions);
+
+            // All rows/columns should have 10 collisions on them
+            assert!(row_collisions == vec![10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+            assert!(col_collisions == vec![10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+        }
+    }
+}

@@ -210,21 +210,21 @@ fn fill_doughnut_with_extra_holes() {
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 
-    for curve in path.as_ref().unwrap()[1].to_curves::<Curve<Coord2>>() {
+    for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
 
-            assert!((distance-outer_radius).abs() < 5.0);
+            assert!((distance-outer_radius).abs() < 5.0, "Outer curve had distance {:?}", (distance-outer_radius).abs());
         }
     }
 
-    for curve in path.unwrap()[0].to_curves::<Curve<Coord2>>() {
+    for curve in path.unwrap()[1].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
 
-            assert!((distance-inner_radius).abs() < 2.0);
+            assert!((distance-inner_radius).abs() < 2.0, "Inner curve had distance {:?}", (distance-inner_radius).abs());
         }
     }
 }

@@ -1,3 +1,5 @@
+use super::checks::*;
+
 use flo_curves::*;
 use flo_curves::arc::*;
 use flo_curves::bezier::path::*;
@@ -895,15 +897,12 @@ fn get_path_from_exterior_lines() {
     println!("{:?}", rectangle2);
 
     assert!(rectangle2.len() == 1);
-    assert!(rectangle2[0].start_point() == Coord2(1.0, 1.0));
-
-    let points = rectangle2[0].points().collect::<Vec<_>>();
-    assert!(points.len() == 4);
-
-    assert!(points[2].2 == Coord2(1.0, 5.0));
-    assert!(points[1].2 == Coord2(5.0, 5.0));
-    assert!(points[0].2 == Coord2(5.0, 1.0));
-    assert!(points[3].2 == Coord2(1.0, 1.0));
+    assert!(path_has_end_points_in_order(rectangle2[0].clone(), vec![
+            Coord2(1.0, 1.0),
+            Coord2(1.0, 5.0),
+            Coord2(5.0, 5.0),
+            Coord2(5.0, 1.0),
+        ], 0.001));
 }
 
 #[test]
@@ -938,24 +937,20 @@ fn get_path_from_exterior_lines_multiple_paths() {
     println!("{:?}", rectangle3);
 
     assert!(rectangle3.len() == 2);
-    assert!(rectangle3[0].start_point() == Coord2(1.0, 1.0));
-    assert!(rectangle3[1].start_point() == Coord2(11.0, 1.0));
 
-    let points = rectangle3[0].points().collect::<Vec<_>>();
-    assert!(points.len() == 4);
+    assert!(path_has_end_points_in_order(rectangle3[0].clone(), vec![
+            Coord2(1.0, 1.0),
+            Coord2(1.0, 5.0),
+            Coord2(5.0, 5.0),
+            Coord2(5.0, 1.0),
+        ], 0.001));
 
-    assert!(points[2].2 == Coord2(1.0, 5.0));
-    assert!(points[1].2 == Coord2(5.0, 5.0));
-    assert!(points[0].2 == Coord2(5.0, 1.0));
-    assert!(points[3].2 == Coord2(1.0, 1.0));
-
-    let points = rectangle3[1].points().collect::<Vec<_>>();
-    assert!(points.len() == 4);
-
-    assert!(points[2].2 == Coord2(11.0, 5.0));
-    assert!(points[1].2 == Coord2(15.0, 5.0));
-    assert!(points[0].2 == Coord2(15.0, 1.0));
-    assert!(points[3].2 == Coord2(11.0, 1.0));
+    assert!(path_has_end_points_in_order(rectangle3[1].clone(), vec![
+            Coord2(11.0, 5.0),
+            Coord2(15.0, 5.0),
+            Coord2(15.0, 1.0),
+            Coord2(11.0, 1.0),
+        ], 0.001));
 }
 
 #[test]
