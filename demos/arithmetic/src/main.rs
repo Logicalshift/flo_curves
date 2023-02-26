@@ -55,44 +55,6 @@ fn main() {
 
             let sub_path_test   = path_sub::<SimpleBezierPath>(&vec![path5.clone()], &vec![path4.clone()], 0.1);
 
-            // Chequerboard test
-            let mut chequerboard = vec![
-                BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
-                    .line_to(Coord2(10.0, 0.0))
-                    .line_to(Coord2(10.0, 10.0))
-                    .line_to(Coord2(0.0, 10.0))
-                    .line_to(Coord2(0.0, 0.0))
-                    .build()
-            ];
-
-            // Subtract every other square
-            let num_cols = since_start / 250_000_000.0;
-            let num_rows = num_cols/5.0;
-            let num_rows = (num_rows as u64) % 10 + 1;
-            let num_cols = (num_cols as u64) % 5 + 1;
-
-            for y in 0..num_rows {
-                let num_cols = if y == (num_rows-1) { num_cols } else { 5 };
-
-                for x in 0..num_cols {
-                    let x = if y%2 == 0 {
-                        (x as f64)*2.0 + 1.0
-                    } else {
-                        (x as f64)*2.0
-                    };
-                    let y = y as f64;
-
-                    let inner_square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y))
-                        .line_to(Coord2(x+1.0, y))
-                        .line_to(Coord2(x+1.0, y+1.0))
-                        .line_to(Coord2(x, y+1.0))
-                        .line_to(Coord2(x, y))
-                        .build();
-
-                    chequerboard = path_sub(&chequerboard, &vec![inner_square], 0.01);
-                }
-            }
-
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
 
@@ -167,31 +129,6 @@ fn main() {
 
                     gc.stroke();
                 }
-
-                // Draw the chequerboard
-                gc.push_state();
-
-                gc.transform(Transform2D::translate(100.0, 600.0) * Transform2D::scale(20.0, 20.0));
-
-                gc.fill_color(Color::Rgba(0.0, 0.4, 0.6, 1.0));
-                gc.new_path();
-                for p in chequerboard.iter() {
-                    gc.bezier_path(p);
-                }
-                gc.fill();
-
-                gc.line_width_pixels(2.0);
-                let mut h = 0.0;
-                for p in chequerboard.iter() {
-                    gc.stroke_color(Color::Hsluv(h % 360.0, 75.0, 70.0, 1.0));
-                    h += 43.0;
-
-                    gc.new_path();
-                    gc.bezier_path(p);
-                    gc.stroke();
-                }
-
-                gc.pop_state();
             });
         }
     });
