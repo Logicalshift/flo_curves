@@ -893,7 +893,6 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// If there's a choice, this will not follow any previously used edge (but will follow them if that's the way to make progress with a loop of edges)
     ///
-    #[inline]
     fn find_loop(&self, connections: &Vec<SmallVec<[(usize, GraphEdgeRef); 4]>>, start_point_idx: usize, edge: usize, used_edges: &Vec<u64>) -> Option<Vec<(usize, GraphEdgeRef)>> {
         // The algorithm here is a slight modification of Dijkstra's algorithm, we start knowing the path has to contain a particular edge
         let mut previous_point          = vec![None; connections.len()];
@@ -935,20 +934,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let following_connections = &connections[next_point_idx];
 
             // Check the 'already used' list only if there are no alternative edges from this point
-            let avoid_already_used = if following_connections.len() > 1 {
-                true
-                /*
-                // Use the 'used' array to exclude edges unless it would exclude all edges
-                // TODO: only do this if no loop is found that does not re-use edges (this is slightly too eager to re-use an edge)
-                following_connections.iter()
-                    .any(|(_following_point_idx, following_edge)| {
-                        visited_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
-                        && used_edges[following_edge.start_idx]&(1<<following_edge.edge_idx) == 0
-                    })
-                */
-            } else {
-                false
-            };
+            let avoid_already_used = following_connections.len() > 1;
 
             for (following_point_idx, following_edge) in following_connections.iter() {
                 // Don't follow visited edges
@@ -1100,7 +1086,16 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
                 included_edges[edge_ref.start_idx] |= 1<<edge_ref.edge_idx;
 
                 // Try to find a loop from this edge
-                if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx, &included_edges) {
+                let loop_edges = if let Some(loop_edges) = self.find_loop(&connections, point_idx, edge_idx, &included_edges) {
+                    // Loop was found without any re-used edges
+                    Some(loop_edges)
+                } else {
+                    // Loop was found with some re-used edges
+                    // TODO: this can produce bad path results when it occurs: see comment above
+                    self.find_loop(&connections, point_idx, edge_idx, &vec![0u64; self.num_points()])
+                };
+
+                if let Some(loop_edges) = loop_edges {
                     // Mark all the loop edges as visited
                     for (_, edge) in loop_edges.iter() {
                         included_edges[edge.start_idx] |= 1<<edge.edge_idx;
