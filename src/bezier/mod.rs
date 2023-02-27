@@ -1,19 +1,23 @@
 //!
 //! # Routines for describing, querying and manipulating Bezier curves
-//! 
-//! Bezier curves are described by types that implement the `BezierCurve` trait, as a start point, an end point
-//! and two control points. The `Curve` type is provided as a base implementation but as with the other traits,
-//! the primary trait can be implemented on any suitable data structure. `BezierCurveFactory` is provided for
-//! types that can create new instances of themselves.
-//! 
-//! Even for types that don't support the factory method, the `section()` method can be used to represent curve
-//! subsections efficiently.
-//! 
-//! The `fit_curve()` function provides a way to fit a series of Bezier curves to one or more points using a
-//! least-mean-squared algorithm.
-//! 
-//! The various `curve_intersects_X()` functions provide ways to determine where a curve meets another kind
-//! of object.
+//!
+//! ```
+//! # use flo_curves::*;
+//! # use flo_curves::bezier::*;
+//! # 
+//! let curve           = Curve::from_points(Coord2(1.0, 2.0), (Coord2(2.0, 0.0), Coord2(3.0, 5.0)), Coord2(4.0, 2.0));
+//! let mid_point       = curve.point_at_pos(0.5);
+//! let all_points      = walk_curve_evenly(&curve, 1.0, 0.01).collect::<Vec<_>>();
+//! let intersections   = curve_intersects_ray(&curve, &(Coord2(1.0, 1.0), Coord2(2.0, 2.0)));
+//! ```
+//!
+//! Anything that implements the `BezierCurve` trait can be manipulated by the functions in this crate. The `Curve` type
+//! is provided as a basic implementation for defining bezier curves, but the trait can be defined on any type that
+//! represents a bezier curve.
+//!
+//! The `BezierCurveFactory` trait extends the `BezierCurve` trait for use with functions that can build/return new curves.
+//!
+//! For routines that deal with paths made up of bezier curves, see the `path` namespace.
 //!
 
 mod curve;
