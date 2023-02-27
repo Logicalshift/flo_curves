@@ -42,27 +42,15 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
 }
 
 ///
-/// Given a point that is close to or on the specified bezier curve, solves the 't' value that can
-/// be used to retrieve it. This is intended to take points that are known (or thought) to be on the
-/// curve and find the corresponding 't' value.
-///
-pub fn solve_curve_for_t<C: BezierCurve>(curve: &C, point: &C::Point) -> Option<f64> {
-    solve_curve_for_t_along_axis(curve, point, CLOSE_ENOUGH)
-}
-
-///
 /// Searches along the x or y axis for a point within `accuracy` units of the curve, returning the `t` value of that point
 ///
-/// This can be used to find points on the curve that are close to points that are not but does not find the closest point and
-/// it's possible to construct a curve such that a nearby point is not nearby along either the x or the y axis. Therefore, this
-/// is best used with accuracy values that are small compared to the length of the curve and with points far away from
-/// inflection points or cusps.
+/// This is best used for points that are known to either be on the curve or which are very close to it. There are a couple of
+/// other options for finding points on a curve: `nearest_point_on_curve()` will return the true closest point on a curve rather
+/// than just the closest point along a particular axis, and the ray casting function `curve_intersects_ray()` can be used to
+/// search for the first point encountered along any direction instead of just searching the x or y axes.
 ///
-/// This is often 'good enough' to find a point close to where a user has clicked along a curve, for example, but as it 
-/// effectively ray-casts along the x and y axes to do so is not suitable as a general-purpose way of finding the closest point 
-/// on a curve to another point.
-///
-/// Note that `curve_intersects_ray()` can be used to find points on a curve along any direction rather than solely along the axis.
+/// For interactive use, `curve_intersects_ray()` might be more useful than eitehr this function or the `nearest_point_on_curve()`
+/// function as the 'true' nearest point may move in an odd manner as the point it's closest to changes.
 ///
 pub fn solve_curve_for_t_along_axis<C: BezierCurve>(curve: &C, point: &C::Point, accuracy: f64) -> Option<f64> {
     let p1              = curve.start_point();

@@ -84,7 +84,7 @@ pub trait BezierCurve: Geo+Clone+Sized {
     ///
     #[inline]
     fn t_for_point(&self, point: &Self::Point) -> Option<f64> {
-        solve_curve_for_t(self, point)
+        solve_curve_for_t_along_axis(self, point, CLOSE_ENOUGH)
     }
 
     ///

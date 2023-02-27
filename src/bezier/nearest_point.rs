@@ -6,6 +6,21 @@ use crate::geo::*;
 use smallvec::*;
 
 ///
+/// Finds the 't' value of the closest point on a curve to the supplied point
+///
+/// Note that in interactive applications the true 'closest' point may not be the most useful for the user trying to indicate
+/// a point on the curve. This is because on the inside of convex regions of the curve, a moving point far enough away will
+/// jump between the end points of the convex region. Consider using ray-casting instead via `curve_intersects_ray()` instead
+/// to find points that the user might be indicating instead.
+///
+pub fn nearest_point_on_curve<C>(curve: &C, point: &C::Point) -> f64
+where
+    C: BezierCurve + BezierCurve2D
+{
+    nearest_point_on_curve_newton_raphson(curve, point)
+}
+
+///
 /// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
 ///
 pub fn nearest_point_on_curve_newton_raphson<C>(curve: &C, point: &C::Point) -> f64
