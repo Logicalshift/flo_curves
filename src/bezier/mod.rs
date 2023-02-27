@@ -6,6 +6,7 @@
 //! # use flo_curves::bezier::*;
 //! # 
 //! let curve           = Curve::from_points(Coord2(1.0, 2.0), (Coord2(2.0, 0.0), Coord2(3.0, 5.0)), Coord2(4.0, 2.0));
+//!
 //! let mid_point       = curve.point_at_pos(0.5);
 //! let all_points      = walk_curve_evenly(&curve, 1.0, 0.01).map(|section| section.point_at_pos(0.5)).collect::<Vec<_>>();
 //! let fitted_curve    = fit_curve::<Curve<Coord2>>(&all_points, 0.1);
