@@ -26,8 +26,8 @@
 //!
 //! These perimeters must not be self-intersecting: `flo_curves` doesn't use a winding rule as such but instead considers
 //! all edges to be exterior edges (which is very similar to an even-odd winding rule). A couple of methods are provided
-//! for fixing paths with self-intersections: `path_remove_interior_points()` will find the outermost perimeter of a shape
-//! - which is useful for tidying up the subpaths. `path_remove_overlapped_points()` will combine subpaths so that
+//! for fixing paths with self-intersections: `path_remove_interior_points()` will find the outermost perimeter of a shape -
+//! which is useful for tidying up the subpaths. `path_remove_overlapped_points()` will combine subpaths so that
 //! there are no overlapping edges. These two functions provide much finer control than is possible through the traditional
 //! idea of the winding rule.
 //!
