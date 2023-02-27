@@ -16,8 +16,6 @@ A set of curve and coordinate types are provided by the library, as well as a se
 on any types with suitable properties. Implementing these traits makes it possible to add the extra features of this
 library to any existing code that has its own way of representing coordinates, curves or paths.
 
-`flo_curves` was built as a support library for `flowbetween`, an animation tool I'm working on.
-
 Examples
 ========
 
@@ -43,7 +41,7 @@ Intersections:
 ```Rust
 use flo_curves::bezier;
 
-for (t1, t2) in bezier::curve_intersects_curve_clip(curve1, curve2) {
+for (t1, t2) in bezier::curve_intersects_curve_clip(curve1, curve2, 0.01) {
     let pos = curve1.point_at_pos(t1);
     println!("Intersection, curve1 t: {}, curve2 t: {}, position: {}, {}", t1, t2, pos.x(), pos.y());
 }
