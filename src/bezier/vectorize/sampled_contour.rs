@@ -140,7 +140,7 @@ where
             let (pos_x, pos_y)      = self.pos;
 
             // Finished once we go beyond the end of the contour
-            if pos_y >= size_y {
+            if pos_y > size_y {
                 return None;
             }
 
@@ -151,11 +151,16 @@ where
             let (tr, br) = if pos_x >= size_x {
                 (false, false)
             } else {
-                let tr = self.contour.point_is_inside(ContourPosition(pos_x, pos_y));
-                let br = if (pos_y+1) >= size_y {
+                let br = if pos_y >= size_y {
                     false
                 } else {
-                    self.contour.point_is_inside(ContourPosition(pos_x, pos_y+1))
+                    self.contour.point_is_inside(ContourPosition(pos_x, pos_y))
+                };
+
+                let tr = if pos_y == 0 {
+                    false
+                } else {
+                    self.contour.point_is_inside(ContourPosition(pos_x, pos_y-1))
                 };
 
                 (tr, br)
