@@ -1,6 +1,8 @@
 use super::sampled_contour::*;
 use crate::geo::*;
 
+use std::collections::{HashMap};
+
 ///
 /// Describes a connected set of contour edges
 ///
@@ -109,5 +111,30 @@ pub fn trace_contours_from_samples<TCoord>(contours: impl SampledContour) /* -> 
 where
     TCoord: Coordinate2D,
 {
+    // Hash map indicating which edges are connected to each other
+    let mut edge_graph = HashMap::new();
+
+    // Create the graph of connected edges
+    for (pos, cell) in contours.edge_cell_iterator() {
+        match cell.connected_edges() {
+            ConnectedEdges::None => { }
+
+            ConnectedEdges::One(ContourEdgePair(a, b)) => {
+                edge_graph.insert(a, b);
+                edge_graph.insert(b, a);
+            }
+
+            ConnectedEdges::Two(ContourEdgePair(a, b), ContourEdgePair(c, d)) => {
+                edge_graph.insert(a, b);
+                edge_graph.insert(b, a);
+
+                edge_graph.insert(c, d);
+                edge_graph.insert(d, c);
+            }
+        }
+    }
+
+    // TODO: Remove connected edges to generate the resulting coordinates
+
     todo!()
 }
