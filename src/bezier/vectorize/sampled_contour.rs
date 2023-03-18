@@ -98,6 +98,25 @@ impl ContourEdge {
     #[inline] pub (crate) const fn left()     -> ContourEdge { ContourEdge(0) }
     #[inline] pub (crate) const fn bottom()   -> ContourEdge { ContourEdge(3) }   // Assuming a 1x1 sample size
     #[inline] pub (crate) const fn right()    -> ContourEdge { ContourEdge(2) }   // Assuming a 1x1 sample size
+
+    #[inline] pub (crate) const fn at_coordinates(self, size: ContourSize, pos: ContourPosition) -> ContourEdge {
+        // Offset is calculated from the size and the position
+        let offset = size.0 * pos.1 + pos.0;
+
+        // This can either be the left or the right cell depending on the upper bit
+        let offset = match self.0 {
+            0 => offset,            // left
+            1 => offset,            // top
+            2 => offset + 1,        // right
+            3 => offset + size.0,   // bottom
+            _ => unreachable!()
+        };
+
+        // This can be the horizontal or vertical edge depending on the lower bit
+        let offset = (offset<<1) | (self.0&1);
+
+        ContourEdge(offset)
+    }
 }
 
 ///
