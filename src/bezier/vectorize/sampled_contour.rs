@@ -181,3 +181,85 @@ where
         }
     }
 }
+
+///
+/// Represents a contour sampled using boolean values that indicate whether or not each sample is in or out
+///
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct BoolSampledContour(pub ContourSize, pub Vec<bool>);
+
+///
+/// Represents a contour sampled using u8 values that are 0 for items outside the contour and 1 otherwise
+///
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct U8SampledContour(pub ContourSize, pub Vec<u8>);
+
+impl<'a> SampledContour for &'a BoolSampledContour {
+    /// Iterator that visits all of the cells in this contour
+    type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
+
+    ///
+    /// The size of this contour
+    ///
+    #[inline]
+    fn size(self) -> ContourSize {
+        self.0
+    }
+
+    ///
+    /// Returns true if the specified point is inside the contour, or false if it's outside
+    ///
+    /// A y-value of 0 is considered to be the 'top' of the bitmap
+    ///
+    #[inline]
+    fn point_is_inside(self, pos: ContourPosition) -> bool {
+        // Position as an offset into the vector array, without bounds checking
+        let idx = pos.0 + (pos.1) * self.0.0;
+
+        self.1[idx]
+    }
+
+    ///
+    /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
+    ///
+    /// The position returned here is the position of the bottom-right corner of the cell.
+    ///
+    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
+        SimpleEdgeCellIterator::from_contour(self)
+    }
+}
+
+impl<'a> SampledContour for &'a U8SampledContour {
+    /// Iterator that visits all of the cells in this contour
+    type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
+
+    ///
+    /// The size of this contour
+    ///
+    #[inline]
+    fn size(self) -> ContourSize {
+        self.0
+    }
+
+    ///
+    /// Returns true if the specified point is inside the contour, or false if it's outside
+    ///
+    /// A y-value of 0 is considered to be the 'top' of the bitmap
+    ///
+    #[inline]
+    fn point_is_inside(self, pos: ContourPosition) -> bool {
+        // Position as an offset into the vector array, without bounds checking
+        let idx = pos.0 + (pos.1) * self.0.0;
+
+        self.1[idx] != 0
+    }
+
+    ///
+    /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
+    ///
+    /// The position returned here is the position of the bottom-right corner of the cell.
+    ///
+    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
+        SimpleEdgeCellIterator::from_contour(self)
+    }
+}
