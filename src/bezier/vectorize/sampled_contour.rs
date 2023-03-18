@@ -23,7 +23,7 @@ pub struct ContourPosition(pub usize, pub usize);
 /// A y value of 0 is considered to be the top of the bitmap
 ///
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct ContourCell(pub u8);
+pub struct ContourCell(pub (crate) u8);
 
 ///
 /// Represents the midpoint of an edge in a contour bitmap.
@@ -39,7 +39,7 @@ pub struct ContourCell(pub u8);
 /// edge per row (similarly, the last set of horizontal edges is not followed by a set of vertical edges)
 ///
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct ContourEdge(usize);
+pub struct ContourEdge(pub (crate) usize);
 
 ///
 /// Represents a contour stored as samples at integer coordinates, where each sample can either be within the shape (1) or outside of the shape (0)
@@ -75,7 +75,7 @@ impl ContourCell {
     /// Returns a cell made up of 4 corner values (top-left, top-right, bottom-left and bottom-right)
     ///
     #[inline]
-    pub fn from_corners(tl: bool, tr: bool, bl: bool, br: bool) -> ContourCell {
+    pub const fn from_corners(tl: bool, tr: bool, bl: bool, br: bool) -> ContourCell {
         let tl = if tl { 1 } else { 0 };
         let tr = if tr { 2 } else { 0 };
         let bl = if bl { 4 } else { 0 };
@@ -88,9 +88,16 @@ impl ContourCell {
     /// True if this represents a cell on the edge of the shape
     ///
     #[inline]
-    pub fn is_on_edge(&self) -> bool {
+    pub const fn is_on_edge(&self) -> bool {
         self.0 != 0 && self.0 != 15
     }
+}
+
+impl ContourEdge {
+    #[inline] pub (crate) const fn top()      -> ContourEdge { ContourEdge(1) }
+    #[inline] pub (crate) const fn left()     -> ContourEdge { ContourEdge(0) }
+    #[inline] pub (crate) const fn bottom()   -> ContourEdge { ContourEdge(3) }   // Assuming a 1x1 sample size
+    #[inline] pub (crate) const fn right()    -> ContourEdge { ContourEdge(2) }   // Assuming a 1x1 sample size
 }
 
 ///
