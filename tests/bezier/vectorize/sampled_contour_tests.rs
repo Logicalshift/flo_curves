@@ -50,7 +50,39 @@ fn filled_iterator() {
 }
 
 #[test]
-fn perimeter() {
+fn filled_with_border_iterator() {
+    // Fully filled contour, we should detect all of the 'outermost' edges
+    let contour = U8SampledContour(ContourSize(5, 5), vec![
+            0, 0, 0, 0, 0,
+            0, 1, 1, 1, 0,
+            0, 1, 1, 1, 0,
+            0, 1, 1, 1, 0,
+            0, 0, 0, 0, 0,
+        ]);
+
+    let edge_cell_positions = contour.edge_cell_iterator().map(|(pos, _cell)| pos).collect::<Vec<_>>();
+
+    assert!(edge_cell_positions == vec![
+            ContourPosition(1, 1),
+            ContourPosition(2, 1),
+            ContourPosition(3, 1),
+            ContourPosition(4, 1),
+
+            ContourPosition(1, 2),
+            ContourPosition(4, 2),
+
+            ContourPosition(1, 3),
+            ContourPosition(4, 3),
+
+            ContourPosition(1, 4),
+            ContourPosition(2, 4),
+            ContourPosition(3, 4),
+            ContourPosition(4, 4),
+        ], "Cell positions are {:?}", edge_cell_positions);
+}
+
+#[test]
+fn perimeter_iterator() {
     // Two loops, one inner, one outer
     let contour = U8SampledContour(ContourSize(3, 3), vec![
             1, 1, 1,
