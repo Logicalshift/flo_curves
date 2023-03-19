@@ -1,5 +1,4 @@
 use super::sampled_contour::*;
-use crate::geo::*;
 
 use smallvec::*;
 
@@ -109,10 +108,7 @@ impl ContourCell {
 ///
 /// Uses the marching squares algorithm to trace the paths represented by a sampled contour
 ///
-pub fn trace_contours_from_samples<TCoord>(contours: impl SampledContour) -> Vec<Vec<ContourEdge /* TCoord */>>
-where
-    TCoord: Coordinate2D,
-{
+pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<ContourEdge>> {
     // Hash map indicating which edges are connected to each other
     let mut edge_graph  = HashMap::<_, SmallVec<[_; 2]>>::new();
     let contour_size    = contours.size();
