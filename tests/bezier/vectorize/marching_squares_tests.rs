@@ -74,6 +74,22 @@ fn perimeter() {
 }
 
 #[test]
+fn perimeter_without_edges() {
+    // Two loops, one inner, one outer
+    let contour = U8SampledContour(ContourSize(5, 5), vec![
+            0, 0, 0, 0, 0,
+            0, 1, 1, 1, 0,
+            0, 1, 0, 1, 0,
+            0, 1, 1, 1, 0,
+            0, 0, 0, 0, 0,
+        ]);
+
+    let loops = trace_contours_from_samples::<Coord2>(&contour);
+
+    assert!(loops.len() == 2, "{:?}", loops);
+}
+
+#[test]
 fn triple_loops() {
     // This is ambiguous in terms of how it can be interpreted, we happen to choose three loops here (with field weights)
     let contour = U8SampledContour(ContourSize(3, 3), vec![
