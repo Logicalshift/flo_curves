@@ -56,7 +56,7 @@ fn filled_without_edges() {
 
     let loops = trace_contours_from_samples::<Coord2>(&contour);
 
-    assert!(false, "{:?}", loops);
+    assert!(loops.len() == 1, "{:?}", loops);
 }
 
 #[test]
