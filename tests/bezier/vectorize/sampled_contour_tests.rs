@@ -28,24 +28,24 @@ fn filled_iterator() {
             1, 1, 1,
         ]);
 
-    let edge_cell_positions = contour.edge_cell_iterator().map(|(pos, _cell)| pos).collect::<Vec<_>>();
+    let edge_cell_positions = contour.edge_cell_iterator().collect::<Vec<_>>();
 
     assert!(edge_cell_positions == vec![
-            ContourPosition(0, 0),
-            ContourPosition(1, 0),
-            ContourPosition(2, 0),
-            ContourPosition(3, 0),
+            (ContourPosition(0, 0), ContourCell::from_corners(false, false, false, true)),
+            (ContourPosition(1, 0), ContourCell::from_corners(false, false, true, true)),
+            (ContourPosition(2, 0), ContourCell::from_corners(false, false, true, true)),
+            (ContourPosition(3, 0), ContourCell::from_corners(false, false, true, false)),
 
-            ContourPosition(0, 1),
-            ContourPosition(3, 1),
+            (ContourPosition(0, 1), ContourCell::from_corners(false, true, false, true)),
+            (ContourPosition(3, 1), ContourCell::from_corners(true, false, true, false)),
 
-            ContourPosition(0, 2),
-            ContourPosition(3, 2),
+            (ContourPosition(0, 2), ContourCell::from_corners(false, true, false, true)),
+            (ContourPosition(3, 2), ContourCell::from_corners(true, false, true, false)),
 
-            ContourPosition(0, 3),
-            ContourPosition(1, 3),
-            ContourPosition(2, 3),
-            ContourPosition(3, 3),
+            (ContourPosition(0, 3), ContourCell::from_corners(false, true, false, false)),
+            (ContourPosition(1, 3), ContourCell::from_corners(true, true, false, false)),
+            (ContourPosition(2, 3), ContourCell::from_corners(true, true, false, false)),
+            (ContourPosition(3, 3), ContourCell::from_corners(true, false, false, false)),
         ], "Cell positions are {:?}", edge_cell_positions);
 }
 
@@ -60,24 +60,24 @@ fn filled_with_border_iterator() {
             0, 0, 0, 0, 0,
         ]);
 
-    let edge_cell_positions = contour.edge_cell_iterator().map(|(pos, _cell)| pos).collect::<Vec<_>>();
+    let edge_cell_positions = contour.edge_cell_iterator().collect::<Vec<_>>();
 
     assert!(edge_cell_positions == vec![
-            ContourPosition(1, 1),
-            ContourPosition(2, 1),
-            ContourPosition(3, 1),
-            ContourPosition(4, 1),
+            (ContourPosition(1, 1), ContourCell::from_corners(false, false, false, true)),
+            (ContourPosition(2, 1), ContourCell::from_corners(false, false, true, true)),
+            (ContourPosition(3, 1), ContourCell::from_corners(false, false, true, true)),
+            (ContourPosition(4, 1), ContourCell::from_corners(false, false, true, false)),
 
-            ContourPosition(1, 2),
-            ContourPosition(4, 2),
+            (ContourPosition(1, 2), ContourCell::from_corners(false, true, false, true)),
+            (ContourPosition(4, 2), ContourCell::from_corners(true, false, true, false)),
 
-            ContourPosition(1, 3),
-            ContourPosition(4, 3),
+            (ContourPosition(1, 3), ContourCell::from_corners(false, true, false, true)),
+            (ContourPosition(4, 3), ContourCell::from_corners(true, false, true, false)),
 
-            ContourPosition(1, 4),
-            ContourPosition(2, 4),
-            ContourPosition(3, 4),
-            ContourPosition(4, 4),
+            (ContourPosition(1, 4), ContourCell::from_corners(false, true, false, false)),
+            (ContourPosition(2, 4), ContourCell::from_corners(true, true, false, false)),
+            (ContourPosition(3, 4), ContourCell::from_corners(true, true, false, false)),
+            (ContourPosition(4, 4), ContourCell::from_corners(true, false, false, false)),
         ], "Cell positions are {:?}", edge_cell_positions);
 }
 
