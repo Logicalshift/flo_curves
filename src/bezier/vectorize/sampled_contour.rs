@@ -1,3 +1,5 @@
+use crate::geo::*;
+
 ///
 /// The size of a bitmap contour (in the form width, height)
 ///
@@ -134,6 +136,27 @@ impl ContourEdge {
         } else {
             // Vertical edge
             ((x, y), (x, y+1))
+        }
+    }
+
+    ///
+    /// Returns the coordinate of the center point of this edge
+    ///
+    #[inline]
+    pub fn to_coords<TCoord>(self, size: ContourSize) -> TCoord
+    where
+        TCoord: Coordinate + Coordinate2D,
+    {
+        let edge_width  = size.0 + 1;
+        let x           = (self.0 >> 1) % edge_width;
+        let y           = (self.0 >> 1) / edge_width;
+
+        if (self.0&1) == 0 {
+            // Horizontal edge
+            TCoord::from_components(&[x as f64 + 0.5, y as f64])
+        } else {
+            // Vertical edge
+            TCoord::from_components(&[x as f64, y as f64 + 0.5])
         }
     }
 }
