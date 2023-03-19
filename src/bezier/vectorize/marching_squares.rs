@@ -114,7 +114,8 @@ where
     TCoord: Coordinate2D,
 {
     // Hash map indicating which edges are connected to each other
-    let mut edge_graph = HashMap::<_, SmallVec<[_; 2]>>::new();
+    let mut edge_graph  = HashMap::<_, SmallVec<[_; 2]>>::new();
+    let contour_size    = contours.size();
 
     // Create the graph of connected edges
     for (pos, cell) in contours.edge_cell_iterator() {
@@ -122,11 +123,19 @@ where
             ConnectedEdges::None => { }
 
             ConnectedEdges::One(ContourEdgePair(a, b)) => {
+                let a = a.at_coordinates(contour_size, pos);
+                let b = b.at_coordinates(contour_size, pos);
+
                 edge_graph.entry(a).or_insert_with(|| smallvec![]).push(b);
                 edge_graph.entry(b).or_insert_with(|| smallvec![]).push(a);
             }
 
             ConnectedEdges::Two(ContourEdgePair(a, b), ContourEdgePair(c, d)) => {
+                let a = a.at_coordinates(contour_size, pos);
+                let b = b.at_coordinates(contour_size, pos);
+                let c = c.at_coordinates(contour_size, pos);
+                let d = d.at_coordinates(contour_size, pos);
+
                 edge_graph.entry(a).or_insert_with(|| smallvec![]).push(b);
                 edge_graph.entry(b).or_insert_with(|| smallvec![]).push(a);
 
