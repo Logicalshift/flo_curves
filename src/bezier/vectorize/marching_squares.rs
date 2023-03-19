@@ -53,7 +53,7 @@ impl ContourCell {
             /* *-o
              * |||
              * *-o */
-            5  => { ConnectedEdges::One(ContourEdgePair(ContourEdge::left(), ContourEdge::top())) }
+            5  => { ConnectedEdges::One(ContourEdgePair(ContourEdge::top(), ContourEdge::bottom())) }
 
             /* o--*
              * |\\|
