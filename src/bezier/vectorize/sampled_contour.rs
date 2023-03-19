@@ -101,14 +101,15 @@ impl ContourEdge {
 
     #[inline] pub (crate) const fn at_coordinates(self, size: ContourSize, pos: ContourPosition) -> ContourEdge {
         // Offset is calculated from the size and the position
-        let offset = size.0 * pos.1 + pos.0;
+        let edge_width  = size.0 + 1;
+        let offset      = edge_width * pos.1 + pos.0;
 
         // This can either be the left or the right cell depending on the upper bit
         let offset = match self.0 {
             0 => offset,            // left
             1 => offset,            // top
             2 => offset + 1,        // right
-            3 => offset + size.0,   // bottom
+            3 => offset + edge_width,   // bottom
             _ => unreachable!()
         };
 
