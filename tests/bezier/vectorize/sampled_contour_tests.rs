@@ -19,7 +19,6 @@ fn single_sample_iterator() {
         ], "Cell positions are {:?}", edge_cell_positions);
 }
 
-
 #[test]
 fn filled_iterator() {
     // Fully filled contour, we should detect all of the 'outermost' edges
@@ -49,4 +48,3 @@ fn filled_iterator() {
             ContourPosition(3, 3),
         ], "Cell positions are {:?}", edge_cell_positions);
 }
-
