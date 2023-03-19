@@ -1,5 +1,8 @@
 use super::sampled_contour::*;
 
+use crate::bezier::*;
+use crate::bezier::path::*;
+
 use smallvec::*;
 
 use std::collections::{HashMap};
@@ -183,4 +186,31 @@ pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<Con
 
     // Result is the final graph
     result
+}
+
+///
+/// Creates a bezier path from a sampled set of contours
+///
+pub fn trace_curve_from_samples<TPathFactory>(contours: impl SampledContour) -> Vec<TPathFactory>
+where
+    TPathFactory:           BezierPathFactory,
+    TPathFactory::Point:    Coordinate + Coordinate2D,
+{
+    // Trace out the contours
+    let contour_size    = contours.size();
+    let contours        = trace_contours_from_samples(contours);
+
+    // Convert the edges into points, then fit curves against the points (using low accuracy)
+    contours.into_iter()
+        .map(|edges| edges.into_iter().map(|edge| edge.to_coords(contour_size)).collect::<Vec<_>>())
+        .filter_map(|points| {
+            let curves = fit_curve::<Curve<TPathFactory::Point>>(&points, 1.5)?;
+            Some(TPathFactory::from_points(curves[0].start_point(), curves.into_iter().map(|curve| {
+                let (cp1, cp2)  = curve.control_points();
+                let end_point   = curve.end_point();
+
+                (cp1, cp2, end_point)
+            })))
+        })
+        .collect()
 }
