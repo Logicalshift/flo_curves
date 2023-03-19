@@ -109,7 +109,7 @@ impl ContourCell {
 ///
 /// Uses the marching squares algorithm to trace the paths represented by a sampled contour
 ///
-pub fn trace_contours_from_samples<TCoord>(contours: impl SampledContour) -> impl Iterator<Item=Vec<ContourEdge /* TCoord */>>
+pub fn trace_contours_from_samples<TCoord>(contours: impl SampledContour) -> Vec<Vec<ContourEdge /* TCoord */>>
 where
     TCoord: Coordinate2D,
 {
@@ -186,5 +186,5 @@ where
     }
 
     // Result is the final graph
-    result.into_iter()
+    result
 }
