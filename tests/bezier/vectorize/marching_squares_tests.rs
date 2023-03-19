@@ -1,4 +1,3 @@
-use flo_curves::geo::*;
 use flo_curves::bezier::vectorize::*;
 
 #[test]
@@ -10,7 +9,7 @@ fn single_sample_loop() {
             0, 0, 0,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 1, "{:?}", loops);
 }
@@ -24,7 +23,7 @@ fn double_loops() {
             0, 0, 1,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 2, "{:?}", loops);
 }
@@ -38,7 +37,7 @@ fn filled() {
             1, 1, 1,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 1, "{:?}", loops);
 }
@@ -54,7 +53,7 @@ fn filled_without_edges() {
             0, 0, 0, 0, 0,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 1, "{:?}", loops);
 }
@@ -68,7 +67,7 @@ fn perimeter() {
             1, 1, 1,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 2, "{:?}", loops);
 }
@@ -84,7 +83,7 @@ fn perimeter_without_edges() {
             0, 0, 0, 0, 0,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 2, "{:?}", loops);
 }
@@ -98,7 +97,7 @@ fn triple_loops() {
             0, 0, 1,
         ]);
 
-    let loops = trace_contours_from_samples::<Coord2>(&contour);
+    let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 3, "{:?}", loops);
 }
