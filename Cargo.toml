@@ -26,6 +26,11 @@ rand        = "0.8"
 criterion   = "0.4"
 
 [[bench]]
+name        = "vectorize"
+path        = "benches/vectorize.rs"
+harness     = false
+
+[[bench]]
 name        = "sweep"
 path        = "benches/sweep.rs"
 harness     = false
