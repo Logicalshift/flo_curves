@@ -180,6 +180,9 @@ pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<Con
             current_edge    = next_edge;
         }
 
+        // Copy the first edge to the last edge
+        edge_loop.push(edge_loop[0]);
+
         // Store the loop in the result
         result.push(edge_loop);
     }
