@@ -136,17 +136,17 @@ fn circle_points_from_contours() {
 
     let circle = circle[0].iter().map(|edge| edge.to_coords::<Coord2>(ContourSize(size, size))).collect::<Vec<_>>();
 
-    // Allow 2.0px of error
+    // Allow 1.5px of error
     let mut max_error = 0.0;
 
     for point in circle.iter() {
-        let distance    = point.distance_to(&Coord2(center, center));
+        let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
         let offset      = (distance-radius).abs();
 
         max_error = f64::max(max_error, offset);
     }
 
-    assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 1.5, "Max error {:?} > 1.5. Path generated was {:?}", max_error, circle);
 }
 
 #[test]
@@ -178,14 +178,14 @@ fn circle_path_from_contours() {
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
 
-    // Allow 2.5px of error (between the fitting algorithm and the sampled circle itself)
+    // Allow 2.0px of error (between the fitting algorithm and the sampled circle itself)
     let mut max_error = 0.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let point       = curve.point_at_pos(t);
-            let distance    = point.distance_to(&Coord2(center, center));
+            let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
             let offset      = (distance-radius).abs();
 
             max_error = f64::max(max_error, offset);
@@ -193,5 +193,5 @@ fn circle_path_from_contours() {
     }
 
     // TOOD: the error is varying a lot, which is odd because the algorithm should be deterministic, so it might be useful to find out why
-    assert!(max_error <= 2.5, "Max error {:?} > 2.5. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
 }
