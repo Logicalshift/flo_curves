@@ -45,13 +45,49 @@ fn subtract_circles() {
 }
 
 #[test]
-fn create_doughnut() {
+fn create_doughnut_1() {
     // Two overlapping circles
     let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
     let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
 
     // Create a hole in the larger circle
     let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1], &vec![circle2], 0.01);
+
+    assert!(combined_circles.len() == 2);
+}
+
+#[test]
+fn create_doughnut_2() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+
+    // Create a hole in the larger circle
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1], &vec![circle2.reversed::<SimpleBezierPath>()], 0.01);
+
+    assert!(combined_circles.len() == 2);
+}
+
+#[test]
+fn create_doughnut_3() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+
+    // Create a hole in the larger circle
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1.reversed::<SimpleBezierPath>()], &vec![circle2], 0.01);
+
+    assert!(combined_circles.len() == 2);
+}
+
+#[test]
+fn create_doughnut_4() {
+    // Two overlapping circles
+    let circle1 = Circle::new(Coord2(5.0, 5.0), 4.0).to_path::<SimpleBezierPath>();
+    let circle2 = Circle::new(Coord2(5.0, 5.0), 3.9).to_path::<SimpleBezierPath>();
+
+    // Create a hole in the larger circle
+    let combined_circles = path_sub::<SimpleBezierPath>(&vec![circle1.reversed::<SimpleBezierPath>()], &vec![circle2.reversed::<SimpleBezierPath>()], 0.01);
 
     assert!(combined_circles.len() == 2);
 }
