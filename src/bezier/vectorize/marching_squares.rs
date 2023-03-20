@@ -191,7 +191,7 @@ pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<Con
 ///
 /// Creates a bezier path from a sampled set of contours
 ///
-pub fn trace_curve_from_samples<TPathFactory>(contours: impl SampledContour) -> Vec<TPathFactory>
+pub fn trace_paths_from_samples<TPathFactory>(contours: impl SampledContour) -> Vec<TPathFactory>
 where
     TPathFactory:           BezierPathFactory,
     TPathFactory::Point:    Coordinate + Coordinate2D,

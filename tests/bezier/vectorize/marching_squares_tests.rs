@@ -129,7 +129,7 @@ fn circle_from_contours() {
     let contour = BoolSampledContour(ContourSize(size, size), contour);
 
     // Trace the samples to generate a vector
-    let circle = trace_curve_from_samples::<SimpleBezierPath>(&contour);
+    let circle = trace_paths_from_samples::<SimpleBezierPath>(&contour);
 
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
