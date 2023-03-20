@@ -147,6 +147,9 @@ fn circle_points_from_contours() {
     }
 
     assert!(max_error <= 1.5, "Max error {:?} > 1.5. Path generated was {:?}", max_error, circle);
+
+    // Last point in the circle should be the same as the first point (because it forms a loop)
+    assert!(circle[0] == circle[circle.len()-1]);
 }
 
 #[test]
