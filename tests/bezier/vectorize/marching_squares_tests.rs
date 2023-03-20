@@ -192,6 +192,6 @@ fn circle_path_from_contours() {
         }
     }
 
-    // TOOD: the error is varying a lot, which is odd because the algorithm should be deterministic, so it might be useful to find out why
+    // The error here is semi-random due to the hash table used to store the edge graph
     assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
 }
