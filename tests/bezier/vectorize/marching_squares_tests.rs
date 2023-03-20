@@ -1,3 +1,6 @@
+use flo_curves::geo::*;
+use flo_curves::bezier::*;
+use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 
 #[test]
@@ -100,4 +103,44 @@ fn triple_loops() {
     let loops = trace_contours_from_samples(&contour);
 
     assert!(loops.len() == 3, "{:?}", loops);
+}
+
+#[test]
+fn circle_from_contours() {
+    // Create a contour containing a circle in the middle
+    let size    = 100;
+    let radius  = 30.0;
+    let center  = (size/2) as f64;
+    let contour = (0..(size*size)).into_iter()
+        .map(|pos| {
+            let x = (pos % size) as f64;
+            let y = (pos / size) as f64;
+            let x = x - center;
+            let y = y - center;
+
+            let r_squared = (x*x) + (y*y);
+            if r_squared > radius * radius {
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
+    let contour = BoolSampledContour(ContourSize(size, size), contour);
+
+    // Trace the samples to generate a vector
+    let circle = trace_curve_from_samples::<SimpleBezierPath>(&contour);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+
+    // Points on the circle should all be within 2px of where they should be
+    for curve in circle[0].to_curves::<Curve<Coord2>>() {
+        for point in walk_curve_unevenly(&curve, 100) {
+            let distance    = point.distance_to(&Coord2(center, center));
+            let offset      = (distance-radius).abs();
+
+            assert!(offset <= 2.0, "Offset {:?} > 2.0. Path generated was {:?}", offset, circle);
+        }
+    }
 }
