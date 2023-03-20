@@ -106,7 +106,51 @@ fn triple_loops() {
 }
 
 #[test]
-fn circle_from_contours() {
+fn circle_points_from_contours() {
+    // Create a contour containing a circle in the middle
+    let size    = 100;
+    let radius  = 30.0;
+    let center  = (size/2) as f64;
+    let contour = (0..(size*size)).into_iter()
+        .map(|pos| {
+            let x = (pos % size) as f64;
+            let y = (pos / size) as f64;
+            let x = x - center;
+            let y = y - center;
+
+            let r_squared = (x*x) + (y*y);
+            if r_squared > radius * radius {
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
+    let contour = BoolSampledContour(ContourSize(size, size), contour);
+
+    // Trace the samples to generate a vector
+    let circle = trace_contours_from_samples(&contour);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+
+    let circle = circle[0].iter().map(|edge| edge.to_coords::<Coord2>(ContourSize(size, size))).collect::<Vec<_>>();
+
+    // Allow 2.0px of error
+    let mut max_error = 0.0;
+
+    for point in circle.iter() {
+        let distance    = point.distance_to(&Coord2(center, center));
+        let offset      = (distance-radius).abs();
+
+        max_error = f64::max(max_error, offset);
+    }
+
+    assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
+}
+
+#[test]
+fn circle_path_from_contours() {
     // Create a contour containing a circle in the middle
     let size    = 100;
     let radius  = 30.0;
