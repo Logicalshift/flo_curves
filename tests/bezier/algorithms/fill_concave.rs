@@ -203,7 +203,7 @@ fn fill_doughnut_with_extra_holes() {
 
     // Flood-fill this curve
     let start_point     = circle_center + Coord2(inner_radius + 10.0, 0.0);
-    let path            = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(start_point, &FillSettings::default(), doughnut);
+    let path            = flood_fill_concave::<SimpleBezierPath, _, _, _,_>(start_point, &FillSettings::default().with_step(1.0), doughnut);
 
     assert!(path.is_some());
     assert!(path.as_ref().unwrap().len() != 0);
