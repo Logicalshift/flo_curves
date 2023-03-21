@@ -210,14 +210,23 @@ fn fill_doughnut_with_extra_holes() {
     assert!(path.as_ref().unwrap().len() != 1);
     assert!(path.as_ref().unwrap().len() == 2);
 
-    for curve in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>() {
+    let mut max_error = 0.0;
+    println!("Path length: {:?}", path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>().len());
+
+    for (idx, curve) in path.as_ref().unwrap()[0].to_curves::<Curve<Coord2>>().into_iter().enumerate() {
         for t in 0..100 {
             let t           = (t as f64)/100.0;
             let distance    = circle_center.distance_to(&curve.point_at_pos(t));
 
-            assert!((distance-outer_radius).abs() < 5.0, "Outer curve had distance {:?}", (distance-outer_radius).abs());
+            if (distance-outer_radius).abs() >= 2.0 {
+                println!("{:?}.{:?} {:?}", idx, t, (distance-outer_radius).abs());
+            }
+
+            max_error = f64::max(max_error, (distance-outer_radius).abs());
         }
     }
+
+    assert!(max_error < 5.0, "Outer curve had max error {:?}", max_error);
 
     for curve in path.unwrap()[1].to_curves::<Curve<Coord2>>() {
         for t in 0..100 {
