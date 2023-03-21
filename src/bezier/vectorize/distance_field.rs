@@ -12,6 +12,9 @@ use super::sampled_contour::*;
 /// Implement this trait on a reference to a storage type rather than the type itself
 ///
 pub trait SampledSignedDistanceField : Copy {
+    /// A type that can represent the edge contour for this distance field (see `ContourFromDistanceField` for a basic implementation)
+    type Contour: SampledContour;
+
     ///
     /// The size of this distance field
     ///
@@ -21,6 +24,11 @@ pub trait SampledSignedDistanceField : Copy {
     /// Returns the distance to the nearest edge of the specified point (a negative value if the point is inside the shape)
     ///
     fn distance_at_point(self, pos: ContourPosition) -> f64;
+
+    ///
+    /// Returns an edge contour for this distance field
+    ///
+    fn as_contour(self) -> Self::Contour;
 }
 
 ///
@@ -81,6 +89,8 @@ pub struct F64SampledDistanceField(pub ContourSize, pub Vec<f64>);
 pub struct U8SampledDistanceField(pub ContourSize, pub Vec<u8>);
 
 impl<'a> SampledSignedDistanceField for &'a F32SampledDistanceField {
+    type Contour = ContourFromDistanceField<Self>;
+
     #[inline]
     fn size(self) -> ContourSize {
         self.0
@@ -93,9 +103,15 @@ impl<'a> SampledSignedDistanceField for &'a F32SampledDistanceField {
 
         self.1[pos] as _
     }
+
+    fn as_contour(self) -> Self::Contour {
+        ContourFromDistanceField(self)
+    }
 }
 
 impl<'a> SampledSignedDistanceField for &'a F64SampledDistanceField {
+    type Contour = ContourFromDistanceField<Self>;
+
     #[inline]
     fn size(self) -> ContourSize {
         self.0
@@ -108,9 +124,15 @@ impl<'a> SampledSignedDistanceField for &'a F64SampledDistanceField {
 
         self.1[pos]
     }
+
+    fn as_contour(self) -> Self::Contour {
+        ContourFromDistanceField(self)
+    }
 }
 
 impl<'a> SampledSignedDistanceField for &'a U8SampledDistanceField {
+    type Contour = ContourFromDistanceField<Self>;
+
     #[inline]
     fn size(self) -> ContourSize {
         self.0
@@ -123,4 +145,9 @@ impl<'a> SampledSignedDistanceField for &'a U8SampledDistanceField {
 
         (self.1[pos] as f64) - 127.0
     }
+
+    fn as_contour(self) -> Self::Contour {
+        ContourFromDistanceField(self)
+    }
 }
+
