@@ -9,7 +9,27 @@ const MAX_ITERATIONS: usize = 4;
 const FIT_ATTEMPT_RATIO: f64 = 4.0;
 
 /// Maximum number of points to fit at once (curves with more points are divided before fitting)
-const MAX_POINTS_TO_FIT: usize = 100;
+const MAX_POINTS_TO_FIT: usize = 200;
+
+///
+/// Returns a good value for how to divide up the max points to fit
+///
+#[inline]
+fn max_points_to_fit(num_points: usize) -> usize {
+    if num_points < MAX_POINTS_TO_FIT {
+        MAX_POINTS_TO_FIT
+    } else {
+        let min_points_to_fit       = MAX_POINTS_TO_FIT / 4;
+        let mut max_points_to_fit   = MAX_POINTS_TO_FIT;
+
+        // Try to pick a number of points that doesn't divide awkwardly (if there are very few points in the final curve section it will produce a flat region)
+        while max_points_to_fit > min_points_to_fit && (num_points % max_points_to_fit) < min_points_to_fit {
+            max_points_to_fit -= 1;
+        }
+
+        max_points_to_fit
+    }
+}
 
 ///
 /// Creates a bezier curve that fits a set of points with a particular error
@@ -30,6 +50,8 @@ pub fn fit_curve<Curve>(points: &[Curve::Point], max_error: f64) -> Option<Vec<C
 where
     Curve: BezierCurveFactory + BezierCurve
 {
+    let max_points_to_fit = max_points_to_fit(points.len());
+
     // Need at least 2 points to fit anything
     if points.len() < 2 {
         // Insufficient points for this curve
@@ -38,12 +60,12 @@ where
         let mut curves = vec![];
 
         // Divide up the points into blocks containing MAX_POINTS_TO_FIT items
-        let num_blocks = ((points.len()-1) / MAX_POINTS_TO_FIT)+1;
+        let num_blocks = ((points.len()-1) / max_points_to_fit)+1;
 
         for point_block in 0..num_blocks {
             // Pick the set of points that will be in this block
-            let start_point     = point_block * MAX_POINTS_TO_FIT;
-            let mut num_points  = MAX_POINTS_TO_FIT;
+            let start_point     = point_block * max_points_to_fit;
+            let mut num_points  = max_points_to_fit;
 
             if start_point+num_points > points.len() {
                 num_points = points.len() - start_point;
@@ -82,6 +104,8 @@ pub fn fit_curve_loop<Curve>(points: &[Curve::Point], max_error: f64) -> Option<
 where
     Curve: BezierCurveFactory + BezierCurve
 {
+    let max_points_to_fit = max_points_to_fit(points.len());
+
     // Need at least 2 points to fit anything
     if points.len() < 2 {
         // Insufficient points for this curve
@@ -90,12 +114,12 @@ where
         let mut curves = vec![];
 
         // Divide up the points into blocks containing MAX_POINTS_TO_FIT items
-        let num_blocks = ((points.len()-1) / MAX_POINTS_TO_FIT)+1;
+        let num_blocks = ((points.len()-1) / max_points_to_fit)+1;
 
         for point_block in 0..num_blocks {
             // Pick the set of points that will be in this block
-            let start_point     = point_block * MAX_POINTS_TO_FIT;
-            let mut num_points  = MAX_POINTS_TO_FIT;
+            let start_point     = point_block * max_points_to_fit;
+            let mut num_points  = max_points_to_fit;
 
             if start_point+num_points > points.len() {
                 num_points = points.len() - start_point;
