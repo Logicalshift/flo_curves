@@ -1,5 +1,7 @@
 use super::sampled_contour::*;
+use super::distance_field::*;
 
+use crate::geo::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 
@@ -109,7 +111,7 @@ impl ContourCell {
 }
 
 ///
-/// Uses the marching squares algorithm to trace the paths represented by a sampled contour
+/// Uses the marching squares algorithm to trace the edges represented by a sampled contour
 ///
 pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<ContourEdge>> {
     // Hash map indicating which edges are connected to each other
@@ -216,4 +218,45 @@ where
             })))
         })
         .collect()
+}
+
+///
+/// Traces contours from a distance field using the marching squares algorithm
+///
+pub fn trace_contours_from_distance_field<TCoord>(distance_field: impl SampledSignedDistanceField) -> Vec<Vec<TCoord>> 
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    // Trace the edges
+    let field_size  = distance_field.size();
+    let loops       = trace_contours_from_samples(distance_field.as_contour());
+
+    // Every edge will have a point that can be considered as having '0' distance, which we can find by linear interpolation
+    loops.into_iter()
+        .map(|edge_loop| {
+            edge_loop.into_iter()
+                .map(|edge| {
+                    // Read the from/to coordinates of this edge
+                    let (from, to)      = edge.to_contour_coords(field_size);
+
+                    // Read the distances at the edge points
+                    let from_distance   = distance_field.distance_at_point(from);
+                    let to_distance     = distance_field.distance_at_point(to);
+
+                    // Interpolate to find the '0' coordinate
+                    let zero_point      = if from_distance != to_distance {
+                        from_distance / (from_distance - to_distance)
+                    } else {
+                        0.5
+                    };
+
+                    // If the zero point is calculated correctly it should be between 0 and 1
+                    debug_assert!(zero_point >= 0.0 && zero_point <= 1.0);
+
+                    let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
+                    let y = ((to.1 as f64) - (from.1 as f64)) * zero_point + (from.1 as f64);
+
+                    TCoord::from_components(&[x, y])
+                }).collect()
+        }).collect()
 }
