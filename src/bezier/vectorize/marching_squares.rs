@@ -207,8 +207,7 @@ where
     contours.into_iter()
         .map(|edges| edges.into_iter().map(|edge| edge.to_coords(contour_size)).collect::<Vec<_>>())
         .filter_map(|points| {
-            // TODO: use `fit_curve_cubic()` instead as this is a loop and we know the start and end tangent values
-            let curves = fit_curve::<Curve<TPathFactory::Point>>(&points, 1.5)?;
+            let curves = fit_curve_loop::<Curve<TPathFactory::Point>>(&points, 1.5)?;
             Some(TPathFactory::from_points(curves[0].start_point(), curves.into_iter().map(|curve| {
                 let (cp1, cp2)  = curve.control_points();
                 let end_point   = curve.end_point();
