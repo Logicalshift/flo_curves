@@ -9,7 +9,7 @@ const MAX_ITERATIONS: usize = 4;
 const FIT_ATTEMPT_RATIO: f64 = 4.0;
 
 /// Maximum number of points to fit at once (curves with more points are divided before fitting)
-const MAX_POINTS_TO_FIT: usize = 200;
+const MAX_POINTS_TO_FIT: usize = 10000;
 
 ///
 /// Returns a good value for how to divide up the max points to fit
