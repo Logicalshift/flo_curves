@@ -351,7 +351,7 @@ where
     let collisions = trace_outline_concave(center, options, cast_ray);
 
     // Build a path using the LMS algorithm
-    let curves = fit_curve::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position).collect::<Vec<_>>(), options.fit_error);
+    let curves = fit_curve_loop::<Curve<Coord>>(&collisions.iter().map(|collision| collision.position).collect::<Vec<_>>(), options.fit_error);
 
     if let Some(curves) = curves {
         if !curves.is_empty() {
