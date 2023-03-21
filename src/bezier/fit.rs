@@ -50,10 +50,10 @@ where
             if num_points < 2 { continue; }
 
             // Need the start and end tangents so we know how the curve continues
-            let block_points = &points[start_point..start_point+num_points];
+            let block_points    = &points[start_point..start_point+num_points];
 
             let start_tangent   = start_tangent(block_points);
-            let end_tangent     = if start_point+num_points < points.len() {
+            let end_tangent     = if start_point + num_points + 1 < points.len() {
                 end_tangent(&points[start_point..start_point+num_points+1])
             } else { 
                 end_tangent(block_points) 
@@ -272,14 +272,16 @@ fn max_error_for_curve<Curve: BezierCurveFactory>(points: &[Curve::Point], chord
 
 ///
 /// Returns the unit tangent at the start of the curve
-/// 
+///
+#[inline]
 fn start_tangent<Point: Coordinate>(points: &[Point]) -> Point {
     (points[1]-points[0]).to_unit_vector()
 }
 
 ///
 /// Returns the unit tangent at the end of the curve
-/// 
+///
+#[inline]
 fn end_tangent<Point: Coordinate>(points: &[Point]) -> Point {
     (points[points.len()-2]-points[points.len()-1]).to_unit_vector()
 }
