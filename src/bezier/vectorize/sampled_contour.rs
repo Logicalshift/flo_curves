@@ -125,17 +125,17 @@ impl ContourEdge {
     /// Returns the coordinates of the samples in the original `SampledContour` for this edge
     ///
     #[inline]
-    pub fn to_contour_coords(self, size: ContourSize) -> ((usize, usize), (usize, usize)) {
+    pub fn to_contour_coords(self, size: ContourSize) -> (ContourPosition, ContourPosition) {
         let edge_width  = size.0 + 1;
         let x           = (self.0 >> 1) % edge_width;
         let y           = (self.0 >> 1) / edge_width;
 
         if (self.0&1) == 0 {
             // Horizontal edge
-            ((x, y), (x+1, y))
+            (ContourPosition(x, y), ContourPosition(x+1, y))
         } else {
             // Vertical edge
-            ((x, y), (x, y+1))
+            (ContourPosition(x, y), ContourPosition(x, y+1))
         }
     }
 
