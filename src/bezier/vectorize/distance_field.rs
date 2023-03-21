@@ -8,7 +8,7 @@ use super::sampled_contour::*;
 ///
 /// Implement this trait on a reference to a storage type rather than the type itself
 ///
-pub trait SignedDistanceField {
+pub trait SignedDistanceField : Copy {
     ///
     /// The size of this distance field
     ///
@@ -18,4 +18,34 @@ pub trait SignedDistanceField {
     /// Returns the distance to the nearest edge of the specified point (a negative value if the point is inside the shape)
     ///
     fn distance_at_point(self, pos: ContourPosition) -> f64;
+}
+
+///
+/// Converts a signed distance field into a sampled contour
+///
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct ContourFromDistanceField<TDistanceField>(pub TDistanceField)
+where
+    TDistanceField: SignedDistanceField;
+
+impl<TDistanceField> SampledContour for ContourFromDistanceField<TDistanceField>
+where
+    TDistanceField: SignedDistanceField,
+{
+    type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
+
+    #[inline]
+    fn size(self) -> ContourSize {
+        self.0.size()
+    }
+
+    #[inline]
+    fn point_is_inside(self, pos: ContourPosition) -> bool {
+        self.0.distance_at_point(pos) <= 0.0
+    }
+
+    #[inline]
+    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
+        SimpleEdgeCellIterator::from_contour(self)
+    }
 }
