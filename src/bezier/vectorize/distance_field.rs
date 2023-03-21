@@ -8,7 +8,7 @@ use super::sampled_contour::*;
 ///
 /// Implement this trait on a reference to a storage type rather than the type itself
 ///
-pub trait SignedDistanceField : Copy {
+pub trait SampledSignedDistanceField : Copy {
     ///
     /// The size of this distance field
     ///
@@ -26,11 +26,11 @@ pub trait SignedDistanceField : Copy {
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct ContourFromDistanceField<TDistanceField>(pub TDistanceField)
 where
-    TDistanceField: SignedDistanceField;
+    TDistanceField: SampledSignedDistanceField;
 
 impl<TDistanceField> SampledContour for ContourFromDistanceField<TDistanceField>
 where
-    TDistanceField: SignedDistanceField,
+    TDistanceField: SampledSignedDistanceField,
 {
     type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
 
