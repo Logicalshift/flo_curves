@@ -48,7 +48,7 @@ fn max_points_to_fit(num_points: usize) -> usize {
 /// 
 pub fn fit_curve<Curve>(points: &[Curve::Point], max_error: f64) -> Option<Vec<Curve>>
 where
-    Curve: BezierCurveFactory + BezierCurve
+    Curve: BezierCurveFactory + BezierCurve,
 {
     let max_points_to_fit = max_points_to_fit(points.len());
 
@@ -102,7 +102,7 @@ where
 /// 
 pub fn fit_curve_loop<Curve>(points: &[Curve::Point], max_error: f64) -> Option<Vec<Curve>>
 where
-    Curve: BezierCurveFactory + BezierCurve
+    Curve: BezierCurveFactory + BezierCurve,
 {
     let max_points_to_fit = max_points_to_fit(points.len());
 

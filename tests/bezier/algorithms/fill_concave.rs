@@ -271,7 +271,6 @@ fn fill_circle_without_escaping_gaps() {
     }
 }
 
-
 #[test]
 fn fill_circle_without_escaping_gaps_offset() {
    // A 'doughnut' shape is one of the harder shapes to fill in this manner as eventually we'll have to raycast over areas we've already filled
