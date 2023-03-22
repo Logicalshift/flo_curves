@@ -48,6 +48,7 @@ mod nearest_point;
 
 pub mod path;
 pub mod vectorize;
+pub mod rasterize;
 
 pub use self::curve::*;
 pub use self::section::*;
