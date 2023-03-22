@@ -260,3 +260,28 @@ where
                 }).collect()
         }).collect()
 }
+
+///
+/// Creates a bezier path from a sampled set of contours
+///
+pub fn trace_paths_from_distance_field<TPathFactory>(distance_field: impl SampledSignedDistanceField, accuracy: f64) -> Vec<TPathFactory>
+where
+    TPathFactory:           BezierPathFactory,
+    TPathFactory::Point:    Coordinate + Coordinate2D,
+{
+    // Trace out the contours
+    let contours    = trace_contours_from_distance_field(distance_field);
+
+    // Convert the edges into points, then fit curves against the points (using low accuracy)
+    contours.into_iter()
+        .filter_map(|points| {
+            let curves = fit_curve_loop::<Curve<TPathFactory::Point>>(&points, accuracy)?;
+            Some(TPathFactory::from_points(curves[0].start_point(), curves.into_iter().map(|curve| {
+                let (cp1, cp2)  = curve.control_points();
+                let end_point   = curve.end_point();
+
+                (cp1, cp2, end_point)
+            })))
+        })
+        .collect()
+}
