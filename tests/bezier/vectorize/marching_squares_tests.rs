@@ -198,3 +198,48 @@ fn circle_path_from_contours() {
     // The error here is semi-random due to the hash table used to store the edge graph
     assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
 }
+
+#[test]
+fn circle_path_from_distance_field() {
+    // Create a contour containing a circle in the middle
+    let size    = 100;
+    let radius  = 30.0;
+    let center  = (size/2) as f64;
+    let contour = (0..(size*size)).into_iter()
+        .map(|pos| {
+            let x = (pos % size) as f64;
+            let y = (pos / size) as f64;
+            let x = x - center;
+            let y = y - center;
+
+            let distance_to_center = ((x*x) + (y*y)).sqrt();
+            let distance_to_circle = distance_to_center - radius;
+
+            distance_to_circle
+        })
+        .collect();
+    let distance_field = F64SampledDistanceField(ContourSize(size, size), contour);
+
+    // Trace the samples to generate a vector
+    let circle = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.5);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+
+    // Allow 2.0px of error (between the fitting algorithm and the sampled circle itself)
+    let mut max_error = 0.0;
+
+    for curve in circle[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let point       = curve.point_at_pos(t);
+            let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
+            let offset      = (distance-radius).abs();
+
+            max_error = f64::max(max_error, offset);
+        }
+    }
+
+    // The error here is semi-random due to the hash table used to store the edge graph
+    assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
+}
