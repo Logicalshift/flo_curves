@@ -252,7 +252,7 @@ fn circle_path_from_contours() {
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
 
-    // Allow 2.0px of error (between the fitting algorithm and the sampled circle itself)
+    // Allow 1.5px of error (between the fitting algorithm and the sampled circle itself)
     let mut max_error = 0.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
@@ -267,7 +267,7 @@ fn circle_path_from_contours() {
     }
 
     // The error here is semi-random due to the hash table used to store the edge graph
-    assert!(max_error <= 1.5, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 1.5, "Max error {:?} > 1.5. Path generated was {:?}", max_error, circle);
 }
 
 #[test]
@@ -297,7 +297,7 @@ fn circle_path_from_distance_field() {
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
 
-    // Allow 2.0px of error (between the fitting algorithm and the sampled circle itself)
+    // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error = 0.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
@@ -312,5 +312,5 @@ fn circle_path_from_distance_field() {
     }
 
     // The error here is semi-random due to the hash table used to store the edge graph
-    assert!(max_error <= 0.1, "Max error {:?} > 0.5. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 0.1, "Max error {:?} > 0.1. Path generated was {:?}", max_error, circle);
 }
