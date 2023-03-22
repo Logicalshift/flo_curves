@@ -153,6 +153,59 @@ fn circle_points_from_contours() {
 }
 
 #[test]
+fn circle_edges_from_contours() {
+    // Create a contour containing a circle in the middle
+    let size    = 100;
+    let radius  = 30.0;
+    let center  = (size/2) as f64;
+    let contour = (0..(size*size)).into_iter()
+        .map(|pos| {
+            let x = (pos % size) as f64;
+            let y = (pos / size) as f64;
+            let x = x - center;
+            let y = y - center;
+
+            let r_squared = (x*x) + (y*y);
+            if r_squared > radius * radius {
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
+    let contour = BoolSampledContour(ContourSize(size, size), contour);
+
+    // Trace the samples to generate a vector
+    let circle = trace_contours_from_samples(&contour);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+
+    // Fetch the contour coordinates (the edges, counting from 1,1 in the source)
+    let circle = circle[0].iter().map(|edge| edge.to_contour_coords(ContourSize(size, size))).collect::<Vec<_>>();
+
+    // Every edge should lie on a transition
+    let mut all_edges = true;
+    for (from, to) in circle {
+        let from    = ContourPosition(from.0-1, from.0-1);
+        let to      = ContourPosition(to.0-1, to.1-1);
+
+        let from_inside = contour.point_is_inside(from);
+        let to_inside   = contour.point_is_inside(to);
+
+        if (from_inside && to_inside)
+            || (!from_inside && !to_inside) {
+            all_edges = false;
+            println!("Not an edge {:?} {:?} ({:?}-{:?})", from, to, from_inside, to_inside);
+        } else {
+            println!("Is an edge: {:?} {:?} ({:?}-{:?})", from, to, from_inside, to_inside);
+        }
+    }
+
+    assert!(all_edges, "Not all edges are circle edges");
+}
+
+#[test]
 fn circle_path_from_contours() {
     // Create a contour containing a circle in the middle
     let size    = 100;
