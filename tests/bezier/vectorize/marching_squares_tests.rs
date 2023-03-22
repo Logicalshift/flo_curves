@@ -249,7 +249,7 @@ fn circle_path_from_contours() {
     let contour = BoolSampledContour(ContourSize(size, size), contour);
 
     // Trace the samples to generate a vector
-    let circle = trace_paths_from_samples::<SimpleBezierPath>(&contour);
+    let circle = trace_paths_from_samples::<SimpleBezierPath>(&contour, 1.5);
 
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
@@ -269,7 +269,7 @@ fn circle_path_from_contours() {
     }
 
     // The error here is semi-random due to the hash table used to store the edge graph
-    assert!(max_error <= 2.0, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 1.5, "Max error {:?} > 2.0. Path generated was {:?}", max_error, circle);
 }
 
 #[test]

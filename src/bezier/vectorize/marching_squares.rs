@@ -196,7 +196,10 @@ pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<Con
 ///
 /// Creates a bezier path from a sampled set of contours
 ///
-pub fn trace_paths_from_samples<TPathFactory>(contours: impl SampledContour) -> Vec<TPathFactory>
+/// All samples are placed at the middle of the edge, so a fit accuracy > 1.0 should be used to smooth out the shape (1.5 is a good value).
+/// A distance field can be used to get sub-pixel accuracy (see `trace_contours_from_distance_field()`) if that's needed.
+///
+pub fn trace_paths_from_samples<TPathFactory>(contours: impl SampledContour, accuracy: f64) -> Vec<TPathFactory>
 where
     TPathFactory:           BezierPathFactory,
     TPathFactory::Point:    Coordinate + Coordinate2D,
@@ -209,7 +212,7 @@ where
     contours.into_iter()
         .map(|edges| edges.into_iter().map(|edge| edge.to_coords(contour_size)).collect::<Vec<_>>())
         .filter_map(|points| {
-            let curves = fit_curve_loop::<Curve<TPathFactory::Point>>(&points, 1.5)?;
+            let curves = fit_curve_loop::<Curve<TPathFactory::Point>>(&points, accuracy)?;
             Some(TPathFactory::from_points(curves[0].start_point(), curves.into_iter().map(|curve| {
                 let (cp1, cp2)  = curve.control_points();
                 let end_point   = curve.end_point();
