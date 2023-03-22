@@ -188,7 +188,7 @@ fn circle_edges_from_contours() {
     let mut all_edges = true;
     let mut is_edge = vec![false; size*size];
     for (from, to) in circle {
-        let from    = ContourPosition(from.0-1, from.0-1);
+        let from    = ContourPosition(from.0-1, from.1-1);
         let to      = ContourPosition(to.0-1, to.1-1);
 
         is_edge[from.0 + from.1 * size] = true;
@@ -201,8 +201,6 @@ fn circle_edges_from_contours() {
             || (!from_inside && !to_inside) {
             all_edges = false;
             println!("Not an edge {:?} {:?} ({:?}-{:?})", from, to, from_inside, to_inside);
-        } else {
-            println!("Is an edge: {:?} {:?} ({:?}-{:?})", from, to, from_inside, to_inside);
         }
     }
 
