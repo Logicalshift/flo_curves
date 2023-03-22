@@ -130,7 +130,7 @@ impl ContourEdge {
         let x           = (self.0 >> 1) % edge_width;
         let y           = (self.0 >> 1) / edge_width;
 
-        if (self.0&1) == 0 {
+        if (self.0&1) == 1 {
             // Horizontal edge
             (ContourPosition(x, y), ContourPosition(x+1, y))
         } else {
@@ -151,7 +151,7 @@ impl ContourEdge {
         let x           = (self.0 >> 1) % edge_width;
         let y           = (self.0 >> 1) / edge_width;
 
-        if (self.0&1) == 0 {
+        if (self.0&1) == 1 {
             // Horizontal edge
             TCoord::from_components(&[x as f64 + 0.5, y as f64])
         } else {
