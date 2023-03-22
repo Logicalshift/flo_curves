@@ -256,6 +256,9 @@ where
                     };
 
                     // If the zero point is calculated correctly it should be between 0 and 1
+                    let contour = distance_field.as_contour();
+                    debug_assert!((contour.point_is_inside(edge_coord_to_field_coord(from)) && !contour.point_is_inside(edge_coord_to_field_coord(to))) 
+                        || (!contour.point_is_inside(edge_coord_to_field_coord(from)) && contour.point_is_inside(edge_coord_to_field_coord(to))));
                     debug_assert!(zero_point >= 0.0 && zero_point <= 1.0, "Zero point out of range, {:?} {:?} {:?}", zero_point, from_distance, to_distance);
 
                     let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
