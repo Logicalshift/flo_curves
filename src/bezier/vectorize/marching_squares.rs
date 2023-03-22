@@ -231,6 +231,11 @@ where
     let field_size  = distance_field.size();
     let loops       = trace_contours_from_samples(distance_field.as_contour());
 
+    #[inline]
+    fn edge_coord_to_field_coord(pos: ContourPosition) -> ContourPosition {
+        ContourPosition(pos.0-1, pos.1-1)
+    }
+
     // Every edge will have a point that can be considered as having '0' distance, which we can find by linear interpolation
     loops.into_iter()
         .map(|edge_loop| {
@@ -239,9 +244,9 @@ where
                     // Read the from/to coordinates of this edge
                     let (from, to)      = edge.to_contour_coords(field_size);
 
-                    // Read the distances at the edge points
-                    let from_distance   = distance_field.distance_at_point(from);
-                    let to_distance     = distance_field.distance_at_point(to);
+                    // Read the distances at the edge points (edges count from 1)
+                    let from_distance   = if from.0 > 0 && from.1 > 0   { distance_field.distance_at_point(edge_coord_to_field_coord(from)) } else { f64::MAX };
+                    let to_distance     = if to.0 > 0 && to.1 > 0       { distance_field.distance_at_point(edge_coord_to_field_coord(to)) } else { f64::MAX };
 
                     // Interpolate to find the '0' coordinate
                     let zero_point      = if from_distance != to_distance {
@@ -251,7 +256,7 @@ where
                     };
 
                     // If the zero point is calculated correctly it should be between 0 and 1
-                    debug_assert!(zero_point >= 0.0 && zero_point <= 1.0);
+                    debug_assert!(zero_point >= 0.0 && zero_point <= 1.0, "Zero point out of range, {:?} {:?} {:?}", zero_point, from_distance, to_distance);
 
                     let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
                     let y = ((to.1 as f64) - (from.1 as f64)) * zero_point + (from.1 as f64);
