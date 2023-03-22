@@ -336,3 +336,52 @@ impl<'a> SampledContour for &'a U8SampledContour {
         SimpleEdgeCellIterator::from_contour(self)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn left_at_coordinate() {
+        let size            = ContourSize(80, 80);
+        let left            = ContourEdge::left();
+        let at_coord        = left.at_coordinates(size, ContourPosition(7, 8));
+        let (start, end)    = at_coord.to_contour_coords(size);
+
+        assert!(start == ContourPosition(7, 8), "Start doesn't match {:?} {:?}", start, end);
+        assert!(end == ContourPosition(7, 9), "End doesn't match {:?} {:?}", start, end);
+    }
+
+    #[test]
+    fn right_at_coordinate() {
+        let size            = ContourSize(80, 80);
+        let right           = ContourEdge::right();
+        let at_coord        = right.at_coordinates(size, ContourPosition(7, 8));
+        let (start, end)    = at_coord.to_contour_coords(size);
+
+        assert!(start == ContourPosition(8, 8), "Start doesn't match {:?} {:?}", start, end);
+        assert!(end == ContourPosition(8, 9), "End doesn't match {:?} {:?}", start, end);
+    }
+
+    #[test]
+    fn top_at_coordinate() {
+        let size            = ContourSize(80, 80);
+        let top             = ContourEdge::top();
+        let at_coord        = top.at_coordinates(size, ContourPosition(7, 8));
+        let (start, end)    = at_coord.to_contour_coords(size);
+
+        assert!(start == ContourPosition(7, 8), "Start doesn't match {:?} {:?}", start, end);
+        assert!(end == ContourPosition(8, 8), "End doesn't match {:?} {:?}", start, end);
+    }
+
+    #[test]
+    fn bottom_at_coordinate() {
+        let size            = ContourSize(80, 80);
+        let bottom          = ContourEdge::bottom();
+        let at_coord        = bottom.at_coordinates(size, ContourPosition(7, 8));
+        let (start, end)    = at_coord.to_contour_coords(size);
+
+        assert!(start == ContourPosition(7, 9), "Start doesn't match {:?} {:?}", start, end);
+        assert!(end == ContourPosition(8, 9), "End doesn't match {:?} {:?}", start, end);
+    }
+}
