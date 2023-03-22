@@ -155,7 +155,7 @@ fn circle_points_from_contours() {
 #[test]
 fn circle_edges_from_contours() {
     // Create a contour containing a circle in the middle
-    let size    = 100;
+    let size    = 80;
     let radius  = 30.0;
     let center  = (size/2) as f64;
     let contour = (0..(size*size)).into_iter()
@@ -186,9 +186,13 @@ fn circle_edges_from_contours() {
 
     // Every edge should lie on a transition
     let mut all_edges = true;
+    let mut is_edge = vec![false; size*size];
     for (from, to) in circle {
         let from    = ContourPosition(from.0-1, from.0-1);
         let to      = ContourPosition(to.0-1, to.1-1);
+
+        is_edge[from.0 + from.1 * size] = true;
+        is_edge[to.0 + to.1 * size] = true;
 
         let from_inside = contour.point_is_inside(from);
         let to_inside   = contour.point_is_inside(to);
@@ -201,6 +205,22 @@ fn circle_edges_from_contours() {
             println!("Is an edge: {:?} {:?} ({:?}-{:?})", from, to, from_inside, to_inside);
         }
     }
+
+    let mut circle = String::new();
+    for (idx, p) in contour.1.iter().enumerate() {
+        if (idx%size) == 0 && idx != 0 { circle.push('\n'); }
+        if *p && is_edge[idx] {
+            circle.push('E');
+        } else if *p {
+            circle.push('x');
+        } else if is_edge[idx] {
+            circle.push('o');
+        } else {
+            circle.push('.');
+        }
+    }
+
+    println!("{}", circle);
 
     assert!(all_edges, "Not all edges are circle edges");
 }
