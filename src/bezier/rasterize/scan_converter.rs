@@ -1,8 +1,8 @@
 ///
-/// A normal for a scan edge fragment
+/// A tangent for a scan edge fragment
 ///
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct ScanNormal(pub f64, pub f64);
+pub struct ScanTangent(pub f64, pub f64);
 
 ///
 /// X position of a scan fragment
@@ -34,7 +34,7 @@ pub enum ScanEdgeFragment {
     StartScanline(i64),
 
     /// Edge fragment on the current scanline (these are returned in ascending order)
-    Edge(ScanX, ScanNormal, ScanFragment),
+    Edge(ScanX, ScanFragment),
 }
 
 ///
