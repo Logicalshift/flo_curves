@@ -123,7 +123,7 @@ impl Iterator for RootSolvingScanIterator {
             let (a, b, c, d) = (self.a, self.b, self.c, self.d - (scanline as f64));
 
             // Solve the curve at this y position
-            let roots = if a.abs() <  0.00000001 { find_roots_quadratic(b, c, d) } else { find_roots_cubic(a, b, c, d) };
+            let roots = if a.abs() < 0.00000001 { find_roots_quadratic(b, c, d) } else { find_roots_cubic(a, b, c, d) };
 
             // Start a new scanline if there are any roots here
             if let Roots::No(_) = &roots { 
