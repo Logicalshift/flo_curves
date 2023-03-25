@@ -30,7 +30,7 @@ where
     ///
     /// Creates a bezier curve scan converter. Scanlines will be returned within the y_range
     ///
-    fn new(y_range: Range<i64>) -> RootSolvingScanConverter<TCurve> {
+    pub fn new(y_range: Range<i64>) -> RootSolvingScanConverter<TCurve> {
         RootSolvingScanConverter {
             y_range:    y_range,
             curve:      PhantomData,
@@ -41,11 +41,7 @@ where
 ///
 /// Iterator that solves the roots of a bezier curve on each scanline in a range
 ///
-pub struct RootSolvingScanIterator<'a, TCurve>
-where
-    TCurve:         BezierCurve,
-    TCurve::Point:  Coordinate + Coordinate2D,
-{
+pub struct RootSolvingScanIterator {
     w1x: f64,
     w2x: f64,
     w3x: f64,
@@ -56,23 +52,13 @@ where
     c: f64,
     d: f64,
 
-    w1y: f64,
-    w2y: f64,
-    w3y: f64,
-    w4y: f64,
-
-    curve: &'a TCurve,
     range: Range<i64>,
 
     cur_y: i64,
     waiting_roots: Roots<f64>,
 }
 
-impl<'a, TCurve> RootSolvingScanIterator<'a, TCurve>
-where
-    TCurve:         BezierCurve,
-    TCurve::Point:  Coordinate + Coordinate2D,
-{
+impl RootSolvingScanIterator {
     ///
     /// Generates a fragment at the current position on the scanline
     ///
@@ -84,11 +70,7 @@ where
     }
 }
 
-impl<'a, TCurve> Iterator for RootSolvingScanIterator<'a, TCurve>
-where
-    TCurve:         BezierCurve,
-    TCurve::Point:  Coordinate + Coordinate2D,
-{
+impl Iterator for RootSolvingScanIterator {
     type Item = ScanEdgeFragment;
 
     #[inline]
@@ -147,7 +129,7 @@ where
     TCurve::Point:  Coordinate + Coordinate2D,
 {
     /// The iterator type that returns scan fragments from this path
-    type ScanIterator = RootSolvingScanIterator<'a, TCurve>;
+    type ScanIterator = RootSolvingScanIterator;
 
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
@@ -200,10 +182,8 @@ where
         // Create the iterator for these lines
         RootSolvingScanIterator {
             w1x, w2x, w3x, w4x,
-            w1y, w2y, w3y, w4y,
             a, b, c, d,
 
-            curve: path,
             range: y_min..y_max,
 
             cur_y: y_min,
