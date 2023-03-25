@@ -6,6 +6,7 @@ use flo_curves::bezier;
 mod path;
 mod algorithms;
 mod vectorize;
+mod rasterize;
 
 mod basis;
 mod section;
