@@ -22,3 +22,64 @@ fn basic_line() {
 
     assert!(line_points.next() == None);
 }
+
+#[test]
+fn wave_horizontal() {
+    let wave            = Curve::from_points(Coord2(10.0, 10.0), (Coord2(30.0, 20.0), Coord2(50.0, 0.0)), Coord2(70.0, 10.0));
+    let scan_converter  = RootSolvingScanConverter::new(0..1000);
+
+    let wave_points     = scan_converter.scan_convert(&wave);
+
+    let mut square      = vec![' '; 80*80];
+    let mut y           = 0;
+    for p in wave_points {
+        match p {
+            ScanEdgeFragment::StartScanline(new_y)  => { y = new_y; },
+            ScanEdgeFragment::Edge(ScanX(x), _)     => { 
+                let closest_point   = wave.nearest_point(&Coord2(x, y as f64));
+                let distance        = closest_point.distance_to(&Coord2(x, y as f64));
+                assert!(distance < 0.01, "{:?} is {} units away from where it should be", Coord2(x, y as f64), distance);
+
+                let x = x as i64; 
+                square[(x + y*80) as usize] = 'o'; 
+            }
+        }
+    }
+
+    for y in 0..80 {
+        for x in 0..80 {
+            print!("{}", square[(x + y*80) as usize]);
+        }
+        println!();
+    }
+}
+
+#[test]
+fn wave_vertical() {
+    let wave            = Curve::from_points(Coord2(10.0, 10.0), (Coord2(20.0, 30.0), Coord2(0.0, 50.0)), Coord2(10.0, 70.0));
+    let scan_converter  = RootSolvingScanConverter::new(0..1000);
+
+    let mut wave_points = scan_converter.scan_convert(&wave);
+
+    let mut square      = vec![' '; 80*80];
+    let mut y           = 0;
+    for p in wave_points {
+        match p {
+            ScanEdgeFragment::StartScanline(new_y)  => { y = new_y; },
+            ScanEdgeFragment::Edge(ScanX(x), _)     => { 
+                let closest_point   = wave.nearest_point(&Coord2(x, y as f64));
+                let distance        = closest_point.distance_to(&Coord2(x, y as f64));
+                assert!(distance < 0.01, "{:?} is {} units away from where it should be", Coord2(x, y as f64), distance);
+
+                let x = x as i64; 
+                square[(x + y*80) as usize] = 'o'; }
+        }
+    }
+
+    for y in 0..80 {
+        for x in 0..80 {
+            print!("{}", square[(x + y*80) as usize]);
+        }
+        println!();
+    }
+}
