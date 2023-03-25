@@ -2,6 +2,8 @@ use super::scan_converter::*;
 use crate::bezier::*;
 use crate::geo::*;
 
+use roots::{find_roots_quadratic, find_roots_cubic, Roots};
+
 use std::ops::{Range};
 use std::marker::{PhantomData};
 
@@ -49,6 +51,11 @@ where
     w3x: f64,
     w4x: f64,
 
+    a: f64,
+    b: f64,
+    c: f64,
+    d: f64,
+
     w1y: f64,
     w2y: f64,
     w3y: f64,
@@ -58,6 +65,23 @@ where
     range: Range<i64>,
 
     cur_y: i64,
+    waiting_roots: Roots<f64>,
+}
+
+impl<'a, TCurve> RootSolvingScanIterator<'a, TCurve>
+where
+    TCurve:         BezierCurve,
+    TCurve::Point:  Coordinate + Coordinate2D,
+{
+    ///
+    /// Generates a fragment at the current position on the scanline
+    ///
+    #[inline]
+    fn create_fragment(&self, t: f64) -> ScanEdgeFragment {
+        let x = de_casteljau4(t, self.w1x, self.w2x, self.w3x, self.w4x);
+
+        ScanEdgeFragment::Edge(ScanX(x), ScanFragment { path_idx: 0, curve_idx: 0, t: t })
+    }
 }
 
 impl<'a, TCurve> Iterator for RootSolvingScanIterator<'a, TCurve>
@@ -69,7 +93,51 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        // Update/return the next value from the existing list of roots
+        match self.waiting_roots {
+            Roots::No(_)                => { },
+            Roots::One([a])             => {
+                self.waiting_roots = Roots::No([]);
+                return Some(self.create_fragment(a));
+            }
+            Roots::Two([a, b])          => {
+                self.waiting_roots = Roots::One([b]);
+                return Some(self.create_fragment(a));
+            }
+            Roots::Three([a, b, c])     => {
+                self.waiting_roots = Roots::Two([b, c]);
+                return Some(self.create_fragment(a));
+            }
+            Roots::Four([a, b, c, d])   => {
+                self.waiting_roots = Roots::Three([b, c, d]);
+                return Some(self.create_fragment(a));
+            }
+        }
+
+        loop {
+            // Finished once cur_y leaves the end of the range
+            if self.cur_y >= self.range.end {
+                return None;
+            }
+
+            // Start solving for this scanline
+            let scanline = self.cur_y;
+            self.cur_y += 1;
+
+            // Get the coefficients, modified for the current y position
+            let (a, b, c, d) = (self.a, self.b, self.c, self.d - (scanline as f64));
+
+            // Solve the curve at this y position
+            let roots = if a.abs() <  0.00000001 { find_roots_quadratic(b, c, d) } else { find_roots_cubic(a, b, c, d) };
+
+            // Start a new scanline if there are any roots here
+            if let Roots::No(_) = &roots { 
+                continue; 
+            } else {
+                self.waiting_roots = roots;
+                return Some(ScanEdgeFragment::StartScanline(scanline));
+            }
+        }
     }
 }
 
@@ -119,18 +187,27 @@ where
         let y_min = y_min.floor() as i64;
         let y_max = y_max.floor() as i64 + 1;
 
+        // Clip to the range
         let y_min = i64::max(i64::min(self.y_range.end, y_min), y_min);
         let y_max = i64::min(i64::max(self.y_range.start, y_max), y_max);
+
+        // Calculate the base coefficients for the curve in the y axis
+        let d = w1y;
+        let c = 3.0*(w2y-w1y);
+        let b = 3.0*(w3y-w2y)-c;
+        let a = w4y-w1y-c-b;
 
         // Create the iterator for these lines
         RootSolvingScanIterator {
             w1x, w2x, w3x, w4x,
             w1y, w2y, w3y, w4y,
+            a, b, c, d,
 
             curve: path,
             range: y_min..y_max,
 
             cur_y: y_min,
+            waiting_roots: Roots::No([]),
         }
     }
 }
