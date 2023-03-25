@@ -63,10 +63,21 @@ impl RootSolvingScanIterator {
     /// Generates a fragment at the current position on the scanline
     ///
     #[inline]
-    fn create_fragment(&self, t: f64) -> ScanEdgeFragment {
+    fn create_fragment(&self, t: f64) -> Option<ScanEdgeFragment> {
+        // t must be in range for the curve
+        let t = if t > -0.0001 && t < 0.0 {
+            0.0
+        } else if t < 1.0001 && t > 1.0 {
+            1.0
+        } else if t >= 0.0 && t <= 1.0 {
+            t
+        } else {
+            return None;
+        };
+
         let x = de_casteljau4(t, self.w1x, self.w2x, self.w3x, self.w4x);
 
-        ScanEdgeFragment::Edge(ScanX(x), ScanFragment { path_idx: 0, curve_idx: 0, t: t })
+        Some(ScanEdgeFragment::Edge(ScanX(x), ScanFragment { path_idx: 0, curve_idx: 0, t: t }))
     }
 }
 
@@ -76,23 +87,25 @@ impl Iterator for RootSolvingScanIterator {
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         // Update/return the next value from the existing list of roots
-        match self.waiting_roots {
-            Roots::No(_)                => { },
-            Roots::One([a])             => {
-                self.waiting_roots = Roots::No([]);
-                return Some(self.create_fragment(a));
-            }
-            Roots::Two([a, b])          => {
-                self.waiting_roots = Roots::One([b]);
-                return Some(self.create_fragment(a));
-            }
-            Roots::Three([a, b, c])     => {
-                self.waiting_roots = Roots::Two([b, c]);
-                return Some(self.create_fragment(a));
-            }
-            Roots::Four([a, b, c, d])   => {
-                self.waiting_roots = Roots::Three([b, c, d]);
-                return Some(self.create_fragment(a));
+        loop {
+            match self.waiting_roots {
+                Roots::No(_)                => { break; },
+                Roots::One([a])             => {
+                    self.waiting_roots = Roots::No([]);
+                    if let Some(fragment) = self.create_fragment(a) { return Some(fragment); }
+                }
+                Roots::Two([a, b])          => {
+                    self.waiting_roots = Roots::One([b]);
+                    if let Some(fragment) = self.create_fragment(a) { return Some(fragment); }
+                }
+                Roots::Three([a, b, c])     => {
+                    self.waiting_roots = Roots::Two([b, c]);
+                    if let Some(fragment) = self.create_fragment(a) { return Some(fragment); }
+                }
+                Roots::Four([a, b, c, d])   => {
+                    self.waiting_roots = Roots::Three([b, c, d]);
+                    if let Some(fragment) = self.create_fragment(a) { return Some(fragment); }
+                }
             }
         }
 
