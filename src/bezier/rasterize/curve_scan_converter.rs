@@ -36,18 +36,44 @@ where
     }
 }
 
-/*
-impl<'a, TCurve> ScanConverter for &'a RootSolvingScanConverter<TCurve>
+///
+/// Iterator that solves the roots of a bezier curve on each scanline in a range
+///
+pub struct RootSolvingScanIterator<'a, TCurve>
+where
+    TCurve:         BezierCurve,
+    TCurve::Point:  Coordinate + Coordinate2D,
+{
+    curve: &'a TCurve,
+}
+
+impl<'a, TCurve> Iterator for RootSolvingScanIterator<'a, TCurve>
+where
+    TCurve:         BezierCurve,
+    TCurve::Point:  Coordinate + Coordinate2D,
+{
+    type Item = ScanEdgeFragment;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        todo!()
+    }    
+}
+
+impl<'a, TCurve> ScanConverter<'a, TCurve> for &'a RootSolvingScanConverter<TCurve>
 where
     TCurve:         BezierCurve,
     TCurve::Point:  Coordinate + Coordinate2D,
 {
     /// The iterator type that returns scan fragments from this path
-    type ScanIterator: 'a + Iterator<Item=ScanEdgeFragment>;
+    type ScanIterator = RootSolvingScanIterator<'a, TCurve>;
 
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
     ///
-    fn scan_convert(self, path: &'a TPath) -> Self::ScanIterator;
+    #[inline]
+    fn scan_convert(self, path: &'a TCurve) -> Self::ScanIterator {
+        RootSolvingScanIterator {
+            curve: path
+        }
+    }
 }
-*/
