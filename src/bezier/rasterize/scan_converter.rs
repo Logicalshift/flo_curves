@@ -1,5 +1,3 @@
-use crate::bezier::path::*;
-
 ///
 /// A normal for a scan edge fragment
 ///
@@ -42,12 +40,15 @@ pub enum ScanEdgeFragment {
 ///
 /// Trait implemented by things that can convert bezier paths to scanline positions
 ///
-pub trait ScanConverter<'a> : Copy {
+pub trait ScanConverter<'a, TPath> : Copy 
+where
+    TPath: 'a,
+{
     /// The iterator type that returns scan fragments from this path
     type ScanIterator: 'a + Iterator<Item=ScanEdgeFragment>;
 
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
     ///
-    fn scan_convert<TPath: 'a + BezierPath>(self, paths: impl IntoIterator<Item=&'a TPath>) -> Self::ScanIterator;
+    fn scan_convert(self, path: &'a TPath) -> Self::ScanIterator;
 }
