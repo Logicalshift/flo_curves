@@ -29,6 +29,7 @@ pub struct ScanFragment {
 /// An edge fragment is an instruction produced by a scan converter. Edges are samples located at the center of a scan line:
 /// they are calculated to high precision horizontally and are supplied with a normal vector.
 ///
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ScanEdgeFragment {
     /// Indicates that the scan converter is about to produce the edge fragments for the specified scanline
     StartScanline(i64),
