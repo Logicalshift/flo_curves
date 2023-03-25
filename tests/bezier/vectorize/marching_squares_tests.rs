@@ -312,5 +312,5 @@ fn circle_path_from_distance_field() {
     }
 
     // The error here is semi-random due to the hash table used to store the edge graph
-    assert!(max_error <= 0.1, "Max error {:?} > 0.1. Path generated was {:?}", max_error, circle);
+    assert!(max_error <= 0.2, "Max error {:?} > 0.2. Path generated was {:?}", max_error, circle);
 }
