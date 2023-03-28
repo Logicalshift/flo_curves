@@ -46,14 +46,19 @@ where
     }
 }
 
+///
+/// Iterator for the bezier path scan converter
+///
 pub struct BezierPathScanConverterIterator {
+    next_fn: Box<dyn FnMut() -> Option<ScanEdgeFragment>>
 }
 
 impl Iterator for BezierPathScanConverterIterator {
     type Item = ScanEdgeFragment;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        (self.next_fn)()
     }
 }
 
@@ -69,7 +74,43 @@ where
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
     ///
-    fn scan_convert(self, path: &'a Vec<TPath>) -> Self::ScanIterator {
+    fn scan_convert(self, paths: &'a Vec<TPath>) -> Self::ScanIterator {
+        // Collect all the curves from the paths
+        let all_curves = paths.iter()
+            .map(|path| {
+                path.to_curves::<Curve<TPath::Point>>()
+            })
+            .collect::<Vec<_>>();
+
+        let mut all_curves = all_curves
+            .iter()
+            .flat_map(|path_curves| {
+                // Scan convert every curve
+                path_curves.iter()
+                    .map(|curve| self.curve_converter.scan_convert(curve))
+            })
+            .flat_map(|mut iterator| {
+                // First instruction in every iterator should be a scanline
+                let first_scanline = iterator.next()?;
+                if let ScanEdgeFragment::StartScanline(scanline) = first_scanline {
+                    // Store the 'current' scanline and the iterator
+                    Some((scanline, iterator))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        // Order by scanline so we sweep the path from top to bottom
+        all_curves.sort_by(|(scanline_a, _), (scanline_b, _)| scanline_a.cmp(scanline_b));
+
+        let mut current_scanline = all_curves.get(0).map(|(scanline, _)| *scanline).unwrap_or(0);
+
+        // Create a function to return the next curve
+        let next_fn = move || {
+
+        };
+
         todo!()
     }
 }
