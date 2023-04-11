@@ -1,3 +1,4 @@
+use flo_curves::line::*;
 use flo_curves::bezier::*;
 
 #[test]
@@ -132,4 +133,16 @@ fn collinear_lines_2() {
 
     let overlaps = overlapping_region(&line2, &line1);
     assert!(overlaps.is_some());    
+}
+
+#[test]
+fn collinear_lines_3() {
+    let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
+    let line2 = (Coord2(384.0, 352.0), Coord2(384.0, 480.0));
+
+    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
+    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+
+    let overlaps = overlapping_region(&line1, &line2);
+    assert!(overlaps.is_some(), "{:?}", overlaps);
 }
