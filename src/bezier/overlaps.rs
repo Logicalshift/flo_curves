@@ -10,6 +10,9 @@ pub fn overlapping_region<C1: BezierCurve, C2: BezierCurve>(curve1: &C1, curve2:
 where   C1::Point:  Coordinate+Coordinate2D,
         C2:         BezierCurve<Point=C1::Point>,
 {
+    // Two curves are overlapping if two of the four start/end points lies on the other curve and the control points are the same for those points
+    // An exception for this is if the two curves are collinear lines, in which case the control points don't matter
+
     // Start by assuming that curve 2 overlaps curve 1 completely
     let mut c2_t1 = 0.0;
     let mut c2_t2 = 1.0;
@@ -50,6 +53,10 @@ where   C1::Point:  Coordinate+Coordinate2D,
             c2_t2 = t;
             1.0
         }
+    } else if let Some(t) = curve2.t_for_point(&curve1.start_point()) {
+        // curve1 starts on a point of curve2 (which will be an extra point if curve1 starts on a point of curve2, case where this is the only point is handled below)
+        c2_t2 = t;
+        0.0
     } else {
         // End point is not on the curve
         return None;
