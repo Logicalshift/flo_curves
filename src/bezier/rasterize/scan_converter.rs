@@ -7,7 +7,7 @@ pub struct ScanTangent(pub f64, pub f64);
 ///
 /// X position of a scan fragment
 ///
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
 pub struct ScanX(pub f64);
 
 ///
