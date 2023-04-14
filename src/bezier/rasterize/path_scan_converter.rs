@@ -62,7 +62,7 @@ where
     scan_converter: TCurveScanConverter,
 
     /// All the curves from all of the paths
-    all_curves: Vec<Curve<TPath::Point>>,
+    all_curves: Vec<(usize, Curve<TPath::Point>)>,
 
     /// The iterators for each curve
     #[borrows(all_curves, scan_converter)]
@@ -178,9 +178,11 @@ where
     ///
     fn scan_convert(self, paths: &'a Vec<TPath>) -> Self::ScanIterator {
         // Collect all the curves from the paths
-        let all_curves = paths.iter()
-            .flat_map(|path| {
+        let all_curves = paths.iter().enumerate()
+            .flat_map(|(path_idx, path)| {
                 path.to_curves::<Curve<TPath::Point>>()
+                    .into_iter()
+                    .map(move |curve| (path_idx, curve))
             })
             .collect::<Vec<_>>();
 
@@ -194,7 +196,7 @@ where
                 // Create iterators for the curves
                 let mut scanline_iterators = all_curves
                     .iter()
-                    .map(move |curve| {
+                    .map(move |(path_idx, curve)| {
                         (*scan_converter).scan_convert(curve)
                     })
                     .flat_map(move |mut iterator| {
