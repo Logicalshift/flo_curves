@@ -8,6 +8,7 @@ fn basic_circle() {
     let radius              = 300.0;
     let center              = Coord2(500.0, 500.0);
     let circle_path         = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+    let circle_curves       = circle_path.to_curves::<Curve<_>>();
     let scan_converter      = BezierPathScanConverter::new(0..1000);
 
     let circle_points       = scan_converter.scan_convert(&vec![circle_path]).collect::<Vec<_>>();
@@ -25,7 +26,7 @@ fn basic_circle() {
                 last_scanline_point_count   = 0;
             }
 
-            ScanEdgeFragment::Edge(ScanX(x_pos), _fragment) => {
+            ScanEdgeFragment::Edge(ScanX(x_pos), fragment) => {
                 last_scanline_point_count += 1;
 
                 let y_pos       = current_scanline as f64;
@@ -33,6 +34,14 @@ fn basic_circle() {
                 let distance    = pos.distance_to(&center);
 
                 assert!((distance - radius).abs() < 0.1, "Point was {:?} units from the center of the circle", distance);
+
+                assert!(fragment.path_idx == 0, "Path idx was {:?} but should be 0", fragment.path_idx);
+
+                let curve           = &circle_curves[fragment.curve_idx as usize];
+                let curve_pos       = curve.point_at_pos(fragment.t);
+                let curve_distance  = curve_pos.distance_to(&pos);
+                
+                assert!(curve_distance.abs() < 0.1, "Point on curve {:?} (t={:?}) was not close to the scanline point ({:?} units away)", fragment.curve_idx, fragment.t, distance);
             }
         }
     }
