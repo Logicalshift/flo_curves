@@ -1,1 +1,2 @@
 mod curve_scan_converter_tests;
+mod path_scan_converter_tests;
