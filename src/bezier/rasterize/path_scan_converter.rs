@@ -118,10 +118,12 @@ where
                                     break;
                                 }
 
-                                Some(ScanEdgeFragment::Edge(edge_x, fragment)) => {
-                                    // TODO: update fragment with curve, path idx
+                                Some(ScanEdgeFragment::Edge(edge_x, mut fragment)) => {
                                     if fragment.t < 1.0 {
                                         // Hits that exactly match an endpoint will also match the start point of the following curve, so we exclude those
+                                        fragment.path_idx   = *path_idx as _;
+                                        fragment.curve_idx  = *curve_idx as _;
+
                                         fields.scanline_edges.push((edge_x, fragment))
                                     }
                                 }
