@@ -150,6 +150,11 @@ where
                 fields.scanline_edges.sort_by(|(edge_a, _), (edge_b, _)| {
                     edge_b.partial_cmp(edge_a).unwrap_or(Ordering::Equal)
                 });
+
+                if !fields.scanline_edges.is_empty() {
+                    // Indicate that we're starting this scanline
+                    return Some(ScanEdgeFragment::StartScanline(current_scanline));
+                }
             }
 
             // Iterate through the recently generated scanlines (should be at least one if we reach here)
@@ -207,7 +212,6 @@ where
                 // Order by scanline so we sweep the path from top to bottom
                 scanline_iterators.sort_by(|(scanline_a, _), (scanline_b, _)| scanline_a.cmp(scanline_b));
 
-                // TODO: why does this require that the lifetime be static?
                 scanline_iterators
             }
         }.build();
