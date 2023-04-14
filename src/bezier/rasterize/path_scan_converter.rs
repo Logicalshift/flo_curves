@@ -51,14 +51,15 @@ where
 /// Iterator for the bezier path scan converter
 ///
 #[self_referencing]
-pub struct BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>
+pub struct BezierPathScanConverterIterator<TPath, TCurveScanConverter>
 where
-    TPath:                      'a + BezierPath,
-    TPath::Point:               'a + Coordinate + Coordinate2D,
-    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
+    TPath:                              'static + BezierPath,
+    TPath::Point:                       'static + Coordinate + Coordinate2D,
+    TCurveScanConverter:                'static,
+    for<'b> &'b TCurveScanConverter:    ScanConverter<'b, Curve<TPath::Point>>,
 {
     /// Represents the scan converter for this iterator
-    scan_converter: &'a TCurveScanConverter,
+    scan_converter: TCurveScanConverter,
 
     /// All the curves from all of the paths
     all_curves: Vec<Curve<TPath::Point>>,
@@ -72,11 +73,12 @@ where
     scanline_edges: Vec<(ScanX, ScanFragment)>,
 }
 
-impl<'a, TPath, TCurveScanConverter> Iterator for BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>
+impl<TPath, TCurveScanConverter> Iterator for BezierPathScanConverterIterator<TPath, TCurveScanConverter>
 where
-    TPath:                      'a + BezierPath,
-    TPath::Point:               'a + Coordinate + Coordinate2D,
-    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
+    TPath:                              'static + BezierPath,
+    TPath::Point:                       'static + Coordinate + Coordinate2D,
+    TCurveScanConverter:                'static,
+    for<'b> &'b TCurveScanConverter:    ScanConverter<'b, Curve<TPath::Point>>,
 {
     type Item = ScanEdgeFragment;
 
@@ -88,13 +90,13 @@ where
 
 impl<'a, TPath, TCurveScanConverter> ScanConverter<'a, Vec<TPath>> for &'a BezierPathScanConverter<TPath, TCurveScanConverter>
 where
-    TPath:                      'a + BezierPath,
-    TPath::Point:               'a + Coordinate + Coordinate2D,
-    TCurveScanConverter:        'a,
-    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
+    TPath:                              'static + BezierPath,
+    TPath::Point:                       'static + Coordinate + Coordinate2D,
+    TCurveScanConverter:                'static + Clone,
+    for<'b> &'b TCurveScanConverter:    ScanConverter<'b, Curve<TPath::Point>>,
 {
     /// The iterator type that returns scan fragments from this path
-    type ScanIterator = BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>;
+    type ScanIterator = BezierPathScanConverterIterator<TPath, TCurveScanConverter>;
 
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
@@ -109,13 +111,11 @@ where
 
         // Create the iterator for all of the scanlines
         let path_scanline_iterator  = BezierPathScanConverterIteratorBuilder {
-            scan_converter:     &self.curve_converter,
+            scan_converter:     self.curve_converter.clone(),
             all_curves:         all_curves,
             scanline_edges:     vec![],
 
-            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>, scan_converter: &&TCurveScanConverter| {
-                vec![]
-                /*
+            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>, scan_converter: &TCurveScanConverter| {
                 // Create iterators for the curves
                 let mut scanline_iterators = all_curves
                     .iter()
@@ -139,7 +139,6 @@ where
 
                 // TODO: why does this require that the lifetime be static?
                 scanline_iterators
-                */
             }
         }.build();
 
