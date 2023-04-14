@@ -3,15 +3,16 @@ use super::curve_scan_converter::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 
+use ouroboros::self_referencing;
+
 use std::cmp::{Ordering};
 use std::ops::{Range};
 use std::marker::{PhantomData};
 
 pub struct BezierPathScanConverter<TPath, TCurveScanConverter>
 where
-    TPath:                              BezierPath,
-    TPath::Point:                       Coordinate + Coordinate2D,
-    for<'a> &'a TCurveScanConverter:    ScanConverter<'a, Curve<TPath::Point>>,
+    TPath:          BezierPath,
+    TPath::Point:   Coordinate + Coordinate2D,
 {
     path:               PhantomData<TPath>,
     curve_converter:    TCurveScanConverter,
@@ -19,9 +20,8 @@ where
 
 impl<TPath, TCurveScanConverter> BezierPathScanConverter<TPath, TCurveScanConverter>
 where
-    TPath:                              BezierPath,
-    TPath::Point:                       Coordinate + Coordinate2D,
-    for<'a> &'a TCurveScanConverter:    ScanConverter<'a, Curve<TPath::Point>>,
+    TPath:          BezierPath,
+    TPath::Point:   Coordinate + Coordinate2D,
 {
     ///
     /// Creates a bezier path scan converter
@@ -50,27 +50,50 @@ where
 ///
 /// Iterator for the bezier path scan converter
 ///
-pub struct BezierPathScanConverterIterator {
-    next_fn: Box<dyn FnMut() -> Option<ScanEdgeFragment>>
+#[self_referencing]
+pub struct BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>
+where
+    TPath:                      'a + BezierPath,
+    TPath::Point:               'a + Coordinate + Coordinate2D,
+    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
+{
+    /// Represents the scan converter for this iterator
+    scan_converter: &'a TCurveScanConverter,
+
+    /// All the curves from all of the paths
+    all_curves: Vec<Curve<TPath::Point>>,
+
+    /// The iterators for each curve
+    #[borrows(all_curves)]
+    #[not_covariant]
+    scanline_iterators: Vec<(i64, Option<<&'this TCurveScanConverter as ScanConverter<'this, Curve<TPath::Point>>>::ScanIterator>)>,
+
+    /// The scan edges for the current scanline, in reverse order
+    scanline_edges: Vec<(ScanX, ScanFragment)>,
 }
 
-impl Iterator for BezierPathScanConverterIterator {
+impl<'a, TPath, TCurveScanConverter> Iterator for BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>
+where
+    TPath:                      'a + BezierPath,
+    TPath::Point:               'a + Coordinate + Coordinate2D,
+    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
+{
     type Item = ScanEdgeFragment;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        (self.next_fn)()
+        todo!()
     }
 }
 
 impl<'a, TPath, TCurveScanConverter> ScanConverter<'a, Vec<TPath>> for &'a BezierPathScanConverter<TPath, TCurveScanConverter>
 where
-    TPath:                              'a + BezierPath,
-    TPath::Point:                       'a + Coordinate + Coordinate2D,
-    for<'b> &'b TCurveScanConverter:    ScanConverter<'b, Curve<TPath::Point>>,
+    TPath:                      'a + BezierPath,
+    TPath::Point:               'a + Coordinate + Coordinate2D,
+    for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
 {
     /// The iterator type that returns scan fragments from this path
-    type ScanIterator = BezierPathScanConverterIterator;
+    type ScanIterator = BezierPathScanConverterIterator<'a, TPath, TCurveScanConverter>;
 
     ///
     /// Takes a bezier path and scan converts it. Edges are returned from the top left (y index 0) and 
@@ -78,11 +101,48 @@ where
     fn scan_convert(self, paths: &'a Vec<TPath>) -> Self::ScanIterator {
         // Collect all the curves from the paths
         let all_curves = paths.iter()
-            .map(|path| {
+            .flat_map(|path| {
                 path.to_curves::<Curve<TPath::Point>>()
             })
             .collect::<Vec<_>>();
 
+        // Create the iterator for all of the scanlines
+        let scan_converter          = &self.curve_converter;
+        let path_scanline_iterator  = BezierPathScanConverterIteratorBuilder {
+            scan_converter:     scan_converter,
+            all_curves:         all_curves,
+            scanline_edges:     vec![],
+
+            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>| {
+                // Create iterators for the curves
+                let mut scanline_iterators = all_curves
+                    .iter()
+                    .map(move |curve| {
+                        scan_converter.scan_convert(curve)
+                    })
+                    .flat_map(move |mut iterator| {
+                        // First instruction in every iterator should be a scanline
+                        let first_scanline = iterator.next()?;
+                        if let ScanEdgeFragment::StartScanline(scanline) = first_scanline {
+                            // Store the 'current' scanline and the iterator
+                            Some((scanline, Some(iterator)))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                // Order by scanline so we sweep the path from top to bottom
+                scanline_iterators.sort_by(|(scanline_a, _), (scanline_b, _)| scanline_a.cmp(scanline_b));
+
+                // TODO: why does this require that the lifetime be static?
+                scanline_iterators
+            }
+        }.build();
+
+        path_scanline_iterator
+
+        /*
         let mut all_curves = all_curves
             .iter()
             .flat_map(|path_curves| {
@@ -144,7 +204,10 @@ where
 
                                 Some(ScanEdgeFragment::Edge(edge_x, fragment)) => {
                                     // TODO: update fragment with curve, path idx
-                                    scanline_edges.push((edge_x, fragment))
+                                    if fragment.t < 1.0 {
+                                        // Hits that exactly match an endpoint will also match the start point of the following curve, so we exclude those
+                                        scanline_edges.push((edge_x, fragment))
+                                    }
                                 }
 
                                 None    => {
@@ -183,5 +246,6 @@ where
         }
         */
         todo!()
+        */
     }
 }
