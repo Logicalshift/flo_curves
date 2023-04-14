@@ -84,7 +84,77 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        self.with_mut(|fields| {
+            loop {
+                // Loop until there are some edges to iterate
+                if !fields.scanline_edges.is_empty() {
+                    break;
+                }
+
+                // Finished entirely once the scanline_iterators list is empty
+                if fields.scanline_iterators.is_empty() {
+                    return None;
+                }
+
+                // First remaining scanline defines the 'current' scanline
+                let current_scanline    = fields.scanline_iterators.get(0).map(|(scanline, _)| *scanline).unwrap_or(0);
+
+                // Read everything in the current scanline
+                let mut finished_curve  = false;
+
+                for (scanline, scanline_iter) in fields.scanline_iterators.iter_mut() {
+                    // Scanlines are stored in order with the earliest first, so stop once we find an iterator
+                    if *scanline != current_scanline {
+                        break;
+                    }
+
+                    if let Some(iter) = scanline_iter {
+                        // Iterator is at the start of the current scanline: read from it to populate the scanline
+                        loop {
+                            match iter.next() {
+                                Some(ScanEdgeFragment::StartScanline(new_scanline)) => {
+                                    // End of scanline
+                                    *scanline = new_scanline;
+                                    break;
+                                }
+
+                                Some(ScanEdgeFragment::Edge(edge_x, fragment)) => {
+                                    // TODO: update fragment with curve, path idx
+                                    if fragment.t < 1.0 {
+                                        // Hits that exactly match an endpoint will also match the start point of the following curve, so we exclude those
+                                        fields.scanline_edges.push((edge_x, fragment))
+                                    }
+                                }
+
+                                None    => {
+                                    // This curve is finished
+                                    finished_curve = true;
+                                    *scanline_iter = None;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        // Shouldn't happen; one of the curves is finished
+                        finished_curve = true;
+                    }
+                }
+
+                // Remove finished curves from the list
+                if finished_curve {
+                    // TODO: only consider the curves that were on the current scanline (more efficient when there are very many curves)
+                    fields.scanline_iterators.retain(|(_, iter)| iter.is_some());
+                }
+
+                // Order the edges in reverse order so we can just pop them to iterate
+                fields.scanline_edges.sort_by(|(edge_a, _), (edge_b, _)| {
+                    edge_b.partial_cmp(edge_a).unwrap_or(Ordering::Equal)
+                });
+            }
+
+            // Iterate through the recently generated scanlines (should be at least one if we reach here)
+            fields.scanline_edges.pop().map(|(edge_x, fragment)| ScanEdgeFragment::Edge(edge_x, fragment))
+        })
     }
 }
 
@@ -143,111 +213,5 @@ where
         }.build();
 
         path_scanline_iterator
-
-        /*
-        let mut all_curves = all_curves
-            .iter()
-            .flat_map(|path_curves| {
-                // Scan convert every curve
-                path_curves.iter()
-                    .map(|curve| self.curve_converter.scan_convert(curve))
-            })
-            .flat_map(|mut iterator| {
-                // First instruction in every iterator should be a scanline
-                let first_scanline = iterator.next()?;
-                if let ScanEdgeFragment::StartScanline(scanline) = first_scanline {
-                    // Store the 'current' scanline and the iterator
-                    Some((scanline, Some(iterator)))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        // Order by scanline so we sweep the path from top to bottom
-        all_curves.sort_by(|(scanline_a, _), (scanline_b, _)| scanline_a.cmp(scanline_b));
-
-        let mut scanline_edges      = vec![];
-
-        // Create a function to return the next curve
-        let next_fn = move || {
-            loop {
-                // Loop until there are some edges to iterate
-                if !scanline_edges.is_empty() {
-                    break;
-                }
-
-                // Finished entirely once the all_curves list is empty
-                if all_curves.is_empty() {
-                    return None;
-                }
-
-                // First remaining scanline defines the 'current' scanline
-                let current_scanline    = all_curves.get(0).map(|(scanline, _)| *scanline).unwrap_or(0);
-
-                // Read everything in the current scanline
-                let mut finished_curve  = false;
-
-                for (scanline, scanline_iter) in all_curves.iter_mut() {
-                    // Scanlines are stored in order with the earliest first, so stop once we find an iterator
-                    if *scanline != current_scanline {
-                        break;
-                    }
-
-                    if let Some(iter) = scanline_iter {
-                        // Iterator is at the start of the current scanline: read from it to populate the scanline
-                        loop {
-                            match iter.next() {
-                                Some(ScanEdgeFragment::StartScanline(new_scanline)) => {
-                                    // End of scanline
-                                    *scanline = new_scanline;
-                                    break;
-                                }
-
-                                Some(ScanEdgeFragment::Edge(edge_x, fragment)) => {
-                                    // TODO: update fragment with curve, path idx
-                                    if fragment.t < 1.0 {
-                                        // Hits that exactly match an endpoint will also match the start point of the following curve, so we exclude those
-                                        scanline_edges.push((edge_x, fragment))
-                                    }
-                                }
-
-                                None    => {
-                                    // This curve is finished
-                                    finished_curve = true;
-                                    *scanline_iter = None;
-                                    break;
-                                }
-                            }
-                        }
-                    } else {
-                        // Shouldn't happen; one of the curves is finished
-                        finished_curve = true;
-                    }
-                }
-
-                // Remove finished curves from the list
-                if finished_curve {
-                    // TODO: only consider the curves that were on the current scanline (more efficient when there are very many curves)
-                    all_curves.retain(|(_, iter)| iter.is_some());
-                }
-
-                // Order the edges in reverse order so we can just pop them to iterate
-                scanline_edges.sort_by(|(edge_a, _), (edge_b, _)| {
-                    edge_b.partial_cmp(edge_a).unwrap_or(Ordering::Equal)
-                });
-            }
-
-            // Iterate through the scanlines
-            scanline_edges.pop().map(|(edge_x, fragment)| ScanEdgeFragment::Edge(edge_x, fragment))
-        };
-
-        /*
-        BezierPathScanConverterIterator {
-            next_fn: Box::new(next_fn)
-        }
-        */
-        todo!()
-        */
     }
 }
