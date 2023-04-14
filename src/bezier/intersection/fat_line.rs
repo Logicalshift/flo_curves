@@ -460,7 +460,7 @@ mod test {
     fn distance_curve_1() {
         // Horizontal line, with a y range of 2.0 to 7.0
         let fat_line        = FatLine::new((Coord2(0.0, 4.0), Coord2(5.0, 4.0)), -2.0, 3.0);
-        let clip_curve      = line_to_bezier::<_, Curve<_>>(&(Coord2(0.0, 0.0), Coord2(5.0, 8.0)));
+        let clip_curve      = line_to_bezier::<Curve<_>>(&(Coord2(0.0, 0.0), Coord2(5.0, 8.0)));
         let distance_curve  = fat_line.distance_curve::<_, Curve<Coord2>>(&clip_curve);
 
         println!("{:?} {:?}", distance_curve.point_at_pos(0.0), distance_curve.point_at_pos(1.0));
@@ -473,7 +473,7 @@ mod test {
     fn clip_line_1() {
         // Horizontal line, with a y range of 2.0 to 7.0
         let fat_line    = FatLine::new((Coord2(0.0, 4.0), Coord2(5.0, 4.0)), -2.0, 3.0);
-        let clip_curve  = line_to_bezier::<_, Curve<_>>(&(Coord2(0.0, 0.0), Coord2(5.0, 8.0)));
+        let clip_curve  = line_to_bezier::<Curve<_>>(&(Coord2(0.0, 0.0), Coord2(5.0, 8.0)));
 
         let clipped     = fat_line.clip::<_, Curve<Coord2>>(&clip_curve).unwrap();
         let clipped     = fat_line.clip::<_, Curve<Coord2>>(&clipped).unwrap();

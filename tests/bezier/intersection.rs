@@ -6,7 +6,7 @@ use flo_curves::line;
 fn find_intersection_on_straight_line() {
     // Cross that intersects at (5.0, 5.0)
     let line    = (Coord2(0.0, 0.0), Coord2(10.0, 10.0));
-    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+    let curve   = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections   = bezier::curve_intersects_line(&curve, &line);
     assert!(intersections.len() == 1);
@@ -19,7 +19,7 @@ fn find_intersection_on_straight_line() {
 fn find_intersection_with_vertical_ray() {
     // Cross that intersects at (5.0, 5.0)
     let line    = (Coord2(5.0, 0.0), Coord2(5.0, 10.0));
-    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+    let curve   = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections   = bezier::curve_intersects_line(&curve, &line);
     assert!(intersections.len() == 1);
@@ -32,7 +32,7 @@ fn find_intersection_with_vertical_ray() {
 fn find_intersection_with_horizontal_ray() {
     // Cross that intersects at (5.0, 5.0)
     let line    = (Coord2(0.0, 5.0), Coord2(10.0, 5.0));
-    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+    let curve   = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections   = bezier::curve_intersects_line(&curve, &line);
     assert!(intersections.len() == 1);
@@ -45,7 +45,7 @@ fn find_intersection_with_horizontal_ray() {
 fn no_intersection_if_line_does_not_cross_curve() {
     // Line moves away from the curve
     let line    = (Coord2(0.0, 0.0), Coord2(-10.0, -10.0));
-    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+    let curve   = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections   = bezier::curve_intersects_line(&curve, &line);
     assert!(intersections.len() == 0);
@@ -55,7 +55,7 @@ fn no_intersection_if_line_does_not_cross_curve() {
 fn find_intersection_on_straight_line_against_ray() {
     // Line moves away from the curve so it doesn't intersect. When we use intersects_ray(), however, we find intersections anywhere along the line
     let line    = (Coord2(0.0, 0.0), Coord2(-10.0, -10.0));
-    let curve   = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
+    let curve   = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 0.0), Coord2(0.0, 10.0)));
 
     let intersections   = bezier::curve_intersects_ray(&curve, &line);
     assert!(intersections.len() == 1);
@@ -127,7 +127,7 @@ fn dot_intersects_nothing() {
 fn lines_intersect_at_start() {
     let line1   = (Coord2(4.0, 4.0), Coord2(5.0, 8.0));
     let line2   = (Coord2(4.0, 4.0), Coord2(8.0, 5.0));
-    let curve2  = line::line_to_bezier::<_, bezier::Curve<_>>(&line2);
+    let curve2  = line::line_to_bezier::<bezier::Curve<_>>(&line2);
 
     let intersections = bezier::curve_intersects_line(&curve2, &line1);
 
@@ -140,7 +140,7 @@ fn lines_intersect_at_start() {
 fn lines_intersect_at_end() {
     let line1   = (Coord2(5.0, 8.0), Coord2(4.0, 4.0));
     let line2   = (Coord2(8.0, 5.0), Coord2(4.0, 4.0));
-    let curve2  = line::line_to_bezier::<_, bezier::Curve<_>>(&line2);
+    let curve2  = line::line_to_bezier::<bezier::Curve<_>>(&line2);
 
     let intersections = bezier::curve_intersects_line(&curve2, &line1);
 
@@ -153,7 +153,7 @@ fn lines_intersect_at_end() {
 fn lines_intersect_start_to_end() {
     let line1   = (Coord2(4.0, 4.0), Coord2(5.0, 8.0));
     let line2   = (Coord2(8.0, 5.0), Coord2(4.0, 4.0));
-    let curve2  = line::line_to_bezier::<_, bezier::Curve<_>>(&line2);
+    let curve2  = line::line_to_bezier::<bezier::Curve<_>>(&line2);
 
     let intersections = bezier::curve_intersects_line(&curve2, &line1);
 
@@ -166,7 +166,7 @@ fn lines_intersect_start_to_end() {
 fn ray_intersects_collinear_line_1() {
     // Ray intersecting a collinear line edge-on
     let ray     = (Coord2(0.0, 0.0), Coord2(2.0, 1.0));
-    let line    = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
+    let line    = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
@@ -181,7 +181,7 @@ fn ray_intersects_collinear_line_1() {
 fn ray_intersects_collinear_line_2() {
     // Intersecting a collinear line which has a point closer to the start of the ray than the start of the line
     let ray     = (Coord2(0.0, 0.0), Coord2(2.0, 1.0));
-    let line    = bezier::Curve::from_points(Coord2(4.0, 2.0), (Coord2(2.0, 1.0), Coord2(10.0, 5.0)), Coord2(8.0, 4.0)); // line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
+    let line    = bezier::Curve::from_points(Coord2(4.0, 2.0), (Coord2(2.0, 1.0), Coord2(10.0, 5.0)), Coord2(8.0, 4.0)); // line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(4.0, 2.0), Coord2(8.0, 4.0)));
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
@@ -196,7 +196,7 @@ fn ray_intersects_collinear_line_2() {
 fn ray_intersects_collinear_line_3() {
     // Line moving towards the start of the ray instead of away from it
     let ray     = (Coord2(0.0, 0.0), Coord2(2.0, 1.0));
-    let line    = line::line_to_bezier::<_, bezier::Curve<_>>(&(Coord2(8.0, 4.0), Coord2(4.0, 2.0)));
+    let line    = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(8.0, 4.0), Coord2(4.0, 2.0)));
 
     let intersections = bezier::curve_intersects_ray(&line, &ray);
 
@@ -390,7 +390,7 @@ fn collide_close_to_circle_1() {
     }
 
     // Try using curve_intersects_line next: should produce at most one intersection per line
-    let close_curve = line_to_bezier::<_, Curve<_>>(&close_line);
+    let close_curve = line_to_bezier::<Curve<_>>(&close_line);
 
     for curve in ring1.to_curves::<Curve<_>>() {
         let collisions = curve_intersects_curve_clip(&curve, &close_curve, 0.01);
@@ -423,7 +423,7 @@ fn collide_close_to_circle_2() {
     }
 
     // Try using curve_intersects_line next: this line does not intersect (it's quite close to the curve but does not actually intersect it)
-    let close_curve = line_to_bezier::<_, Curve<_>>(&close_line);
+    let close_curve = line_to_bezier::<Curve<_>>(&close_line);
 
     for curve in ring1.to_curves::<Curve<_>>() {
         let collisions = curve_intersects_curve_clip(&curve, &close_curve, 0.01);

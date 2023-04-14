@@ -140,8 +140,8 @@ fn collinear_lines_both_overlap_partial_same_direction() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 480.0), Coord2(384.0, 352.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -152,8 +152,8 @@ fn collinear_lines_both_overlap_partial_opposite_directions() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 352.0), Coord2(384.0, 480.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -164,8 +164,8 @@ fn collinear_lines_first_entirely_overlaps_second() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 400.0), Coord2(384.0, 352.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -176,8 +176,8 @@ fn collinear_lines_second_entirely_overlaps_first() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 480.0), Coord2(384.0, 252.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -188,8 +188,8 @@ fn collinear_lines_first_entirely_overlaps_second_reversed() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 352.0), Coord2(384.0, 400.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -200,8 +200,8 @@ fn collinear_lines_second_entirely_overlaps_first_reversed() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 252.0), Coord2(384.0, 480.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);
@@ -212,8 +212,8 @@ fn collinear_lines_same_lines() {
     let line1 = (Coord2(384.0, 448.0), Coord2(384.0, 274.3));
     let line2 = (Coord2(384.0, 448.0), Coord2(384.0, 274.0));
 
-    let line1 = line_to_bezier::<_, Curve<_>>(&line1);
-    let line2 = line_to_bezier::<_, Curve<_>>(&line2);
+    let line1 = line_to_bezier::<Curve<_>>(&line1);
+    let line2 = line_to_bezier::<Curve<_>>(&line2);
 
     let overlaps = overlapping_region(&line1, &line2);
     assert!(overlaps.is_some(), "{:?}", overlaps);

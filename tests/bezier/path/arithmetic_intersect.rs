@@ -354,7 +354,7 @@ fn repeatedly_full_intersect_circle_f32_intermediate_representation() {
         // The edges (x3, y3) -> (x1, y1) and (x2, y2) -> (x4, y4) should both collide with at least one edge in the remaining path
         for edge in [(Coord2(x3, y3), Coord2(x1, y1)), (Coord2(x2, y2), Coord2(x4, y4))] {
             // Convert the edge to a line
-            let fragment_edge       = line_to_bezier::<_, Curve<_>>(&edge);
+            let fragment_edge       = line_to_bezier::<Curve<_>>(&edge);
 
             // Iterate through the edges in remaining
             let mut first_point     = remaining[0].start_point();
