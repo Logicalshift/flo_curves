@@ -67,7 +67,7 @@ where
     /// The iterators for each curve
     #[borrows(all_curves, scan_converter)]
     #[not_covariant]
-    scanline_iterators: Vec<(i64, Option<<&'this TCurveScanConverter as ScanConverter<'this, Curve<TPath::Point>>>::ScanIterator>)>,
+    scanline_iterators: Vec<(usize, usize, i64, Option<<&'this TCurveScanConverter as ScanConverter<'this, Curve<TPath::Point>>>::ScanIterator>)>,
 
     /// The scan edges for the current scanline, in reverse order
     scanline_edges: Vec<(ScanX, ScanFragment)>,
@@ -97,12 +97,12 @@ where
                 }
 
                 // First remaining scanline defines the 'current' scanline
-                let current_scanline    = fields.scanline_iterators.get(0).map(|(scanline, _)| *scanline).unwrap_or(0);
+                let current_scanline    = fields.scanline_iterators.get(0).map(|(_, _, scanline, _)| *scanline).unwrap_or(0);
 
                 // Read everything in the current scanline
                 let mut finished_curve  = false;
 
-                for (scanline, scanline_iter) in fields.scanline_iterators.iter_mut() {
+                for (path_idx, curve_idx, scanline, scanline_iter) in fields.scanline_iterators.iter_mut() {
                     // Scanlines are stored in order with the earliest first, so stop once we find an iterator
                     if *scanline != current_scanline {
                         break;
@@ -143,7 +143,7 @@ where
                 // Remove finished curves from the list
                 if finished_curve {
                     // TODO: only consider the curves that were on the current scanline (more efficient when there are very many curves)
-                    fields.scanline_iterators.retain(|(_, iter)| iter.is_some());
+                    fields.scanline_iterators.retain(|(_, _, _, iter)| iter.is_some());
                 }
 
                 // Order the edges in reverse order so we can just pop them to iterate
@@ -198,14 +198,14 @@ where
                 let mut scanline_iterators = all_curves
                     .iter()
                     .map(move |(path_idx, curve_idx, curve)| {
-                        (*scan_converter).scan_convert(curve)
+                        (*path_idx, *curve_idx, (*scan_converter).scan_convert(curve))
                     })
-                    .flat_map(move |mut iterator| {
+                    .flat_map(move |(path_idx, curve_idx, mut iterator)| {
                         // First instruction in every iterator should be a scanline
                         let first_scanline = iterator.next()?;
                         if let ScanEdgeFragment::StartScanline(scanline) = first_scanline {
                             // Store the 'current' scanline and the iterator
-                            Some((scanline, Some(iterator)))
+                            Some((path_idx, curve_idx, scanline, Some(iterator)))
                         } else {
                             None
                         }
@@ -213,7 +213,7 @@ where
                     .collect::<Vec<_>>();
 
                 // Order by scanline so we sweep the path from top to bottom
-                scanline_iterators.sort_by(|(scanline_a, _), (scanline_b, _)| scanline_a.cmp(scanline_b));
+                scanline_iterators.sort_by(|(_, _, scanline_a, _), (_, _, scanline_b, _)| scanline_a.cmp(scanline_b));
 
                 scanline_iterators
             }
