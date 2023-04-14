@@ -12,6 +12,7 @@ use std::marker::{PhantomData};
 ///
 /// This isn't the fastest algorithm but it's quite simple and reliably correct so it works as a baseline algorithm.
 ///
+#[derive(Clone)]
 pub struct RootSolvingScanConverter<TCurve> 
 where
     TCurve:         BezierCurve,
