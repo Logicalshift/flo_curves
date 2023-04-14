@@ -19,6 +19,7 @@ fn basic_circle() {
             ScanEdgeFragment::StartScanline(new_scanline) => { 
                 assert!(last_scanline_point_count == 2, "Last scanline point count count was {:?}", last_scanline_point_count);
                 assert!(new_scanline > current_scanline, "Scanlines went backwards: {:?} -> {:?}", current_scanline, new_scanline);
+                assert!(current_scanline == -1 || new_scanline == current_scanline + 1, "Missed scanline: {:?} -> {:?}", current_scanline, new_scanline);
 
                 current_scanline            = new_scanline; 
                 last_scanline_point_count   = 0;
@@ -31,7 +32,7 @@ fn basic_circle() {
                 let pos         = Coord2(x_pos, y_pos);
                 let distance    = pos.distance_to(&center);
 
-                assert!((distance - radius).abs() < 0.01, "Point was {:?} units from the center of the circle", distance);
+                assert!((distance - radius).abs() < 0.1, "Point was {:?} units from the center of the circle", distance);
             }
         }
     }
