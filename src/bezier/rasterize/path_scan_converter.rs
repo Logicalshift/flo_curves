@@ -64,7 +64,7 @@ where
     all_curves: Vec<Curve<TPath::Point>>,
 
     /// The iterators for each curve
-    #[borrows(all_curves)]
+    #[borrows(all_curves, scan_converter)]
     #[not_covariant]
     scanline_iterators: Vec<(i64, Option<<&'this TCurveScanConverter as ScanConverter<'this, Curve<TPath::Point>>>::ScanIterator>)>,
 
@@ -90,6 +90,7 @@ impl<'a, TPath, TCurveScanConverter> ScanConverter<'a, Vec<TPath>> for &'a Bezie
 where
     TPath:                      'a + BezierPath,
     TPath::Point:               'a + Coordinate + Coordinate2D,
+    TCurveScanConverter:        'a,
     for<'b> &'b TCurveScanConverter: ScanConverter<'b, Curve<TPath::Point>>,
 {
     /// The iterator type that returns scan fragments from this path
@@ -107,18 +108,19 @@ where
             .collect::<Vec<_>>();
 
         // Create the iterator for all of the scanlines
-        let scan_converter          = &self.curve_converter;
         let path_scanline_iterator  = BezierPathScanConverterIteratorBuilder {
-            scan_converter:     scan_converter,
+            scan_converter:     &self.curve_converter,
             all_curves:         all_curves,
             scanline_edges:     vec![],
 
-            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>| {
+            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>, scan_converter: &&TCurveScanConverter| {
+                vec![]
+                /*
                 // Create iterators for the curves
                 let mut scanline_iterators = all_curves
                     .iter()
                     .map(move |curve| {
-                        scan_converter.scan_convert(curve)
+                        (*scan_converter).scan_convert(curve)
                     })
                     .flat_map(move |mut iterator| {
                         // First instruction in every iterator should be a scanline
@@ -137,6 +139,7 @@ where
 
                 // TODO: why does this require that the lifetime be static?
                 scanline_iterators
+                */
             }
         }.build();
 
