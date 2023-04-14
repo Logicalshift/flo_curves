@@ -58,7 +58,7 @@ where
     TCurveScanConverter:                'static,
     for<'b> &'b TCurveScanConverter:    ScanConverter<'b, Curve<TPath::Point>>,
 {
-    /// Represents the scan converter for this iterator
+    /// The scan converter for this iterator (we have to clone this instead of borrowing it due to lifetime issues with ouroboros and a crash in the borrow checker if we use a reference here)
     scan_converter: TCurveScanConverter,
 
     /// All the curves from all of the paths
@@ -115,7 +115,7 @@ where
             all_curves:         all_curves,
             scanline_edges:     vec![],
 
-            scanline_iterators_builder: move |all_curves: &Vec<Curve<TPath::Point>>, scan_converter: &TCurveScanConverter| {
+            scanline_iterators_builder: move |all_curves, scan_converter| {
                 // Create iterators for the curves
                 let mut scanline_iterators = all_curves
                     .iter()
