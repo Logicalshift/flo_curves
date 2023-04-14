@@ -30,7 +30,7 @@ fn sampled_circle(size: usize, radius: usize) -> BoolSampledContour {
 
 fn circle_from_contours(contour: &BoolSampledContour) {
     // Trace the samples to generate a vector
-    trace_paths_from_samples::<SimpleBezierPath>(contour);
+    trace_paths_from_samples::<SimpleBezierPath>(contour, 0.1);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
