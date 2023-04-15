@@ -144,7 +144,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         samples.push((ContourPosition((sample_x + self.int_radius) as usize, (sample_y + self.int_radius) as usize), ContourCell::from_corners(tl, tr, bl, br)));
 
         // There may be more edges on the left of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
-        debug_assert!((ypos >= 0.0 && (bl || br) || (ypos <= 0.0 && (tl || tr))));
+        debug_assert!((ypos >= 0.0 && (tl || tr) || (ypos <= 0.0 && (bl || br))));
 
         // Move to the left to fill in the rest of the line
         loop {
