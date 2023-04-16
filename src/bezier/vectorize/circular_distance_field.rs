@@ -167,7 +167,16 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
         }
 
-        // TODO: Mirror to generate the full line
+        // Mirror to generate the full line
+        samples.reverse();
+        let len         = if xpos == 0.0 { samples.len() - 1 } else { samples.len() };
+        let mid_point   = self.int_radius as usize;
+        for idx in 0..len {
+            let (pos, cell) = samples[len-1-idx];
+            let pos         = ContourPosition(mid_point - (pos.0-mid_point) , pos.1);
+
+            samples.push((pos, cell.mirror_horiz()));
+        }
 
         // Store the samples and pop the top one
         self.samples = samples;
