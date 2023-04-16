@@ -104,6 +104,10 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             // The sample ypos is where we take the initial sample from. For edge on the negative side, we sample the 'lower' row and then flip for the bottom half so that the circle will be moving to the right
             let sample_ypos = if ypos <= 0.0 { ypos + 1.0 } else { ypos };
 
+            if ypos == 0.0 {
+                break (self.radius, ypos);
+            }
+
             // At the top of the circle, move downwards to capture the first row where everything is 'below' the current position
             let ypos_sq = sample_ypos * sample_ypos;
 
