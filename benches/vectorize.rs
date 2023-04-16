@@ -28,17 +28,21 @@ fn sampled_circle(size: usize, radius: usize) -> BoolSampledContour {
     contour
 }
 
-fn circle_from_contours(contour: &BoolSampledContour) {
+fn circle_from_contours<TContour: SampledContour>(contour: TContour) {
     // Trace the samples to generate a vector
     trace_paths_from_samples::<SimpleBezierPath>(contour, 0.1);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let circle_100  = sampled_circle(100, 30);
-    let circle_1000 = sampled_circle(1000, 300);
+    let circle_100              = sampled_circle(100, 30);
+    let circle_1000             = sampled_circle(1000, 300);
+    let circle_100_generated    = CircularDistanceField::with_radius(30.0);
+    let circle_1000_generated   = CircularDistanceField::with_radius(300.0);
 
     c.bench_function("circle_from_contours 100", |b| b.iter(|| circle_from_contours(&circle_100)));
     c.bench_function("circle_from_contours 1000", |b| b.iter(|| circle_from_contours(&circle_1000)));
+    c.bench_function("circle_from_contours_not_sampled 100", |b| b.iter(|| circle_from_contours(&circle_100_generated)));
+    c.bench_function("circle_from_contours_not_sampled 1000", |b| b.iter(|| circle_from_contours(&circle_1000_generated)));
 }
 
 criterion_group!(benches, criterion_benchmark);
