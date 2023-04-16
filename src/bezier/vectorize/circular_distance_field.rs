@@ -31,8 +31,8 @@ impl CircularDistanceField {
     #[inline]
     pub fn with_radius(radius: f64) -> CircularDistanceField {
         let radius      = if radius < 0.0 { 0.0 } else { radius };
-        let int_radius  = radius.ceil();
-        let diameter    = (int_radius as usize) * 2;
+        let int_radius  = radius.ceil() + 1.0;
+        let diameter    = (int_radius as usize) * 2 + 1;
 
         CircularDistanceField {
             radius, int_radius, diameter
