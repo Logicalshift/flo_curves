@@ -93,6 +93,18 @@ impl ContourCell {
     pub const fn is_on_edge(&self) -> bool {
         self.0 != 0 && self.0 != 15
     }
+
+    ///
+    /// Mirrors this cell in the horizontal direction
+    ///
+    pub const fn mirror_horiz(self) -> ContourCell {
+        let tl = if self.0&1 != 0 { 2 } else { 0 };
+        let tr = if self.0&2 != 0 { 1 } else { 0 };
+        let bl = if self.0&4 != 0 { 8 } else { 0 };
+        let br = if self.0&8 != 0 { 4 } else { 0 };
+
+        ContourCell(tl | tr | bl | br)
+    }
 }
 
 impl ContourEdge {
