@@ -94,7 +94,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
                 return None;
             }
 
-            // Get the y position to process
+            // Get the y position to process. The initial y point is 'above' the circle so we detect the top-most edges
             let ypos    = self.ypos as f64 - 1.0;
             let ypos    = ypos - self.int_radius;
 
