@@ -101,12 +101,11 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             // Advance the y position regardless of if there's a sample here
             self.ypos += 1;
 
-            let ypos_sq = if ypos <= 0.0 { 
-                ypos*ypos
-            } else {
-                // Get the 'lower' intersection point, so any extra edges on the positive side will be to the left
-                (ypos+1.0)*(ypos+1.0)
-            };
+            // The sample ypos is where we take the initial sample from. For edge on the negative side, we sample the 'lower' row and then flip for the bottom half so that the circle will be moving to the right
+            let sample_ypos = if ypos <= 0.0 { ypos + 1.0 } else { ypos };
+
+            // At the top of the circle, move downwards to capture the first row where everything is 'below' the current position
+            let ypos_sq = sample_ypos * sample_ypos;
 
             if ypos_sq == self.radius_sq {
                 // The very top or bottom of the circle
@@ -143,21 +142,21 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         // This should form the initial sample
         samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
 
-        // There may be more edges on the left of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
+        // There may be more edges on the riht of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
         debug_assert!((ypos >= 0.0 && (tl || tr) || (ypos <= 0.0 && (bl || br))));
 
-        // Move to the left to fill in the rest of the line
+        // Move to the right to fill in the rest of the line
         loop {
-            // Sample one to the left. We can re-use the top-right and bottom-right samples from the last pixel
-            sample_x += 1.0;
+            // Sample one to the right. We can re-use the top-right and bottom-right samples from the last pixel
+            sample_x -= 1.0;
 
-            tl = tr;
-            bl = br;
-            tr = self.point_is_inside_from_center(sample_x+1.0, sample_y);
-            br = self.point_is_inside_from_center(sample_x+1.0, sample_y+1.0);
+            tr = tl;
+            br = bl;
+            tl = self.point_is_inside_from_center(sample_x, sample_y);
+            bl = self.point_is_inside_from_center(sample_x, sample_y+1.0);
 
-            if !tl && !bl && !tr && !br {
-                // Stop once we reach empty space
+            if (!tl && !bl && !tr && !br) || (tl && bl && tr && br) || sample_x < 0.0 {
+                // Stop once we reach empty space or the inside of the circle
                 break;
             }
 
@@ -168,7 +167,6 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         }
 
         // Mirror to generate the full line
-        samples.reverse();
         let len         = if xpos == 0.0 { samples.len() - 1 } else { samples.len() };
         let mid_point   = self.int_radius as usize;
         for idx in 0..len {
