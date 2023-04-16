@@ -59,6 +59,12 @@ fn teeny_circle() {
 }
 
 #[test]
+fn big_circle() {
+    let contour = CircularDistanceField::with_radius(2345.1234);
+    check_contour_against_bitmap(&contour, false);
+}
+
+#[test]
 fn even_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.0);
     check_contour_against_bitmap(&contour, true);
