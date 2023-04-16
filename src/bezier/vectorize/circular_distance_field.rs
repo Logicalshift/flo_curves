@@ -38,6 +38,14 @@ impl CircularDistanceField {
             radius, int_radius, diameter
         }
     }
+
+    ///
+    /// The size of this distance field
+    ///
+    #[inline]
+    pub fn size(&self) -> ContourSize {
+        ContourSize(self.diameter, self.diameter)
+    }
 }
 
 impl<'a> SampledContour for &'a CircularDistanceField {
@@ -69,6 +77,27 @@ impl<'a> SampledContour for &'a CircularDistanceField {
             samples:    smallvec![],
         }
     }
+}
+
+impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
+    type Contour = &'a CircularDistanceField;
+
+    #[inline]
+    fn size(self) -> ContourSize {
+        ContourSize(self.diameter, self.diameter)
+    }
+
+    fn distance_at_point(self, pos: ContourPosition) -> f64 {
+        let pos_x       = pos.0 as f64;
+        let pos_y       = pos.1 as f64;
+        let offset_x    = pos_x - self.int_radius;
+        let offset_y    = pos_y - self.int_radius;
+
+        (offset_x*offset_x + offset_y*offset_y).sqrt() - self.radius
+    }
+
+    #[inline]
+    fn as_contour(self) -> Self::Contour { self }
 }
 
 impl CircularDistanceFieldEdgeIterator {
