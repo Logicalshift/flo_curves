@@ -90,12 +90,12 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         // Find the samples for the next line
         let (xpos, ypos) = loop {
             // Finished returning all of the samples once we reach the end of the circle
-            if self.ypos >= self.diameter {
+            if self.ypos > self.diameter {
                 return None;
             }
 
             // Get the y position to process
-            let ypos    = self.ypos as f64;
+            let ypos    = self.ypos as f64 - 1.0;
             let ypos    = ypos - self.int_radius;
 
             // Advance the y position regardless of if there's a sample here
