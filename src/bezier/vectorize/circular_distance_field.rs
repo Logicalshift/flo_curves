@@ -155,8 +155,6 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
                 break;
             }
 
-            debug_assert!(!(tl && bl && tr && br));
-
             // Push the next contour item
             samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
         }
