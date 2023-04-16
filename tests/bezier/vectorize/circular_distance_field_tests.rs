@@ -1,3 +1,5 @@
+use flo_curves::bezier::*;
+use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 
 use itertools::*;
@@ -92,4 +94,37 @@ fn many_circles_small_increments() {
         let contour = CircularDistanceField::with_radius(radius);
         check_contour_against_bitmap(&contour, false);
     }
+}
+
+#[test]
+fn circle_path_from_contours() {
+    // Create a contour containing a circle in the middle, using the circular distance field
+    let radius  = 30.0;
+    let contour = CircularDistanceField::with_radius(radius);
+
+    let size    = contour.size().0;
+    let center  = (size as f64)/2.0;
+
+    // Trace the samples to generate a vector
+    let circle = trace_paths_from_samples::<SimpleBezierPath>(&contour, 1.5);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+
+    // Allow 1.5px of error (between the fitting algorithm and the sampled circle itself)
+    let mut max_error = 0.0;
+
+    for curve in circle[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let point       = curve.point_at_pos(t);
+            let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
+            let offset      = (distance-radius).abs();
+
+            max_error = f64::max(max_error, offset);
+        }
+    }
+
+    // The error here is semi-random due to the hash table used to store the edge graph
+    assert!(max_error <= 1.5, "Max error {:?} > 1.5. Path generated was {:?}", max_error, circle);
 }
