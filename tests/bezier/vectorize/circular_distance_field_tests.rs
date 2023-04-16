@@ -1,5 +1,9 @@
 use flo_curves::bezier::vectorize::*;
 
+use itertools::*;
+
+use std::collections::{HashMap};
+
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.size().0 * contour.size().1)).into_iter()
@@ -16,13 +20,18 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
     let bitmap = BoolSampledContour(contour.size(), bitmap);
 
     // Get the edges from both
-    let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
     let bitmap_edges    = bitmap.edge_cell_iterator().collect::<Vec<_>>();
+    let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
 
     // Should generate identical results
-    assert!(contour_edges.len() == bitmap_edges.len(), "Returned different number of edges ({} vs {}). Bitmap edges were \n  {}\n\nContour edges were \n  {}",
+    let edges_for_y_bitmap  = bitmap_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let edges_for_y_contour  = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+
+    assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines ({} vs {})", edges_for_y_bitmap.len(), edges_for_y_contour.len());
+    assert!(contour_edges.len() == bitmap_edges.len(), "Returned different number of edges ({} vs {}). Edges counts were: \n  {}\n\nBitmap edges were \n  {}\n\nContour edges were \n  {}",
         bitmap_edges.len(),
         contour_edges.len(),
+        edges_for_y_bitmap.keys().map(|ypos| format!("{} {:?} {:?}", ypos, edges_for_y_bitmap.get(ypos), edges_for_y_contour.get(ypos))).collect::<Vec<_>>().join("\n  "),
         bitmap_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "),
         contour_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "));
 
