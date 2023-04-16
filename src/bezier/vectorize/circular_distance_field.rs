@@ -56,7 +56,7 @@ impl<'a> SampledContour for &'a CircularDistanceField {
         let offset_x    = pos_x - self.int_radius;
         let offset_y    = pos_y - self.int_radius;
 
-        (offset_x*offset_x + offset_y*offset_y) < (self.radius*self.radius)
+        (offset_x*offset_x + offset_y*offset_y) <= (self.radius*self.radius)
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
@@ -74,7 +74,7 @@ impl<'a> SampledContour for &'a CircularDistanceField {
 impl CircularDistanceFieldEdgeIterator {
     #[inline]
     fn point_is_inside_from_center(&self, offset_x: f64, offset_y: f64) -> bool {
-        (offset_x*offset_x + offset_y*offset_y) < self.radius_sq
+        (offset_x*offset_x + offset_y*offset_y) <= self.radius_sq
     }
 }
 
