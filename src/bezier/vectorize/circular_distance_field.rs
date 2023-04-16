@@ -162,7 +162,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         }
 
         // Mirror to generate the full line
-        let len         = if xpos == 0.0 { samples.len() - 1 } else { samples.len() };
+        let len         = if sample_x == 0.0 && (self.diameter%2) == 1 { samples.len() - 1 } else { samples.len() };
         let mid_point   = self.int_radius as usize + 1;
         for idx in 0..len {
             let (pos, cell) = samples[len-1-idx];
