@@ -107,11 +107,6 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             // At the top of the circle, move downwards to capture the first row where everything is 'below' the current position
             let ypos_sq = sample_ypos * sample_ypos;
 
-            if ypos_sq == self.radius_sq {
-                // The very top or bottom of the circle
-                break (0.0, ypos);
-            }
-
             if ypos_sq > self.radius_sq {
                 continue;
             }
