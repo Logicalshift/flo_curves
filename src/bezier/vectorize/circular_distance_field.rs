@@ -168,10 +168,10 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
 
         // Mirror to generate the full line
         let len         = if xpos == 0.0 { samples.len() - 1 } else { samples.len() };
-        let mid_point   = self.int_radius as usize;
+        let mid_point   = self.int_radius as usize + 1;
         for idx in 0..len {
             let (pos, cell) = samples[len-1-idx];
-            let pos         = ContourPosition(mid_point - (pos.0-mid_point) , pos.1);
+            let pos         = ContourPosition(mid_point - (pos.0-mid_point) - 1 , pos.1);
 
             samples.push((pos, cell.mirror_horiz()));
         }
