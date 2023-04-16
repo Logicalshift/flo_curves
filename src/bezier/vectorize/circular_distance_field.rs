@@ -141,7 +141,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         debug_assert!((tl || tr || bl || br) && (!tl || !tr || !bl || !br), "Picked a sample that was not on an edge at {:?}: {:?}", (xpos, ypos), (tl, tr, bl, br));
 
         // This should form the initial sample
-        samples.push((ContourPosition((sample_x + self.int_radius) as usize, (sample_y + self.int_radius) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+        samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
 
         // There may be more edges on the left of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
         debug_assert!((ypos >= 0.0 && (tl || tr) || (ypos <= 0.0 && (bl || br))));
@@ -164,7 +164,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             debug_assert!(!(tl && bl && tr && br));
 
             // Push the next contour item
-            samples.push((ContourPosition((sample_x + self.int_radius) as usize, (sample_y + self.int_radius) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+            samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
         }
 
         // TODO: Mirror to generate the full line
