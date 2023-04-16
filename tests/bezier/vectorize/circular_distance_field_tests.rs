@@ -103,7 +103,7 @@ fn circle_path_from_contours() {
     let contour = CircularDistanceField::with_radius(radius);
 
     let size    = contour.size().0;
-    let center  = (size as f64)/2.0;
+    let center  = (size as f64)/2.0 - 1.0;
 
     // Trace the samples to generate a vector
     let circle = trace_paths_from_samples::<SimpleBezierPath>(&contour, 1.5);
