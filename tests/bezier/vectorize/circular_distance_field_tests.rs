@@ -4,18 +4,20 @@ use itertools::*;
 
 use std::collections::{HashMap};
 
-fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
+fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.size().0 * contour.size().1)).into_iter()
         .map(|pos| (pos % contour.size().1, pos / contour.size().1))
         .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
-    for p in 0..bitmap.len() {
-        print!("{}", if bitmap[p] { '#' } else { '.' });
-        if ((p+1)%contour.size().1) == 0 { println!() };
+    if draw_circle {
+        for p in 0..bitmap.len() {
+            print!("{}", if bitmap[p] { '#' } else { '.' });
+            if ((p+1)%contour.size().1) == 0 { println!() };
+        }
+        println!();
     }
-    println!();
 
     let bitmap = BoolSampledContour(contour.size(), bitmap);
 
@@ -43,19 +45,51 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 }
 
 #[test]
+fn zero_size_circle() {
+    let contour = CircularDistanceField::with_radius(0.0);
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
+fn teeny_circle() {
+    let contour = CircularDistanceField::with_radius(0.5);
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
 fn even_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.0);
-    check_contour_against_bitmap(&contour);
+    check_contour_against_bitmap(&contour, true);
 }
 
 #[test]
 fn odd_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(15.0);
-    check_contour_against_bitmap(&contour);
+    check_contour_against_bitmap(&contour, true);
 }
 
 #[test]
 fn non_grid_aligned_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.1);
-    check_contour_against_bitmap(&contour);
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
+fn many_circles() {
+    // All circles up to a radius of 100 in steps of 0.1
+    for radius in 0..1000 {
+        let radius  = (radius as f64) / 10.0;
+        let contour = CircularDistanceField::with_radius(radius);
+        check_contour_against_bitmap(&contour, false);
+    }
+}
+
+#[test]
+fn many_circles_small_increments() {
+    // All circles up to a radius of 10 in steps of 0.01
+    for radius in 0..1000 {
+        let radius  = (radius as f64) / 100.0;
+        let contour = CircularDistanceField::with_radius(radius);
+        check_contour_against_bitmap(&contour, false);
+    }
 }
