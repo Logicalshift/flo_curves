@@ -42,6 +42,9 @@ use std::cmp::*;
 /// This uses a scaling algorithm to compute the offset curve, which is fast but which can produce
 /// errors, especially if the initial and final offsets are very different from one another.
 ///
+/// See `offset_lms_sampling()` for a version of this that produces fewer errors, and the 
+/// `DaubBrushDistanceField` for a more general way to generate 'thick' lines.
+///
 pub fn offset_scaling<Curve>(curve: &Curve, initial_offset: f64, final_offset: f64) -> Vec<Curve>
 where
     Curve:          BezierCurveFactory+NormalCurve,

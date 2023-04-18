@@ -11,8 +11,15 @@ use std::iter;
 /// Produces an offset curve by performing a least-mean-square curve fit against the output of a function
 ///
 /// This is about 5x slower than the scaling algorithm with 10 subdivisions (which is a number that seems to
-/// produce good results). Too few subdivisions can result in flat sections in the curve, and too many can
-/// result in artifacts caused by overfitting.
+/// produce good results). Too few subdivisions can result in flat sections in the curve, and sharp bends in
+/// the curve may require more samples to produce a good reslt.
+///
+/// Samples are output at the normal of every point on the curve. This produces good results when the offsets 
+/// do not change much over the length of the curve, but can produce points that are too close to the curve
+/// in concave sections if the offsets at the start and end are very different.
+///
+/// See also the `DaubBrushDistanceField` struct for an even more general way to generate 'thick' lines, which
+/// is not prone to these limitations.
 ///
 pub fn offset_lms_sampling<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivisions: u32, max_error: f64) -> Option<Vec<Curve>>
 where
