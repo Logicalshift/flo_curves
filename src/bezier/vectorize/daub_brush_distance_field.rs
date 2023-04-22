@@ -35,7 +35,41 @@ pub struct DaubBrushContourIterator<'a, TDaub>
 where
     TDaub: SampledSignedDistanceField,
 {
+    /// The distance field that is being iterated over
     distance_field: &'a DaubBrushDistanceField<TDaub>,
+}
+
+impl<TDaub> DaubBrushDistanceField<TDaub>
+where
+    TDaub: SampledSignedDistanceField,
+{
+    ///
+    /// Creates a daub brush distance field from a list of daubs and their positions
+    ///
+    pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
+        // Collect the daubs
+        let mut daubs   = daubs.into_iter().collect::<Vec<_>>();
+
+        // Size is the outer extent of all the daubs
+        let size        = daubs.iter()
+            .fold(ContourSize(0, 0), |last_size, (next_daub, next_pos)| {
+                let ContourPosition(x, y)       = next_pos;
+                let ContourSize(w, h)           = last_size;
+
+                let ContourSize(daub_w, daub_h) = next_daub.size();
+                let daub_w                      = x + daub_w;
+                let daub_h                      = y + daub_h;
+
+                ContourSize(usize::max(w, daub_w), usize::max(h, daub_h))
+            });
+
+        // Sort the daubs by y position
+        daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
+
+        DaubBrushDistanceField {
+            size, daubs
+        }
+    }
 }
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
@@ -49,12 +83,15 @@ where
         self.size
     }
 
+    #[inline]
     fn point_is_inside(self, pos: ContourPosition) -> bool {
-        todo!()
+        self.distance_at_point(pos) <= 0.0
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        todo!()
+        DaubBrushContourIterator {
+            distance_field: self,
+        }
     }
 }
 
@@ -70,9 +107,40 @@ where
     }
 
     fn distance_at_point(self, pos: ContourPosition) -> f64 {
-        todo!()
+        // Distance is the minimum of all the daubs that overlap this point
+        let mut distance = f64::MAX;
+
+        for (daub, ContourPosition(x, y)) in self.daubs.iter() {
+            // The daubs are sorted in order, so a daub that starts beyond the current point means that all the future daubs also start beyond that point
+            if *y > pos.1 {
+                break;
+            }
+
+            // Ignore daubs that occur before this position too
+            if *x > pos.0 {
+                continue;
+            }
+
+            // Check for overlap
+            let ContourSize(w, h) = daub.size();
+            if x+w <= pos.0 {
+                continue;
+            }
+            if y+h <= pos.1 {
+                continue;
+            }
+
+            // Fetch the distance from the daub
+            let this_distance = daub.distance_at_point(ContourPosition(pos.0 - *x, pos.1 - *y));
+
+            // The lowest distance of all the overlapping daubs is the distance for this point
+            distance = f64::min(distance, this_distance);
+        }
+
+        distance
     }
 
+    #[inline]
     fn as_contour(self) -> Self::Contour {
         self
     }
