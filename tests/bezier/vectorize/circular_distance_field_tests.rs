@@ -47,6 +47,12 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
 }
 
 #[test]
+fn distance_is_radius_at_center() {
+    let circle = CircularDistanceField::with_radius(10.0);
+    assert!((circle.distance_at_point(ContourPosition(11, 11))- -10.0).abs() < 0.1, "{}", circle.distance_at_point(ContourPosition(11, 11)));
+}
+
+#[test]
 fn zero_size_circle() {
     let contour = CircularDistanceField::with_radius(0.0);
     check_contour_against_bitmap(&contour, true);
