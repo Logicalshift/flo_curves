@@ -66,8 +66,9 @@ pub trait SampledContour : Copy {
 
     ///
     /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
+    /// starting from the top-left corner of the contour
     ///
-    /// The position returned here is the position of the bottom-right corner of the cell.
+    /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
     ///
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator;
 }
