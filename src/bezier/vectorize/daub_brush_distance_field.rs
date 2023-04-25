@@ -37,6 +37,9 @@ where
 {
     /// The distance field that is being iterated over
     distance_field: &'a DaubBrushDistanceField<TDaub>,
+
+    /// The scanline that we're collecting edges for
+    current_scanline: usize,
 }
 
 impl<TDaub> DaubBrushDistanceField<TDaub>
@@ -90,7 +93,8 @@ where
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         DaubBrushContourIterator {
-            distance_field: self,
+            distance_field:     self,
+            current_scanline:   0,
         }
     }
 }
@@ -153,6 +157,12 @@ where
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<(ContourPosition, ContourCell)> {
+        // Where two shapes overlap each other, it's possible either for there to be an edge from either shape, a combined edge made of both shapes,
+        // an edge one pixel to the left or right, or no edge at all. In the case the edge looks like it might have moved, it's possible that the new
+        // edge may have been hit by another pixel already.
+
+        // Might be possible to test all the possibilities by building up an exhaustive set of possible edge tiles and what they can be combined with
+
         todo!()
     }
 }
