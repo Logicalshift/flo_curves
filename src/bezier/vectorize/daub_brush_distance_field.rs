@@ -29,6 +29,17 @@ where
 }
 
 ///
+/// Represents an iterator over the edges in a 
+///
+struct EdgeIterator<TIterator> {
+    daub_idx:       usize,
+    iterator:       Option<TIterator>,
+    daub_position:  ContourPosition,
+    size:           ContourSize,
+    lookahead:      (ContourPosition, ContourCell),
+}
+
+///
 /// Iterates over the edges in a daub brush distance field
 ///
 pub struct DaubBrushContourIterator<'a, TDaub>
@@ -37,6 +48,15 @@ where
 {
     /// The distance field that is being iterated over
     distance_field: &'a DaubBrushDistanceField<TDaub>,
+
+    /// The index of the next daub to start (in scanline order: the iterators are generally unordered otherwise)
+    next_daub_idx: usize,
+
+    /// Edge iterators, position of the corresponding daub, and the iterator for the following cells if there are any
+    edge_iterators: Vec<EdgeIterator<<<TDaub as SampledSignedDistanceField>::Contour as SampledContour>::EdgeCellIterator>>,
+
+    /// The edge iterators that are on a future scanline (these are generally iterators that have moved down a scanline)
+    future_scanline_iterators: Vec<EdgeIterator<<<TDaub as SampledSignedDistanceField>::Contour as SampledContour>::EdgeCellIterator>>,
 
     /// The scanline that we're collecting edges for
     current_scanline: usize,
@@ -92,9 +112,15 @@ where
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
+        // 
+
+        // Create the iterator
         DaubBrushContourIterator {
-            distance_field:     self,
-            current_scanline:   0,
+            distance_field:             self,
+            next_daub_idx:              0,
+            edge_iterators:             vec![],
+            future_scanline_iterators:  vec![],
+            current_scanline:           0,
         }
     }
 }
