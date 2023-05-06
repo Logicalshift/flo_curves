@@ -1,6 +1,8 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
 
+use smallvec::*;
+
 ///
 /// Describes a shape as a distance field made up by 'daubing' discrete brush shapes over a canvas
 ///
@@ -33,7 +35,7 @@ where
 ///
 struct EdgeIterator<TIterator> {
     daub_idx:       usize,
-    iterator:       Option<TIterator>,
+    iterator:       TIterator,
     daub_position:  ContourPosition,
     size:           ContourSize,
     lookahead:      (ContourPosition, ContourCell),
@@ -212,7 +214,7 @@ where
                 if let Some(peek_cell) = new_iterator.next() {
                     let edge_iterator = EdgeIterator {
                         daub_idx:       self.next_daub_idx,
-                        iterator:       Some(new_iterator),
+                        iterator:       new_iterator,
                         daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
                         size:           self.distance_field.daubs[self.next_daub_idx].0.size(),
                         lookahead:      peek_cell,
@@ -250,6 +252,35 @@ where
             // Pick a new scanline and try again: earliest in the current iterators or future daubs
             self.current_scanline += 1; // TODO: can probably look at the edges/future daubs and pick the smallest available y position instead of doing this
         }
+    }
+
+    ///
+    /// Reads the value in a cell at a particular position
+    ///
+    fn read_overlapping_cell(&self, xpos: usize, ypos: usize) -> bool {
+        let mut is_filled = false;
+
+        // We assume that all iterators cover the y position as that should be guaranteed
+        for edge_iterator in self.edge_iterators.iter().rev() {
+            if edge_iterator.daub_position.x() > xpos {
+                // All future daubs appear after 'xpos'
+                break;
+            }
+
+            if edge_iterator.daub_position.x() + edge_iterator.size.width() >= xpos {
+                // Does not overlap this daub
+                continue;
+            }
+
+            is_filled = is_filled || false; // TODO: need the contour
+
+            // Once the 'is_filled' flag is set it can't be unset
+            if is_filled {
+                break;
+            }
+        }
+
+        return is_filled;
     }
 }
 
@@ -290,15 +321,49 @@ where
                 earliest_x  = earliest_x.min(xpos);
             }
 
-            // Generate a cell for this position and advance any corresponding iterators
+            // Generate a cell for this position by reading all of the contours that contain this position
+            let tl = if self.current_scanline > 0 && earliest_x > 0 { self.read_overlapping_cell(earliest_x-1, self.current_scanline-1) } else { false };
+            let tr = if self.current_scanline > 0 { self.read_overlapping_cell(earliest_x, self.current_scanline-1) } else { false };
+            let bl = if earliest_x > 0 { self.read_overlapping_cell(earliest_x-1, self.current_scanline) } else { false };
+            let br = self.read_overlapping_cell(earliest_x, self.current_scanline);
 
-            // Where two shapes overlap each other, it's possible either for there to be an edge from either shape, a combined edge made of both shapes,
-            // an edge one pixel to the left or right, or no edge at all. In the case the edge looks like it might have moved, it's possible that the new
-            // edge may have been hit by another pixel already.
+            // Advance any corresponding iterators, possibly moving them to the future or removing them
+            let mut to_remove: SmallVec<[_; 4]> = smallvec![];
+            let mut to_future: SmallVec<[_; 4]> = smallvec![];
 
-            // Might be possible to test all the possibilities by building up an exhaustive set of possible edge tiles and what they can be combined with
+            for (idx, edge_iterator) in self.edge_iterators.iter_mut().enumerate().rev() {
+                // Stop once we find an iterator that cannot overlap the position of the earliest xpos
+                if edge_iterator.daub_position.x() > earliest_x {
+                    break;
+                }
 
-            todo!()
+                // Only advancing the edges that match with the point that we're reading
+                if edge_iterator.lookahead.0.x() + edge_iterator.daub_position.x() != earliest_x {
+                    continue;
+                }
+
+                // Advance this iterator
+                if let Some(next_lookahead) = edge_iterator.iterator.next() {
+                    // Update the lookahead
+                    edge_iterator.lookahead = next_lookahead;
+
+                    if edge_iterator.lookahead.0.y() != self.current_scanline {
+                        // This item has no more edges (or filled pixels) on the current scanline
+                        to_future.push(idx);
+                    }
+                } else {
+                    // Remove this iterator
+                    to_remove.push(idx);
+                }
+            }
+
+            // Skip entirely filled cells (we shouldn't find any entirely empty cells)
+            if tl && tr && bl && br {
+                continue;
+            }
+
+            // Return the cell we found
+            return Some((ContourPosition(earliest_x, self.current_scanline), ContourCell::from_corners(tl, tr, bl, br)));
         }
     }
 }
