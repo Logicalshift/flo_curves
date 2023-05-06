@@ -239,6 +239,11 @@ where
             self.future_scanline_iterators  = future_edges;
 
             if !self.edge_iterators.is_empty() {
+                // Order by start position, in reverse order (as we'll remove items left-to-right this reduces the amount of re-ordering done to the vec)
+                self.edge_iterators.sort_by(|edge_a, edge_b| {
+                    edge_b.daub_position.x().cmp(&edge_a.daub_position.x())
+                });
+
                 return;
             }
 
@@ -255,6 +260,17 @@ where
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<(ContourPosition, ContourCell)> {
+        // Move to the next scanline if there are no iterators at present
+        if self.edge_iterators.is_empty() {
+            self.current_scanline += 1;
+            self.start_scanline();
+
+            // If there are still no iterators, we've fnished iterating the edges
+            if self.edge_iterators.is_empty() {
+                return None;
+            }
+        }
+
         // Where two shapes overlap each other, it's possible either for there to be an edge from either shape, a combined edge made of both shapes,
         // an edge one pixel to the left or right, or no edge at all. In the case the edge looks like it might have moved, it's possible that the new
         // edge may have been hit by another pixel already.
