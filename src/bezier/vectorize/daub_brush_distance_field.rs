@@ -275,7 +275,7 @@ where
                 break;
             }
 
-            if edge_iterator.daub_position.x() + edge_iterator.size.width() >= xpos {
+            if xpos >= edge_iterator.daub_position.x() + edge_iterator.size.width() {
                 // Does not overlap this daub
                 continue;
             }
