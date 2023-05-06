@@ -215,8 +215,34 @@ where
             }
 
             // If any of the existing iterators or the future iterators are on the current scanline, then we're ready to return edges
+            // We rely on each iterator returning edges in order from the top-left here: if an edge moves backwards (horizontally or vertically)
+            // this algorithm will fail to produce good results
+            let edge_iterators              = self.edge_iterators;
+            let future_scanline_iterators   = self.future_scanline_iterators;
+
+            let (active_edges, inactive_edges)  = edge_iterators.into_iter().partition::<Vec<_>, _>(|edge| {
+                let ypos = edge.lookahead.0.y() + edge.daub_position.y();
+                ypos == self.current_scanline
+            });
+            let (activated_edges, future_edges) = future_scanline_iterators.into_iter().partition::<Vec<_>, _>(|edge| {
+                let ypos = edge.lookahead.0.y() + edge.daub_position.y();
+                ypos == self.current_scanline
+            });
+
+            let mut edge_iterators  = activated_edges;
+            let mut future_edges    = future_edges;
+            edge_iterators.extend(active_edges);
+            future_edges.extend(inactive_edges);
+
+            self.edge_iterators             = edge_iterators;
+            self.future_scanline_iterators  = future_edges;
+
+            if !self.edge_iterators.is_empty() {
+                return;
+            }
 
             // Pick a new scanline and try again: earliest in the current iterators or future daubs
+            self.current_scanline += 1; // TODO: can probably look at the edges/future daubs and pick the smallest available y position instead of doing this
         }
     }
 }
