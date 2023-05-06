@@ -73,12 +73,18 @@ fn big_circle() {
 #[test]
 fn even_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.0);
+
+    assert!(contour.size().width() == 35, "{:?}", contour.size());
+
     check_contour_against_bitmap(&contour, true);
 }
 
 #[test]
 fn odd_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(15.0);
+
+    assert!(contour.size().width() == 33, "{:?}", contour.size());
+
     check_contour_against_bitmap(&contour, true);
 }
 
