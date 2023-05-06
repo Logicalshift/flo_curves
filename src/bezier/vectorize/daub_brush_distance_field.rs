@@ -43,6 +43,7 @@ where
     daub_position:  ContourPosition,
     size:           ContourSize,
     lookahead:      (ContourPosition, ContourCell),
+    finished:       bool,
 }
 
 ///
@@ -224,6 +225,7 @@ where
                         daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
                         size:           self.distance_field.daubs[self.next_daub_idx].0.size(),
                         lookahead:      peek_cell,
+                        finished:       false,
                     };
 
                     self.future_scanline_iterators.push(edge_iterator);
@@ -335,7 +337,6 @@ where
 
             // Advance any corresponding iterators, possibly moving them to the future or removing them
             let mut to_remove: SmallVec<[_; 4]> = smallvec![];
-            let mut to_future: SmallVec<[_; 4]> = smallvec![];
 
             for (idx, edge_iterator) in self.edge_iterators.iter_mut().enumerate().rev() {
                 // Stop once we find an iterator that cannot overlap the position of the earliest xpos
@@ -355,11 +356,22 @@ where
 
                     if edge_iterator.lookahead.0.y() != self.current_scanline {
                         // This item has no more edges (or filled pixels) on the current scanline
-                        to_future.push(idx);
+                        to_remove.push(idx);
                     }
                 } else {
                     // Remove this iterator
+                    edge_iterator.finished = true;
                     to_remove.push(idx);
+                }
+            }
+
+            // Remove/future the values in to_remove
+            for idx in to_remove.into_iter() {
+                // As the iterators are in reverse order these will also be in reverse order (so the index won't change due to removing an item)
+                let edge_iterator = self.edge_iterators.remove(idx);
+
+                if !edge_iterator.finished {
+                    self.future_scanline_iterators.push(edge_iterator);
                 }
             }
 
