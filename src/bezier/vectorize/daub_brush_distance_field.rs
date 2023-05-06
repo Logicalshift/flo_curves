@@ -260,24 +260,46 @@ where
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<(ContourPosition, ContourCell)> {
-        // Move to the next scanline if there are no iterators at present
-        if self.edge_iterators.is_empty() {
-            self.current_scanline += 1;
-            self.start_scanline();
-
-            // If there are still no iterators, we've fnished iterating the edges
+        loop {
+            // Move to the next scanline if there are no iterators at present
             if self.edge_iterators.is_empty() {
-                return None;
+                self.current_scanline += 1;
+                self.start_scanline();
+
+                // If there are still no iterators, we've fnished iterating the edges
+                if self.edge_iterators.is_empty() {
+                    return None;
+                }
             }
+
+            // The edge iterators are ordered backwards from the start, by start position, which lets us 
+            // Search for the earliest position that we have and edge for
+            let mut edge_iterators  = self.edge_iterators.iter().rev();
+            let edge_iterator       = edge_iterators.next().unwrap();
+
+            let mut earliest_x      = edge_iterator.lookahead.0.x() + edge_iterator.daub_position.x();
+
+            for edge_iterator in edge_iterators {
+                // Stop once we find an iterator that cannot overlap the position of the earliest xpos
+                if edge_iterator.daub_position.x() > earliest_x {
+                    break;
+                }
+
+                // Fetch the x position and update the earliest x position
+                let xpos    = edge_iterator.lookahead.0.x() + edge_iterator.daub_position.x();
+                earliest_x  = earliest_x.min(xpos);
+            }
+
+            // Generate a cell for this position and advance any corresponding iterators
+
+            // Where two shapes overlap each other, it's possible either for there to be an edge from either shape, a combined edge made of both shapes,
+            // an edge one pixel to the left or right, or no edge at all. In the case the edge looks like it might have moved, it's possible that the new
+            // edge may have been hit by another pixel already.
+
+            // Might be possible to test all the possibilities by building up an exhaustive set of possible edge tiles and what they can be combined with
+
+            todo!()
         }
-
-        // Where two shapes overlap each other, it's possible either for there to be an edge from either shape, a combined edge made of both shapes,
-        // an edge one pixel to the left or right, or no edge at all. In the case the edge looks like it might have moved, it's possible that the new
-        // edge may have been hit by another pixel already.
-
-        // Might be possible to test all the possibilities by building up an exhaustive set of possible edge tiles and what they can be combined with
-
-        todo!()
     }
 }
 
