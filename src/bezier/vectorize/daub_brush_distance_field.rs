@@ -38,6 +38,7 @@ where
     TContour: SampledContour,
 {
     daub_idx:       usize,
+    contour:        TContour,
     iterator:       TContour::EdgeCellIterator,
     daub_position:  ContourPosition,
     size:           ContourSize,
@@ -211,12 +212,14 @@ where
             // Start iterating any daubs that are added by the current scanline (have a start y position at or before the current scanline)
             while self.next_daub_idx < self.distance_field.daubs.len() && self.distance_field.daubs[self.next_daub_idx].1.y() <= self.current_scanline {
                 // Start the new iterator
-                let mut new_iterator = self.distance_field.daubs[self.next_daub_idx].0.as_contour().edge_cell_iterator();
+                let contour             = self.distance_field.daubs[self.next_daub_idx].0.as_contour();
+                let mut new_iterator    = contour.edge_cell_iterator();
 
                 // Need the first cell to fill in the iterator
                 if let Some(peek_cell) = new_iterator.next() {
                     let edge_iterator = EdgeIterator {
                         daub_idx:       self.next_daub_idx,
+                        contour:        contour,
                         iterator:       new_iterator,
                         daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
                         size:           self.distance_field.daubs[self.next_daub_idx].0.size(),
