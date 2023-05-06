@@ -280,7 +280,9 @@ where
                 continue;
             }
 
-            is_filled = is_filled || false; // TODO: need the contour
+            let pos             = ContourPosition(xpos - edge_iterator.daub_position.x(), ypos - edge_iterator.daub_position.y());
+            let contour_filled  = edge_iterator.contour.point_is_inside(pos);
+            is_filled = is_filled || contour_filled;
 
             // Once the 'is_filled' flag is set it can't be unset
             if is_filled {
