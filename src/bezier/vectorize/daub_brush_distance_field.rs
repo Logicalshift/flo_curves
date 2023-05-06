@@ -112,8 +112,6 @@ where
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        // 
-
         // Create the iterator
         DaubBrushContourIterator {
             distance_field:             self,
@@ -173,6 +171,53 @@ where
     #[inline]
     fn as_contour(self) -> Self::Contour {
         self
+    }
+}
+
+impl<'a, TDaub> DaubBrushContourIterator<'a, TDaub>
+where
+    TDaub: SampledSignedDistanceField,
+{
+    ///
+    /// Starts a new scanline by looking at the existing iterators, if there are any
+    ///
+    /// Will try to start on the current scanline if it can.
+    ///
+    /// If the 'current' iterator list is empty after this call, then there are no more edges in the contour
+    ///
+    fn start_scanline(&mut self) {
+        loop {
+            // If there's no more data to process, stop
+            if self.edge_iterators.is_empty() && self.future_scanline_iterators.is_empty() && self.next_daub_idx >= self.distance_field.daubs.len() {
+                return;
+            }
+
+            // Start iterating any daubs that are added by the current scanline (have a start y position at or before the current scanline)
+            while self.next_daub_idx < self.distance_field.daubs.len() && self.distance_field.daubs[self.next_daub_idx].1.y() <= self.current_scanline {
+                // Start the new iterator
+                let mut new_iterator = self.distance_field.daubs[self.next_daub_idx].0.as_contour().edge_cell_iterator();
+
+                // Need the first cell to fill in the iterator
+                if let Some(peek_cell) = new_iterator.next() {
+                    let edge_iterator = EdgeIterator {
+                        daub_idx:       self.next_daub_idx,
+                        iterator:       Some(new_iterator),
+                        daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
+                        size:           self.distance_field.daubs[self.next_daub_idx].0.size(),
+                        lookahead:      peek_cell,
+                    };
+
+                    self.future_scanline_iterators.push(edge_iterator);
+                }
+
+                // Move on to the next daub
+                self.next_daub_idx += 1;
+            }
+
+            // If any of the existing iterators or the future iterators are on the current scanline, then we're ready to return edges
+
+            // Pick a new scanline and try again: earliest in the current iterators or future daubs
+        }
     }
 }
 
