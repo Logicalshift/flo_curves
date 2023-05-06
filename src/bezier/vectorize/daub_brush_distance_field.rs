@@ -33,9 +33,12 @@ where
 ///
 /// Represents an iterator over the edges in a 
 ///
-struct EdgeIterator<TIterator> {
+struct EdgeIterator<TContour>
+where
+    TContour: SampledContour,
+{
     daub_idx:       usize,
-    iterator:       TIterator,
+    iterator:       TContour::EdgeCellIterator,
     daub_position:  ContourPosition,
     size:           ContourSize,
     lookahead:      (ContourPosition, ContourCell),
@@ -55,10 +58,10 @@ where
     next_daub_idx: usize,
 
     /// Edge iterators, position of the corresponding daub, and the iterator for the following cells if there are any
-    edge_iterators: Vec<EdgeIterator<<<TDaub as SampledSignedDistanceField>::Contour as SampledContour>::EdgeCellIterator>>,
+    edge_iterators: Vec<EdgeIterator<TDaub::Contour>>,
 
     /// The edge iterators that are on a future scanline (these are generally iterators that have moved down a scanline)
-    future_scanline_iterators: Vec<EdgeIterator<<<TDaub as SampledSignedDistanceField>::Contour as SampledContour>::EdgeCellIterator>>,
+    future_scanline_iterators: Vec<EdgeIterator<TDaub::Contour>>,
 
     /// The scanline that we're collecting edges for
     current_scanline: usize,
