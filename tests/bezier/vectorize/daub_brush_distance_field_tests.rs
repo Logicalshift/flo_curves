@@ -61,6 +61,19 @@ fn trace_single_circle_only_samples() {
 }
 
 #[test]
+fn single_circle_contours() {
+    let circle_1        = CircularDistanceField::with_radius(10.0);
+    let distance_field  = DaubBrushDistanceField::from_daubs(vec![
+        (&circle_1, ContourPosition(0, 0)),
+    ]);
+
+    let circle_contours     = circle_1.as_contour().edge_cell_iterator().collect::<Vec<_>>();
+    let distance_contours   = distance_field.as_contour().edge_cell_iterator().collect::<Vec<_>>();
+
+    assert!(circle_contours == distance_contours, "{:?}\n\n{:?}", distance_contours, circle_contours);
+}
+
+#[test]
 fn trace_single_circle() {
     let circle_1        = CircularDistanceField::with_radius(10.0);
     let distance_field  = DaubBrushDistanceField::from_daubs(vec![
