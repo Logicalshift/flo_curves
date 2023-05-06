@@ -356,7 +356,7 @@ where
                     // Update the lookahead
                     edge_iterator.lookahead = next_lookahead;
 
-                    if edge_iterator.lookahead.0.y() != self.current_scanline {
+                    if edge_iterator.lookahead.0.y() + edge_iterator.daub_position.y() != self.current_scanline {
                         // This item has no more edges (or filled pixels) on the current scanline
                         to_remove.push(idx);
                     }
