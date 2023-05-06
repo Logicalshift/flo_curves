@@ -113,13 +113,17 @@ where
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         // Create the iterator
-        DaubBrushContourIterator {
+        let mut iterator = DaubBrushContourIterator {
             distance_field:             self,
             next_daub_idx:              0,
             edge_iterators:             vec![],
             future_scanline_iterators:  vec![],
             current_scanline:           0,
-        }
+        };
+
+        iterator.start_scanline();
+
+        iterator
     }
 }
 
