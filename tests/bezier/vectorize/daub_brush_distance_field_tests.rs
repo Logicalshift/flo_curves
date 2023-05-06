@@ -43,7 +43,7 @@ fn trace_single_circle_only_samples() {
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error   = 0.0;
-    let center          = 15.0;
+    let center          = 16.5;
     let radius          = 10.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
@@ -87,7 +87,7 @@ fn trace_single_circle() {
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error   = 0.0;
-    let center          = 15.0;
+    let center          = 16.5;
     let radius          = 10.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
@@ -120,7 +120,7 @@ fn trace_overlapping_circle() {
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error   = 0.0;
-    let center          = 15.0;
+    let center          = 16.5;
     let radius          = 10.0;
 
     for curve in circle[0].to_curves::<Curve<Coord2>>() {
