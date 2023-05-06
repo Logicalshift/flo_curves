@@ -174,6 +174,22 @@ impl ContourEdge {
     }
 }
 
+impl ContourPosition {
+    #[inline]
+    pub fn x(&self) -> usize { self.0 }
+
+    #[inline]
+    pub fn y(&self) -> usize { self.1 }
+}
+
+impl ContourSize {
+    #[inline]
+    pub fn width(&self) -> usize { self.0 }
+
+    #[inline]
+    pub fn height(&self) -> usize { self.1 }
+}
+
 ///
 /// Iterator that returns the edge cells in a bitmap contour by calling `point_is_inside` for the cells
 ///
