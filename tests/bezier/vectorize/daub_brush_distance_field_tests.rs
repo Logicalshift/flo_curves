@@ -175,22 +175,22 @@ fn trace_int_doughnut() {
 
     let center = 36.0;
     for (path, radius) in doughnut.iter().zip(vec![35.0, 25.0]) {
-        let mut max_error = 0.0;
+        let mut max_distance = 0.0;
+        let mut min_distance = 1e12;
 
         for curve in path.to_curves::<Curve<Coord2>>() {
             for t in 0..100 {
                 let t           = (t as f64)/100.0;
                 let point       = curve.point_at_pos(t);
                 let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
-                let offset      = (distance-radius).abs();
 
-                max_error = f64::max(max_error, offset);
+                max_distance = f64::max(max_distance, distance);
+                min_distance = f64::min(min_distance, distance);
             }
         }
 
-        println!("E: {:?}", max_error);
+        assert!((max_distance-35.0).abs() <= 1.0 || (max_distance-25.0).abs() <= 1.0, "Max distance incorrect: {:?} {:?}\n\n{}\n", max_distance, min_distance, text_field);
+        assert!((min_distance-35.0).abs() <= 1.0 || (min_distance-25.0).abs() <= 1.0, "Min distance incorrect: {:?} {:?}\n\n{}\n", max_distance, min_distance, text_field);
     }
-
-    assert!(false);
 }
 
