@@ -147,7 +147,7 @@ fn trace_int_doughnut() {
         .map(|t| {
             let t       = (t as f64)/300.0;
             let t       = t * (f64::consts::PI * 2.0);
-            let (x, y)  = (t.sin()*30.0 + 32.0, t.cos()*30.0 + 32.0);
+            let (x, y)  = (t.sin()*30.0 + 30.0, t.cos()*30.0 + 30.0);
             (&brush, ContourPosition(x.round() as _, y.round() as _))
         }));
 
