@@ -100,6 +100,11 @@ where
             size, daubs
         }
     }
+
+    #[inline]
+    pub fn size(&self) -> ContourSize {
+        self.size
+    }
 }
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
