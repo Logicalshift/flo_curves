@@ -3,6 +3,8 @@ use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 
+use std::f64;
+
 #[test]
 fn overlapping_circles_point_inside_first() {
     let circle_1        = CircularDistanceField::with_radius(10.0);
@@ -135,5 +137,40 @@ fn trace_overlapping_circle() {
     }
 
     assert!(max_error <= 1.0, "Max error {:?} > 1.0. Path generated was {:?}", max_error, circle);
+}
+
+#[test]
+fn trace_int_doughnut() {
+    // Create a distance field from 300 grid-aligned circles
+    let brush           = CircularDistanceField::with_radius(5.0);
+    let distance_field  = DaubBrushDistanceField::from_daubs((0..300).into_iter()
+        .map(|t| {
+            let t       = (t as f64)/300.0;
+            let t       = f64::consts::PI * 2.0 / t;
+            let (x, y)  = (t.sin()*30.0 + 32.0, t.cos()*30.0 + 32.0);
+            (&brush, ContourPosition(x.round() as _, y.round() as _))
+        }));
+
+    // Create a text representation of the distance field for debugging
+    let size        = distance_field.size();
+    let text_field  = (0..size.height()).into_iter()
+        .map(|y| {
+            (0..size.width()).into_iter()
+                .map(|x| {
+                    if distance_field.as_contour().point_is_inside(ContourPosition(x, y)) {
+                        "#"
+                    } else {
+                        "."
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Should trace as a 'doughnut' shape
+    let doughnut = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
+    assert!(doughnut.len() == 2, "Made {} paths for the 'doughnut' shape ({:?})\n\n{}\n", doughnut.len(), doughnut, text_field);
 }
 
