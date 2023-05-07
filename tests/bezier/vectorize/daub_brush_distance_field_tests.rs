@@ -146,7 +146,7 @@ fn trace_int_doughnut() {
     let distance_field  = DaubBrushDistanceField::from_daubs((0..300).into_iter()
         .map(|t| {
             let t       = (t as f64)/300.0;
-            let t       = f64::consts::PI * 2.0 / t;
+            let t       = t * (f64::consts::PI * 2.0);
             let (x, y)  = (t.sin()*30.0 + 32.0, t.cos()*30.0 + 32.0);
             (&brush, ContourPosition(x.round() as _, y.round() as _))
         }));
