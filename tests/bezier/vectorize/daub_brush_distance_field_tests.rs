@@ -172,5 +172,25 @@ fn trace_int_doughnut() {
     // Should trace as a 'doughnut' shape
     let doughnut = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
     assert!(doughnut.len() == 2, "Made {} paths for the 'doughnut' shape ({:?})\n\n{}\n", doughnut.len(), doughnut, text_field);
+
+    let center = 36.0;
+    for (path, radius) in doughnut.iter().zip(vec![35.0, 25.0]) {
+        let mut max_error = 0.0;
+
+        for curve in path.to_curves::<Curve<Coord2>>() {
+            for t in 0..100 {
+                let t           = (t as f64)/100.0;
+                let point       = curve.point_at_pos(t);
+                let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
+                let offset      = (distance-radius).abs();
+
+                max_error = f64::max(max_error, offset);
+            }
+        }
+
+        println!("E: {:?}", max_error);
+    }
+
+    assert!(false);
 }
 
