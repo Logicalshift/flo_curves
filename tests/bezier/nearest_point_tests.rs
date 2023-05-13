@@ -150,3 +150,17 @@ fn nearest_point_on_curve_newton_raphson_5() {
 
     test_far_away_points(&curve);
 }
+
+#[test]
+fn nearest_point_on_curve_newton_raphson_6() {
+    let curve = bezier::Curve::from_points(Coord2(259.0, 322.0), (Coord2(272.0, 329.0), Coord2(297.0, 341.0)), Coord2(350.0, 397.0));
+    let point = Coord2(240.0, 220.0);
+
+    let curve_near_t    = nearest_point_on_curve_newton_raphson(&curve, &point);
+    let curve_near      = curve.point_at_pos(curve_near_t);
+
+    let iterate_t       = nearest_t_value_iteration(&curve, &point);
+    let iterate_point   = curve.point_at_pos(iterate_t);
+
+    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+}
