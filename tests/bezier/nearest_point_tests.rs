@@ -71,7 +71,7 @@ where
             let iter_distance       = iter_nearest.distance_to(&test_point);
 
             // Find any point as good as or better than the iteration algorithm is a pass
-            assert!(nearest_distance < iter_distance+0.01);
+            assert!(nearest_distance < iter_distance+0.001);
         }
     }
 }
