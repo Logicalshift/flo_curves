@@ -91,10 +91,6 @@ where
 
     // Attempt to optimise the solution with up to 12 rounds of newton-raphson
     for _ in 0..12 {
-        // Determine the quality of the guess
-        if estimated_t < -0.01 { return 0.0; }
-        if estimated_t > 1.01 { return 1.0; }
-
         // Compute Q(t) (where Q is our curve)
         let qt          = de_casteljau4(estimated_t, q1, q2, q3, q4);
 
@@ -108,13 +104,13 @@ where
 
         // The numerator will converge to 0 as the guess improves
         if numerator.abs() < EPSILON { 
-            return estimated_t;
+            return estimated_t.max(0.0).min(1.0);
         }
 
         // u = u - f(u)/f'(u)
         let next_t = if denominator == 0.0 {
             // Found a singularity
-            return estimated_t;
+            return estimated_t.max(0.0).min(1.0);
         } else {
             estimated_t - (numerator/denominator)
         };
@@ -123,5 +119,5 @@ where
         estimated_t = next_t;
     }
 
-    estimated_t
+    estimated_t.max(0.0).min(1.0)
 }
