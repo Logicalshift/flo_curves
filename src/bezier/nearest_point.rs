@@ -29,7 +29,8 @@ where
 {
     use CurveFeatures::*;
 
-    // Choose the initial test points based on the curve features
+    // Choose the initial test points based on the curve features. 
+    // Bezier curves can have inflection points, so we try to guess from the mid-points of all of the arcs.
     let test_positions: SmallVec<[f64; 5]> = match curve.features(0.01) {
         Point                           => smallvec![0.0, 0.5, 1.0],
         Linear                          => smallvec![0.0, 0.5, 1.0],
@@ -46,18 +47,20 @@ where
     let mut min_distance    = f64::MAX;
 
     for t in test_positions {
-        let curve_pos   = curve.point_at_pos(t);
-        let offset      = *point - curve_pos;
+        let refined_t           = nearest_point_on_curve_newton_raphson_with_estimate(curve, point, t);
+        let refined_point       = curve.point_at_pos(refined_t);
+
+        let offset      = *point - refined_point;
         let distance_sq = offset.dot(&offset);
 
         if distance_sq < min_distance {
-            estimated_t = t;
-            min_distance = distance_sq;
+            estimated_t     = refined_t;
+            min_distance    = distance_sq;
         }
     }
 
-    // Optimise the guess
-    nearest_point_on_curve_newton_raphson_with_estimate(curve, point, estimated_t)    
+    // Use the closest point
+    estimated_t
 }
 
 ///
