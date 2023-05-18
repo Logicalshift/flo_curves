@@ -29,7 +29,8 @@ where
 {
     use CurveFeatures::*;
 
-    // Choose the initial test points based on the curve features
+    // Choose the initial test points based on the curve features. 
+    // Bezier curves can have inflection points, so we try to guess from the mid-points of all of the arcs.
     let test_positions: SmallVec<[f64; 5]> = match curve.features(0.01) {
         Point                           => smallvec![0.0, 0.5, 1.0],
         Linear                          => smallvec![0.0, 0.5, 1.0],
@@ -46,18 +47,20 @@ where
     let mut min_distance    = f64::MAX;
 
     for t in test_positions {
-        let curve_pos   = curve.point_at_pos(t);
-        let offset      = *point - curve_pos;
+        let refined_t           = nearest_point_on_curve_newton_raphson_with_estimate(curve, point, t);
+        let refined_point       = curve.point_at_pos(refined_t);
+
+        let offset      = *point - refined_point;
         let distance_sq = offset.dot(&offset);
 
         if distance_sq < min_distance {
-            estimated_t = t;
-            min_distance = distance_sq;
+            estimated_t     = refined_t;
+            min_distance    = distance_sq;
         }
     }
 
-    // Optimise the guess
-    nearest_point_on_curve_newton_raphson_with_estimate(curve, point, estimated_t)    
+    // Use the closest point
+    estimated_t
 }
 
 ///
@@ -88,10 +91,6 @@ where
 
     // Attempt to optimise the solution with up to 12 rounds of newton-raphson
     for _ in 0..12 {
-        // Determine the quality of the guess
-        if estimated_t < -0.01 { return 0.0; }
-        if estimated_t > 1.01 { return 1.0; }
-
         // Compute Q(t) (where Q is our curve)
         let qt          = de_casteljau4(estimated_t, q1, q2, q3, q4);
 
@@ -105,13 +104,13 @@ where
 
         // The numerator will converge to 0 as the guess improves
         if numerator.abs() < EPSILON { 
-            return estimated_t;
+            return estimated_t.max(0.0).min(1.0);
         }
 
         // u = u - f(u)/f'(u)
         let next_t = if denominator == 0.0 {
             // Found a singularity
-            return estimated_t;
+            return estimated_t.max(0.0).min(1.0);
         } else {
             estimated_t - (numerator/denominator)
         };
@@ -120,5 +119,5 @@ where
         estimated_t = next_t;
     }
 
-    estimated_t
+    estimated_t.max(0.0).min(1.0)
 }
