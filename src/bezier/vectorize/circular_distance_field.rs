@@ -6,6 +6,7 @@ use smallvec::*;
 ///
 /// A distance field to a circle with a particular radius
 ///
+#[derive(Clone, Copy)]
 pub struct CircularDistanceField {
     radius:     f64,
     int_radius: f64,
@@ -48,6 +49,26 @@ impl CircularDistanceField {
     }
 }
 
+impl SampledContour for CircularDistanceField {
+    /// Iterator that visits all of the cells in this contour
+    type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
+
+    #[inline]
+    fn size(self) -> ContourSize {
+        ContourSize(self.diameter, self.diameter)
+    }
+
+    #[inline]
+    fn point_is_inside(self, pos: ContourPosition) -> bool {
+        (&self).point_is_inside(pos)
+    }
+
+    #[inline]
+    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
+        (&self).edge_cell_iterator()
+    }
+}
+
 impl<'a> SampledContour for &'a CircularDistanceField {
     /// Iterator that visits all of the cells in this contour
     type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
@@ -77,6 +98,23 @@ impl<'a> SampledContour for &'a CircularDistanceField {
             samples:    smallvec![],
         }
     }
+}
+
+impl SampledSignedDistanceField for CircularDistanceField {
+    type Contour = CircularDistanceField;
+
+    #[inline]
+    fn size(self) -> ContourSize {
+        ContourSize(self.diameter, self.diameter)
+    }
+
+    #[inline]
+    fn distance_at_point(self, pos: ContourPosition) -> f64 {
+        (&self).distance_at_point(pos)
+    }
+
+    #[inline]
+    fn as_contour(self) -> Self::Contour { self }
 }
 
 impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
