@@ -57,14 +57,6 @@ impl CircularDistanceField {
             diameter:       self.diameter,
         }
     }
-
-    ///
-    /// The size of this distance field
-    ///
-    #[inline]
-    pub fn size(&self) -> ContourSize {
-        ContourSize(self.diameter, self.diameter)
-    }
 }
 
 impl SampledContour for CircularDistanceField {
