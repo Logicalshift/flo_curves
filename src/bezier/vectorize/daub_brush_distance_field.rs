@@ -3,6 +3,20 @@ use super::sampled_contour::*;
 
 use smallvec::*;
 
+pub struct TestThing<TDaub> 
+where
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
+{
+    daub: TDaub,
+}
+
+fn foo() {
+    let foo = F32SampledDistanceField(ContourSize(4, 4), vec![]);
+    let bar = TestThing {
+        daub: foo
+    };
+}
+
 ///
 /// Describes a shape as a distance field made up by 'daubing' discrete brush shapes over a canvas
 ///
@@ -20,7 +34,7 @@ use smallvec::*;
 ///
 pub struct DaubBrushDistanceField<TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     /// The size of this distance field, sufficient to contain all of the 'daubs'
     size: ContourSize,
@@ -51,7 +65,7 @@ where
 ///
 pub struct DaubBrushContourIterator<'a, TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     /// The distance field that is being iterated over
     distance_field: &'a DaubBrushDistanceField<TDaub>,
@@ -60,10 +74,10 @@ where
     next_daub_idx: usize,
 
     /// Edge iterators, position of the corresponding daub, and the iterator for the following cells if there are any
-    edge_iterators: Vec<EdgeIterator<TDaub::Contour>>,
+    edge_iterators: Vec<EdgeIterator<<&'a TDaub as SampledSignedDistanceField>::Contour>>,
 
     /// The edge iterators that are on a future scanline (these are generally iterators that have moved down a scanline)
-    future_scanline_iterators: Vec<EdgeIterator<TDaub::Contour>>,
+    future_scanline_iterators: Vec<EdgeIterator<<&'a TDaub as SampledSignedDistanceField>::Contour>>,
 
     /// The scanline that we're collecting edges for
     current_scanline: usize,
@@ -71,7 +85,7 @@ where
 
 impl<TDaub> DaubBrushDistanceField<TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     ///
     /// Creates a daub brush distance field from a list of daubs and their positions
@@ -109,7 +123,7 @@ where
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     type EdgeCellIterator = DaubBrushContourIterator<'a, TDaub>;
 
@@ -141,7 +155,7 @@ where
 
 impl<'a, TDaub> SampledSignedDistanceField for &'a DaubBrushDistanceField<TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     type Contour = &'a DaubBrushDistanceField<TDaub>;
 
@@ -192,7 +206,7 @@ where
 
 impl<'a, TDaub> DaubBrushContourIterator<'a, TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     ///
     /// Starts a new scanline by looking at the existing iterators, if there are any
@@ -301,7 +315,7 @@ where
 
 impl<'a, TDaub> Iterator for DaubBrushContourIterator<'a, TDaub>
 where
-    TDaub: SampledSignedDistanceField,
+    for<'borrow> &'borrow TDaub: SampledSignedDistanceField,
 {
     type Item = (ContourPosition, ContourCell);
 
