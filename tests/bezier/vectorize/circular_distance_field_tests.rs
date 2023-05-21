@@ -80,11 +80,19 @@ fn even_radius_circular_contour() {
 }
 
 #[test]
+fn offset_even_radius_circular_contour_same_offset() {
+    let contour = CircularDistanceField::with_radius(16.0).with_center_offset(0.3, 0.3);
+
+    check_contour_against_bitmap(&contour, true);
+    assert!(contour.contour_size().width() == 36, "{:?}", contour.contour_size());
+}
+
+#[test]
 fn offset_even_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.0).with_center_offset(0.3, 0.4);
 
     check_contour_against_bitmap(&contour, true);
-    assert!(contour.contour_size().width() == 35, "{:?}", contour.contour_size());
+    assert!(contour.contour_size().width() == 36, "{:?}", contour.contour_size());
 }
 
 #[test]
@@ -101,7 +109,7 @@ fn offset_odd_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(15.0).with_center_offset(0.3, 0.4);
 
     check_contour_against_bitmap(&contour, true);
-    assert!(contour.contour_size().width() == 33, "{:?}", contour.contour_size());
+    assert!(contour.contour_size().width() == 34, "{:?}", contour.contour_size());
 }
 
 #[test]
