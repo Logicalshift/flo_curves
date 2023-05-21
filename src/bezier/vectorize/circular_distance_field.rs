@@ -46,15 +46,18 @@ impl CircularDistanceField {
     }
 
     ///
-    /// Gives the circle a non-linear offset, from between -1.0 to 1.0
+    /// Gives the circle a non-linear offset, from between 0.0 to 1.0
     ///
     #[inline]
     pub fn with_center_offset(self, x: f64, y: f64) -> Self {
+        let int_radius_x = self.int_radius_x + x;
+        let int_radius_y = self.int_radius_y + y;
+
         CircularDistanceField {
             radius:         self.radius,
-            int_radius_x:   self.int_radius_x + x,
-            int_radius_y:   self.int_radius_y + y,
-            diameter:       self.diameter,
+            int_radius_x:   int_radius_x,
+            int_radius_y:   int_radius_y,
+            diameter:       ((int_radius_x.max(int_radius_y)).ceil() as usize) * 2 + 1,
         }
     }
 }
