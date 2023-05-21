@@ -6,23 +6,25 @@ use smallvec::*;
 ///
 /// A distance field to a circle with a particular radius
 ///
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct CircularDistanceField {
-    radius:     f64,
-    int_radius: f64,
-    diameter:   usize,
+    radius:         f64,
+    int_radius_x:   f64,
+    int_radius_y:   f64,
+    diameter:       usize,
 }
 
 ///
 /// Finds the edge samples for a circular distance field
 ///
 pub struct CircularDistanceFieldEdgeIterator {
-    diameter:   usize,
-    int_radius: f64,
-    radius:     f64,
-    radius_sq:  f64,
-    ypos:       usize,
-    samples:    SmallVec<[(ContourPosition, ContourCell); 8]>,
+    diameter:       usize,
+    int_radius_x:   f64,
+    int_radius_y:   f64,
+    radius:         f64,
+    radius_sq:      f64,
+    ypos:           usize,
+    samples:        SmallVec<[(ContourPosition, ContourCell); 8]>,
 }
 
 impl CircularDistanceField {
@@ -30,13 +32,29 @@ impl CircularDistanceField {
     /// Creates a new sampled distance field for a circle with the specified radius
     ///
     #[inline]
-    pub fn with_radius(radius: f64) -> CircularDistanceField {
+    pub fn with_radius(radius: f64) -> Self {
         let radius      = if radius < 0.0 { 0.0 } else { radius };
         let int_radius  = radius.ceil() + 1.0;
         let diameter    = (int_radius as usize) * 2 + 1;
 
         CircularDistanceField {
-            radius, int_radius, diameter
+            radius:         radius,
+            int_radius_x:   int_radius,
+            int_radius_y:   int_radius,
+            diameter:       diameter,
+        }
+    }
+
+    ///
+    /// Gives the circle a non-linear offset, from between -1.0 to 1.0
+    ///
+    #[inline]
+    pub fn with_center_offset(self, x: f64, y: f64) -> Self {
+        CircularDistanceField {
+            radius:         self.radius,
+            int_radius_x:   self.int_radius_x + x,
+            int_radius_y:   self.int_radius_y + y,
+            diameter:       self.diameter,
         }
     }
 
@@ -82,20 +100,21 @@ impl<'a> SampledContour for &'a CircularDistanceField {
     fn point_is_inside(self, pos: ContourPosition) -> bool {
         let pos_x       = pos.0 as f64;
         let pos_y       = pos.1 as f64;
-        let offset_x    = pos_x - self.int_radius;
-        let offset_y    = pos_y - self.int_radius;
+        let offset_x    = pos_x - self.int_radius_x;
+        let offset_y    = pos_y - self.int_radius_y;
 
         (offset_x*offset_x + offset_y*offset_y) <= (self.radius*self.radius)
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         CircularDistanceFieldEdgeIterator {
-            diameter:   self.diameter,
-            int_radius: self.int_radius,
-            radius:     self.radius,
-            radius_sq:  self.radius * self.radius,
-            ypos:       0,
-            samples:    smallvec![],
+            diameter:       self.diameter,
+            int_radius_x:   self.int_radius_x,
+            int_radius_y:   self.int_radius_y,
+            radius:         self.radius,
+            radius_sq:      self.radius * self.radius,
+            ypos:           0,
+            samples:        smallvec![],
         }
     }
 }
@@ -128,8 +147,8 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
     fn distance_at_point(self, pos: ContourPosition) -> f64 {
         let pos_x       = pos.0 as f64;
         let pos_y       = pos.1 as f64;
-        let offset_x    = pos_x - self.int_radius;
-        let offset_y    = pos_y - self.int_radius;
+        let offset_x    = pos_x - self.int_radius_x;
+        let offset_y    = pos_y - self.int_radius_y;
 
         (offset_x*offset_x + offset_y*offset_y).sqrt() - self.radius
     }
@@ -163,7 +182,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
 
             // Get the y position to process. The initial y point is 'above' the circle so we detect the top-most edges
             let ypos    = self.ypos as f64 - 1.0;
-            let ypos    = ypos - self.int_radius;
+            let ypos    = ypos - self.int_radius_y;
 
             // Advance the y position regardless of if there's a sample here
             self.ypos += 1;
@@ -206,7 +225,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         debug_assert!((tl || tr || bl || br) && (!tl || !tr || !bl || !br), "Picked a sample that was not on an edge at {:?}: {:?}", (xpos, ypos), (tl, tr, bl, br));
 
         // This should form the initial sample
-        samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+        samples.push((ContourPosition((sample_x + self.int_radius_x + 1.0) as usize, (sample_y + self.int_radius_y + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
 
         // There may be more edges on the riht of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
         debug_assert!((ypos >= 0.0 && (tl || tr) || (ypos <= 0.0 && (bl || br))));
@@ -227,15 +246,15 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             }
 
             // Push the next contour item
-            samples.push((ContourPosition((sample_x + self.int_radius + 1.0) as usize, (sample_y + self.int_radius + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+            samples.push((ContourPosition((sample_x + self.int_radius_x + 1.0) as usize, (sample_y + self.int_radius_y + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
         }
 
         // Mirror to generate the full line
         let len         = samples.len();
-        let mid_point   = self.int_radius as usize + 1;
+        let mid_point_x = self.int_radius_x as usize + 1;
         for idx in 0..len {
             let (pos, cell) = samples[len-1-idx];
-            let pos         = ContourPosition(mid_point - (pos.0-mid_point) - 1 , pos.1);
+            let pos         = ContourPosition(mid_point_x - (pos.0-mid_point_x) - 1 , pos.1);
 
             samples.push((pos, cell.mirror_horiz()));
         }
