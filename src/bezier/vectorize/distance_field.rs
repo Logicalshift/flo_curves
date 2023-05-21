@@ -18,7 +18,7 @@ pub trait SampledSignedDistanceField : Copy {
     ///
     /// The size of this distance field
     ///
-    fn size(self) -> ContourSize;
+    fn field_size(self) -> ContourSize;
 
     ///
     /// Returns the distance to the nearest edge of the specified point (a negative value if the point is inside the shape)
@@ -46,8 +46,8 @@ where
     type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
 
     #[inline]
-    fn size(self) -> ContourSize {
-        self.0.size()
+    fn contour_size(self) -> ContourSize {
+        self.0.field_size()
     }
 
     #[inline]
@@ -92,7 +92,7 @@ impl<'a> SampledSignedDistanceField for &'a F32SampledDistanceField {
     type Contour = ContourFromDistanceField<Self>;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         self.0
     }
 
@@ -113,7 +113,7 @@ impl<'a> SampledSignedDistanceField for &'a F64SampledDistanceField {
     type Contour = ContourFromDistanceField<Self>;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         self.0
     }
 
@@ -134,7 +134,7 @@ impl<'a> SampledSignedDistanceField for &'a U8SampledDistanceField {
     type Contour = ContourFromDistanceField<Self>;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         self.0
     }
 

@@ -64,7 +64,7 @@ impl SampledContour for CircularDistanceField {
     type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn contour_size(self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 
@@ -84,7 +84,7 @@ impl<'a> SampledContour for &'a CircularDistanceField {
     type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn contour_size(self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 
@@ -115,7 +115,7 @@ impl SampledSignedDistanceField for CircularDistanceField {
     type Contour = CircularDistanceField;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 
@@ -132,7 +132,7 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
     type Contour = &'a CircularDistanceField;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 

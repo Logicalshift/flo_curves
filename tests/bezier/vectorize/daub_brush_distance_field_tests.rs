@@ -152,7 +152,7 @@ fn trace_int_doughnut() {
         }));
 
     // Create a text representation of the distance field for debugging
-    let size        = distance_field.size();
+    let size        = distance_field.field_size();
     let text_field  = (0..size.height()).into_iter()
         .map(|y| {
             (0..size.width()).into_iter()

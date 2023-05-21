@@ -8,20 +8,20 @@ use std::collections::{HashMap};
 
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
     // Use point_is_inside to generate a bitmap version of the contour
-    let bitmap = (0..(contour.size().0 * contour.size().1)).into_iter()
-        .map(|pos| (pos % contour.size().1, pos / contour.size().1))
+    let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
+        .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
         .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     if draw_circle {
         for p in 0..bitmap.len() {
             print!("{}", if bitmap[p] { '#' } else { '.' });
-            if ((p+1)%contour.size().1) == 0 { println!() };
+            if ((p+1)%contour.contour_size().1) == 0 { println!() };
         }
         println!();
     }
 
-    let bitmap = BoolSampledContour(contour.size(), bitmap);
+    let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
 
     // Get the edges from both
     let bitmap_edges    = bitmap.edge_cell_iterator().collect::<Vec<_>>();
@@ -74,7 +74,7 @@ fn big_circle() {
 fn even_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(16.0);
 
-    assert!(contour.size().width() == 35, "{:?}", contour.size());
+    assert!(contour.contour_size().width() == 35, "{:?}", contour.contour_size());
 
     check_contour_against_bitmap(&contour, true);
 }
@@ -83,7 +83,7 @@ fn even_radius_circular_contour() {
 fn odd_radius_circular_contour() {
     let contour = CircularDistanceField::with_radius(15.0);
 
-    assert!(contour.size().width() == 33, "{:?}", contour.size());
+    assert!(contour.contour_size().width() == 33, "{:?}", contour.contour_size());
 
     check_contour_against_bitmap(&contour, true);
 }
@@ -120,7 +120,7 @@ fn circle_path_from_contours() {
     let radius  = 30.0;
     let contour = CircularDistanceField::with_radius(radius);
 
-    let size    = contour.size().0;
+    let size    = contour.contour_size().0;
     let center  = ((size as f64)/2.0).floor();
 
     // Trace the samples to generate a vector
@@ -153,7 +153,7 @@ fn circle_path_from_distance_field() {
     let radius          = 30.0;
     let distance_field  = CircularDistanceField::with_radius(radius);
 
-    let size            = distance_field.size().0;
+    let size            = distance_field.contour_size().0;
     let center          = ((size as f64)/2.0).floor();
 
     // Trace the samples to generate a vector

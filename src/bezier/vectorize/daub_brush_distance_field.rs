@@ -86,7 +86,7 @@ where
                 let ContourPosition(x, y)       = next_pos;
                 let ContourSize(w, h)           = last_size;
 
-                let ContourSize(daub_w, daub_h) = next_daub.size();
+                let ContourSize(daub_w, daub_h) = next_daub.field_size();
                 let daub_w                      = x + daub_w;
                 let daub_h                      = y + daub_h;
 
@@ -100,11 +100,6 @@ where
             size, daubs
         }
     }
-
-    #[inline]
-    pub fn size(&self) -> ContourSize {
-        self.size
-    }
 }
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
@@ -114,7 +109,7 @@ where
     type EdgeCellIterator = DaubBrushContourIterator<'a, TDaub>;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn contour_size(self) -> ContourSize {
         self.size
     }
 
@@ -146,7 +141,7 @@ where
     type Contour = &'a DaubBrushDistanceField<TDaub>;
 
     #[inline]
-    fn size(self) -> ContourSize {
+    fn field_size(self) -> ContourSize {
         self.size
     }
 
@@ -166,7 +161,7 @@ where
             }
 
             // Check for overlap
-            let ContourSize(w, h) = daub.size();
+            let ContourSize(w, h) = daub.field_size();
             if x+w <= pos.0 {
                 continue;
             }
@@ -228,7 +223,7 @@ where
                         contour:        contour,
                         iterator:       new_iterator,
                         daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
-                        size:           self.distance_field.daubs[self.next_daub_idx].0.size(),
+                        size:           self.distance_field.daubs[self.next_daub_idx].0.field_size(),
                         lookahead:      peek_cell,
                         finished:       false,
                     };

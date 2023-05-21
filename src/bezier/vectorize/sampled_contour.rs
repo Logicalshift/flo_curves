@@ -55,7 +55,7 @@ pub trait SampledContour : Copy {
     ///
     /// The size of this contour
     ///
-    fn size(self) -> ContourSize;
+    fn contour_size(self) -> ContourSize;
 
     ///
     /// Returns true if the specified point is inside the contour, or false if it's outside
@@ -212,7 +212,7 @@ where
     ///
     #[inline]
     pub fn from_contour(contour: TContour) -> Self {
-        let ContourSize(size_x, size_y) = contour.size();
+        let ContourSize(size_x, size_y) = contour.contour_size();
 
         SimpleEdgeCellIterator {
             contour_size:   (size_x, size_y),
@@ -304,7 +304,7 @@ impl<'a> SampledContour for &'a BoolSampledContour {
     /// The size of this contour
     ///
     #[inline]
-    fn size(self) -> ContourSize {
+    fn contour_size(self) -> ContourSize {
         self.0
     }
 
@@ -339,7 +339,7 @@ impl<'a> SampledContour for &'a U8SampledContour {
     /// The size of this contour
     ///
     #[inline]
-    fn size(self) -> ContourSize {
+    fn contour_size(self) -> ContourSize {
         self.0
     }
 

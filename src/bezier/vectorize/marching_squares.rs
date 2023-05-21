@@ -116,7 +116,7 @@ impl ContourCell {
 pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<ContourEdge>> {
     // Hash map indicating which edges are connected to each other
     let mut edge_graph  = HashMap::<_, SmallVec<[_; 2]>>::new();
-    let contour_size    = contours.size();
+    let contour_size    = contours.contour_size();
 
     // Create the graph of connected edges
     for (pos, cell) in contours.edge_cell_iterator() {
@@ -205,7 +205,7 @@ where
     TPathFactory::Point:    Coordinate + Coordinate2D,
 {
     // Trace out the contours
-    let contour_size    = contours.size();
+    let contour_size    = contours.contour_size();
     let contours        = trace_contours_from_samples(contours);
 
     // Convert the edges into points, then fit curves against the points (using low accuracy)
@@ -231,7 +231,7 @@ where
     TCoord: Coordinate + Coordinate2D,
 {
     // Trace the edges
-    let field_size  = distance_field.size();
+    let field_size  = distance_field.field_size();
     let loops       = trace_contours_from_samples(distance_field.as_contour());
 
     #[inline]
