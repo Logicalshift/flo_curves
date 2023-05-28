@@ -154,7 +154,10 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
 
 impl CircularDistanceFieldEdgeIterator {
     #[inline]
-    fn point_is_inside_from_center(&self, offset_x: f64, offset_y: f64) -> bool {
+    fn point_is_inside(&self, offset_x: f64, offset_y: f64) -> bool {
+        let offset_x = offset_x - self.int_radius_x - 1.0;
+        let offset_y = offset_y - self.int_radius_y - 1.0;
+
         (offset_x*offset_x + offset_y*offset_y) <= self.radius_sq
     }
 }
@@ -207,20 +210,20 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
         let mut samples: SmallVec<[_; 8]> = smallvec![];
 
         // We can treat our xpos and ypos as a sample location
-        let mut sample_x = xpos.floor();
-        let sample_y     = ypos.floor();
+        let mut sample_x = (xpos + self.int_radius_x + 1.0).floor();
+        let sample_y     = (ypos + self.int_radius_y + 1.0).floor();
 
         // At least one of the surrounding points will be inside and at least one will be outside (making the optimiser do some work here removing things like the extra int_radius calculations)
         // For the negative sample one of bl or br should contain the sample
-        let mut tl = self.point_is_inside_from_center(sample_x, sample_y);
-        let mut tr = self.point_is_inside_from_center(sample_x+1.0, sample_y);
-        let mut bl = self.point_is_inside_from_center(sample_x, sample_y+1.0);
-        let mut br = self.point_is_inside_from_center(sample_x+1.0, sample_y+1.0);
+        let mut tl = self.point_is_inside(sample_x, sample_y);
+        let mut tr = self.point_is_inside(sample_x+1.0, sample_y);
+        let mut bl = self.point_is_inside(sample_x, sample_y+1.0);
+        let mut br = self.point_is_inside(sample_x+1.0, sample_y+1.0);
 
         debug_assert!((tl || tr || bl || br) && (!tl || !tr || !bl || !br), "Picked a sample that was not on an edge at {:?}: {:?}", (xpos, ypos), (tl, tr, bl, br));
 
         // This should form the initial sample
-        samples.push((ContourPosition((sample_x + self.int_radius_x + 1.0) as usize, (sample_y + self.int_radius_y + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+        samples.push((ContourPosition(sample_x as usize, sample_y as usize), ContourCell::from_corners(tl, tr, bl, br)));
 
         // There may be more edges on the riht of the sample we found. If y is -ve, then we'll be following an edge at the bottom, and if y is +ve then we'll be following an edge at the top
         debug_assert!((ypos >= 0.0 && (tl || tr) || (ypos <= 0.0 && (bl || br))));
@@ -232,8 +235,8 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
 
             tr = tl;
             br = bl;
-            tl = self.point_is_inside_from_center(sample_x, sample_y);
-            bl = self.point_is_inside_from_center(sample_x, sample_y+1.0);
+            tl = self.point_is_inside(sample_x, sample_y);
+            bl = self.point_is_inside(sample_x, sample_y+1.0);
 
             if (!tl && !bl && !tr && !br) || (tl && bl && tr && br) || sample_x < 0.0 {
                 // Stop once we reach empty space or the inside of the circle
@@ -241,7 +244,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             }
 
             // Push the next contour item
-            samples.push((ContourPosition((sample_x + self.int_radius_x + 1.0) as usize, (sample_y + self.int_radius_y + 1.0) as usize), ContourCell::from_corners(tl, tr, bl, br)));
+            samples.push((ContourPosition(sample_x as usize, sample_y as usize), ContourCell::from_corners(tl, tr, bl, br)));
         }
 
         // Mirror to generate the full line
