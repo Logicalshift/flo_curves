@@ -20,6 +20,36 @@ fn single_sample_iterator() {
 }
 
 #[test]
+fn shift_left_1() {
+    assert!(ContourCell::from_corners(true, true, true, true).shift_left() == ContourCell::from_corners(true, false, true, false), "{:?}", ContourCell::from_corners(true, true, true, true).shift_left());
+}
+
+#[test]
+fn shift_left_2() {
+    assert!(ContourCell::from_corners(true, true, true, false).shift_left() == ContourCell::from_corners(true, false, false, false), "{:?}", ContourCell::from_corners(true, true, true, false).shift_left());
+}
+
+#[test]
+fn shift_left_3() {
+    assert!(ContourCell::from_corners(true, false, true, true).shift_left() == ContourCell::from_corners(false, false, true, false), "{:?}", ContourCell::from_corners(true, true, false, true).shift_left());
+}
+
+#[test]
+fn shift_left_4() {
+    assert!(ContourCell::from_corners(true, false, true, false).shift_left() == ContourCell::from_corners(false, false, false, false), "{:?}", ContourCell::from_corners(true, true, false, false).shift_left());
+}
+
+#[test]
+fn shift_left_5() {
+    assert!(ContourCell::from_corners(false, true, false, true).shift_left() == ContourCell::from_corners(true, false, true, false), "{:?}", ContourCell::from_corners(true, true, true, true).shift_left());
+}
+
+#[test]
+fn merge() {
+    assert!(ContourCell::from_corners(true, false, true, false).merge(ContourCell::from_corners(true, true, false, false)) == ContourCell::from_corners(true, true, true, false));
+}
+
+#[test]
 fn filled_iterator() {
     // Fully filled contour, we should detect all of the 'outermost' edges
     let contour = U8SampledContour(ContourSize(3, 3), vec![

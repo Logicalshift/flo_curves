@@ -106,6 +106,20 @@ impl ContourCell {
 
         ContourCell(tl | tr | bl | br)
     }
+
+    ///
+    /// Merge this cell with another cell to create a cell with all the corners selected
+    ///
+    pub const fn merge(self, cell: ContourCell) -> ContourCell {
+        ContourCell(self.0 | cell.0)
+    }
+
+    ///
+    /// Returns this cell shifted one pixel to the left
+    ///
+    pub const fn shift_left(self) -> ContourCell {
+        ContourCell((self.0 >> 1) & !2)
+    }
 }
 
 impl ContourEdge {
