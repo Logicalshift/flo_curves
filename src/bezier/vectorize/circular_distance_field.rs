@@ -155,10 +155,10 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
 impl CircularDistanceFieldEdgeIterator {
     #[inline]
     fn point_is_inside(&self, offset_x: f64, offset_y: f64) -> bool {
-        let offset_x = offset_x - self.center_x - 1.0;
-        let offset_y = offset_y - self.center_y - 1.0;
+        let offset_x    = offset_x - self.center_x;
+        let offset_y    = offset_y - self.center_y;
 
-        (offset_x*offset_x + offset_y*offset_y) <= self.radius_sq
+        (offset_x*offset_x + offset_y*offset_y) <= (self.radius*self.radius)
     }
 
     ///
@@ -167,7 +167,7 @@ impl CircularDistanceFieldEdgeIterator {
     ///
     #[inline]
     fn fill_samples(&mut self, x_intersection: f64, ypos: f64) {
-        let mut sample_x = x_intersection.ceil();
+        let mut sample_x = x_intersection.floor();
         let mut sample_y = ypos.floor();
 
         // Create the first sample
@@ -177,8 +177,8 @@ impl CircularDistanceFieldEdgeIterator {
         let br = self.point_is_inside(sample_x+1.0, sample_y+1.0);
 
         // Create the initial position and edge
-        let mut pos     = ContourPosition(sample_x as usize, sample_y as usize);
-        let mut cell    = ContourCell::from_corners(tl, tr, bl, br);
+        let mut pos  = ContourPosition(sample_x as usize + 1, sample_y as usize + 1);
+        let mut cell = ContourCell::from_corners(tl, tr, bl, br);
 
         debug_assert!(!cell.is_empty());
         debug_assert!(!cell.is_full());
@@ -205,7 +205,7 @@ impl CircularDistanceFieldEdgeIterator {
 
         // The right-hand samples start at the mirror position from where the cell was filled (we may need to step one point further left)
         sample_x -= 1.0;
-        sample_x = (2.0*self.center_x - sample_x).ceil();
+        sample_x = (2.0*self.center_x - sample_x).floor();
         sample_x += 1.0;
 
         let tl = self.point_is_inside(sample_x, sample_y);
@@ -213,7 +213,7 @@ impl CircularDistanceFieldEdgeIterator {
         let bl = self.point_is_inside(sample_x, sample_y+1.0);
         let br = self.point_is_inside(sample_x+1.0, sample_y+1.0);
 
-        let mut pos  = ContourPosition(sample_x as usize, sample_y as usize);
+        let mut pos  = ContourPosition(sample_x as usize + 1, sample_y as usize + 1);
         let mut cell = ContourCell::from_corners(tl, tr, bl, br);
 
         // Move to the right if the cell is initially full
