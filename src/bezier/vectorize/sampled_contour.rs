@@ -96,20 +96,9 @@ impl ContourCell {
     }
 
     ///
-    /// Mirrors this cell in the horizontal direction
-    ///
-    pub const fn mirror_horiz(self) -> ContourCell {
-        let tl = if self.0&1 != 0 { 2 } else { 0 };
-        let tr = if self.0&2 != 0 { 1 } else { 0 };
-        let bl = if self.0&4 != 0 { 8 } else { 0 };
-        let br = if self.0&8 != 0 { 4 } else { 0 };
-
-        ContourCell(tl | tr | bl | br)
-    }
-
-    ///
     /// Merge this cell with another cell to create a cell with all the corners selected
     ///
+    #[inline]
     pub const fn merge(self, cell: ContourCell) -> ContourCell {
         ContourCell(self.0 | cell.0)
     }
@@ -117,8 +106,25 @@ impl ContourCell {
     ///
     /// Returns this cell shifted one pixel to the left
     ///
+    #[inline]
     pub const fn shift_left(self) -> ContourCell {
         ContourCell((self.0 >> 1) & !2)
+    }
+
+    ///
+    /// Returns true if the cell is empty
+    ///
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
+
+    ///
+    /// Returns true if the cell is full
+    ///
+    #[inline]
+    pub const fn is_full(&self) -> bool {
+        self.0 == 15
     }
 }
 

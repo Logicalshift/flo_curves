@@ -65,8 +65,14 @@ fn teeny_circle() {
 }
 
 #[test]
-fn medium_circle() {
+fn medium_circle_1() {
     let contour = CircularDistanceField::with_radius(32.0);
+    check_contour_against_bitmap(&contour, false);
+}
+
+#[test]
+fn medium_circle_2() {
+    let contour = CircularDistanceField::with_radius(31.4);
     check_contour_against_bitmap(&contour, false);
 }
 
