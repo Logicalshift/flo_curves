@@ -242,7 +242,7 @@ fn circle_path_from_distance_field_offset() {
     check_contour_against_bitmap(&distance_field, true);
 
     let size            = distance_field.contour_size().0;
-    let center          = ((size as f64)/2.0).floor() - 1.0 + offset;
+    let center          = ((size as f64)/2.0).floor() + offset;
 
     // Trace the samples to generate a vector
     let circle = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
