@@ -57,7 +57,7 @@ impl CircularDistanceField {
             radius:         self.radius,
             center_x:       center_x,
             center_y:       center_y,
-            diameter:       ((center_x.max(center_y)).ceil() as usize) * 2 + 1,
+            diameter:       ((center_x.max(center_y)).floor() as usize) * 2 + 1,
         }
     }
 }
