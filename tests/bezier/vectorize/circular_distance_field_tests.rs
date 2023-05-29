@@ -188,6 +188,16 @@ fn many_circles_small_increments() {
 }
 
 #[test]
+fn many_circles_small_increments_offset() {
+    // All circles up to a radius of 100 in steps of 0.1
+    for radius in 0..1000 {
+        let radius  = (radius as f64) / 100.0;
+        let contour = CircularDistanceField::with_radius(radius).with_center_offset(0.3, 0.4);
+        check_contour_against_bitmap(&contour, false);
+    }
+}
+
+#[test]
 fn circle_path_from_contours() {
     // Create a contour containing a circle in the middle, using the circular distance field
     let radius  = 30.0;
