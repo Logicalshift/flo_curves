@@ -185,7 +185,11 @@ impl CircularDistanceFieldEdgeIterator {
         let mut pos  = ContourPosition(sample_x as usize + 1, sample_y as usize + 1);
         let mut cell = ContourCell::from_corners(tl, tr, bl, br);
 
-        debug_assert!(!cell.is_empty());
+        if cell.is_empty() {
+            // Edge case: there's no sample on this line in spite of the intersection
+            return;
+        }
+
         debug_assert!(!cell.is_full());
 
         // Push the left-hand side samples by iterating until the cell is filled or we reach the middle
