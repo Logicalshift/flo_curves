@@ -237,10 +237,11 @@ fn circle_path_from_distance_field() {
 fn circle_path_from_distance_field_offset() {
     // Create a contour containing a circle in the middle, using the circular distance field
     let radius          = 30.0;
-    let distance_field  = CircularDistanceField::with_radius(radius).with_center_offset(0.3, 0.3);
+    let offset          = 0.3;
+    let distance_field  = CircularDistanceField::with_radius(radius).with_center_offset(offset, offset);
 
     let size            = distance_field.contour_size().0;
-    let center          = ((size as f64)/2.0).floor() + 0.3;
+    let center          = ((size as f64)/2.0).floor() - 1.0 + offset;
 
     // Trace the samples to generate a vector
     let circle = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
@@ -258,7 +259,7 @@ fn circle_path_from_distance_field_offset() {
             let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
             let offset      = (distance-radius).abs();
 
-            println!("{:?} {:?} {}", offset, point, center);
+            println!("{}: {:?} {:?} {}", distance, offset, point, center);
             max_error = f64::max(max_error, offset);
         }
     }
