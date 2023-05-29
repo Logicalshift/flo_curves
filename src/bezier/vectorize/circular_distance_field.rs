@@ -255,28 +255,28 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
                 return self.samples.pop();
             }
 
-            // Find the samples for the next line
-            // Every line has a left and a right-hand side portion. These are not symmetrical if the center has an offset.
-            //  We always treat them as asymmetrical here, it's possible to avoid some work on one side of the line if there's no offset.
-
             // Once the y position moves outside of the region where the circle exists, we are finished
-            if self.ypos > self.diameter + 10 {
+            if self.ypos > self.diameter {
                 return None;
             }
 
             // Retrieve the y position for the current line
-            let ypos = self.ypos as f64;
+            let ypos        = self.ypos as f64;
+            let is_top_half = ypos < self.center_y;
+
+            // Each cell consists of the 'current' and the 'following' line. For the top half of the circle, the 'following' line defines the intersection position
+            let test_ypos   = if is_top_half { ypos + 1.0 } else { ypos };
 
             // Advance the y position
             self.ypos += 1;
 
             // Check that the y position is inside the circle, and skip this line if not
-            if self.radius_sq - ((ypos - self.center_y) * (ypos - self.center_y)) < 0.0 {
+            if self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y)) < 0.0 {
                 continue;
             }
 
             // Compute the intersection position at this y position. This is the start of the LHS of the edge (can mirror around the center point to get the other side)
-            let x_intersection      = self.center_x - (self.radius_sq - ((ypos - self.center_y) * (ypos - self.center_y))).sqrt();
+            let x_intersection      = self.center_x - (self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y))).sqrt();
 
             self.fill_samples(x_intersection, ypos);
             self.samples.reverse();
