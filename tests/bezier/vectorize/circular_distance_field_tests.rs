@@ -65,8 +65,14 @@ fn teeny_circle() {
 }
 
 #[test]
-fn teeny_circle_offset() {
+fn teeny_circle_offset_1() {
     let contour = CircularDistanceField::with_radius(0.4).with_center_offset(0.3, 0.4);
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
+fn teeny_circle_offset_2() {
+    let contour = CircularDistanceField::with_radius(0.5).with_center_offset(0.3, 0.4);
     check_contour_against_bitmap(&contour, true);
 }
 
