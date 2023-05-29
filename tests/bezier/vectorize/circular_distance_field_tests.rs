@@ -6,6 +6,19 @@ use itertools::*;
 
 use std::collections::{HashMap};
 
+fn draw<TContour: SampledContour>(contour: TContour) {
+    let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
+        .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
+        .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
+        .collect::<Vec<_>>();
+
+    for p in 0..bitmap.len() {
+        print!("{}", if bitmap[p] { '#' } else { '.' });
+        if ((p+1)%contour.contour_size().1) == 0 { println!() };
+    }
+    println!();
+}
+
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
@@ -14,11 +27,7 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
         .collect::<Vec<_>>();
 
     if draw_circle {
-        for p in 0..bitmap.len() {
-            print!("{}", if bitmap[p] { '#' } else { '.' });
-            if ((p+1)%contour.contour_size().1) == 0 { println!() };
-        }
-        println!();
+        draw(contour);
     }
 
     let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
