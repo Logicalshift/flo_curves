@@ -260,6 +260,8 @@ fn circle_path_from_distance_field_offset() {
     let radius          = 30.0;
     let offset          = 0.3;
     let distance_field  = CircularDistanceField::with_radius(radius).with_center_offset(offset, offset);
+
+    draw(CircularDistanceField::with_radius(radius));
     check_contour_against_bitmap(&distance_field, true);
 
     let size            = distance_field.contour_size().0;
@@ -281,7 +283,6 @@ fn circle_path_from_distance_field_offset() {
             let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
             let offset      = (distance-radius).abs();
 
-            println!("{}: {:?} {:?} {}", distance, offset, point, center);
             max_error = f64::max(max_error, offset);
         }
     }
