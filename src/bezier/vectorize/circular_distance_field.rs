@@ -204,9 +204,7 @@ impl CircularDistanceFieldEdgeIterator {
         }
 
         // The right-hand samples start at the mirror position from where the cell was filled (we may need to step one point further left)
-        sample_x -= 1.0;
         sample_x = (2.0*self.center_x - sample_x).floor();
-        sample_x += 1.0;
 
         let tl = self.point_is_inside(sample_x, sample_y);
         let tr = self.point_is_inside(sample_x+1.0, sample_y);
