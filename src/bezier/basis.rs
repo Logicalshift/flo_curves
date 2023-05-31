@@ -35,6 +35,32 @@ pub fn basis<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Poi
         + w4*t_cubed
 }
 
+///
+/// de Casteljau's algorithm for quintic bezier curves
+/// 
+#[inline]
+pub (crate) fn de_casteljau6<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Point, w5: Point, w6: Point) -> Point {
+    let wn1 = w1*(1.0-t) + w2*t;
+    let wn2 = w2*(1.0-t) + w3*t;
+    let wn3 = w3*(1.0-t) + w4*t;
+    let wn4 = w4*(1.0-t) + w5*t;
+    let wn5 = w5*(1.0-t) + w6*t;
+
+    de_casteljau5(t, wn1, wn2, wn3, wn4, wn5)
+}
+
+///
+/// de Casteljau's algorithm for quartic bezier curves
+/// 
+#[inline]
+pub (crate) fn de_casteljau5<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Point, w5: Point) -> Point {
+    let wn1 = w1*(1.0-t) + w2*t;
+    let wn2 = w2*(1.0-t) + w3*t;
+    let wn3 = w3*(1.0-t) + w4*t;
+    let wn4 = w4*(1.0-t) + w5*t;
+
+    de_casteljau4(t, wn1, wn2, wn3, wn4)
+}
 
 ///
 /// de Casteljau's algorithm for cubic bezier curves
