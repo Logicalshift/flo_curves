@@ -8,9 +8,9 @@ use std::convert::{TryInto};
 /// Subdivides a bezier curve with any number of weights at a particular point. Returns the weights for the
 /// two curves on either side of the subdivision point.
 ///
-pub (crate) fn subdivideN<TPoint, const N: usize>(t: f64, points: &[TPoint; N]) -> ([TPoint; N], [TPoint; N])
+pub (crate) fn subdivideN<TPoint, const N: usize>(t: f64, points: [TPoint; N]) -> ([TPoint; N], [TPoint; N])
 where
-    TPoint: Debug + Coordinate + Clone,
+    TPoint: Debug + Coordinate,
 {
     // Want to store 1+2+3+...+N weights in total
     let num_weights = (N * (N+1))/2;
@@ -20,7 +20,7 @@ where
     let mut weights = Vec::with_capacity(num_weights);
 
     // Copy the points into the initial set of weights
-    weights.extend(points.iter().cloned());
+    weights.extend(points);
 
     // Use de Casteljau algorithm to generate all of the weights for the curve
     let mut last_pos = 0;
@@ -96,7 +96,7 @@ mod test {
         let (w1, w2, w3, w4) = (1.0, 2.0, 3.0, 4.0);
 
         // Subdivide at 33%, creating two curves
-        let ([wa1, wa2, wa3, wa4], [wb1, wb2, wb3, wb4])            = subdivideN(0.33, &[w1, w2, w3, w4]);
+        let ([wa1, wa2, wa3, wa4], [wb1, wb2, wb3, wb4])            = subdivideN(0.33, [w1, w2, w3, w4]);
         let ((waa1, waa2, waa3, waa4), (wbb1, wbb2, wbb3, wbb4))    = subdivide4(0.33, w1, w2, w3, w4);
 
         debug_assert!(approx_equal(wa1, waa1), "{:?} != {:?}", ((wa1, wa2, wa3, wa4), (wb1, wb2, wb3, wb4)), ((waa1, waa2, waa3, waa4), (wbb1, wbb2, wbb3, wbb4)));
