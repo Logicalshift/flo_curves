@@ -45,7 +45,7 @@ mod length;
 mod walk;
 mod distort;
 mod nearest_point;
-mod roots;
+pub (crate) mod roots;
 
 pub mod path;
 
