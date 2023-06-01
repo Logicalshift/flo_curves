@@ -6,7 +6,7 @@ use smallvec::*;
 use ::roots::{find_root_newton_raphson, SimpleConvergency};
 
 ///
-/// Returns true if the control polygon represented by a curve crosses the x axis
+/// Counts the number of times a bezier curve polygon crosses the x-axis (excluding the closing line of the polygon)
 ///
 #[inline]
 fn count_x_axis_crossings<TPoint, const N: usize>(points: &[TPoint; N]) -> usize
@@ -22,12 +22,6 @@ where
         if p1.y() < 0.0 && p2.y() >= 0.0        { num_crossings += 1; }
         else if p1.y() >= 0.0 && p2.y() < 0.0   { num_crossings += 1; }
     }
-
-    let p1 = &points[0];
-    let p2 = &points[N-1];
-
-    if p1.y() < 0.0 && p2.y() >= 0.0        { num_crossings += 1; }
-    else if p1.y() >= 0.0 && p2.y() < 0.0   { num_crossings += 1; }
 
     return num_crossings;
 }
@@ -76,6 +70,10 @@ where
 
 ///
 /// Finds the points (as t-values) where a bezier curve's y coordinate is 0
+///
+/// When combined with `polynomial_to_bezier` this can be used to find all of the roots for any polynomial, provided
+/// that they lie in the range `0.0..1.0`. For higher-order polynomials, the maximum precision of the f64 type may
+/// start to limit the effectiveness of this function.
 ///
 pub fn find_roots<TPoint, const N: usize>(points: [TPoint; N]) -> SmallVec<[f64; 4]>
 where
