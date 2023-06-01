@@ -3,6 +3,7 @@ use crate::bezier::*;
 use crate::line::*;
 
 use smallvec::*;
+use ::roots::{find_root_newton_raphson, SimpleConvergency};
 
 ///
 /// Returns true if the control polygon represented by a curve crosses the x axis
@@ -56,11 +57,21 @@ where
 }
 
 ///
-/// Finds an x-intercept for a bezier curve that is 'flat enough'
+/// Finds an x-intercept for a bezier curve that is 'flat enough', returning the t-value for the resulting point
 ///
 #[inline]
-fn find_x_intercept<TPoint, const N: usize>(points: &[TPoint; N]) -> f64 {
-    todo!()
+fn find_x_intercept<TPoint, const N: usize>(t_guess: f64, points: &[TPoint; N]) -> f64 
+where
+    TPoint: Coordinate + Coordinate2D + Clone,
+{
+    // Use newton-raphson to find the intercept
+    let points      = SmallVec::<[TPoint; N]>::from(points.clone());
+    let derivative  = derivativeN(points.clone());
+
+    let mut convergency = SimpleConvergency { eps:1e-15f64, max_iter:10 };
+    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljauN(t, points.clone()).y(), move |t| de_casteljauN(t, derivative.clone()).y(), &mut convergency);
+
+    root.unwrap()
 }
 
 ///
@@ -68,7 +79,7 @@ fn find_x_intercept<TPoint, const N: usize>(points: &[TPoint; N]) -> f64 {
 ///
 pub fn find_roots<TPoint, const N: usize>(points: [TPoint; N]) -> SmallVec<[f64; 4]>
 where
-    TPoint: Coordinate + Coordinate2D,
+    TPoint: Coordinate + Coordinate2D + Clone,
 {
     // See "A bezier curve-based root-finder", Philip J Schneider, Graphics Gems
 
@@ -90,7 +101,8 @@ where
 
         if num_crossings == 1 && flat_enough(&section) {
             // Find an x-intercept for this section
-            roots.push(find_x_intercept(&section));
+            let intercept = find_x_intercept(0.5, &section);
+            roots.push(de_casteljauN(intercept, section.into()).x());
             continue;
         }
 
