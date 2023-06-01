@@ -7,7 +7,7 @@ use smallvec::*;
 ///
 /// (Resolves to a smallvec as Rust can't currently return a slice with a definition like [Point; N-1])
 /// 
-pub (crate) fn derivativeN<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> SmallVec<[Point; N]> {
+pub (crate) fn derivativeN<Point: Coordinate, const N: usize>(points: SmallVec<[Point; N]>) -> SmallVec<[Point; N]> {
     let n           = points.len();
     let multiplier  = (n-1) as f64;
 
