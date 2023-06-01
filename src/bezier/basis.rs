@@ -1,4 +1,5 @@
-use super::super::geo::*;
+use crate::geo::*;
+use smallvec::*;
 
 ///
 /// Computes the bezier coefficients (A, B, C, D) for a bezier curve
@@ -36,30 +37,23 @@ pub fn basis<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Poi
 }
 
 ///
-/// de Casteljau's algorithm for quintic bezier curves
+/// de Casteljau's algorithm for bezier curves of arbitrary degree
 /// 
 #[inline]
-pub (crate) fn de_casteljau6<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Point, w5: Point, w6: Point) -> Point {
-    let wn1 = w1*(1.0-t) + w2*t;
-    let wn2 = w2*(1.0-t) + w3*t;
-    let wn3 = w3*(1.0-t) + w4*t;
-    let wn4 = w4*(1.0-t) + w5*t;
-    let wn5 = w5*(1.0-t) + w6*t;
+pub (crate) fn de_casteljauN<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> Point {
+    let mut points = points;
 
-    de_casteljau5(t, wn1, wn2, wn3, wn4, wn5)
-}
+    while points.len() > 1 {
+        let mut next_points = smallvec![];
 
-///
-/// de Casteljau's algorithm for quartic bezier curves
-/// 
-#[inline]
-pub (crate) fn de_casteljau5<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Point, w5: Point) -> Point {
-    let wn1 = w1*(1.0-t) + w2*t;
-    let wn2 = w2*(1.0-t) + w3*t;
-    let wn3 = w3*(1.0-t) + w4*t;
-    let wn4 = w4*(1.0-t) + w5*t;
+        for idx in 0..(points.len()-1) {
+            next_points.push(points[idx]*(1.0-t) + points[idx+1]*t);
+        }
 
-    de_casteljau4(t, wn1, wn2, wn3, wn4)
+        points = next_points;
+    }
+
+    return points[0];
 }
 
 ///
