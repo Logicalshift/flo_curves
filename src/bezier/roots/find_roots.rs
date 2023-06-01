@@ -125,6 +125,10 @@ mod test {
         let roots   = find_roots(bezier);
 
         debug_assert!(roots.len() == 5, "{:?}", roots);
-        println!("{:?}", roots);
+        debug_assert!((roots[0]-0.1).abs() < 0.001, "{:?}", roots);
+        debug_assert!((roots[1]-0.2).abs() < 0.001, "{:?}", roots);
+        debug_assert!((roots[2]-0.3).abs() < 0.001, "{:?}", roots);
+        debug_assert!((roots[3]-0.4).abs() < 0.001, "{:?}", roots);
+        debug_assert!((roots[4]-0.5).abs() < 0.001, "{:?}", roots);
     }
 }
