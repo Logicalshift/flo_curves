@@ -75,7 +75,7 @@ where
 /// that they lie in the range `0.0..1.0`. For higher-order polynomials, the maximum precision of the f64 type may
 /// start to limit the effectiveness of this function.
 ///
-pub fn find_roots<TPoint, const N: usize>(points: [TPoint; N]) -> SmallVec<[f64; 4]>
+pub fn find_bezier_roots<TPoint, const N: usize>(points: [TPoint; N]) -> SmallVec<[f64; 4]>
 where
     TPoint: Coordinate + Coordinate2D,
 {
@@ -122,7 +122,7 @@ mod test {
         // (x-0.5)(x-0.4)(x-0.3)(x-0.2)(x-0.1)
         //  == -0.0012 + 0.0274x - 0.225x^2  + 0.85x^3 - 1.5x^4 + x^5
         let bezier  = polynomial_to_bezier::<Coord2, 6>([-0.0012, 0.0274, -0.225, 0.85, -1.5, 1.0]);
-        let roots   = find_roots(bezier);
+        let roots   = find_bezier_roots(bezier);
 
         debug_assert!(roots.len() == 5, "{:?}", roots);
         debug_assert!((roots[0]-0.1).abs() < 0.001, "{:?}", roots);
