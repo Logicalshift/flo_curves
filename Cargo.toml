@@ -19,7 +19,7 @@ extra_checks    = []
 [dependencies]
 itertools   = "0.10"
 roots       = "0.0.8"
-smallvec    = "1.8"
+smallvec    = { version = "1.10", features = ["const_generics"] }
 
 [dev-dependencies]
 rand        = "0.8"
