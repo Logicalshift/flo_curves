@@ -62,14 +62,14 @@ where
 #[inline]
 fn find_x_intercept<TPoint, const N: usize>(t_guess: f64, points: &[TPoint; N]) -> f64 
 where
-    TPoint: Coordinate + Coordinate2D + Clone,
+    TPoint: Coordinate + Coordinate2D,
 {
     // Use newton-raphson to find the intercept
-    let points      = SmallVec::<[TPoint; N]>::from(points.clone());
+    let points      = points.iter().map(|point| point.y()).collect::<SmallVec<[f64; N]>>();
     let derivative  = derivativeN(points.clone());
 
     let mut convergency = SimpleConvergency { eps:1e-15f64, max_iter:10 };
-    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljauN(t, points.clone()).y(), move |t| de_casteljauN(t, derivative.clone()).y(), &mut convergency);
+    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljauN(t, points.clone()), move |t| de_casteljauN(t, derivative.clone()), &mut convergency);
 
     root.unwrap()
 }
@@ -79,7 +79,7 @@ where
 ///
 pub fn find_roots<TPoint, const N: usize>(points: [TPoint; N]) -> SmallVec<[f64; 4]>
 where
-    TPoint: Coordinate + Coordinate2D + Clone,
+    TPoint: Coordinate + Coordinate2D,
 {
     // See "A bezier curve-based root-finder", Philip J Schneider, Graphics Gems
 
