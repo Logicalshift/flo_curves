@@ -7,11 +7,12 @@ use smallvec::*;
 ///
 /// (Resolves to a smallvec as Rust can't currently return a slice with a definition like [Point; N-1])
 /// 
-pub (crate) fn derivativeN<Point: Coordinate, const N: usize>(t: f64, points: [Point; N]) -> SmallVec<[Point; N]> {
-    let multiplier = (N-1) as f64;
+pub (crate) fn derivativeN<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> SmallVec<[Point; N]> {
+    let n           = points.len();
+    let multiplier  = (n-1) as f64;
 
     let mut derivative = smallvec![];
-    for idx in 0..(N-1) {
+    for idx in 0..(n-1) {
         derivative.push((points[idx+1]-points[idx])*multiplier);
     }
 
