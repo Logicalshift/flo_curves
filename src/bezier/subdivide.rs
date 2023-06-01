@@ -1,7 +1,6 @@
 use crate::geo::*;
 use super::basis::*;
 
-use std::fmt::{Debug};
 use std::convert::{TryInto};
 
 ///
@@ -10,7 +9,7 @@ use std::convert::{TryInto};
 ///
 pub (crate) fn subdivideN<TPoint, const N: usize>(t: f64, points: [TPoint; N]) -> ([TPoint; N], [TPoint; N])
 where
-    TPoint: Debug + Coordinate,
+    TPoint: Coordinate,
 {
     // Want to store 1+2+3+...+N weights in total
     let num_weights = (N * (N+1))/2;
