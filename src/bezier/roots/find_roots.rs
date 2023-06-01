@@ -1,5 +1,6 @@
 use crate::geo::*;
 use crate::bezier::*;
+use crate::line::*;
 
 use smallvec::*;
 
@@ -17,15 +18,15 @@ where
         let p1 = &points[idx];
         let p2 = &points[idx+1];
 
-        if p1.y() < 0.0 && p2.y() > 0.0         { num_crossings += 1; }
-        else if p1.y() > 0.0 && p2.y() < 0.0    { num_crossings += 1; }
+        if p1.y() < 0.0 && p2.y() >= 0.0        { num_crossings += 1; }
+        else if p1.y() >= 0.0 && p2.y() < 0.0   { num_crossings += 1; }
     }
 
     let p1 = &points[0];
     let p2 = &points[N-1];
 
-    if p1.y() < 0.0 && p2.y() > 0.0         { num_crossings += 1; }
-    else if p1.y() > 0.0 && p2.y() < 0.0    { num_crossings += 1; }
+    if p1.y() < 0.0 && p2.y() >= 0.0        { num_crossings += 1; }
+    else if p1.y() >= 0.0 && p2.y() < 0.0   { num_crossings += 1; }
 
     return num_crossings;
 }
@@ -34,8 +35,24 @@ where
 /// Returns true if the control polygon is flat enough to try to find a root for it
 ///
 #[inline]
-fn flat_enough<TPoint, const N: usize>(points: &[TPoint; N]) -> bool {
-    todo!()
+fn flat_enough<TPoint, const N: usize>(points: &[TPoint; N]) -> bool 
+where
+    TPoint: Coordinate + Coordinate2D,
+{
+    const FLAT_ENOUGH: f64 = 0.1;
+
+    // Measure the distance from each control point to the baseline
+    let baseline = (TPoint::from_components(&[points[0].x(), points[0].y()]), TPoint::from_components(&[points[N-1].x(), points[N-1].y()]));
+    let mut max_distance: f64 = 0.0;
+
+    // Find the furthest point from the baseline
+    for p in points.iter() {
+        let distance = baseline.distance_to(p);
+        max_distance = max_distance.max(distance);
+    }
+
+    // The graphics gems code goes on to compute a bounding box to get a precise estimate of the maximum error, here we just use the furthest away control point as a measure of flatness
+    return max_distance <= FLAT_ENOUGH;
 }
 
 ///
