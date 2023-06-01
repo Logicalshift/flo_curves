@@ -112,3 +112,21 @@ where
         sections.push(left);
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use super::super::polynomial_to_bezier::*;
+    use crate::bezier::*;
+
+    #[test]
+    fn find_roots_simple_polynomial() {
+        // (x-0.5)(x-0.4)(x-0.3)(x-0.2)(x-0.1)
+        //  == -0.0012 + 0.0274x - 0.225x^2  + 0.85x^3 - 1.5x^4 + x^5
+        let bezier  = polynomial_to_bezier::<Coord2, 6>([-0.0012, 0.0274, -0.225, 0.85, -1.5, 1.0]);
+        let roots   = find_roots(bezier);
+
+        debug_assert!(roots.len() == 5, "{:?}", roots);
+        println!("{:?}", roots);
+    }
+}
