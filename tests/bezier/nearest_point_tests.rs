@@ -165,6 +165,22 @@ fn nearest_point_on_curve_newton_raphson_6() {
     assert!(iterate_point.distance_to(&curve_near) < 0.1);
 }
 
+/* -- fails with the newton-raphson algorithm
+#[test]
+fn nearest_point_on_curve_newton_raphson_7() {
+    let curve = bezier::Curve::from_points(Coord2(269.1, 317.7), (Coord2(280.1, 332.7), Coord2(316.4, 414.1)), Coord2(322.4, 415.0));
+    let point = Coord2(296.0, 367.0);
+
+    let curve_near_t    = nearest_point_on_curve_newton_raphson(&curve, &point);
+    let curve_near      = curve.point_at_pos(curve_near_t);
+
+    let iterate_t       = nearest_t_value_iteration(&curve, &point);
+    let iterate_point   = curve.point_at_pos(iterate_t);
+
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
+}
+*/
+
 #[test]
 fn nearest_point_on_straight_line() {
     // Create a curve from a line
@@ -251,5 +267,19 @@ fn nearest_point_on_curve_6() {
     let iterate_t       = nearest_t_value_iteration(&curve, &point);
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
+}
+
+#[test]
+fn nearest_point_on_curve_7() {
+    let curve = bezier::Curve::from_points(Coord2(269.1, 317.7), (Coord2(280.1, 332.7), Coord2(316.4, 414.1)), Coord2(322.4, 415.0));
+    let point = Coord2(296.0, 367.0);
+
+    let curve_near_t    = nearest_point_on_curve(&curve, &point);
+    let curve_near      = curve.point_at_pos(curve_near_t);
+
+    let iterate_t       = nearest_t_value_iteration(&curve, &point);
+    let iterate_point   = curve.point_at_pos(iterate_t);
+
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
 }
