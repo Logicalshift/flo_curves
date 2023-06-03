@@ -64,7 +64,7 @@ where
             println!("  tangent={:?} tangent_dot_offset={:?}", tangent, tangent.dot(&offset));
 
             // With the exceptions of cusps, we should have found a point perpendicular to the curve
-            assert!(tangent.dot(&offset).abs() < 0.001 || nearest_t <= 0.0 || nearest_t >= 1.0);
+            assert!(tangent.dot(&offset).abs() < 0.001 || nearest_t <= 0.0 || nearest_t >= 1.0, "Not perpendicular (t={:?}, tangent dot offset={:?}, found distance={:?}, iteration distance={:?})", nearest_t, tangent.dot(&offset), nearest.distance_to(&test_point), iter_nearest.distance_to(&test_point));
 
             // The nearest point is prone to sudden discontinuities: if the iterative value and the the 'nearest' point value are of similar distances from the curve, it's likely that the problem is the iterative algorithm missed a discontinuity
             let nearest_distance    = nearest.distance_to(&test_point);
