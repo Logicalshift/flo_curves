@@ -6,4 +6,4 @@ mod nearest_point_bezier_root_finder;
 
 pub use polynomial_to_bezier::*;
 pub use find_roots::*;
-pub (crate) use nearest_point_bezier_root_finder::*;
+pub use nearest_point_bezier_root_finder::*;
