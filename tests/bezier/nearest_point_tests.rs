@@ -283,3 +283,10 @@ fn nearest_point_on_curve_7() {
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
 }
+
+#[test]
+fn nearest_point_on_curve_8() {
+    let curve = bezier::Curve::from_points(Coord2(269.1, 317.7), (Coord2(280.1, 332.7), Coord2(316.4, 414.1)), Coord2(322.4, 415.0));
+
+    test_far_away_points(&curve, |c, p| c.nearest_point(p));
+}
