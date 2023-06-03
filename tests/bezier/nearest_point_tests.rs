@@ -178,7 +178,7 @@ fn nearest_point_on_straight_line() {
     let iterate_t       = nearest_t_value_iteration(&curve, &Coord2(1.0, 5.0));
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
     assert!(line_near.distance_to(&curve_near) < 0.1);
 }
 
@@ -193,7 +193,7 @@ fn nearest_point_on_curve_1() {
     let iterate_t       = nearest_t_value_iteration(&curve, &point);
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
 }
 
 #[test]
@@ -208,7 +208,7 @@ fn nearest_point_on_curve_2() {
     let iterate_t       = nearest_t_value_iteration(&curve, &point);
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
 }
 
 #[test]
@@ -223,7 +223,7 @@ fn nearest_point_on_curve_3() {
     let iterate_t       = nearest_t_value_iteration(&curve, &point);
     let iterate_point   = curve.point_at_pos(iterate_t);
 
-    assert!(iterate_point.distance_to(&curve_near) < 0.1);
+    assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
 }
 
 #[test]
