@@ -1,6 +1,7 @@
-use super::curve::*;
 use super::basis::*;
 use super::characteristics::*;
+use super::curve::*;
+use super::roots::*;
 use crate::geo::*;
 
 use smallvec::*;
@@ -15,9 +16,10 @@ use smallvec::*;
 ///
 pub fn nearest_point_on_curve<C>(curve: &C, point: &C::Point) -> f64
 where
-    C: BezierCurve + BezierCurve2D
+    C:          BezierCurve + BezierCurve2D,
+    C::Point:   Coordinate + Coordinate2D,
 {
-    nearest_point_on_curve_newton_raphson(curve, point)
+    nearest_point_on_curve_bezier_root_finder(curve, point)
 }
 
 ///
