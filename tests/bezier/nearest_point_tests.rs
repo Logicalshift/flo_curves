@@ -22,7 +22,7 @@ where
     min_t
 }
 
-fn test_far_away_points<C>(curve: &C)
+fn test_far_away_points<C>(curve: &C, nearest_point: impl Fn(&C, &C::Point) -> C::Point)
 where
     C: BezierCurve<Point=Coord2>,
 {
@@ -45,7 +45,7 @@ where
     for t in 0..=100 {
         let t               = (t as f64) / 100.0;
         let test_point      = test_line.point_at_pos(t);
-        let nearest         = curve.nearest_point(&test_point);
+        let nearest         = nearest_point(curve, &test_point);
         let iter_nearest_t  = nearest_t_value_iteration(curve, &test_point);
         let iter_nearest    = curve.point_at_pos(iter_nearest_t);
 
@@ -56,8 +56,8 @@ where
         if iter_nearest.distance_to(&nearest) >= 0.1 {
             // Log the t position and the distance between the curve, plus the distance between the point we found and the curve
             println!("t={:?} distance={:?} ({:?} {:?}) to_curve={:?} to_curve_iter={:?} nearest_t={:?} (should be {:?})", t, iter_nearest.distance_to(&nearest), nearest, iter_nearest, test_point.distance_to(&nearest), test_point.distance_to(&iter_nearest), nearest_t, iter_nearest_t);
-            println!("  t={:?} distance={:?} ({:?} {:?})", t-0.01, iter_nearest.distance_to(&curve.nearest_point(&test_line.point_at_pos(t-0.01))), curve.nearest_point(&test_line.point_at_pos(t-0.01)), iter_nearest);
-            println!("  t={:?} distance={:?} ({:?} {:?})", t+0.01, iter_nearest.distance_to(&curve.nearest_point(&test_line.point_at_pos(t+0.01))), curve.nearest_point(&test_line.point_at_pos(t+0.01)), iter_nearest);
+            println!("  t={:?} distance={:?} ({:?} {:?})", t-0.01, iter_nearest.distance_to(&nearest_point(curve, &test_line.point_at_pos(t-0.01))), nearest_point(curve, &test_line.point_at_pos(t-0.01)), iter_nearest);
+            println!("  t={:?} distance={:?} ({:?} {:?})", t+0.01, iter_nearest.distance_to(&nearest_point(curve, &test_line.point_at_pos(t+0.01))), nearest_point(curve, &test_line.point_at_pos(t+0.01)), iter_nearest);
 
             let tangent = tangent.to_unit_vector();
             let offset  = (test_point - nearest).to_unit_vector();
@@ -141,14 +141,14 @@ fn nearest_point_on_curve_newton_raphson_3() {
 fn nearest_point_on_curve_newton_raphson_4() {
     let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
 
-    test_far_away_points(&curve);
+    test_far_away_points(&curve, |c, p| c.point_at_pos(nearest_point_on_curve_newton_raphson(c, p)));
 }
 
 #[test]
 fn nearest_point_on_curve_newton_raphson_5() {
     let curve = bezier::Curve::from_points(Coord2(259.0, 322.0), (Coord2(272.0, 329.0), Coord2(297.0, 341.0)), Coord2(350.0, 397.0));
 
-    test_far_away_points(&curve);
+    test_far_away_points(&curve, |c, p| c.point_at_pos(nearest_point_on_curve_newton_raphson(c, p)));
 }
 
 #[test]
@@ -230,14 +230,14 @@ fn nearest_point_on_curve_3() {
 fn nearest_point_on_curve_4() {
     let curve = bezier::Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
 
-    test_far_away_points(&curve);
+    test_far_away_points(&curve, |c, p| c.nearest_point(p));
 }
 
 #[test]
 fn nearest_point_on_curve_5() {
     let curve = bezier::Curve::from_points(Coord2(259.0, 322.0), (Coord2(272.0, 329.0), Coord2(297.0, 341.0)), Coord2(350.0, 397.0));
 
-    test_far_away_points(&curve);
+    test_far_away_points(&curve, |c, p| c.nearest_point(p));
 }
 
 #[test]
