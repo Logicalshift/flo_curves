@@ -92,10 +92,10 @@ where
     let mut min_distance_sq = offset.dot(&offset);
 
     for t in perpendicular_t_values.into_iter().chain(iter::once(1.0)) {
-        let offset      = curve.point_at_pos(t);
+        let offset      = curve.point_at_pos(t) - *point;
         let distance_sq = offset.dot(&offset);
 
-        if distance_sq < min_distance_sq {
+        if distance_sq <= min_distance_sq {
             min_t_value     = t;
             min_distance_sq = distance_sq;
         }
