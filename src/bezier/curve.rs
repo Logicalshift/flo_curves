@@ -294,7 +294,7 @@ where
 
     #[inline]
     fn nearest_point(&self, point: &Self::Point) -> Self::Point {
-        self.point_at_pos(nearest_point_on_curve_newton_raphson(self, point))
+        self.point_at_pos(nearest_point_on_curve(self, point))
     }
 
     #[inline]

@@ -1,4 +1,5 @@
-use super::super::geo::*;
+use crate::geo::*;
+use smallvec::*;
 
 ///
 /// Computes the bezier coefficients (A, B, C, D) for a bezier curve
@@ -35,6 +36,25 @@ pub fn basis<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Poi
         + w4*t_cubed
 }
 
+///
+/// de Casteljau's algorithm for bezier curves of arbitrary degree
+/// 
+#[inline]
+pub (crate) fn de_casteljau_n<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> Point {
+    let mut points = points;
+
+    while points.len() > 1 {
+        let mut next_points = smallvec![];
+
+        for idx in 0..(points.len()-1) {
+            next_points.push(points[idx]*(1.0-t) + points[idx+1]*t);
+        }
+
+        points = next_points;
+    }
+
+    return points[0];
+}
 
 ///
 /// de Casteljau's algorithm for cubic bezier curves
