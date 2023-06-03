@@ -37,12 +37,13 @@ where
     const FLAT_ENOUGH: f64 = 0.1;
 
     // Measure the distance from each control point to the baseline
-    let baseline = (TPoint::from_components(&[points[0].x(), points[0].y()]), TPoint::from_components(&[points[N-1].x(), points[N-1].y()]));
+    let baseline        = (TPoint::from_components(&[points[0].x(), points[0].y()]), TPoint::from_components(&[points[N-1].x(), points[N-1].y()]));
+    let baseline_coeff  = baseline.coefficients();
     let mut max_distance: f64 = 0.0;
 
     // Find the furthest point from the baseline
     for p in points.iter() {
-        let distance = baseline.distance_to(p);
+        let distance = baseline_coeff.distance_to(p);
         max_distance = max_distance.max(distance);
     }
 
