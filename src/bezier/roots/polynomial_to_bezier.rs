@@ -7,6 +7,7 @@ use std::convert::{TryInto};
 ///
 /// The polynomial has the form `c[0] + c[1]*x + c[2]*x^2 + c[3]*x^3 ...` where `c` is the list of coefficints
 ///
+#[allow(dead_code)] // Used for testing, will make a public function in v0.8
 pub fn polynomial_to_bezier<TPoint, const N: usize>(coefficients: [f64; N]) -> [TPoint; N] 
 where
     TPoint: Coordinate + Coordinate2D,
