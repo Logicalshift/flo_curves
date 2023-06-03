@@ -91,7 +91,7 @@ where
     let offset              = curve.point_at_pos(0.0) - *point;
     let mut min_distance_sq = offset.dot(&offset);
 
-    for t in perpendicular_t_values.into_iter().chain(iter::once(1.0)) {
+    for t in perpendicular_t_values.into_iter().filter(|t| *t > 0.0 && *t < 1.0).chain(iter::once(1.0)) {
         let offset      = curve.point_at_pos(t) - *point;
         let distance_sq = offset.dot(&offset);
 
