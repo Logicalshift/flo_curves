@@ -105,7 +105,7 @@ where
         }
 
         // Subdivide the curve in the middle to search for more crossings
-        let (left, right) = subdivideN(0.5, section);
+        let (left, right) = subdivide_n(0.5, section);
         sections.push(right);
         sections.push(left);
     }
