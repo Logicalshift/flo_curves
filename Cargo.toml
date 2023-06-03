@@ -29,3 +29,8 @@ criterion   = "0.4"
 name        = "sweep"
 path        = "benches/sweep.rs"
 harness     = false
+
+[[bench]]
+name        = "nearest_point"
+path        = "benches/nearest_point.rs"
+harness     = false
