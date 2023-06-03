@@ -8,13 +8,13 @@ use smallvec::*;
 use std::iter;
 
 ///
-/// Creates a bezier curve of order 5 that describes the dot product of the curve's tangent and the line connecting to 
+/// Creates a 5th degree bezier curve that describes the dot product of the curve's tangent and the line connecting to 
 /// the point at every point on the curve. This is 0 when the point is perpendicular to the curve (ie, where the curve
 /// is neither moving away from or towards the point)
 ///
 /// The closest points must be either one that is perpendicular or the start or end point of the curve.
 ///
-fn distance_in_bezier_form<C>(curve: &C, point: &C::Point) -> [Coord2; 5]
+fn distance_in_bezier_form<C>(curve: &C, point: &C::Point) -> [Coord2; 6]
 where
     C:          BezierCurve + BezierCurve2D,
     C::Point:   Coordinate2D,
@@ -53,9 +53,9 @@ where
         }).collect::<SmallVec<[_; 3]>>();
 
     // Apply the 'z' factors to create the final curve
-    let mut curve = [Coord2(0.0/4.0, 0.0), Coord2(1.0/4.0, 0.0), Coord2(2.0/4.0, 0.0), Coord2(3.0/4.0, 0.0), Coord2(4.0/4.0, 0.0)];
+    let mut curve = [Coord2(0.0/5.0, 0.0), Coord2(1.0/5.0, 0.0), Coord2(2.0/5.0, 0.0), Coord2(3.0/5.0, 0.0), Coord2(4.0/5.0, 0.0), Coord2(5.0/5.0, 0.0)];
 
-    for k in 0..5i32 {
+    for k in 0..=5i32 {
         let lower = 0.max(k-2);
         let upper = k.min(3);
 
