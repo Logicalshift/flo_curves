@@ -63,7 +63,7 @@ where
     let derivative  = derivativeN(points.clone());
 
     let mut convergency = SimpleConvergency { eps:1e-15f64, max_iter:10 };
-    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljauN(t, points.clone()), move |t| de_casteljauN(t, derivative.clone()), &mut convergency);
+    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljau_n(t, points.clone()), move |t| de_casteljau_n(t, derivative.clone()), &mut convergency);
 
     root.unwrap()
 }
@@ -100,7 +100,7 @@ where
         if num_crossings == 1 && flat_enough(&section) {
             // Find an x-intercept for this section
             let intercept = find_x_intercept(0.5, &section);
-            roots.push(de_casteljauN(intercept, section.into()).x());
+            roots.push(de_casteljau_n(intercept, section.into()).x());
             continue;
         }
 

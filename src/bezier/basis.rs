@@ -40,7 +40,7 @@ pub fn basis<Point: Coordinate>(t: f64, w1: Point, w2: Point, w3: Point, w4: Poi
 /// de Casteljau's algorithm for bezier curves of arbitrary degree
 /// 
 #[inline]
-pub (crate) fn de_casteljauN<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> Point {
+pub (crate) fn de_casteljau_n<Point: Coordinate, const N: usize>(t: f64, points: SmallVec<[Point; N]>) -> Point {
     let mut points = points;
 
     while points.len() > 1 {
