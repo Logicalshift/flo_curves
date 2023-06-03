@@ -36,6 +36,14 @@ where
 {
     const FLAT_ENOUGH: f64 = 0.1;
 
+    // x coordinates increase monotonically so we just check that the y-components are all in the same direction
+    let y_direction = (points[1].y() - points[0].y()).signum();
+    for idx in 1..(N-1) {
+        if (points[idx+1].y()-points[idx].y()).signum() != y_direction {
+            return false;
+        }
+    }
+
     // Measure the distance from each control point to the baseline
     let baseline        = (TPoint::from_components(&[points[0].x(), points[0].y()]), TPoint::from_components(&[points[N-1].x(), points[N-1].y()]));
     let baseline_coeff  = baseline.coefficients();
