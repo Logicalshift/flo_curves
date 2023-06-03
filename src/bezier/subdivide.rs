@@ -1,7 +1,7 @@
 use crate::geo::*;
 use super::basis::*;
 
-use std::convert::{TryInto};
+use smallvec::*;
 
 ///
 /// Subdivides a bezier curve with any number of weights at a particular point. Returns the weights for the
@@ -37,8 +37,8 @@ where
 
     // First set of points are the first weight from each level, second set are the last weight from each level
     // TODO: would be nice to avoid creating the vecs here (think this is a little more possible than for the main weights list with the current version of Rust)
-    let mut first_weights   = Vec::with_capacity(N);
-    let mut second_weights  = Vec::with_capacity(N);
+    let mut first_weights   = SmallVec::<[_; N]>::new();
+    let mut second_weights  = SmallVec::<[_; N]>::new();
 
     let mut last_pos = 0;
     for depth in (0..N).into_iter().rev() {
@@ -49,7 +49,7 @@ where
     }
 
     // Second set of weights will be reversed at this point, so we need to switch them around
-    if let (Ok(first_weights), Ok(second_weights)) = (first_weights.try_into(), second_weights.try_into()) {
+    if let (Ok(first_weights), Ok(second_weights)) = (first_weights.into_inner(), second_weights.into_inner()) {
         let mut second_weights: [TPoint; N] = second_weights;
         second_weights.reverse();
 
