@@ -294,7 +294,7 @@ fn nearest_point_on_curve_8() {
 #[test]
 fn nearest_point_on_curve_9() {
     let curve = bezier::Curve { start_point: Coord2(269.1, 317.7), end_point: Coord2(322.4, 415.0), control_points: (Coord2(280.1, 332.7), Coord2(316.4, 414.1)) };
-    let point = Coord2(371.232, 321.592);
+    let point = Coord2(371.76500000000004, 322.565);
 
     let curve_near_t    = nearest_point_on_curve(&curve, &point);
     let curve_near      = curve.point_at_pos(curve_near_t);
