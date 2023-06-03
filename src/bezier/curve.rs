@@ -289,7 +289,7 @@ where
 
     #[inline]
     fn nearest_t(&self, point: &Self::Point) -> f64 {
-        nearest_point_on_curve_newton_raphson(self, point)
+        nearest_point_on_curve(self, point)
     }
 
     #[inline]
