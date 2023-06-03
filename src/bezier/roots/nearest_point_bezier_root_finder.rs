@@ -62,7 +62,7 @@ where
         for i in lower..=upper {
             let j = k - i;
 
-            curve[(i+j) as usize].1 += cp_dot_products[j as usize][i as usize];
+            curve[(i+j) as usize].1 += cp_dot_products[j as usize][i as usize] * Z[j as usize][i as usize];
         }
     }
 
@@ -73,7 +73,7 @@ where
 /// Uses the root-finding algorithm described in Graphics Gems to find the nearest points on the
 /// bezier curve.
 ///
-pub fn nearest_point_bezier_root_finder<C>(curve: &C, point: &C::Point) -> f64
+pub fn nearest_point_on_curve_bezier_root_finder<C>(curve: &C, point: &C::Point) -> f64
 where
     C:          BezierCurve + BezierCurve2D,
     C::Point:   Coordinate + Coordinate2D,
