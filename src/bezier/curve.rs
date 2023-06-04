@@ -78,9 +78,8 @@ pub trait BezierCurve: Geo+Clone+Sized {
     /// (or None if the point is not very close to the curve)
     ///
     /// To find the nearest points on the curve where the point is far away, consider using `nearest_t()`, and 
-    /// `nearest_point_on_curve_newton_raphson()` instead. For interactive applications, ray casting with
-    /// `curve_intersects_ray()` might be better used to find which area of a curve a user might be trying
-    /// to indicate.
+    /// `nearest_point()` instead. For interactive applications, ray casting with `curve_intersects_ray()` might
+    /// be better used to find which area of a curve a user might be trying to indicate.
     ///
     #[inline]
     fn t_for_point(&self, point: &Self::Point) -> Option<f64> {
