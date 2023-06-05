@@ -63,10 +63,18 @@ where
 /// Finds an x-intercept for a bezier curve that is 'flat enough', returning the t-value for the resulting point
 ///
 #[inline]
-fn find_x_intercept<TPoint, const N: usize>(t_guess: f64, points: &[TPoint; N]) -> f64 
+fn find_x_intercept<TPoint, const N: usize>(points: &[TPoint; N]) -> f64 
 where
     TPoint: Coordinate + Coordinate2D,
 {
+    // Pick a guess by finding where the baseline intercepts the y-axis
+    let baseline        = (TPoint::from_components(&[points[0].x(), points[0].y()]), TPoint::from_components(&[points[N-1].x(), points[N-1].y()]));
+    let coefficients    = baseline.coefficients();
+
+    // Want the intercept point, relative to the current section of curve
+    let t_guess         = -coefficients.2 / coefficients.0;
+    let t_guess         = (t_guess-baseline.0.x()) / (baseline.1.x()-baseline.0.x());
+
     // Use newton-raphson to find the intercept
     let points      = points.iter().map(|point| point.y()).collect::<SmallVec<[f64; N]>>();
     let derivative  = derivative_n(points.clone());
@@ -108,7 +116,7 @@ where
 
         if num_crossings == 1 && flat_enough(&section) {
             // Find an x-intercept for this section
-            let intercept = find_x_intercept(0.5, &section);
+            let intercept = find_x_intercept(&section);
             roots.push(de_casteljau_n(intercept, section.into()).x());
             continue;
         }
