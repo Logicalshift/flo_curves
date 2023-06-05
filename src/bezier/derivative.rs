@@ -1,4 +1,23 @@
-use super::super::geo::*;
+use crate::geo::*;
+
+use smallvec::*;
+
+///
+/// Returns the derivative of a bezier curve of arbitrary degree
+///
+/// (Resolves to a smallvec as Rust can't currently return a slice with a definition like [Point; N-1])
+/// 
+pub (crate) fn derivative_n<Point: Coordinate, const N: usize>(points: SmallVec<[Point; N]>) -> SmallVec<[Point; N]> {
+    let n           = points.len();
+    let multiplier  = (n-1) as f64;
+
+    let mut derivative = smallvec![];
+    for idx in 0..(n-1) {
+        derivative.push((points[idx+1]-points[idx])*multiplier);
+    }
+
+    derivative
+}
 
 ///
 /// Returns the 1st derivative of a cubic bezier curve
