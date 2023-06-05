@@ -185,7 +185,7 @@ fn nearest_point_on_curve_newton_raphson_7() {
 fn nearest_point_on_straight_line() {
     // Create a curve from a line
     let line            = (Coord2(0.0, 0.0), Coord2(10.0, 7.0));
-    let curve           = line_to_bezier::<_, bezier::Curve<_>>(&line);
+    let curve           = line_to_bezier::<bezier::Curve<_>>(&line);
 
     let line_near       = line.nearest_point(&Coord2(1.0, 5.0));
     let curve_near_t    = nearest_point_on_curve(&curve, &Coord2(1.0, 5.0));

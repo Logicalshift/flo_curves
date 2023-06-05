@@ -2,7 +2,7 @@ use super::scan_converter::*;
 use crate::bezier::*;
 use crate::geo::*;
 
-use roots::{find_roots_quadratic, find_roots_cubic, Roots};
+use ::roots::{find_roots_quadratic, find_roots_cubic, Roots};
 
 use std::ops::{Range};
 use std::marker::{PhantomData};
