@@ -3,7 +3,6 @@ use crate::bezier::*;
 use crate::line::*;
 
 use smallvec::*;
-use ::roots::{find_root_newton_raphson, SimpleConvergency};
 
 ///
 /// Counts the number of times a bezier curve polygon crosses the x-axis (excluding the closing line of the polygon)
@@ -76,13 +75,45 @@ where
     let t_guess         = (t_guess-baseline.0.x()) / (baseline.1.x()-baseline.0.x());
 
     // Use newton-raphson to find the intercept
-    let points      = points.iter().map(|point| point.y()).collect::<SmallVec<[f64; N]>>();
-    let derivative  = derivative_n(points.clone());
+    let points  = points.iter().map(|point| point.y()).collect::<SmallVec<[f64; N]>>();
+    let root    = find_x_intercept_newton_raphson(points, t_guess);
 
-    let mut convergency = SimpleConvergency { eps: 1e-10f64, max_iter: 30 };
-    let root            = find_root_newton_raphson(t_guess, move |t| de_casteljau_n(t, points.clone()), move |t| de_casteljau_n(t, derivative.clone()), &mut convergency);
+    root
+}
 
-    root.unwrap()
+///
+/// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
+///
+pub fn find_x_intercept_newton_raphson<const N: usize>(points: SmallVec<[f64; N]>, estimated_t: f64) -> f64 {
+    const EPSILON: f64          = 1e-10;
+    const MAX_ITERATIONS: usize = 30;
+
+    // Find the derivative of the points
+    let derivative      = derivative_n(points.clone());
+
+    // Will update the estimate every iteration
+    let mut estimated_t = estimated_t;
+
+    for _ in 0..MAX_ITERATIONS {
+        // Compute f(t) and f'(t)
+        let numerator   = de_casteljau_n(estimated_t, points.clone());
+        let denominator = de_casteljau_n(estimated_t, derivative.clone());
+
+        if numerator.abs() <= EPSILON {
+            return estimated_t;
+        }
+
+        if denominator == 0.0 {
+            // Failed to converge due to hitting a singularity
+            return estimated_t;
+        }
+
+        // t = t - (f(t)/f'(t))
+        estimated_t = estimated_t - (numerator / denominator);
+    }
+
+    // Just use the best guess if we don't converge enough
+    estimated_t
 }
 
 ///
