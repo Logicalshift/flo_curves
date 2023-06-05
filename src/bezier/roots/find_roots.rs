@@ -79,7 +79,7 @@ where
     let points      = points.iter().map(|point| point.y()).collect::<SmallVec<[f64; N]>>();
     let derivative  = derivative_n(points.clone());
 
-    let mut convergency = SimpleConvergency { eps: 1e-15f64, max_iter: 30 };
+    let mut convergency = SimpleConvergency { eps: 1e-10f64, max_iter: 30 };
     let root            = find_root_newton_raphson(t_guess, move |t| de_casteljau_n(t, points.clone()), move |t| de_casteljau_n(t, derivative.clone()), &mut convergency);
 
     root.unwrap()
