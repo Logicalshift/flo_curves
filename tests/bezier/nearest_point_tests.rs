@@ -2,6 +2,8 @@ use flo_curves::*;
 use flo_curves::bezier::*;
 use flo_curves::line::*;
 
+use std::ops::{Range};
+
 fn nearest_t_value_iteration<C>(curve: &C, point: &C::Point) -> f64
 where
     C: BezierCurve,
@@ -20,6 +22,34 @@ where
     }
 
     min_t
+}
+
+fn test_point_grid<C>(curve: &C, x_range: Range<f64>, y_range: Range<f64>, step: f64)
+where
+    C: BezierCurve<Point=Coord2>,
+{
+    // Iterate through the sample points
+    let mut y = y_range.start;
+    while y < y_range.end {
+        let mut x = x_range.start;
+        while x < x_range.end {
+            // Sample at this point
+            let nearest         = curve.nearest_point(&Coord2(x, y));
+
+            // Also search by iterating over the curve to get an 'accurate' value
+            let iter_nearest    = curve.point_at_pos(nearest_t_value_iteration(curve, &Coord2(x, y)));
+
+            let nearest_to_point    = Coord2(x, y).distance_to(&nearest);
+            let iter_to_point       = Coord2(x, y).distance_to(&iter_nearest);
+            let distance_diff       = nearest.distance_to(&iter_nearest);
+
+            assert!(nearest_to_point <= iter_to_point, "Found {:?} but iteration found {:?} (distance between points {})", nearest, iter_nearest, distance_diff);
+
+            x += step;
+        }
+
+        y += step;
+    }
 }
 
 fn test_far_away_points<C>(curve: &C, nearest_point: impl Fn(&C, &C::Point) -> C::Point)
@@ -321,4 +351,15 @@ fn nearest_point_on_curve_10() {
     let iterate_point   = curve.point_at_pos(iterate_t);
 
     assert!(iterate_point.distance_to(&curve_near) < 0.1, "Searched for: {:?}, but found: {:?} (t should be {:?} but was {:?})", iterate_point, curve_near, iterate_t, curve_near_t);
+}
+
+#[test]
+fn nearest_point_on_curve_11() {
+    let curve = Curve {
+        start_point:    Coord2(613.1741629120686, 691.31977047597),
+        end_point:      Coord2(684.1381074976954, 728.253746282104),
+        control_points: (Coord2(666.1741629120686, 709.31977047597), Coord2(678.1381074976954, 703.253746282104)),
+    };
+
+    test_point_grid(&curve, 0.0..1000.0, 0.0..1000.0, 10.0);
 }
