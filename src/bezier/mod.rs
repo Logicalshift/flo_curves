@@ -45,11 +45,11 @@ mod length;
 mod walk;
 mod distort;
 mod nearest_point;
-pub (crate) mod roots;
 
 pub mod path;
 pub mod vectorize;
 pub mod rasterize;
+pub mod roots;
 
 pub use self::curve::*;
 pub use self::section::*;

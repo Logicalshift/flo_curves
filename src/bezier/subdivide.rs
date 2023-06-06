@@ -7,7 +7,7 @@ use smallvec::*;
 /// Subdivides a bezier curve with any number of weights at a particular point. Returns the weights for the
 /// two curves on either side of the subdivision point.
 ///
-pub (crate) fn subdivide_n<TPoint, const N: usize>(t: f64, points: [TPoint; N]) -> ([TPoint; N], [TPoint; N])
+pub fn subdivide_n<TPoint, const N: usize>(t: f64, points: [TPoint; N]) -> ([TPoint; N], [TPoint; N])
 where
     TPoint: Coordinate,
 {
