@@ -173,6 +173,7 @@ fn many_circles_offset() {
     for radius in 0..1000 {
         let radius  = (radius as f64) / 10.0;
         let contour = CircularDistanceField::with_radius(radius).with_center_offset(0.3, 0.4);
+        println!("{:?}", radius);
         check_contour_against_bitmap(&contour, false);
     }
 }
