@@ -98,9 +98,15 @@ fn medium_circle_2() {
 }
 
 #[test]
-fn medium_circle_offset() {
+fn medium_circle_offset_1() {
     let contour = CircularDistanceField::with_radius(32.0).with_center_offset(0.1, 0.2);
-    check_contour_against_bitmap(&contour, false);
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
+fn medium_circle_offset_2() {
+    let contour = CircularDistanceField::with_radius(8.5).with_center_offset(0.3, 0.4);
+    check_contour_against_bitmap(&contour, true);
 }
 
 #[test]
