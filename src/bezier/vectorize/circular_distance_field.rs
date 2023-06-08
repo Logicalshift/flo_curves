@@ -269,7 +269,7 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
 
             // Retrieve the y position for the current line
             let ypos        = self.ypos as f64;
-            let is_top_half = ypos < self.center_y;
+            let is_top_half = ypos <= (self.center_y - 1.0);
 
             // Each cell consists of the 'current' and the 'following' line. For the top half of the circle, the 'following' line defines the intersection position
             let test_ypos   = if is_top_half { ypos + 1.0 } else { ypos };
