@@ -205,6 +205,34 @@ fn many_circles_small_increments_offset() {
 }
 
 #[test]
+fn many_circles_varying_offsets() {
+    // All circles up to a radius of 100 in steps of 0.1
+    for radius in 0..1000 {
+        let radius      = (radius as f64) / 10.0;
+        let offset_x    = (radius*0.1).sin().abs();
+        let offset_y    = (radius*0.3).cos().abs();
+        let contour     = CircularDistanceField::with_radius(radius).with_center_offset(offset_x, offset_y);
+
+        println!("{:?} {:?} {:?}", radius, offset_x, offset_y);
+        check_contour_against_bitmap(&contour, false);
+    }
+}
+
+#[test]
+fn many_circles_small_increments_varying_offsets() {
+    // All circles up to a radius of 100 in steps of 0.1
+    for radius in 0..1000 {
+        let radius      = (radius as f64) / 100.0;
+        let offset_x    = radius.sin().abs();
+        let offset_y    = (radius*3.0).cos().abs();
+        let contour     = CircularDistanceField::with_radius(radius).with_center_offset(offset_x, offset_y);
+
+        println!("{:?} {:?} {:?}", radius, offset_x, offset_y);
+        check_contour_against_bitmap(&contour, false);
+    }
+}
+
+#[test]
 fn circle_path_from_contours() {
     // Create a contour containing a circle in the middle, using the circular distance field
     let radius  = 30.0;
