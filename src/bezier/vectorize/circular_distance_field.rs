@@ -277,13 +277,18 @@ impl Iterator for CircularDistanceFieldEdgeIterator {
             // Advance the y position
             self.ypos += 1;
 
-            // Check that the y position is inside the circle, and skip this line if not
-            if self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y)) < 0.0 {
-                continue;
-            }
-
             // Compute the intersection position at this y position. This is the start of the LHS of the edge (can mirror around the center point to get the other side)
-            let x_intersection      = self.center_x - (self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y))).sqrt();
+            // Check that the y position is inside the circle, and skip this line if not
+            let x_intersection = if self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y)) >= 0.0 {
+                // test_ypos intersects the line
+                self.center_x - (self.radius_sq - ((test_ypos - self.center_y) * (test_ypos - self.center_y))).sqrt()
+            } else if self.radius_sq - (((test_ypos + 1.0) - self.center_y) * ((test_ypos + 1.0) - self.center_y)) >= 0.0 {
+                // (Rare) test_ypos does not intersect the line but the next line does
+                self.center_x - (self.radius_sq - (((test_ypos + 1.0) - self.center_y) * ((test_ypos + 1.0) - self.center_y))).sqrt()
+            } else {
+                // Skip the line if it does not intercept the circle
+                continue;
+            };
 
             self.fill_samples(x_intersection, ypos);
             self.samples.reverse();
