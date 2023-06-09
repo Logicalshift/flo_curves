@@ -60,6 +60,34 @@ impl CircularDistanceField {
             diameter:       ((center_x.max(center_y)).floor() as usize) * 2 + 1,
         }
     }
+
+    ///
+    /// Returns a circular distance field and an offset that will create a circle centered at the specified position
+    ///
+    /// All of the points within the resulting circle must be at positive coordinates (ie, `x-radius` and `y-radius` must
+    /// be positive values). This is intended to be used as input to the `DaubBrushDistanceField` type to create brush
+    /// strokes out of many circle.
+    ///
+    pub fn centered_at_position(x: f64, y: f64, radius: f64) -> (CircularDistanceField, ContourPosition) {
+        let circle = CircularDistanceField::with_radius(radius);
+
+        let x = x - circle.center_x - 1.0;
+        let y = y - circle.center_y - 1.0;
+
+        debug_assert!(x-radius >= 0.0);
+        debug_assert!(y-radius >= 0.0);
+
+        let x = x.max(0.0);
+        let y = y.max(0.0);
+
+        let offset_x = x - x.floor();
+        let offset_y = y - y.floor();
+
+        let circle      = circle.with_center_offset(offset_x, offset_y);
+        let position    = ContourPosition(x.floor() as usize, y.floor() as usize);
+
+        (circle, position)
+    }
 }
 
 impl SampledContour for CircularDistanceField {

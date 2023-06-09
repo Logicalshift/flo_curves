@@ -194,3 +194,22 @@ fn trace_int_doughnut() {
     }
 }
 
+#[test]
+fn circle_at_position() {
+    let center          = (123.4, 345.6);
+    let radius          = 32.1;
+    let distance_field  = DaubBrushDistanceField::from_daubs(vec![CircularDistanceField::centered_at_position(center.0, center.1, radius)]);
+    let circle          = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
+
+    assert!(circle.len() == 1);
+
+    for curve in circle[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let point       = curve.point_at_pos(t);
+            let distance    = point.distance_to(&Coord2(center.0, center.1));
+
+            assert!((distance-radius).abs() < 0.2, "Found point at distance {:?}", distance);
+        }
+    }
+}
