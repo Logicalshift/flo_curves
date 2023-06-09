@@ -68,7 +68,9 @@ impl CircularDistanceField {
     /// be positive values). This is intended to be used as input to the `DaubBrushDistanceField` type to create brush
     /// strokes out of many circle.
     ///
-    pub fn centered_at_position(x: f64, y: f64, radius: f64) -> (CircularDistanceField, ContourPosition) {
+    pub fn centered_at_position(x: f64, y: f64, radius: f64) -> Option<(CircularDistanceField, ContourPosition)> {
+        if radius <= 0.0 { return None; }
+
         let circle = CircularDistanceField::with_radius(radius);
 
         let x = x - circle.center_x - 1.0;
@@ -77,8 +79,7 @@ impl CircularDistanceField {
         debug_assert!(x-radius >= 0.0);
         debug_assert!(y-radius >= 0.0);
 
-        let x = x.max(0.0);
-        let y = y.max(0.0);
+        if x < 0.0 || y < 0.0 { return None; }
 
         let offset_x = x - x.floor();
         let offset_y = y - y.floor();
@@ -86,7 +87,7 @@ impl CircularDistanceField {
         let circle      = circle.with_center_offset(offset_x, offset_y);
         let position    = ContourPosition(x.floor() as usize, y.floor() as usize);
 
-        (circle, position)
+        Some((circle, position))
     }
 }
 
