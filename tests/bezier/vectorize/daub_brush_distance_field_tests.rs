@@ -196,9 +196,9 @@ fn trace_int_doughnut() {
 
 #[test]
 fn circle_at_position() {
-    let center          = (123.4, 345.6);
+    let center          = Coord2(123.4, 345.6);
     let radius          = 32.1;
-    let distance_field  = DaubBrushDistanceField::from_daubs(vec![CircularDistanceField::centered_at_position(center.0, center.1, radius).unwrap()]);
+    let distance_field  = DaubBrushDistanceField::from_daubs(vec![CircularDistanceField::centered_at_position(center, radius).unwrap()]);
     let circle          = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
 
     assert!(circle.len() == 1);

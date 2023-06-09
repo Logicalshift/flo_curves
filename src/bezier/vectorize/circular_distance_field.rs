@@ -1,5 +1,6 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
+use crate::geo::*;
 
 use smallvec::*;
 
@@ -68,13 +69,13 @@ impl CircularDistanceField {
     /// be positive values). This is intended to be used as input to the `DaubBrushDistanceField` type to create brush
     /// strokes out of many circle.
     ///
-    pub fn centered_at_position(x: f64, y: f64, radius: f64) -> Option<(CircularDistanceField, ContourPosition)> {
+    pub fn centered_at_position(pos: impl Coordinate + Coordinate2D, radius: f64) -> Option<(CircularDistanceField, ContourPosition)> {
         if radius <= 0.0 { return None; }
 
         let circle = CircularDistanceField::with_radius(radius);
 
-        let x = x - circle.center_x - 1.0;
-        let y = y - circle.center_y - 1.0;
+        let x = pos.x() - circle.center_x - 1.0;
+        let y = pos.y() - circle.center_y - 1.0;
 
         debug_assert!(x-radius >= 0.0);
         debug_assert!(y-radius >= 0.0);
