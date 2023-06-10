@@ -1,3 +1,4 @@
+use super::brush_stroke::*;
 use super::distance_field::*;
 use super::sampled_contour::*;
 use crate::geo::*;
@@ -141,6 +142,13 @@ impl<'a> SampledContour for &'a CircularDistanceField {
             ypos:           0,
             samples:        smallvec![],
         }
+    }
+}
+
+impl BrushDistanceField for CircularDistanceField {
+    #[inline]
+    fn create_daub(centered_at: impl Coordinate + Coordinate2D, radius: f64) -> Option<(Self, ContourPosition)> {
+        Self::centered_at_position(centered_at, radius)
     }
 }
 
