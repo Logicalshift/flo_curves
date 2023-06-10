@@ -14,11 +14,17 @@ mod geo;
 mod sweep;
 mod has_bounds;
 mod coordinate;
+mod coord1;
+mod coord2;
+mod coord3;
 mod coordinate_ext;
 mod bounding_box;
 
 pub use self::geo::*;
 pub use self::sweep::*;
+pub use self::coord1::*;
+pub use self::coord2::*;
+pub use self::coord3::*;
 pub use self::has_bounds::*;
 pub use self::coordinate::*;
 pub use self::bounding_box::*;
