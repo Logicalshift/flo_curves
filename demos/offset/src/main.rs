@@ -4,6 +4,8 @@ use flo_curves::bezier::{NormalCurve};
 use flo_draw::*;
 use flo_draw::canvas::*;
 
+use flo_curves::geo::{Coord2};
+
 use std::f64;
 use std::thread;
 use std::time::{Duration};
@@ -45,14 +47,20 @@ fn main() {
 
                 gc.new_path();
                 gc.move_to(initial_curve.start_point().x() as _, initial_curve.start_point().y() as _);
-                gc.bezier_curve(&initial_curve);
+                let (cp1, cp2)  = initial_curve.control_points();
+                let end         = initial_curve.end_point();
+
+                gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
                 gc.stroke_color(Color::Rgba(0.0, 0.0, 1.0, 1.0));
                 gc.stroke();
 
                 gc.new_path();
                 gc.move_to(offset_curve_1[0].start_point().x() as _, offset_curve_1[0].start_point().y() as _);
                 for c in offset_curve_1.iter() {
-                    gc.bezier_curve(c);
+                    let (cp1, cp2)  = c.control_points();
+                    let end         = c.end_point();
+
+                    gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
                 }
                 gc.stroke_color(Color::Rgba(1.0, 0.0, 0.0, 1.0));
                 gc.stroke();
@@ -60,7 +68,10 @@ fn main() {
                 gc.new_path();
                 gc.move_to(offset_curve_2[0].start_point().x() as _, offset_curve_2[0].start_point().y() as _);
                 for c in offset_curve_2.iter() {
-                    gc.bezier_curve(c);
+                    let (cp1, cp2)  = c.control_points();
+                    let end         = c.end_point();
+
+                    gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
                 }
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
                 gc.stroke();
