@@ -1,4 +1,5 @@
 use super::coordinate::*;
+use super::coord2::*;
 
 use std::ops::*;
 
@@ -62,6 +63,12 @@ impl Mul<f64> for Coord3 {
 impl From<(f64, f64, f64)> for Coord3 {
     fn from((x, y, z): (f64, f64, f64)) -> Coord3 {
         Coord3(x, y, z)
+    }
+}
+
+impl From<(Coord2, f64)> for Coord3 {
+    fn from((pos, z): (Coord2, f64)) -> Coord3 {
+        Coord3(pos.0, pos.1, z)
     }
 }
 
