@@ -1,6 +1,9 @@
 use flo_curves::*;
 use flo_curves::bezier;
 use flo_curves::bezier::{NormalCurve};
+use flo_curves::bezier::path;
+use flo_curves::bezier::path::{BezierPath, SimpleBezierPath};
+use flo_curves::bezier::vectorize::*;
 use flo_draw::*;
 use flo_draw::canvas::*;
 
@@ -36,6 +39,20 @@ fn main() {
             let offset_curve_1  = bezier::offset(&initial_curve, off1, off2);
             let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, 40, 1.0).unwrap();
             //let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
+
+            // Create a curve with radius to use with the brush stroke algorithm
+            let p0_3 = Coord3::from((p0, off1));
+            let p1_3 = Coord3::from((p1, (off2-off1)*(1.0/3.0)));
+            let p2_3 = Coord3::from((p2, (off2-off1)*(2.0/3.0)));
+            let p3_3 = Coord3::from((p3, off2));
+
+            // Create a distance field for the brush stroke
+            let brush_curve     = bezier::Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
+            let (daubs, offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+            let daubs           = DaubBrushDistanceField::from_daubs(daubs);
+
+            // Render to a path (TODO: add the offset)
+            let offset_curve_3  = trace_paths_from_distance_field::<SimpleBezierPath>(&daubs, 0.1);
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
@@ -76,15 +93,20 @@ fn main() {
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
                 gc.stroke();
 
-                /*
                 gc.new_path();
-                gc.move_to(offset_curve_3[0].start_point().x() as _, offset_curve_3[0].start_point().y() as _);
-                for c in offset_curve_3.iter() {
-                    gc.bezier_curve(c);
+                for subpath in offset_curve_3.iter() {
+                    let curve = subpath.to_curves::<bezier::Curve<Coord2>>();
+
+                    gc.move_to(curve[0].start_point().x() as _, curve[0].start_point().y() as _);
+                    for c in curve.iter() {
+                        let (cp1, cp2)  = c.control_points();
+                        let end         = c.end_point();
+
+                        gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
+                    }
                 }
-                gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
+                gc.stroke_color(Color::Rgba(0.2, 0.8, 0.2, 0.25));
                 gc.stroke();
-                */
 
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
 
