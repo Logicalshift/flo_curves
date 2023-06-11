@@ -42,8 +42,8 @@ fn main() {
 
             // Create a curve with radius to use with the brush stroke algorithm
             let p0_3 = Coord3::from((p0, off1));
-            let p1_3 = Coord3::from((p1, (off2-off1)*(1.0/3.0)));
-            let p2_3 = Coord3::from((p2, (off2-off1)*(2.0/3.0)));
+            let p1_3 = Coord3::from((p1, (off2-off1)*(1.0/3.0) + off1));
+            let p2_3 = Coord3::from((p2, (off2-off1)*(2.0/3.0) + off1));
             let p3_3 = Coord3::from((p3, off2));
 
             // Create a distance field for the brush stroke
