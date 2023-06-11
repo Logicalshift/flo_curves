@@ -93,21 +93,6 @@ fn main() {
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.0, 1.0));
                 gc.stroke();
 
-                gc.new_path();
-                for subpath in offset_curve_3.iter() {
-                    let curve = subpath.to_curves::<bezier::Curve<Coord2>>();
-
-                    gc.move_to(curve[0].start_point().x() as _, curve[0].start_point().y() as _);
-                    for c in curve.iter() {
-                        let (cp1, cp2)  = c.control_points();
-                        let end         = c.end_point();
-
-                        gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
-                    }
-                }
-                gc.stroke_color(Color::Rgba(0.2, 0.8, 0.2, 0.25));
-                gc.stroke();
-
                 gc.stroke_color(Color::Rgba(0.0, 0.6, 0.4, 0.25));
 
                 for circle_t in 0..=20 {
@@ -140,6 +125,24 @@ fn main() {
                         gc.stroke();
                     }
                 }
+
+                gc.new_path();
+                let offset = Coord2(-offset.0, -offset.1);
+                for subpath in offset_curve_3.iter() {
+                    let subpath = subpath.with_offset::<SimpleBezierPath>(offset);
+                    let curve   = subpath.to_curves::<bezier::Curve<Coord2>>();
+
+                    gc.move_to(curve[0].start_point().x() as _, curve[0].start_point().y() as _);
+                    for c in curve.iter() {
+                        let (cp1, cp2)  = c.control_points();
+                        let end         = c.end_point();
+
+                        gc.bezier_curve_to(end.x() as _, end.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
+                    }
+                }
+                gc.line_width(3.0);
+                gc.stroke_color(Color::Rgba(0.6, 0.3, 0.0, 1.0));
+                gc.stroke();
             });
         }
     });
