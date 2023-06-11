@@ -1,7 +1,6 @@
 use flo_curves::*;
 use flo_curves::bezier;
 use flo_curves::bezier::{NormalCurve};
-use flo_curves::bezier::path;
 use flo_curves::bezier::path::{BezierPath, SimpleBezierPath};
 use flo_curves::bezier::vectorize::*;
 use flo_draw::*;
