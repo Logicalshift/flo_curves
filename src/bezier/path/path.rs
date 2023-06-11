@@ -75,6 +75,19 @@ pub trait BezierPath : Geo+Clone+Sized {
 
         POut::from_points(end_point, reversed_points.into_iter().rev())
     }
+
+    ///
+    /// Creates a new path by adding a coordinate to all of the control points of this one
+    ///
+    #[inline]
+    fn with_offset<POut>(&self, offset: Self::Point) -> POut
+    where
+        POut: BezierPathFactory<Point=Self::Point>,
+    {
+        let start_point = self.start_point() + offset;
+
+        POut::from_points(start_point, self.points().map(|(p1, p2, p3)| (p1+offset, p2+offset, p3+offset)))
+    }
 }
 
 ///
