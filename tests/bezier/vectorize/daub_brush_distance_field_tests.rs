@@ -174,7 +174,7 @@ fn trace_int_doughnut() {
     assert!(doughnut.len() == 2, "Made {} paths for the 'doughnut' shape ({:?})\n\n{}\n", doughnut.len(), doughnut, text_field);
 
     let center = 36.0;
-    for (path, radius) in doughnut.iter().zip(vec![35.0, 25.0]) {
+    for path in doughnut.iter() {
         let mut max_distance = 0.0;
         let mut min_distance = 1e12;
 
