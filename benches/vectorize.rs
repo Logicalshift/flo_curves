@@ -64,8 +64,15 @@ fn create_brush_stroke_daubs() -> Vec<(CircularDistanceField, ContourPosition)> 
     daubs.collect::<Vec<_>>()
 }
 
-fn read_brush_stroke_edges(daubs: &DaubBrushDistanceField<CircularDistanceField>) {
-    let _edges = daubs.edge_cell_iterator().collect::<Vec<_>>();
+fn read_brush_stroke_edges(daubs: &DaubBrushDistanceField<CircularDistanceField>) -> Vec<(ContourPosition, ContourCell)> {
+    daubs.edge_cell_iterator().collect()
+}
+
+fn read_edge_distances(daubs: &DaubBrushDistanceField<CircularDistanceField>, edges: &Vec<(ContourPosition, ContourCell)>) {
+    let mut distances = vec![];
+    for (pos, _) in edges.iter() {
+        distances.push(daubs.distance_at_point(*pos));
+    }
 }
 
 fn trace_distance_field(daubs: &DaubBrushDistanceField<CircularDistanceField>) {
@@ -78,6 +85,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let circle_100_generated    = CircularDistanceField::with_radius(30.0);
     let circle_1000_generated   = CircularDistanceField::with_radius(300.0);
     let daub_distance_field     = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs());
+    let distance_field_edges    = read_brush_stroke_edges(&daub_distance_field);
 
     c.bench_function("find_edges 100", |b| b.iter(|| find_edges(&circle_100)));
     c.bench_function("find_edges 1000", |b| b.iter(|| find_edges(&circle_1000)));
@@ -91,6 +99,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs()));
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| read_brush_stroke_edges(&daub_distance_field)));
+    c.bench_function("read_edge_distances", |b| b.iter(|| read_edge_distances(&daub_distance_field, &distance_field_edges)));
     c.bench_function("trace_distance_field", |b| b.iter(|| trace_distance_field(&daub_distance_field)));
 }
 
