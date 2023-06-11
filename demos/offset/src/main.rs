@@ -51,7 +51,7 @@ fn main() {
             let daubs           = DaubBrushDistanceField::from_daubs(daubs);
 
             // Render to a path (TODO: add the offset)
-            let offset_curve_3  = trace_paths_from_distance_field::<SimpleBezierPath>(&daubs, 0.1);
+            let offset_curve_3  = trace_paths_from_distance_field::<SimpleBezierPath>(&daubs, 1.0);
 
             canvas.draw(|gc| {
                 gc.clear_canvas(Color::Rgba(1.0, 1.0, 1.0, 1.0));
