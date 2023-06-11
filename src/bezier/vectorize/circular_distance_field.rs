@@ -5,6 +5,8 @@ use crate::geo::*;
 
 use smallvec::*;
 
+use std::ops::{Range};
+
 ///
 /// A distance field to a circle with a particular radius
 ///
@@ -111,6 +113,11 @@ impl SampledContour for CircularDistanceField {
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         (&self).edge_cell_iterator()
     }
+
+    #[inline]
+    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+        (&self).intercepts_on_line(y)
+    }
 }
 
 impl<'a> SampledContour for &'a CircularDistanceField {
@@ -141,6 +148,59 @@ impl<'a> SampledContour for &'a CircularDistanceField {
             radius_sq:      self.radius * self.radius,
             ypos:           0,
             samples:        smallvec![],
+        }
+    }
+
+    #[inline]
+    fn intercepts_on_line(self, ypos: usize) -> SmallVec<[Range<usize>; 4]> {
+        let y = (ypos as f64) - self.center_y;
+
+        if y.abs() <= self.radius {
+            let intercept   = ((self.radius*self.radius) - (y*y)).sqrt();
+            let min_x       = self.center_x - intercept;
+            let max_x       = self.center_x + intercept;
+            let min_x_ceil  = min_x.ceil();
+            let max_x_floor = (max_x + 1.0).floor();
+
+            let min_x_ceil = if min_x_ceil - min_x > 0.999999 {
+                // Could be rounding error :-/
+                if self.point_is_inside(ContourPosition(min_x_ceil as usize - 1, ypos)) {
+                    min_x_ceil - 1.0
+                } else {
+                    min_x_ceil
+                }
+            } else {
+                min_x_ceil
+            };
+
+            let max_x_floor = if max_x_floor - max_x > 0.99999 {
+                // Another possible rounding error
+                if !self.point_is_inside(ContourPosition(max_x_floor as usize - 1, ypos)) {
+                    max_x_floor - 1.0
+                } else {
+                    max_x_floor
+                }
+            } else if max_x_floor - max_x < 0.00001 {
+                // Final rounding error
+                if self.point_is_inside(ContourPosition(max_x_floor as usize, ypos)) {
+                    max_x_floor + 1.0
+                } else {
+                    max_x_floor
+                }
+            } else {
+                max_x_floor
+            };
+
+            let min_x = min_x_ceil as usize;
+            let max_x = max_x_floor as usize;
+
+            if min_x == max_x {
+                smallvec![]
+            } else {
+                smallvec![min_x..max_x]
+            }
+        } else {
+            smallvec![]
         }
     }
 }
