@@ -206,7 +206,7 @@ impl CircularDistanceFieldEdgeIterator {
     #[inline]
     fn fill_samples(&mut self, x_intersection: f64, ypos: f64) {
         let mut sample_x = x_intersection.floor();
-        let mut sample_y = ypos.floor();
+        let sample_y     = ypos.floor();
 
         if self.point_is_inside(sample_x, sample_y) || self.point_is_inside(sample_x, sample_y+1.0) {
             // We want the edge to lie in the middle of the first cell (in this case, x_intersection == x_intersection.floor(), which would put the edge on the outside of the cell)
