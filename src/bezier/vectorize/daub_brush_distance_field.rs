@@ -37,7 +37,6 @@ struct EdgeIterator<TContour>
 where
     TContour: SampledContour,
 {
-    daub_idx:       usize,
     contour:        TContour,
     iterator:       TContour::EdgeCellIterator,
     daub_position:  ContourPosition,
@@ -219,7 +218,6 @@ where
                 // Need the first cell to fill in the iterator
                 if let Some(peek_cell) = new_iterator.next() {
                     let edge_iterator = EdgeIterator {
-                        daub_idx:       self.next_daub_idx,
                         contour:        contour,
                         iterator:       new_iterator,
                         daub_position:  self.distance_field.daubs[self.next_daub_idx].1,
