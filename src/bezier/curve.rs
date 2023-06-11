@@ -35,12 +35,34 @@ pub trait BezierCurveFactory: BezierCurve {
     fn fit_from_points(points: &[Self::Point], max_error: f64) -> Option<Vec<Self>> {
         fit_curve(points, max_error)
     }
+
+    ///
+    /// Creates a new curve by adding a coordinate to all of the control points of this one
+    ///
+    #[inline]
+    fn with_offset(&self, offset: Self::Point) -> Self {
+        let (p0, (p1, p2), p3) = self.all_points();
+
+        Self::from_points(p0+offset, (p1+offset, p2+offset), p3+offset)
+    }
 }
 
 ///
 /// Trait implemented by things representing a cubic bezier curve
 /// 
 pub trait BezierCurve: Geo+Clone+Sized {
+    ///
+    /// Returns the 4 control points making up this curve
+    ///
+    #[inline]
+    fn all_points(&self) -> (Self::Point, (Self::Point, Self::Point), Self::Point) {
+        (
+            self.start_point(),
+            self.control_points(),
+            self.end_point()
+        )
+    }
+
     ///
     /// The start point of this curve
     /// 
