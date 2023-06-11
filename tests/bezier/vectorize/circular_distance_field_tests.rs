@@ -53,6 +53,27 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
             .map(|(bitmap_edge, contour_edge)| format!("({:?}) {:?}    {:?}", bitmap_edge == contour_edge, bitmap_edge, contour_edge))
             .collect::<Vec<_>>()
             .join("\n  "));
+
+    check_intercepts(contour);
+}
+
+fn check_intercepts<TContour: SampledContour>(contour: TContour) {
+    for y in 0..contour.contour_size().height() {
+        let intercepts  = contour.intercepts_on_line(y);
+        let mut row     = vec![false; contour.contour_size().width()];
+
+        for intercept in intercepts {
+            for x in intercept {
+                assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
+                row[x] = true;
+            }
+
+            for x in 0..contour.contour_size().width() {
+                assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like {})", y,
+                    row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>());
+            }
+        }
+    }
 }
 
 #[test]

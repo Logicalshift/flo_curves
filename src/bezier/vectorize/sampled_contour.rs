@@ -1,5 +1,9 @@
 use crate::geo::*;
 
+use smallvec::*;
+
+use std::ops::{Range};
+
 ///
 /// The size of a bitmap contour (in the form width, height)
 ///
@@ -71,6 +75,37 @@ pub trait SampledContour : Copy {
     /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
     ///
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator;
+
+    ///
+    /// Given a y coordinate returns ranges indicating the filled pixels on that line
+    ///
+    /// The ranges must be provided in ascending order, and must also not overlap.
+    ///
+    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+        // Default implementation is a simple scan of the line: mathematically defined contours might use a ray-casting algorithm here instead
+        let width = self.contour_size().width();
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for x in 0..width {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(x); },
+                (Some(start_x), false)  => {
+                    inside = None;
+                    ranges.push(start_x..x);
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_x) = inside {
+            ranges.push(start_x..width);
+        }
+
+        ranges
+    }
 }
 
 impl ContourCell {

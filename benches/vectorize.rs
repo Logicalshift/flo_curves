@@ -5,7 +5,10 @@ use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 
+use smallvec::*;
+
 use std::f64;
+use std::ops::{Range};
 
 fn sampled_circle(size: usize, radius: usize) -> BoolSampledContour {
     // Create a contour containing a circle in the middle
@@ -34,6 +37,16 @@ fn sampled_circle(size: usize, radius: usize) -> BoolSampledContour {
 
 fn start_edge_iteration<TContour: SampledContour>(contour: TContour) -> impl Iterator<Item=(ContourPosition, ContourCell)> {
     contour.edge_cell_iterator()
+}
+
+fn scan_intercepts<TContour: SampledContour>(contour: TContour) -> Vec<SmallVec<[Range<usize>; 4]>> {
+    let mut result = vec![];
+
+    for y in 0..contour.contour_size().height() {
+        result.push(contour.intercepts_on_line(y));
+    }
+
+    result
 }
 
 fn find_edges<TContour: SampledContour>(contour: TContour) -> Vec<(ContourPosition, ContourCell)> {
@@ -94,12 +107,17 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("circle_from_contours 100", |b| b.iter(|| circle_from_contours(&circle_100)));
     c.bench_function("circle_from_contours 1000", |b| b.iter(|| circle_from_contours(&circle_1000)));
-    c.bench_function("start_circle_iteration", |b| b.iter(|| start_edge_iteration(&circle_1000)));
+    c.bench_function("circle_intercepts_scan_sampled 100", |b| b.iter(|| scan_intercepts(&circle_100)));
+    c.bench_function("circle_intercepts_scan_sampled 1000", |b| b.iter(|| scan_intercepts(&circle_1000)));
+    c.bench_function("circle_intercepts_scan 100", |b| b.iter(|| scan_intercepts(&circle_100_generated)));
+    c.bench_function("circle_intercepts_scan 1000", |b| b.iter(|| scan_intercepts(&circle_1000_generated)));
+    c.bench_function("circle_start_iteration", |b| b.iter(|| start_edge_iteration(&circle_1000_generated)));
     c.bench_function("circle_from_contours_not_sampled 100", |b| b.iter(|| circle_from_contours(&circle_100_generated)));
     c.bench_function("circle_from_contours_not_sampled 1000", |b| b.iter(|| circle_from_contours(&circle_1000_generated)));
 
     c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs()));
     c.bench_function("start_brush_iteration", |b| b.iter(|| start_edge_iteration(&daub_distance_field)));
+    c.bench_function("brush_intercepts_scan", |b| b.iter(|| scan_intercepts(&daub_distance_field)));
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| find_edges(&daub_distance_field)));
     c.bench_function("read_edge_distances", |b| b.iter(|| read_edge_distances(&daub_distance_field, &distance_field_edges)));
     c.bench_function("trace_distance_field", |b| b.iter(|| trace_distance_field(&daub_distance_field)));
