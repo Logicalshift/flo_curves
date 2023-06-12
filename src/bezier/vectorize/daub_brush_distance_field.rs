@@ -31,7 +31,7 @@ where
 }
 
 ///
-/// Represents an iterator over the edges in a 
+/// Represents an iterator over the edges in a daub brush distance field
 ///
 struct EdgeIterator<TContour>
 where
