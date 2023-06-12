@@ -116,6 +116,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("circle_from_contours_not_sampled 1000", |b| b.iter(|| circle_from_contours(&circle_1000_generated)));
 
     c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs()));
+    c.bench_function("create_brush_distance_field", |b| b.iter(|| DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs())));
     c.bench_function("start_brush_iteration", |b| b.iter(|| start_edge_iteration(&daub_distance_field)));
     c.bench_function("brush_intercepts_scan", |b| b.iter(|| scan_intercepts(&daub_distance_field)));
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| find_edges(&daub_distance_field)));
