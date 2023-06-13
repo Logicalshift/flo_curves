@@ -5,6 +5,26 @@ use flo_curves::bezier::vectorize::*;
 
 use std::f64;
 
+fn check_intercepts<TContour: SampledContour>(contour: TContour) {
+    for y in 0..contour.contour_size().height() {
+        let intercepts  = contour.intercepts_on_line(y);
+        let mut row     = vec![false; contour.contour_size().width()];
+
+        for intercept in intercepts {
+            for x in intercept {
+                assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
+                row[x] = true;
+            }
+
+            for x in 0..contour.contour_size().width() {
+                assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
+                    row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
+                    (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
+            }
+        }
+    }
+}
+
 #[test]
 fn overlapping_circles_point_inside_first() {
     let circle_1        = CircularDistanceField::with_radius(10.0);
@@ -192,6 +212,47 @@ fn trace_int_doughnut() {
         assert!((max_distance-35.0).abs() <= 1.0 || (max_distance-25.0).abs() <= 1.0, "Max distance incorrect: {:?} {:?}\n\n{}\n", max_distance, min_distance, text_field);
         assert!((min_distance-35.0).abs() <= 1.0 || (min_distance-25.0).abs() <= 1.0, "Min distance incorrect: {:?} {:?}\n\n{}\n", max_distance, min_distance, text_field);
     }
+}
+
+#[test]
+fn brush_stroke_intercept_scan() {
+    let pos  = 0.3 * 2.0*f64::consts::PI;
+    let pos  = (pos.sin() + 1.0) * 200.0;
+    let off1 = 200.0 - pos/2.0;
+    let off2 = pos/2.0;
+
+    let t  = 0.4f64;
+    let p0 = Coord2(-(t*1.0/2.0).cos() * 400.0, (t*1.0/3.0).sin() * 500.0) + Coord2(500.0, 500.0);
+    let p1 = Coord2(-(t*2.0/3.0).cos() * 400.0, (t*1.0/4.0).sin() * 200.0) + Coord2(500.0, 500.0);
+    let p2 = Coord2((t*1.0/4.0).cos() * 200.0, -(t*2.0/3.0).sin() * 400.0) + Coord2(500.0, 500.0);
+    let p3 = Coord2((t*1.0/3.0).cos() * 500.0, -(t*1.0/2.0).sin() * 200.0) + Coord2(500.0, 500.0);
+
+    let p0_3 = Coord3::from((p0, off1));
+    let p1_3 = Coord3::from((p1, (off2-off1)*(1.0/3.0) + off1));
+    let p2_3 = Coord3::from((p2, (off2-off1)*(2.0/3.0) + off1));
+    let p3_3 = Coord3::from((p3, off2));
+
+    let brush_curve      = Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
+    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_intercepts(&daub_distance_field);
+}
+
+#[test]
+fn doughnut_intercept_scan() {
+    // Create a distance field from 300 grid-aligned circles
+    let brush           = CircularDistanceField::with_radius(5.0);
+    let distance_field  = DaubBrushDistanceField::from_daubs((0..300).into_iter()
+        .map(|t| {
+            let t       = (t as f64)/300.0;
+            let t       = t * (f64::consts::PI * 2.0);
+            let (x, y)  = (t.sin()*30.0 + 30.0, t.cos()*30.0 + 30.0);
+            (&brush, ContourPosition(x.round() as _, y.round() as _))
+        }));
+
+    check_intercepts(&distance_field);
 }
 
 #[test]
