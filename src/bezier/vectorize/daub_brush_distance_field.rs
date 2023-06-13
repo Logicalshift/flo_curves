@@ -1,7 +1,11 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
 
+use std::cell::{RefCell};
+
 use smallvec::*;
+
+use std::ops::{Range};
 
 ///
 /// Describes a shape as a distance field made up by 'daubing' discrete brush shapes over a canvas
@@ -27,7 +31,10 @@ where
 
     /// The 'daubs' that make up the brush stroke, and where they appear on the canvas. This is stored sorted by Y position
     /// to allow scanning downwards to find which 'daubs' influence which points
-    daubs: Vec<(TDaub, ContourPosition)>
+    daubs: Vec<(TDaub, ContourPosition)>,
+
+    /// The scanline cache is used to improve the performance of the `intercepts_on_line()` function by tracking what we found on the previous line
+    scanline_cache: RefCell<Option<ScanlineCache>>,
 }
 
 ///
@@ -119,6 +126,11 @@ impl ScanlineCache {
     {
         use std::mem;
 
+        // Nothing to do if we're already on the specified line
+        if self.ypos == new_ypos {
+            return;
+        }
+
         // Build a list of the indexes of the daubs that are new to the next line
         let mut new_daubs   = vec![];
         let num_daubs       = daubs.len();
@@ -206,6 +218,7 @@ impl ScanlineCache {
 
         // Swap the idle list for the active scanline daubs
         mem::swap(&mut self.scanline_daubs, &mut self.idle_daubs);
+        self.ypos = new_ypos;
     }
 }
 
@@ -217,6 +230,8 @@ where
     /// Creates a daub brush distance field from a list of daubs and their positions
     ///
     pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
+        let scanline_cache = RefCell::new(None);
+
         // Collect the daubs
         let mut daubs   = daubs.into_iter().collect::<Vec<_>>();
 
@@ -237,7 +252,7 @@ where
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
         DaubBrushDistanceField {
-            size, daubs
+            size, daubs, scanline_cache
         }
     }
 }
@@ -271,6 +286,84 @@ where
         iterator.start_scanline();
 
         iterator
+    }
+
+    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+        // Create or fetch the cache
+        let mut cache = self.scanline_cache.borrow_mut();
+        let cache     = if let Some(cache) = &mut *cache {
+            cache
+        } else {
+            *cache = Some(ScanlineCache::new(&self.daubs));
+            cache.as_mut().unwrap()
+        };
+
+        // Update the cache to contain the daubs on the current line
+        if cache.ypos > y {
+            *cache = ScanlineCache::new(&self.daubs);
+        }
+        cache.move_to_line(&self.daubs, y);
+
+        // Scan the intercepts left-to-right to build up the intercepts on this line
+        let mut intercepts: SmallVec<[Range<usize>; 4]> = smallvec![];
+        let mut to_remove = vec![];
+
+        for daub_idx in cache.scanline_daubs.iter().copied() {
+            let (daub, pos) = &self.daubs[daub_idx];
+
+            for intercept in daub.as_contour().intercepts_on_line(y - pos.1).into_iter() {
+                // Strip empty ranges if they occur
+                if intercept.start == intercept.end-1 { continue; }
+
+                // Offset the intercept by the position of this daub
+                let intercept = (pos.0 + intercept.start)..(pos.0 + intercept.end);
+
+                // In general, intercepts move left to right, so we should overlap the end of vec in general
+                if intercepts.len() == 0 {
+                    // First intercept
+                    intercepts.push(intercept);
+                } else if intercepts[intercepts.len()-1].end < intercept.start {
+                    // Beyond the end of the last intercept
+                    intercepts.push(intercept);
+                } else {
+                    // Might overlap one of the intercepts towards the end of the list
+                    for idx in (0..intercepts.len()).into_iter().rev() {
+                        if intercepts[idx].end < intercept.start {
+                            // All the remaining ranges are before the start of this one
+                            break;
+                        } else if intercepts[idx].start <= intercept.end && intercepts[idx].end >= intercept.start {
+                            // Ranges overlap
+                            intercepts[idx].end = intercepts[idx].end.max(intercept.end);
+
+                            if intercept.start < intercepts[idx].start {
+                                // Range extends to the left
+                                intercepts[idx].start = intercept.start;
+
+                                // If a range start expands to the left, there may be preceding ranges that overlap this one
+                                to_remove.clear();
+
+                                for overlap_idx in (0..idx).into_iter().rev() {
+                                    if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
+                                        to_remove.push(overlap_idx);
+                                        intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
+                                        intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                                for remove_idx in to_remove.iter() {
+                                    intercepts.remove(*remove_idx);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        intercepts
     }
 }
 
