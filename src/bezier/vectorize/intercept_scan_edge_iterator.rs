@@ -120,6 +120,83 @@ where
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        let height = self.contour.contour_size().height();
+
+        // Outer loop: move lines
+        loop {
+            if self.ypos >= height && self.previous_line.is_empty() {
+                // Stop once the ypos leaves the end of the shape and there's no previous line
+                return None;
+            }
+
+            // Inner loop: move within the current line
+            loop {
+                let xpos = self.xpos;
+
+                // The previous line specifies whether or not the upper part of the current edge is filled, and the next line specifies whether or not the previous edge is filled
+                let upper = self.previous_line.get(self.previous_pos);
+
+                // Move the previous pos on if the x position has exceeded the current range of filled values
+                if let Some(upper) = upper {
+                    if xpos >= upper.end {
+                        self.previous_pos += 1;
+                        continue;
+                    }
+                }
+
+                let lower = self.current_line.get(self.current_pos);
+
+                // Move the current pos on if the x position has exceeded the current range of filled values
+                if let Some(lower) = lower {
+                    if xpos >= lower.end {
+                        self.current_pos += 1;
+                        continue;
+                    }
+                }
+
+                // If both are beyond the end of the range, then we've finished the current edge
+                if upper.is_none() && lower.is_none() {
+                    // Leaving the inner loop will move to the next line
+                    break;
+                }
+
+                // If both the upper and lower lines are empty, then move to the first filled spot
+                if upper.map_or(true, |upper| xpos < upper.start) && lower.map_or(true, |lower| xpos < lower.start) {
+                    match (upper, lower) {
+                        (Some(upper), Some(lower))  => { self.xpos = upper.start.min(lower.start); }
+                        (Some(upper), None)         => { self.xpos = upper.start; }
+                        (None, Some(lower))         => { self.xpos = lower.start; }
+
+                        (None, None)                => { unreachable!() }   // As this case is handled above
+                    }
+
+                    continue;
+                }
+
+                // If both the upper and lower lines are filled, then move to the earliest end point
+                if upper.map_or(false, |upper| xpos > upper.start && xpos < upper.end) && lower.map_or(false, |lower| xpos > lower.start && xpos < lower.end) {
+                    match (upper, lower) {
+                        (Some(upper), Some(lower))  => { self.xpos = upper.end.min(lower.end); }
+
+                        _                           => { unreachable!() } // Because we map to 'false' if either is None: hitting the end of the range is the same as the pixel being empty
+                    }
+
+                    continue;
+                }
+
+                // At least one of the upper or lower lines is transitioning between filled and unfilled at the current xpos
+                let (tl, tr) = upper.map_or((false, false), |upper| (xpos > upper.start && xpos <= upper.end, xpos >= upper.start && xpos < upper.end));
+                let (bl, br) = lower.map_or((false, false), |lower| (xpos > lower.start && xpos <= lower.end, xpos >= lower.start && xpos < lower.end));
+
+                // Bug if all are filled or clear
+                debug_assert!(!(tl && tr && bl && br) && !(!tl && !tr && !bl && !br));
+
+                // Note that cell grid is offset by 1 from our x and y positions: found a cell to return to the caller
+                return Some((ContourPosition(xpos+1, self.ypos+1), ContourCell::from_corners(tl, tr, bl, br)));
+            }
+
+            // Read in the next line from the contour
+            self.load_line(self.ypos + 1);
+        }
     }
 }
