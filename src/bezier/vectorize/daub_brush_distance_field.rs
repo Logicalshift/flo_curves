@@ -313,7 +313,7 @@ where
 
             for intercept in daub.as_contour().intercepts_on_line(y - pos.1).into_iter() {
                 // Strip empty ranges if they occur
-                if intercept.start == intercept.end-1 { continue; }
+                if intercept.start >= intercept.end { continue; }
 
                 // Offset the intercept by the position of this daub
                 let intercept = (pos.0 + intercept.start)..(pos.0 + intercept.end);
