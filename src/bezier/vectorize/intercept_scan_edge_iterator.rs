@@ -7,12 +7,12 @@ use std::ops::{Range};
 ///
 /// An iterator that finds the edges of a contour by calling the `intercepts_on_line()` function
 ///
-pub struct InterceptScanEdgeIterator<'a, TContour>
+pub struct InterceptScanEdgeIterator<TContour>
 where
     TContour: SampledContour,
 {
     /// The contour that this is tracing the edges of
-    contour: &'a TContour,
+    contour: TContour,
 
     /// The y pos of the current line
     ypos: usize,
@@ -33,14 +33,14 @@ where
     xpos: usize,
 }
 
-impl<'a, TContour> InterceptScanEdgeIterator<'a, TContour>
+impl<TContour> InterceptScanEdgeIterator<TContour>
 where
     TContour: SampledContour,
 {
     ///
     /// Creates a new edge iterator at the top-left corner of a contour
     ///
-    pub fn new(contour: &'a TContour) -> InterceptScanEdgeIterator<'a, TContour> {
+    pub fn new(contour: TContour) -> InterceptScanEdgeIterator<TContour> {
         // Create an edge iterator in a neutral state
         let mut iterator = InterceptScanEdgeIterator {
             contour:        contour,
@@ -113,7 +113,7 @@ where
     }
 }
 
-impl<'a, TContour> Iterator for InterceptScanEdgeIterator<'a, TContour>
+impl<TContour> Iterator for InterceptScanEdgeIterator<TContour>
 where
     TContour: SampledContour,
 {
