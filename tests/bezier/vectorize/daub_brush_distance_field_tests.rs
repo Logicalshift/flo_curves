@@ -58,7 +58,7 @@ fn single_circle_contours() {
         (&circle_1, ContourPosition(0, 0)),
     ]);
 
-    let circle_contours     = circle_1.as_contour().edge_cell_iterator().collect::<Vec<_>>();
+    let circle_contours     = (&circle_1.as_contour()).edge_cell_iterator().collect::<Vec<_>>();
     let distance_contours   = distance_field.as_contour().edge_cell_iterator().collect::<Vec<_>>();
 
     assert!(circle_contours == distance_contours, "{:?}\n\n{:?}", distance_contours, circle_contours);
