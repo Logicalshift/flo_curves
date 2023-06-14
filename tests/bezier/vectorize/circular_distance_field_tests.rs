@@ -78,6 +78,16 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
 }
 
 #[test]
+fn reference_vs_copy_iterator() {
+    let circle_1 = CircularDistanceField::with_radius(10.0);
+
+    let reference_edges = (&circle_1.as_contour()).edge_cell_iterator().collect::<Vec<_>>();
+    let copy_edges      = circle_1.as_contour().edge_cell_iterator().collect::<Vec<_>>();
+
+    assert!(copy_edges == reference_edges, "Edges don't match: {:?} != {:?}", copy_edges, reference_edges);
+}
+
+#[test]
 fn distance_is_radius_at_center() {
     let circle = CircularDistanceField::with_radius(10.0);
     assert!((circle.distance_at_point(ContourPosition(11, 11))- -10.0).abs() < 0.1, "{}", circle.distance_at_point(ContourPosition(11, 11)));
