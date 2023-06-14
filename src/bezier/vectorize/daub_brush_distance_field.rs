@@ -1,5 +1,6 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
+use super::intercept_scan_edge_iterator::*;
 
 use std::cell::{RefCell};
 
@@ -261,7 +262,7 @@ impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub>
 where
     TDaub: SampledSignedDistanceField,
 {
-    type EdgeCellIterator = DaubBrushContourIterator<'a, TDaub>;
+    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
 
     #[inline]
     fn contour_size(self) -> ContourSize {
@@ -273,19 +274,9 @@ where
         self.distance_at_point(pos) <= 0.0
     }
 
+    #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        // Create the iterator
-        let mut iterator = DaubBrushContourIterator {
-            distance_field:             self,
-            next_daub_idx:              0,
-            edge_iterators:             vec![],
-            future_scanline_iterators:  vec![],
-            current_scanline:           0,
-        };
-
-        iterator.start_scanline();
-
-        iterator
+        InterceptScanEdgeIterator::new(self)
     }
 
     fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
