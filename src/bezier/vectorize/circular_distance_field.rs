@@ -1,6 +1,7 @@
 use super::brush_stroke::*;
 use super::distance_field::*;
 use super::sampled_contour::*;
+use super::intercept_scan_edge_iterator::*;
 use crate::geo::*;
 
 use smallvec::*;
@@ -97,7 +98,7 @@ impl CircularDistanceField {
 
 impl SampledContour for CircularDistanceField {
     /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
+    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
 
     #[inline]
     fn contour_size(self) -> ContourSize {
@@ -111,7 +112,9 @@ impl SampledContour for CircularDistanceField {
 
     #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        (&self).edge_cell_iterator()
+        // Don't really want to pass in Self here as this will cause a lot of copying...
+        todo!()
+        // (&self).edge_cell_iterator()
     }
 
     #[inline]
@@ -122,7 +125,7 @@ impl SampledContour for CircularDistanceField {
 
 impl<'a> SampledContour for &'a CircularDistanceField {
     /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = CircularDistanceFieldEdgeIterator;
+    type EdgeCellIterator = InterceptScanEdgeIterator<&'a CircularDistanceField>;
 
     #[inline]
     fn contour_size(self) -> ContourSize {
@@ -140,15 +143,7 @@ impl<'a> SampledContour for &'a CircularDistanceField {
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        CircularDistanceFieldEdgeIterator {
-            diameter:       self.diameter,
-            center_x:       self.center_x,
-            center_y:       self.center_y,
-            radius:         self.radius,
-            radius_sq:      self.radius * self.radius,
-            ypos:           0,
-            samples:        smallvec![],
-        }
+        InterceptScanEdgeIterator::new(self)
     }
 
     #[inline]
