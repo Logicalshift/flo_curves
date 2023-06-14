@@ -183,7 +183,7 @@ impl ScanlineCache {
                     let (_old_daub, old_pos) = &daubs[*next_old];
                     let (_new_daub, new_pos) = &daubs[next_new];
 
-                    if new_pos.x() > old_pos.x() {
+                    if new_pos.x() < old_pos.x() {
                         // New daub is before the old one
                         self.idle_daubs.push(next_new);
                         maybe_next_new = new_daubs.next();
