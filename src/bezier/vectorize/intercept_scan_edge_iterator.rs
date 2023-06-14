@@ -138,7 +138,7 @@ where
 
                 // Move the previous pos on if the x position has exceeded the current range of filled values
                 if let Some(upper) = upper {
-                    if xpos >= upper.end {
+                    if xpos > upper.end {
                         self.previous_pos += 1;
                         continue;
                     }
@@ -148,7 +148,7 @@ where
 
                 // Move the current pos on if the x position has exceeded the current range of filled values
                 if let Some(lower) = lower {
-                    if xpos >= lower.end {
+                    if xpos > lower.end {
                         self.current_pos += 1;
                         continue;
                     }
