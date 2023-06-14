@@ -188,9 +188,6 @@ where
                 let (tl, tr) = upper.map_or((false, false), |upper| (xpos > upper.start && xpos <= upper.end, xpos >= upper.start && xpos < upper.end));
                 let (bl, br) = lower.map_or((false, false), |lower| (xpos > lower.start && xpos <= lower.end, xpos >= lower.start && xpos < lower.end));
 
-                // Bug if all are filled or clear
-                debug_assert!(!(tl && tr && bl && br) && !(!tl && !tr && !bl && !br));
-
                 // Next iteration should look at the next cell along
                 self.xpos += 1;
 
