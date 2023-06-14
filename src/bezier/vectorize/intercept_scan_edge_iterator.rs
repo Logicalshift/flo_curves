@@ -194,8 +194,8 @@ where
                 // Next iteration should look at the next cell along
                 self.xpos += 1;
 
-                // Note that cell grid is offset by 1 from our x and y positions: found a cell to return to the caller
-                return Some((ContourPosition(xpos+1, self.ypos+1), ContourCell::from_corners(tl, tr, bl, br)));
+                // Found a cell to return to the caller
+                return Some((ContourPosition(xpos, self.ypos), ContourCell::from_corners(tl, tr, bl, br)));
             }
 
             // Read in the next line from the contour
