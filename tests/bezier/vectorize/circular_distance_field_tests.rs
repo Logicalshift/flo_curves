@@ -62,17 +62,17 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
         let intercepts  = contour.intercepts_on_line(y);
         let mut row     = vec![false; contour.contour_size().width()];
 
-        for intercept in intercepts {
-            for x in intercept {
+        for intercept in intercepts.iter() {
+            for x in intercept.clone() {
                 assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
                 row[x] = true;
             }
+        }
 
-            for x in 0..contour.contour_size().width() {
-                assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
-                    row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
-                    (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
-            }
+        for x in 0..contour.contour_size().width() {
+            assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
+                row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
+                (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
         }
     }
 }
