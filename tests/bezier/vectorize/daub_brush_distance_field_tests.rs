@@ -216,6 +216,8 @@ fn trace_int_doughnut() {
 
 #[test]
 fn brush_stroke_intercept_scan() {
+    // TODO: looks like we generate a lot of blank lines here
+
     let pos  = 0.3 * 2.0*f64::consts::PI;
     let pos  = (pos.sin() + 1.0) * 200.0;
     let off1 = 200.0 - pos/2.0;
