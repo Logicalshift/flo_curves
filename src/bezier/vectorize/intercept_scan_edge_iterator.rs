@@ -86,7 +86,7 @@ where
             }
 
             if self.current_line.len() > 0 {
-                xpos = xpos.map_or(Some(self.current_line[0].start), |xpos| Some(xpos.max(self.current_line[0].start)));
+                xpos = xpos.map_or(Some(self.current_line[0].start), |xpos| Some(xpos.min(self.current_line[0].start)));
             }
 
             if let Some(xpos) = xpos {
