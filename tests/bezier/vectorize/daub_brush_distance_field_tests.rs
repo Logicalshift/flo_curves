@@ -3,7 +3,44 @@ use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 
+use itertools::*;
+
 use std::f64;
+use std::collections::{HashMap};
+
+fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
+    check_intercepts(contour);
+
+    // Use point_is_inside to generate a bitmap version of the contour
+    let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
+        .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
+        .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
+        .collect::<Vec<_>>();
+
+    let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
+
+    // Get the edges from both
+    let bitmap_edges    = bitmap.edge_cell_iterator().collect::<Vec<_>>();
+    let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
+
+    // Should generate identical results
+    let edges_for_y_bitmap  = bitmap_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let edges_for_y_contour  = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+
+    assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines (bitmap has {} vs contour with {})\n{:?}\n\n{:?}", edges_for_y_bitmap.len(), edges_for_y_contour.len(), bitmap_edges, contour_edges);
+    assert!(contour_edges.len() == bitmap_edges.len(), "Returned different number of edges ({} vs {}). Edges counts were: \n  {}\n\nBitmap edges were \n  {}\n\nContour edges were \n  {}",
+        bitmap_edges.len(),
+        contour_edges.len(),
+        edges_for_y_bitmap.keys().map(|ypos| format!("{} {:?} {:?}", ypos, edges_for_y_bitmap.get(ypos), edges_for_y_contour.get(ypos))).collect::<Vec<_>>().join("\n  "),
+        bitmap_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "),
+        contour_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "));
+
+    assert!(contour_edges == bitmap_edges, "Edges were \n  {}", 
+        bitmap_edges.iter().zip(contour_edges.iter())
+            .map(|(bitmap_edge, contour_edge)| format!("({:?}) {:?}    {:?}", bitmap_edge == contour_edge, bitmap_edge, contour_edge))
+            .collect::<Vec<_>>()
+            .join("\n  "));
+}
 
 fn check_intercepts<TContour: SampledContour>(contour: TContour) {
     for y in 0..contour.contour_size().height() {
@@ -275,4 +312,33 @@ fn circle_at_position() {
             assert!((distance-radius).abs() < 0.2, "Found point at distance {:?}", distance);
         }
     }
+}
+
+#[test]
+fn broken_brush_stroke_check_contour_1() {
+    // 463 367.161472273654 16.419263863173 183.580736136827
+    let counter = 463;
+
+    let pos  = (counter as f64)/400.0 * 2.0*f64::consts::PI;
+    let pos  = (pos.sin() + 1.0) * 200.0;
+    let off1 = 200.0 - pos/2.0;
+    let off2 = pos/2.0;
+
+    let t  = 0.4f64;
+    let p0 = Coord2(-(t*1.0/2.0).cos() * 400.0, (t*1.0/3.0).sin() * 500.0) + Coord2(500.0, 500.0);
+    let p1 = Coord2(-(t*2.0/3.0).cos() * 400.0, (t*1.0/4.0).sin() * 200.0) + Coord2(500.0, 500.0);
+    let p2 = Coord2((t*1.0/4.0).cos() * 200.0, -(t*2.0/3.0).sin() * 400.0) + Coord2(500.0, 500.0);
+    let p3 = Coord2((t*1.0/3.0).cos() * 500.0, -(t*1.0/2.0).sin() * 200.0) + Coord2(500.0, 500.0);
+
+    let p0_3 = Coord3::from((p0, off1));
+    let p1_3 = Coord3::from((p1, (off2-off1)*(1.0/3.0) + off1));
+    let p2_3 = Coord3::from((p2, (off2-off1)*(2.0/3.0) + off1));
+    let p3_3 = Coord3::from((p3, off2));
+
+    let brush_curve      = Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
+    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
 }
