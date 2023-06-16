@@ -47,6 +47,16 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
         let intercepts  = contour.intercepts_on_line(y);
         let mut row     = vec![false; contour.contour_size().width()];
 
+        if intercepts.len() > 1 {
+            for idx in 0..(intercepts.len()-1) {
+                let this_intercept = &intercepts[idx];
+                let next_intercept = &intercepts[idx+1];
+
+                assert!(this_intercept.end != next_intercept.start, "Adjacent intercepts");
+                assert!(this_intercept.end < next_intercept.start, "Overlapping or unordered intercepts");
+            }
+        }
+
         for intercept in intercepts.iter() {
             for x in intercept.clone() {
                 assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
