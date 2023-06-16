@@ -22,7 +22,7 @@ fn draw<TContour: SampledContour>(contour: TContour) {
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
-        .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
+        .map(|pos| (pos % contour.contour_size().0, pos / contour.contour_size().0))
         .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
