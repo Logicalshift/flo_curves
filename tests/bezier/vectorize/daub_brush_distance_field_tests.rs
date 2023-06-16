@@ -19,6 +19,12 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 
     let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
 
+    for y in 0..contour.contour_size().height() {
+        for x in 0..contour.contour_size().width() {
+            assert!(bitmap.point_is_inside(ContourPosition(x, y)) == contour.point_is_inside(ContourPosition(x, y)));
+        }
+    }
+
     // Get the edges from both
     let bitmap_edges    = bitmap.edge_cell_iterator().collect::<Vec<_>>();
     let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
