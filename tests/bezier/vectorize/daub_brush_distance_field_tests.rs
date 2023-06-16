@@ -30,7 +30,21 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
     let missing_bitmap_lines    = edges_for_y_contour.keys().copied().filter(|ypos| !edges_for_y_bitmap.contains_key(ypos)).collect::<Vec<_>>();
     let missing_contour_lines   = edges_for_y_bitmap.keys().copied().filter(|ypos| !edges_for_y_contour.contains_key(ypos)).collect::<Vec<_>>();
 
-    assert!(missing_bitmap_lines.is_empty(), "Contour contains extra lines: {:?}", missing_bitmap_lines);
+    assert!(missing_bitmap_lines.is_empty(), "Contour contains extra lines: {:?}\n\n  {}", missing_bitmap_lines,
+        missing_bitmap_lines.iter().sorted().map(|ypos| {
+            (*ypos, contour.intercepts_on_line(*ypos), bitmap.intercepts_on_line(*ypos), contour.intercepts_on_line(*ypos-1), bitmap.intercepts_on_line(*ypos-1))
+        })
+        .map(|(ypos, contour1, bitmap1, contour2, bitmap2)| format!("{}: {} ({:?}, {:?}) {} ({:?} {:?})", 
+            ypos, 
+            if contour1 != bitmap1 { '*' } else { ' ' },
+            contour1,
+            bitmap1,
+            if contour2 != bitmap2 { '*' } else { ' ' },
+            contour2,
+            bitmap2
+            ))
+        .collect::<Vec<_>>()
+        .join("\n  "));
     assert!(missing_contour_lines.is_empty(), "Bitmap contains extra lines: {:?}", missing_contour_lines);
 
     assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines (bitmap has {} vs contour with {})", edges_for_y_bitmap.len(), edges_for_y_contour.len());
