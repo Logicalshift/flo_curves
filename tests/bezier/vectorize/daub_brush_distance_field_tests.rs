@@ -90,7 +90,9 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
         }
 
         if y == 1097 {
-            println!("y = {:?} ({:?})", y, row.iter().map(|x| if *x { '#' } else { '.' }).collect::<String>());
+            println!("y = {:?} (\n  {:?}\n  {:?})", y,
+                row.iter().map(|x| if *x { '#' } else { '.' }).collect::<String>(),
+                (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
             println!("y = {:?} ({:?})\n", y, intercepts);
         }
 
