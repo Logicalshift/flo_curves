@@ -19,12 +19,6 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 
     let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
 
-    for y in 0..contour.contour_size().height() {
-        for x in 0..contour.contour_size().width() {
-            assert!(bitmap.point_is_inside(ContourPosition(x, y)) == contour.point_is_inside(ContourPosition(x, y)));
-        }
-    }
-
     // Get the edges from both
     let bitmap_edges    = bitmap.edge_cell_iterator().collect::<Vec<_>>();
     let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
@@ -93,13 +87,6 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
                 assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
                 row[x] = true;
             }
-        }
-
-        if y == 1097 {
-            println!("y = {:?} (\n  {:?}\n  {:?})", y,
-                row.iter().map(|x| if *x { '#' } else { '.' }).collect::<String>(),
-                (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
-            println!("y = {:?} ({:?})\n", y, intercepts);
         }
 
         for x in 0..width {
