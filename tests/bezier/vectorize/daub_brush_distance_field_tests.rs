@@ -63,7 +63,10 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 }
 
 fn check_intercepts<TContour: SampledContour>(contour: TContour) {
-    for y in 0..contour.contour_size().height() {
+    let width   = contour.contour_size().width();
+    let height  = contour.contour_size().height();
+
+    for y in 0..height {
         let intercepts  = contour.intercepts_on_line(y);
         let mut row     = vec![false; contour.contour_size().width()];
 
@@ -74,6 +77,8 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
 
                 assert!(this_intercept.end != next_intercept.start, "Adjacent intercepts");
                 assert!(this_intercept.end < next_intercept.start, "Overlapping or unordered intercepts");
+                assert!(this_intercept.start < width, "Intercept starts beyond the width of the contour");
+                assert!(this_intercept.end <= width, "Intercept ends beyond the width of the contour");
             }
         }
 
