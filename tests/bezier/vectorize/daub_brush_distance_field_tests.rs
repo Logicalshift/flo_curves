@@ -6,7 +6,7 @@ use flo_curves::bezier::vectorize::*;
 use itertools::*;
 
 use std::f64;
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
 
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
     check_intercepts(contour);
@@ -25,13 +25,14 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 
     // Should generate identical results
     let edges_for_y_bitmap  = bitmap_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
-    let edges_for_y_contour  = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let edges_for_y_contour = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let different_counts    = edges_for_y_bitmap.keys().copied().filter(|ypos| edges_for_y_bitmap.get(ypos) != edges_for_y_contour.get(ypos)).collect::<HashSet<_>>();
 
-    assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines (bitmap has {} vs contour with {})\n{:?}\n\n{:?}", edges_for_y_bitmap.len(), edges_for_y_contour.len(), bitmap_edges, contour_edges);
+    assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines (bitmap has {} vs contour with {})", edges_for_y_bitmap.len(), edges_for_y_contour.len());
     assert!(contour_edges.len() == bitmap_edges.len(), "Returned different number of edges ({} vs {}). Edges counts were: \n  {}\n\nBitmap edges were \n  {}\n\nContour edges were \n  {}",
         bitmap_edges.len(),
         contour_edges.len(),
-        edges_for_y_bitmap.keys().map(|ypos| format!("{} {:?} {:?}", ypos, edges_for_y_bitmap.get(ypos), edges_for_y_contour.get(ypos))).collect::<Vec<_>>().join("\n  "),
+        edges_for_y_bitmap.keys().filter(|ypos| different_counts.contains(ypos)).map(|ypos| format!("{} {:?} {:?}", ypos, edges_for_y_bitmap.get(ypos), edges_for_y_contour.get(ypos))).collect::<Vec<_>>().join("\n  "),
         bitmap_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "),
         contour_edges.iter().map(|edge| format!("{:?}", edge)).collect::<Vec<_>>().join("\n  "));
 
