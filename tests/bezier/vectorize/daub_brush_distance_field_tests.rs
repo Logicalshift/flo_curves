@@ -24,9 +24,14 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
     let contour_edges   = contour.edge_cell_iterator().collect::<Vec<_>>();
 
     // Should generate identical results
-    let edges_for_y_bitmap  = bitmap_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
-    let edges_for_y_contour = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
-    let different_counts    = edges_for_y_bitmap.keys().copied().filter(|ypos| edges_for_y_bitmap.get(ypos) != edges_for_y_contour.get(ypos)).collect::<HashSet<_>>();
+    let edges_for_y_bitmap      = bitmap_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let edges_for_y_contour     = contour_edges.iter().cloned().group_by(|(pos, _)| pos.1).into_iter().map(|(ypos, group)| (ypos, group.count())).collect::<HashMap<_, _>>();
+    let different_counts        = edges_for_y_bitmap.keys().copied().filter(|ypos| edges_for_y_bitmap.get(ypos) != edges_for_y_contour.get(ypos)).collect::<HashSet<_>>();
+    let missing_bitmap_lines    = edges_for_y_contour.keys().copied().filter(|ypos| !edges_for_y_bitmap.contains_key(ypos)).collect::<Vec<_>>();
+    let missing_contour_lines   = edges_for_y_bitmap.keys().copied().filter(|ypos| !edges_for_y_contour.contains_key(ypos)).collect::<Vec<_>>();
+
+    assert!(missing_bitmap_lines.is_empty(), "Contour contains extra lines: {:?}", missing_bitmap_lines);
+    assert!(missing_contour_lines.is_empty(), "Bitmap contains extra lines: {:?}", missing_contour_lines);
 
     assert!(edges_for_y_bitmap.len() == edges_for_y_contour.len(), "Returned different number of lines (bitmap has {} vs contour with {})", edges_for_y_bitmap.len(), edges_for_y_contour.len());
     assert!(contour_edges.len() == bitmap_edges.len(), "Returned different number of edges ({} vs {}). Edges counts were: \n  {}\n\nBitmap edges were \n  {}\n\nContour edges were \n  {}",
