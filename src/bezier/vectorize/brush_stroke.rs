@@ -146,7 +146,7 @@ where
                     let (t_min, t_max)  = curve_section.original_curve_t_values();
                     let t_mid           = (t_min+t_max)/2.0;
 
-                    let pos     = curve2d.point_at_pos(t_mid);
+                    let pos     = curve2d_offset.point_at_pos(t_mid);
                     let radius  = radius.point_at_pos(t_mid);
 
                     TDistanceField::create_daub(pos, radius)
