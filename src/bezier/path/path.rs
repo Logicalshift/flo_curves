@@ -144,3 +144,6 @@ impl<Point: Clone+Coordinate> BezierPathFactory for (Point, Vec<(Point, Point, P
 
 /// Basic Bezier path type
 pub type SimpleBezierPath = (Coord2, Vec<(Coord2, Coord2, Coord2)>);
+
+/// Basic Bezier path type using 3D coordinates
+pub type SimpleBezierPath3 = (Coord3, Vec<(Coord3, Coord3, Coord3)>);
