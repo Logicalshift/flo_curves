@@ -47,11 +47,9 @@ fn main() {
 
             // Create a distance field for the brush stroke
             let brush_curve     = bezier::Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
-            let (daubs, offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
-            let daubs           = DaubBrushDistanceField::from_daubs(daubs);
 
-            // Render to a path (TODO: add the offset)
-            let offset_curve_3  = trace_paths_from_distance_field::<SimpleBezierPath>(&daubs, 0.5);
+            // Render to a path
+            let offset_curve_3  = brush_stroke_from_curve::<CircularDistanceField, SimpleBezierPath, _>(&brush_curve, 0.5, 0.25);
 
             let mut has_weird_curve = false;
             for path in offset_curve_3.iter() {
@@ -144,7 +142,6 @@ fn main() {
 
                 gc.new_path();
                 for subpath in offset_curve_3.iter() {
-                    let subpath = subpath.with_offset::<SimpleBezierPath>(offset);
                     let curve   = subpath.to_curves::<bezier::Curve<Coord2>>();
 
                     gc.move_to(curve[0].start_point().x() as _, curve[0].start_point().y() as _);
