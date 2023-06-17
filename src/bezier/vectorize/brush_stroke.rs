@@ -52,7 +52,7 @@ where
     let radius_bounds   = radius.bounding_box::<Bounds<_>>();
     let radius_max      = radius_bounds.max().max(0.0);
     let offset          = bounds.min();
-    let offset          = Coord2(offset.x() + radius_max + 1.0, offset.y() + radius_max + 1.0);
+    let offset          = Coord2(offset.x() + radius_max + 2.0, offset.y() + radius_max + 2.0);
 
     // Create the daubs by walking the 2D curve
     let iterator = walk_curve_evenly(&curve2d, step, max_error)
