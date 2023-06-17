@@ -5,6 +5,7 @@ use super::intercept_scan_edge_iterator::*;
 use crate::geo::*;
 
 use smallvec::*;
+use ouroboros::self_referencing;
 
 use std::ops::{Range};
 
@@ -85,7 +86,7 @@ impl CircularDistanceField {
 
 impl SampledContour for CircularDistanceField {
     /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
+    type EdgeCellIterator = Box<dyn Iterator<Item=(ContourPosition, ContourCell)>>;
 
     #[inline]
     fn contour_size(self) -> ContourSize {
@@ -99,9 +100,12 @@ impl SampledContour for CircularDistanceField {
 
     #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        // Don't really want to pass in Self here as this will cause a lot of copying...
-        todo!()
-        // (&self).edge_cell_iterator()
+        let iterator = SelfReferentialIteratorBuilder {
+            owner:              self,
+            iterator_builder:   |owner| owner.edge_cell_iterator(),
+        }.build();
+
+        Box::new(iterator)
     }
 
     #[inline]
@@ -230,4 +234,35 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
 
     #[inline]
     fn as_contour(self) -> Self::Contour { self }
+}
+
+///
+/// Self-referential iterator using ouroboros
+///
+#[self_referencing]
+pub (crate) struct SelfReferentialIterator<TOwner> 
+where
+    TOwner: 'static,
+    for<'a> &'a TOwner: SampledContour,
+{
+    /// The object that the iterator borrows
+    pub (crate) owner: TOwner,
+
+    /// The iterator that this will evaluate
+    #[borrows(owner)]
+    #[not_covariant]
+    pub (crate) iterator: InterceptScanEdgeIterator<&'this TOwner>,
+}
+
+impl<TOwner> Iterator for SelfReferentialIterator<TOwner> 
+where
+    TOwner: 'static,
+    for<'a> &'a TOwner: SampledContour,
+{
+    type Item = (ContourPosition, ContourCell);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.with_iterator_mut(|iterator| iterator.next())
+    }
 }
