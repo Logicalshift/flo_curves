@@ -104,6 +104,21 @@ fn broken_brush_is_smooth_3() {
 }
 
 #[test]
+fn broken_brush_is_smooth_4() {
+    for counter in 370..390 {
+        println!("counter = {}", counter);
+
+        let brush_curve = brush_curve(counter);
+        let brush_path  = BezierPathBuilder::<SimpleBezierPath3>::start(brush_curve.start_point()).curve_to(brush_curve.control_points(), brush_curve.end_point()).build();
+        let paths       = brush_stroke_from_path::<CircularDistanceField, SimpleBezierPath, _>(&brush_path, 0.5, 0.25);
+
+        for path in paths {
+            assert!(path_is_smooth(&path));
+        }
+    }
+}
+
+#[test]
 fn broken_brush_stroke_check_contour_1() {
     let counter = 463;
 
