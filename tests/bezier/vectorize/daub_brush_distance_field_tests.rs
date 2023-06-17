@@ -448,8 +448,19 @@ fn broken_brush_is_smooth_3() {
 
 #[test]
 fn broken_brush_stroke_check_contour_1() {
-    // 463 367.161472273654 16.419263863173 183.580736136827
     let counter = 463;
+
+    let brush_curve      = brush_curve(counter);
+    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
+}
+
+#[test]
+fn broken_brush_stroke_check_contour_2() {
+    let counter = 507;
 
     let brush_curve      = brush_curve(counter);
     let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
