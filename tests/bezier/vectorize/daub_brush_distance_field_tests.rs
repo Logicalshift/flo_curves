@@ -417,6 +417,21 @@ fn broken_brush_is_smooth_1() {
 }
 
 #[test]
+fn broken_brush_is_smooth_2() {
+    for counter in 464..507 {
+        let brush_curve      = brush_curve(counter);
+        let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+        let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
+
+        for path in paths {
+            assert!(path_is_smooth(&path));
+        }
+    }
+}
+
+#[test]
 fn broken_brush_stroke_check_contour_1() {
     // 463 367.161472273654 16.419263863173 183.580736136827
     let counter = 463;
