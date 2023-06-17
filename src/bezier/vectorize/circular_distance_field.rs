@@ -137,7 +137,6 @@ impl<'a> SampledContour for &'a CircularDistanceField {
         InterceptScanEdgeIterator::new(self)
     }
 
-    #[inline]
     fn intercepts_on_line(self, ypos: usize) -> SmallVec<[Range<usize>; 4]> {
         let y = (ypos as f64) - self.center_y;
 
