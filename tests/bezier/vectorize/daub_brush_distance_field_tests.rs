@@ -433,16 +433,18 @@ fn broken_brush_is_smooth_2() {
 
 #[test]
 fn broken_brush_is_smooth_3() {
-    let counter = 378;
+    for counter in 370..390 {
+        println!("counter = {}", counter);
 
-    let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+        let brush_curve      = brush_curve(counter);
+        let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
-    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
-    let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+        let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
 
-    for path in paths {
-        assert!(path_is_smooth(&path));
+        for path in paths {
+            assert!(path_is_smooth(&path));
+        }
     }
 }
 
