@@ -349,11 +349,7 @@ fn circle_at_position() {
     }
 }
 
-#[test]
-fn broken_brush_stroke_check_contour_1() {
-    // 463 367.161472273654 16.419263863173 183.580736136827
-    let counter = 463;
-
+fn brush_curve(counter: i64) -> Curve<Coord3> {
     let pos  = (counter as f64)/400.0 * 2.0*f64::consts::PI;
     let pos  = (pos.sin() + 1.0) * 200.0;
     let off1 = 200.0 - pos/2.0;
@@ -371,6 +367,16 @@ fn broken_brush_stroke_check_contour_1() {
     let p3_3 = Coord3::from((p3, off2));
 
     let brush_curve      = Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
+
+    brush_curve
+}
+
+#[test]
+fn broken_brush_stroke_check_contour_1() {
+    // 463 367.161472273654 16.419263863173 183.580736136827
+    let counter = 463;
+
+    let brush_curve      = brush_curve(counter);
     let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
