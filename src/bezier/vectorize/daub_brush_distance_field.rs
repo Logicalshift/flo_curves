@@ -283,6 +283,7 @@ where
                     for idx in (0..intercepts.len()).into_iter().rev() {
                         if intercepts[idx].end < intercept.start {
                             // All the remaining ranges are before the start of this one
+                            intercepts.insert(idx+1, intercept);
                             break;
                         } else if intercepts[idx].start <= intercept.end && intercepts[idx].end >= intercept.start {
                             // Ranges overlap
