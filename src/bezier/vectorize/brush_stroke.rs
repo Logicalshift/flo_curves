@@ -1,6 +1,9 @@
 use super::distance_field::*;
+use super::daub_brush_distance_field::*;
+use super::marching_squares::*;
 use super::sampled_contour::*;
 use crate::bezier::*;
+use crate::bezier::path::*;
 use crate::geo::*;
 
 ///
@@ -72,4 +75,40 @@ where
     let iterator = iterator.collect::<Vec<_>>().into_iter();
 
     (iterator, offset)
+}
+
+///
+/// Converts a 3-dimensional bezier curve into a 2-dimensional path where the 3rd dimension is the radius of the brush
+///
+/// The brush stroke is made by combining discrete 'daubs' and then tracing the resulting path.
+///
+/// `TDistanceField` specifies the type of distance field that make up the 'daubs' of the brush stroke. The simplest possible
+/// distance field that can be used here is `CircularDistanceField`.
+///
+/// `TPath` specifies the type of path structure to produce (such as `SimpleBezierPath`)
+///
+/// `TBrushCurve` is any bezier path using a 3-dimensional coordinate.
+///
+/// The `step` parameter indicates the distance between daubs on the brush. Higher values are faster but less accurate, lower values
+/// are slower but produce a better shape `0.5` is a good default value. `max_error` indicates the maximum error to allow when generating
+/// the daubs and the final curve: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
+/// from over-fitting against the shape of the distance field.
+///
+pub fn brush_stroke_daubs_path_from_curve<'a, TDistanceField, TPath, TBrushCurve>(curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
+where
+    TPath:              BezierPathFactory,
+    TPath::Point:       Coordinate + Coordinate2D,
+    TBrushCurve:        BezierCurve,
+    TBrushCurve::Point: Coordinate + Coordinate3D,
+    TDistanceField:     'a + BrushDistanceField,
+{
+    let (daubs, offset) = brush_stroke_daubs::<TDistanceField, _>(curve, step, max_error);
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
+    let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
+
+    let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
+
+    paths.iter_mut().for_each(|path| *path = path.with_offset(offset));
+
+    paths
 }
