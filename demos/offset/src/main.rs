@@ -47,7 +47,7 @@ fn main() {
 
             // Create a distance field for the brush stroke
             let brush_curve     = bezier::Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
-            let (daubs, offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+            let (daubs, offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
             let daubs           = DaubBrushDistanceField::from_daubs(daubs);
 
             // Render to a path (TODO: add the offset)

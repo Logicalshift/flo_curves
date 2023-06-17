@@ -33,7 +33,7 @@ pub trait BrushDistanceField : SampledSignedDistanceField {
 /// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
 /// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
 ///
-pub fn brush_stroke_daubs<'a, TDistanceField, TCurve>(curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField, ContourPosition)>, Coord2)
+pub fn brush_stroke_daubs_from_curve<'a, TDistanceField, TCurve>(curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField, ContourPosition)>, Coord2)
 where
     TCurve:         BezierCurve,
     TCurve::Point:  Coordinate + Coordinate3D,
@@ -102,7 +102,7 @@ where
     TBrushCurve::Point: Coordinate + Coordinate3D,
     TDistanceField:     'a + BrushDistanceField,
 {
-    let (daubs, offset) = brush_stroke_daubs::<TDistanceField, _>(curve, step, max_error);
+    let (daubs, offset) = brush_stroke_daubs_from_curve::<TDistanceField, _>(curve, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 

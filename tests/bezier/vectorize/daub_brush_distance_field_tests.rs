@@ -344,7 +344,7 @@ fn brush_stroke_intercept_scan() {
     let p3_3 = Coord3::from((p3, off2));
 
     let brush_curve      = Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
-    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
@@ -414,7 +414,7 @@ fn broken_brush_is_smooth_1() {
     let counter = 463;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
     let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
@@ -428,7 +428,7 @@ fn broken_brush_is_smooth_1() {
 fn broken_brush_is_smooth_2() {
     for counter in 464..507 {
         let brush_curve      = brush_curve(counter);
-        let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+        let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
         let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
         let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
@@ -458,7 +458,7 @@ fn broken_brush_stroke_check_contour_1() {
     let counter = 463;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
@@ -470,7 +470,7 @@ fn broken_brush_stroke_check_contour_2() {
     let counter = 507;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
