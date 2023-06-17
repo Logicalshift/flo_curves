@@ -240,18 +240,18 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
 /// Self-referential iterator using ouroboros
 ///
 #[self_referencing]
-pub (crate) struct SelfReferentialIterator<TOwner> 
+struct SelfReferentialIterator<TOwner> 
 where
     TOwner: 'static,
     for<'a> &'a TOwner: SampledContour,
 {
     /// The object that the iterator borrows
-    pub (crate) owner: TOwner,
+    owner: TOwner,
 
     /// The iterator that this will evaluate
     #[borrows(owner)]
     #[not_covariant]
-    pub (crate) iterator: InterceptScanEdgeIterator<&'this TOwner>,
+    iterator: InterceptScanEdgeIterator<&'this TOwner>,
 }
 
 impl<TOwner> Iterator for SelfReferentialIterator<TOwner> 
