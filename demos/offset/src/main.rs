@@ -143,7 +143,6 @@ fn main() {
                 }
 
                 gc.new_path();
-                let offset = Coord2(-offset.0, -offset.1);
                 for subpath in offset_curve_3.iter() {
                     let subpath = subpath.with_offset::<SimpleBezierPath>(offset);
                     let curve   = subpath.to_curves::<bezier::Curve<Coord2>>();
