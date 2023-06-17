@@ -69,8 +69,8 @@ impl CircularDistanceField {
         let x = pos.x() - circle.center_x - 1.0;
         let y = pos.y() - circle.center_y - 1.0;
 
-        debug_assert!(x-radius >= 0.0);
-        debug_assert!(y-radius >= 0.0);
+        debug_assert!(x-radius >= 0.0, "x {}-{} < 0.0 ({})", x, radius, x-radius);
+        debug_assert!(y-radius >= 0.0, "y {}-{} < 0.0 ({})", y, radius, y-radius);
 
         if x < 0.0 || y < 0.0 { return None; }
 
