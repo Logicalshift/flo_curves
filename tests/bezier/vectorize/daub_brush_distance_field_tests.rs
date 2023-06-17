@@ -92,12 +92,17 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
 }
 
 fn check_intercepts<TContour: SampledContour>(contour: TContour) {
-    let width   = contour.contour_size().width();
-    let height  = contour.contour_size().height();
+    let width         = contour.contour_size().width();
+    let height        = contour.contour_size().height();
+    let mut num_empty = 0;
 
     for y in 0..height {
         let intercepts  = contour.intercepts_on_line(y);
         let mut row     = vec![false; contour.contour_size().width()];
+
+        if intercepts.len() == 0 {
+            num_empty += 1;
+        }
 
         if intercepts.len() > 1 {
             for idx in 0..(intercepts.len()-1) {
@@ -124,6 +129,8 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
                 (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
         }
     }
+
+    assert!(num_empty < 32, "{:?} empty rows", num_empty);
 }
 
 #[test]
