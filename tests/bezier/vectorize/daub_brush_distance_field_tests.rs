@@ -445,7 +445,7 @@ fn broken_brush_is_smooth_3() {
         println!("counter = {}", counter);
 
         let brush_curve = brush_curve(counter);
-        let paths       = brush_stroke_daubs_path_from_curve::<CircularDistanceField, SimpleBezierPath, _>(&brush_curve, 0.5, 0.25);
+        let paths       = brush_stroke_from_curve::<CircularDistanceField, SimpleBezierPath, _>(&brush_curve, 0.5, 0.25);
 
         for path in paths {
             assert!(path_is_smooth(&path));
