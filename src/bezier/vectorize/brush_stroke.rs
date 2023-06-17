@@ -53,7 +53,7 @@ where
     let radius_max      = radius_bounds.max().max(0.0);
     let radius_max      = radius_max.ceil() + 1.0;
     let offset          = bounds.min();
-    let offset          = Coord2(offset.x() + radius_max + 1.0, offset.y() + radius_max + 1.0);
+    let offset          = Coord2(offset.x() - radius_max - 1.0, offset.y() - radius_max - 1.0);
 
     // Create the daubs by walking the 2D curve
     let iterator = walk_curve_evenly(&curve2d, step, max_error)
@@ -62,7 +62,7 @@ where
             let t_mid           = (t_min+t_max)/2.0;
 
             let pos     = curve2d.point_at_pos(t_mid);
-            let pos     = pos + offset;
+            let pos     = pos - offset;
             let radius  = radius.point_at_pos(t_mid);
 
             TDistanceField::create_daub(pos, radius)
