@@ -64,9 +64,6 @@ where
             let pos     = pos + offset;
             let radius  = radius.point_at_pos(t_mid);
 
-            debug_assert!(pos.0 - radius >= 0.0);
-            debug_assert!(pos.1 - radius >= 0.0);
-
             TDistanceField::create_daub(pos, radius)
         });
 
