@@ -26,7 +26,7 @@ pub trait BrushDistanceField : SampledSignedDistanceField {
 /// Creates the daubs making up a brush stroke from a bezier curve
 ///
 /// The iterator can be passed into `DaubBrushDistanceField` to generate a distance field for the brush stroke. The generated path will
-/// be at an offset, so a vector to subtract from the coorindates of the distance field is also returned.
+/// be at an offset, so a vector to subtract from the coordinates of the distance field is also returned.
 ///
 /// The curve passed in to this function should have 3 dimensions: the third dimension is the radius of the brush stroke at each point.
 ///
@@ -73,6 +73,85 @@ where
 
     // TODO: figure out how to make curve2d owned by the iterator
     let iterator = iterator.collect::<Vec<_>>().into_iter();
+
+    (iterator, offset)
+}
+
+///
+/// Creates the daubs making up a brush stroke from a bezier path
+///
+/// The iterator can be passed into `DaubBrushDistanceField` to generate a distance field for the brush stroke. The generated path will
+/// be at an offset, so a vector to subtract from the coordinates of the distance field is also returned.
+///
+/// The curve passed in to this function should have 3 dimensions: the third dimension is the radius of the brush stroke at each point.
+///
+/// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
+/// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
+///
+pub fn brush_stroke_daubs_from_path<'a, TDistanceField, TPath>(path: &'a TPath, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField, ContourPosition)>, Coord2)
+where
+    TPath:          BezierPath,
+    TPath::Point:   Coordinate + Coordinate3D,
+    TDistanceField: 'a + BrushDistanceField,
+{
+    // Break the path up into 2D curves for the main path, and 1D curves for the radius
+    let mut curves = vec![];
+
+    for path_curve in path.to_curves::<Curve<_>>() {
+        let (start_point, (cp1, cp2), end_point) = path_curve.all_points();
+
+        let curve2d = Curve::from_points(Coord2(start_point.x(), start_point.y()), (Coord2(cp1.x(), cp1.y()), Coord2(cp2.x(), cp2.y())), Coord2(end_point.x(), end_point.y()));
+        let radius  = Curve::from_points(start_point.z(), (cp1.z(), cp2.z()), end_point.z());
+
+        curves.push((curve2d, radius));
+    }
+
+    // Compute the bounds of the curve as a whole
+    let (bounds, radius_bounds) = if curves.len() > 0 {
+        // Bounds start with the first item in the curve
+        let mut bounds          = curves[0].0.bounding_box::<Bounds<_>>();
+        let mut radius_bounds   = curves[0].1.bounding_box::<Bounds<_>>();
+
+        // Merge the other curve items
+        for (curve, radius) in curves.iter().skip(1) {
+            bounds          = bounds.union_bounds(curve.bounding_box());
+            radius_bounds   = radius_bounds.union_bounds(radius.bounding_box());
+        }
+
+        (bounds, radius_bounds)
+    } else {
+        // No curves
+        (Bounds::empty(), Bounds::empty())
+    };
+
+    // The bounding box is used to create the offset
+    let radius_max      = radius_bounds.max().max(0.0);
+    let radius_max      = radius_max.ceil() + 1.0;
+    let offset          = bounds.min();
+    let offset          = Coord2(offset.x() - radius_max - 1.0, offset.y() - radius_max - 1.0);
+
+    // Walk the curves to generate the points for this path
+    let iterator = curves.into_iter()
+        .enumerate()
+        .flat_map(move |(idx, (curve2d, radius))| {
+            let (start_point, (cp1, cp2), end_point) = curve2d.all_points();
+            let curve2d_offset  = Curve::from_points(start_point-offset, (cp1-offset, cp2-offset), end_point-offset);
+            let skip            = if idx == 0 { 0 } else { 1 };
+
+            walk_curve_evenly(&curve2d_offset, step, max_error)
+                .skip(skip)
+                .flat_map(move |curve_section| {
+                    let (t_min, t_max)  = curve_section.original_curve_t_values();
+                    let t_mid           = (t_min+t_max)/2.0;
+
+                    let pos     = curve2d.point_at_pos(t_mid);
+                    let radius  = radius.point_at_pos(t_mid);
+
+                    TDistanceField::create_daub(pos, radius)
+                })
+                .collect::<Vec<_>>()    // TODO
+                .into_iter()
+        });
 
     (iterator, offset)
 }
