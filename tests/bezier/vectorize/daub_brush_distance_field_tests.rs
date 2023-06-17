@@ -384,7 +384,7 @@ fn brush_curve(counter: i64) -> Curve<Coord3> {
     let off1 = 200.0 - pos/2.0;
     let off2 = pos/2.0;
 
-    let t  = 0.4f64;
+    let t  = (counter as f64) / 40.0; 
     let p0 = Coord2(-(t*1.0/2.0).cos() * 400.0, (t*1.0/3.0).sin() * 500.0) + Coord2(500.0, 500.0);
     let p1 = Coord2(-(t*2.0/3.0).cos() * 400.0, (t*1.0/4.0).sin() * 200.0) + Coord2(500.0, 500.0);
     let p2 = Coord2((t*1.0/4.0).cos() * 200.0, -(t*2.0/3.0).sin() * 400.0) + Coord2(500.0, 500.0);
