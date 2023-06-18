@@ -91,29 +91,7 @@ where
     /// A y-value of 0 is considered to be the 'top' of the bitmap
     ///
     fn point_is_inside(self, pos: ContourPosition) -> bool {
-        // Convert the y position to a coordinate
-        let x       = pos.x() as f64;
-        let y       = pos.y() as f64;
-        let y       = y * self.scale_factor;
-        let width   = self.size.width() as f64;
-
-        // Everything outside of the x-range is not inside in the contour
-        if x >= width {
-            return false;
-        }
-
-        for intercept in (self.intercept_fn)(y) {
-            if intercept.start <= x && intercept.end > x {
-                return true;
-            }
-
-            if intercept.start > x {
-                // Can give up early because the intercept function is assumed to return the intercepts in order
-                return false;
-            }
-        }
-
-        false
+        raycast_point_is_inside(&self.intercept_fn, pos, self.scale_factor, self.size)
     }
 
     ///
@@ -133,54 +111,100 @@ where
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
     fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
-        const EPSILON: f64 = 0.000000001;
-
-        // Convert the y position to a coordinate
-        let y       = y as f64;
-        let y       = y * self.scale_factor;
-        let width   = self.size.width() as f64;
-
-        // Find the intercepts on this line
-        let intercepts = (self.intercept_fn)(y);
-
-        // Process them to create the final result: remove intercepts outside of the width of the cell, clip the remaining intercepts, round to usizes and then remove any 0-width intercepts
-        intercepts.into_iter()
-            .filter(|intercept| intercept.end >= 0.0 && intercept.start < width)
-            .map(|intercept| {
-                let start   = if intercept.start < 0.0 { 0.0 } else { intercept.start };
-                let end     = if intercept.end >= width { width } else { intercept.end };
-                start..end
-            })
-            .map(|intercept| {
-                let min_x_ceil  = intercept.start.ceil();
-                let max_x_floor = (intercept.end + 1.0).floor();
-
-                // If the intercept is very close to the edge of the cell then assume a floating point rounding error
-                let min_x_ceil = if min_x_ceil - intercept.start > (1.0 - EPSILON) {
-                    // Could be rounding error :-/
-                    min_x_ceil - 1.0
-                } else {
-                    min_x_ceil
-                };
-
-                let max_x_floor = if max_x_floor - intercept.end > (1.0 - EPSILON) {
-                    // Another possible rounding error
-                    max_x_floor - 1.0
-                } else if max_x_floor - intercept.end < EPSILON {
-                    // Final rounding error
-                    max_x_floor + 1.0
-                } else {
-                    max_x_floor
-                };
-
-                let min_x = min_x_ceil as usize;
-                let max_x = max_x_floor as usize;
-
-                min_x..max_x
-            })
-            .filter(|intercept| intercept.start < intercept.end)
-            .collect()
+        raycast_intercepts_on_line(&self.intercept_fn, y, self.scale_factor, self.size)
     }
+}
+
+///
+/// Implementation of the `point_is_inside` trait function from `SampledContour`, implemented in terms of a function that
+/// returns where the intercepts are
+///
+#[inline]
+pub (crate) fn raycast_point_is_inside<TFn>(intercept_fn: &TFn, pos: ContourPosition, scale_factor: f64, size: ContourSize) -> bool 
+where
+    TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
+{
+    // Convert the y position to a coordinate
+    let x       = pos.x() as f64;
+    let y       = pos.y() as f64;
+    let y       = y * scale_factor;
+    let width   = size.width() as f64;
+
+    // Everything outside of the x-range is not inside in the contour
+    if x >= width {
+        return false;
+    }
+
+    for intercept in (intercept_fn)(y) {
+        if intercept.start <= x && intercept.end > x {
+            return true;
+        }
+
+        if intercept.start > x {
+            // Can give up early because the intercept function is assumed to return the intercepts in order
+            return false;
+        }
+    }
+
+    false
+}
+
+///
+/// Implementation of the `intercepts_on_line` trait function from `SampledContour`, implemented in terms of a function that
+/// returns where the intercepts are
+///
+#[inline]
+pub (crate) fn raycast_intercepts_on_line<TFn>(intercept_fn: &TFn, y: usize, scale_factor: f64, size: ContourSize) -> SmallVec<[Range<usize>; 4]> 
+where
+    TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
+{
+    const EPSILON: f64 = 0.000000001;
+
+    // Convert the y position to a coordinate
+    let y       = y as f64;
+    let y       = y * scale_factor;
+    let width   = size.width() as f64;
+
+    // Find the intercepts on this line
+    let intercepts = (intercept_fn)(y);
+
+    // Process them to create the final result: remove intercepts outside of the width of the cell, clip the remaining intercepts, round to usizes and then remove any 0-width intercepts
+    intercepts.into_iter()
+        .filter(|intercept| intercept.end >= 0.0 && intercept.start < width)
+        .map(|intercept| {
+            let start   = if intercept.start < 0.0 { 0.0 } else { intercept.start };
+            let end     = if intercept.end >= width { width } else { intercept.end };
+            start..end
+        })
+        .map(|intercept| {
+            let min_x_ceil  = intercept.start.ceil();
+            let max_x_floor = (intercept.end + 1.0).floor();
+
+            // If the intercept is very close to the edge of the cell then assume a floating point rounding error
+            let min_x_ceil = if min_x_ceil - intercept.start > (1.0 - EPSILON) {
+                // Could be rounding error :-/
+                min_x_ceil - 1.0
+            } else {
+                min_x_ceil
+            };
+
+            let max_x_floor = if max_x_floor - intercept.end > (1.0 - EPSILON) {
+                // Another possible rounding error
+                max_x_floor - 1.0
+            } else if max_x_floor - intercept.end < EPSILON {
+                // Final rounding error
+                max_x_floor + 1.0
+            } else {
+                max_x_floor
+            };
+
+            let min_x = min_x_ceil as usize;
+            let max_x = max_x_floor as usize;
+
+            min_x..max_x
+        })
+        .filter(|intercept| intercept.start < intercept.end)
+        .collect()
 }
 
 /// Ray cast contour with a dynamic intercept function
