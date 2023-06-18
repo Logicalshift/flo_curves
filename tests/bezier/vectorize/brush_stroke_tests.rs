@@ -15,7 +15,7 @@ where
     let (sp, (cp1, cp2), ep) = curve.all_points();
     let (d1, d2, d3) = (sp.distance_to(&cp1), cp2.distance_to(&ep), sp.distance_to(&ep));
 
-    if (d1 > d3 * 10.0) || (d2 > d3 * 10.0) {
+    if (d1 > d3 * 20.0) || (d2 > d3 * 20.0) {
         return false;
     }
 
