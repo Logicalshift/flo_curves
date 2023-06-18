@@ -4,6 +4,7 @@ use flo_curves::bezier::vectorize::*;
 use flo_curves::bezier::rasterize::*;
 
 use itertools::*;
+use smallvec::*;
 
 use std::collections::{HashMap};
 
@@ -12,19 +13,19 @@ fn create_circle(radius: f64) -> DynRayCastContour {
     let center      = radius.ceil() + 1.0;
     let diameter    = (center as usize) * 2 + 1;
 
-    DynRayCastContour::new(Box::new(|y| {
-        let y = y - self.center_y;
+    DynRayCastContour::new(Box::new(move |y| {
+        let y = y - center;
 
-        if y.abs() <= self.radius {
-            let intercept   = ((self.radius*self.radius) - (y*y)).sqrt();
-            let min_x       = self.center_x - intercept;
-            let max_x       = self.center_x + intercept;
+        if y.abs() <= radius {
+            let intercept   = ((radius*radius) - (y*y)).sqrt();
+            let min_x       = center - intercept;
+            let max_x       = center + intercept;
 
             smallvec![min_x..max_x]
         } else {
             smallvec![]
         }
-    }))
+    }), ContourSize(diameter, diameter))
 }
 
 fn draw<TContour: SampledContour>(contour: TContour) {
@@ -104,22 +105,6 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
     }
 
     assert!(num_empty < 8, "{:?} empty rows", num_empty);
-}
-
-#[test]
-fn reference_vs_copy_iterator() {
-    let circle_1 = create_circle(10.0);
-
-    let reference_edges = (&circle_1.as_contour()).edge_cell_iterator().collect::<Vec<_>>();
-    let copy_edges      = circle_1.as_contour().edge_cell_iterator().collect::<Vec<_>>();
-
-    assert!(copy_edges == reference_edges, "Edges don't match: {:?} != {:?}", copy_edges, reference_edges);
-}
-
-#[test]
-fn distance_is_radius_at_center() {
-    let circle = create_circle(10.0);
-    assert!((circle.distance_at_point(ContourPosition(11, 11))- -10.0).abs() < 0.1, "{}", circle.distance_at_point(ContourPosition(11, 11)));
 }
 
 #[test]
@@ -233,38 +218,4 @@ fn circle_path_from_contours() {
 
     // The error here is semi-random due to the hash table used to store the edge graph
     assert!(max_error <= 1.5, "Max error {:?} > 1.5. Path generated was {:?}", max_error, circle);
-}
-
-#[test]
-fn circle_path_from_distance_field() {
-    // Create a contour containing a circle in the middle, using the circular distance field
-    let radius          = 30.0;
-    let distance_field  = create_circle(radius);
-
-    let size            = distance_field.contour_size().0;
-    let center          = ((size as f64)/2.0).floor();
-
-    // Trace the samples to generate a vector
-    let circle = trace_paths_from_distance_field::<SimpleBezierPath>(&distance_field, 0.1);
-
-    // Should contain a single path
-    assert!(circle.len() == 1, "{:?}", circle);
-
-    // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
-    let mut max_error = 0.0;
-
-    for curve in circle[0].to_curves::<Curve<Coord2>>() {
-        for t in 0..100 {
-            let t           = (t as f64)/100.0;
-            let point       = curve.point_at_pos(t);
-            let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
-            let offset      = (distance-radius).abs();
-
-            println!("{:?} {:?} {}", offset, point, center);
-            max_error = f64::max(max_error, offset);
-        }
-    }
-
-    // The error here is semi-random due to the hash table used to store the edge graph
-    assert!(max_error <= 0.2, "Max error {:?} > 0.2. Path generated was {:?}", max_error, circle);
 }
