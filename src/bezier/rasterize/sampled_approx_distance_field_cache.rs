@@ -1,7 +1,7 @@
 use crate::bezier::vectorize::*;
 use crate::geo::*;
 
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
 
 ///
 /// Produces an approximation of a distance field for a shape
@@ -23,7 +23,7 @@ pub struct SampledApproxDistanceFieldCache {
     cached_points: HashMap<ContourPosition, (f64, usize)>,
 
     /// Points that are waiting to be calculated (these have neighbours in the cached_points structure)
-    waiting_points: Vec<ContourPosition>,
+    waiting_points: HashSet<ContourPosition>,
 }
 
 impl SampledApproxDistanceFieldCache {
@@ -49,7 +49,7 @@ impl SampledApproxDistanceFieldCache {
         // Cached points are known on the distance field, waiting points are points which have not distributed their distance to their
         // neighbours yet
         let mut cached_points   = HashMap::<ContourPosition, (f64, usize)>::new();
-        let mut waiting_points  = vec![];
+        let mut waiting_points  = HashSet::new();
 
         for idx in 0..zero_points.len() {
             // Fetch the next point
@@ -93,12 +93,81 @@ impl SampledApproxDistanceFieldCache {
                         cached_points.insert(pos, (distance, idx));
 
                         // As we haven't seen this point before, add to the waiting points
-                        waiting_points.push(pos);
+                        waiting_points.insert(pos);
                     }
                 }
             }
         }
 
         SampledApproxDistanceFieldCache { size, zero_points, cached_points, waiting_points }
+    }
+
+    ///
+    /// Process the waiting points to grow the set of points with distances set
+    ///
+    pub fn grow_samples(&mut self) {
+        use std::mem;
+
+        let width   = self.size.width() as f64;
+        let height  = self.size.height() as f64;
+
+        // Take the current set of waiting points
+        let mut waiting_points = HashSet::new();
+        mem::swap(&mut self.waiting_points, &mut waiting_points);
+
+        // Process the neighbours of each one to generate a new set of samples/waiting points
+        for pos in waiting_points {
+            // This point should already be cached: its nearest point is likely to be the nearest point of one of the neighbours
+            let (dist, nearest_idx)     = *self.cached_points.get(&pos).unwrap();
+            let (sample_x, sample_y)    = self.zero_points[nearest_idx];
+            let is_inside               = dist < 0.0;
+
+            // Process the neighbours of this point: either refine the distance if our 'root' point is nearer, or add a new 'nearest' point if not
+            let point_x = pos.x() as f64;
+            let point_y = pos.y() as f64;
+            
+            for y_offset in [-1, 1] {
+                // Use the offset point
+                let point_y = point_y + (y_offset as f64);
+                if point_y < 0.0 || point_y >= height {
+                    continue;
+                }
+
+                for x_offset in [-1, 1] {
+                    // Use the offset point (ignore samples outside of the size boundary)
+                    let point_x = point_x + (x_offset as f64);
+                    if point_x < 0.0 || point_x >= width {
+                        continue;
+                    }
+
+                    // Sample this position, determine if it's inside or not
+                    let pos         = ContourPosition(point_x as usize, point_y as usize);
+
+                    let offset_x    = sample_x - point_x;
+                    let offset_y    = sample_y - point_y;
+                    let distance    = offset_x*offset_x + offset_y*offset_y;
+
+                    // Update the cache at this point
+                    if let Some((existing_distance, existing_idx)) = self.cached_points.get_mut(&pos) {
+                        // Replace the existing point if this one is closer (we shouldn't grow 'inside' distances outside the shape as we shouldn't find closer points at the boundary)
+                        if distance < existing_distance.abs() {
+                            let distance = if is_inside { -distance } else { distance };
+
+                            *existing_distance  = distance;
+                            *existing_idx       = nearest_idx;
+
+                            self.waiting_points.insert(pos);
+                        }
+                    } else {
+                        // Haven't seen this point yet, so this is the closest perimeter point to it
+                        let distance = if is_inside { -distance } else { distance };
+                        self.cached_points.insert(pos, (distance, nearest_idx));
+
+                        // As we haven't seen this point before, add to the waiting points
+                        self.waiting_points.insert(pos);
+                    }
+                }
+            }
+        }
     }
 }
