@@ -170,4 +170,34 @@ impl SampledApproxDistanceFieldCache {
             }
         }
     }
+
+    ///
+    /// Retrieves the squared distance at this point
+    ///
+    /// This will return a positive value for outside points and a negative value for inside points. Take the square root of
+    /// the absolute value to get the distance, then preserve the sign to generate a signed distance field.
+    ///
+    pub fn distance_squared_at_point(&mut self, pos: ContourPosition) -> f64 {
+        if pos.0 >= self.size.width() { return f64::MAX };
+        if pos.0 >= self.size.height() { return f64::MAX };
+
+        loop {
+            if self.waiting_points.is_empty() {
+                // Have run out of waiting points: always return a value
+                if let Some((distance, _)) = self.cached_points.get(&pos) {
+                    return *distance;
+                } else {
+                    return f64::MAX;
+                }
+            }
+
+            // If we already have an estimate for the distance of this point, then use that
+            if let Some((distance, _)) = self.cached_points.get(&pos) {
+                return *distance;
+            }
+
+            // Grow the set of samples and try again
+            self.grow_samples();
+        }
+    }
 }
