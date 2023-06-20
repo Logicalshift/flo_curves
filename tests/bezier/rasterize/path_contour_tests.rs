@@ -6,11 +6,11 @@ use flo_curves::bezier::vectorize::*;
 
 #[test]
 fn basic_circle() {
-    let radius              = 300.0;
-    let center              = Coord2(500.0, 500.0);
-    let circle_path         = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
-    let circle_contour      = PathContour::new_contour(vec![circle_path], ContourSize(1000, 1000));
+    let circle_contour  = PathContour::new_contour(vec![circle_path], ContourSize(1000, 1000));
 
     let mut num_intercepts = 0;
     for y in 0..1000 {
@@ -30,7 +30,5 @@ fn basic_circle() {
         }
     }
 
-    println!("{:?}", num_intercepts);
-    assert!(num_intercepts > 0);
-    assert!(false);
+    assert!(num_intercepts >= 600 && num_intercepts <= 602, "num_intercepts = {:?}", num_intercepts);
 }
