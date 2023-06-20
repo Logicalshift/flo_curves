@@ -49,7 +49,7 @@ impl PathContour {
 
                     // Solve the intercepts on the y axis
                     let (w1, (w2, w3), w4)  = curve_y.all_points();
-                    let curve_intercepts    = solve_basis_for_t(w1, w2, w3, w4, 0.0);
+                    let curve_intercepts    = solve_basis_for_t(w1, w2, w3, w4, y);
 
                     // Add the intercepts to the list that we've been generating (we ignore t=0 as there should be a corresponding intercept at t=1 on the previous curve)
                     intercepts.extend(curve_intercepts.into_iter().filter(|t| *t > 0.0).map(|t| curve_x.point_at_pos(t)));
