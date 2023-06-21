@@ -43,7 +43,7 @@ where
 ///
 struct ScanlineCache {
     /// The y position of the scanline
-    ypos: usize,
+    ypos: f64,
 
     /// The index of the first daub that has not been included in the cache
     /// As the daubs are in y order, this will 
@@ -61,13 +61,13 @@ impl ScanlineCache {
     /// Creates a new daub scanline cache, initialised at ypos = 0
     ///
     pub fn new<TDaub>(daubs: &Vec<(TDaub, ContourPosition)>) -> Self {
-        let ypos                = 0;
+        let ypos                = 0.0;
         let mut next_daub       = 0;
         let mut scanline_daubs  = vec![];
         let idle_daubs          = vec![];
 
         // Read the daubs on the first scanline
-        while next_daub < daubs.len() && daubs[next_daub].1.1 <= ypos {
+        while next_daub < daubs.len() && daubs[next_daub].1.1 <= (ypos as _) {
             scanline_daubs.push(next_daub);
             next_daub += 1;
         }
@@ -83,7 +83,7 @@ impl ScanlineCache {
     ///
     /// Moves forward in y position until the specified line is reached
     ///
-    pub fn move_to_line<TDaub>(&mut self, daubs: &Vec<(TDaub, ContourPosition)>, new_ypos: usize) 
+    pub fn move_to_line<TDaub>(&mut self, daubs: &Vec<(TDaub, ContourPosition)>, new_ypos: f64) 
     where
         TDaub: SampledSignedDistanceField,
     {
@@ -102,14 +102,14 @@ impl ScanlineCache {
             let (possible_daub, pos) = &daubs[self.next_daub];
 
             // Stop once we find a daub that's beyond the next point
-            if pos.1 > new_ypos {
+            if pos.1 > new_ypos as _ {
                 break;
             }
             
             // Add the daub if its bounding box is not before the current position
             let max_y = pos.1 + possible_daub.field_size().height();
 
-            if max_y > new_ypos {
+            if max_y > new_ypos as _ {
                 new_daubs.push(self.next_daub);
             }
 
@@ -133,7 +133,7 @@ impl ScanlineCache {
                 let (daub, pos) = &daubs[*next_old];
                 let max_y = pos.1 + daub.field_size().height();
 
-                if max_y <= new_ypos {
+                if max_y <= new_ypos as _ {
                     // We've moved beyond the end of this daub (keep going)
                     maybe_next_old = old_daubs.next();
                     continue;
@@ -241,7 +241,7 @@ where
         InterceptScanEdgeIterator::new(self)
     }
 
-    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         // Create or fetch the cache
         let mut cache = self.scanline_cache.borrow_mut();
         let cache     = if let Some(cache) = &mut *cache {
@@ -258,18 +258,20 @@ where
         cache.move_to_line(&self.daubs, y);
 
         // Scan the intercepts left-to-right to build up the intercepts on this line
-        let mut intercepts: SmallVec<[Range<usize>; 4]> = smallvec![];
+        let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
         let mut to_remove = vec![];
 
         for daub_idx in cache.scanline_daubs.iter().copied() {
             let (daub, pos) = &self.daubs[daub_idx];
+            let posx        = pos.0 as f64;
+            let posy        = pos.1 as f64;
 
-            for intercept in daub.as_contour().intercepts_on_line(y - pos.1).into_iter() {
+            for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
                 // Strip empty ranges if they occur
                 if intercept.start >= intercept.end { continue; }
 
                 // Offset the intercept by the position of this daub
-                let intercept = (pos.0 + intercept.start)..(pos.0 + intercept.end);
+                let intercept = (posx + intercept.start)..(posx + intercept.end);
 
                 // In general, intercepts move left to right, so we should overlap the end of vec in general
                 if intercepts.len() == 0 {

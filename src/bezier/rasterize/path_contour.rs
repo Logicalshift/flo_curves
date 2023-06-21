@@ -90,7 +90,7 @@ impl<'a> SampledContour for &'a PathContour {
     }
 
     #[inline]
-    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         (&self.contour).intercepts_on_line(y)
     }
 }

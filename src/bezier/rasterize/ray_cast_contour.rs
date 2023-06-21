@@ -110,7 +110,7 @@ where
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         raycast_intercepts_on_line(&self.intercept_fn, y, self.scale_factor, self.size)
     }
 }
@@ -154,12 +154,10 @@ where
 /// returns where the intercepts are
 ///
 #[inline]
-pub (crate) fn raycast_intercepts_on_line<TFn>(intercept_fn: &TFn, y: usize, scale_factor: f64, size: ContourSize) -> SmallVec<[Range<usize>; 4]> 
+pub (crate) fn raycast_intercepts_on_line<TFn>(intercept_fn: &TFn, y: f64, scale_factor: f64, size: ContourSize) -> SmallVec<[Range<f64>; 4]> 
 where
     TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
 {
-    const EPSILON: f64 = 0.000000001;
-
     // Convert the y position to a coordinate
     let y       = y as f64;
     let y       = y * scale_factor;
@@ -175,33 +173,6 @@ where
             let start   = if intercept.start < 0.0 { 0.0 } else { intercept.start };
             let end     = if intercept.end >= width { width } else { intercept.end };
             start..end
-        })
-        .map(|intercept| {
-            let min_x_ceil  = intercept.start.ceil();
-            let max_x_floor = (intercept.end + 1.0).floor();
-
-            // If the intercept is very close to the edge of the cell then assume a floating point rounding error
-            let min_x_ceil = if min_x_ceil - intercept.start > (1.0 - EPSILON) {
-                // Could be rounding error :-/
-                min_x_ceil - 1.0
-            } else {
-                min_x_ceil
-            };
-
-            let max_x_floor = if max_x_floor - intercept.end > (1.0 - EPSILON) {
-                // Another possible rounding error
-                max_x_floor - 1.0
-            } else if max_x_floor - intercept.end < EPSILON {
-                // Final rounding error
-                max_x_floor + 1.0
-            } else {
-                max_x_floor
-            };
-
-            let min_x = min_x_ceil as usize;
-            let max_x = max_x_floor as usize;
-
-            min_x..max_x
         })
         .filter(|intercept| intercept.start < intercept.end)
         .collect()

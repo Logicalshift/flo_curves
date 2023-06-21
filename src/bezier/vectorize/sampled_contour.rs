@@ -81,9 +81,10 @@ pub trait SampledContour : Copy {
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: usize) -> SmallVec<[Range<usize>; 4]> {
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         // Default implementation is a simple scan of the line: mathematically defined contours might use a ray-casting algorithm here instead
-        let width = self.contour_size().width();
+        let width   = self.contour_size().width();
+        let y       = y.floor() as usize;
 
         let mut ranges = smallvec![];
         let mut inside = None;
@@ -94,14 +95,14 @@ pub trait SampledContour : Copy {
                 (None, true)            => { inside = Some(x); },
                 (Some(start_x), false)  => {
                     inside = None;
-                    ranges.push(start_x..x);
+                    ranges.push((start_x as f64)..(x as f64));
                 }
                 _ => { }
             }
         }
 
         if let Some(start_x) = inside {
-            ranges.push(start_x..width);
+            ranges.push((start_x as f64)..(width as f64));
         }
 
         ranges

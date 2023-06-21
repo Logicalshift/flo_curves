@@ -15,13 +15,13 @@ where
     contour: TContour,
 
     /// The y pos of the current line
-    ypos: usize,
+    ypos: f64,
 
     /// The preceding the current one
-    previous_line: SmallVec<[Range<usize>; 4]>,
+    previous_line: SmallVec<[Range<f64>; 4]>,
 
     /// The line following the current one
-    current_line: SmallVec<[Range<usize>; 4]>,
+    current_line: SmallVec<[Range<f64>; 4]>,
 
     /// Index into the previous line of the current x position
     previous_pos: usize,
@@ -30,7 +30,7 @@ where
     current_pos: usize,
 
     /// The next x position to return
-    xpos: usize,
+    xpos: f64,
 }
 
 impl<TContour> InterceptScanEdgeIterator<TContour>
@@ -44,16 +44,16 @@ where
         // Create an edge iterator in a neutral state
         let mut iterator = InterceptScanEdgeIterator {
             contour:        contour,
-            ypos:           0,
+            ypos:           0.0,
             previous_line:  smallvec![],
             current_line:   smallvec![],
             previous_pos:   0,
             current_pos:    0,
-            xpos:           0,
+            xpos:           0.0,
         };
 
         // Load the first line into the iterator
-        iterator.load_line(0);
+        iterator.load_line(0.0);
 
         iterator
     }
@@ -61,10 +61,10 @@ where
     ///
     /// Loads a line ahead of the current line into this contour
     ///
-    fn load_line(&mut self, ypos: usize) {
+    fn load_line(&mut self, ypos: f64) {
         use std::mem;
 
-        let height      = self.contour.contour_size().height();
+        let height      = self.contour.contour_size().height() as f64;
         let mut ypos    = ypos;
 
         loop {
@@ -99,13 +99,13 @@ where
             }
 
             // Try the next y position if we didn't find a match
-            ypos += 1;
+            ypos += 1.0;
 
             if ypos > height {
                 // No more lines in this shape
                 self.previous_pos   = 0;
                 self.current_pos    = 0;
-                self.xpos           = 0;
+                self.xpos           = 0.0;
                 self.ypos           = height;
                 break;
             }
@@ -120,7 +120,7 @@ where
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let height = self.contour.contour_size().height();
+        let height = self.contour.contour_size().height() as f64;
 
         // Outer loop: move lines
         loop {
@@ -189,14 +189,14 @@ where
                 let (bl, br) = lower.map_or((false, false), |lower| (xpos > lower.start && xpos <= lower.end, xpos >= lower.start && xpos < lower.end));
 
                 // Next iteration should look at the next cell along
-                self.xpos += 1;
+                self.xpos += 1.0;
 
                 // Found a cell to return to the caller
-                return Some((ContourPosition(xpos, self.ypos), ContourCell::from_corners(tl, tr, bl, br)));
+                return Some((ContourPosition(xpos as _, self.ypos as _), ContourCell::from_corners(tl, tr, bl, br)));
             }
 
             // Read in the next line from the contour
-            self.load_line(self.ypos + 1);
+            self.load_line(self.ypos + 1.0);
         }
     }
 }
