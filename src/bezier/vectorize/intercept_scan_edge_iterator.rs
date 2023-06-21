@@ -18,10 +18,10 @@ where
     ypos: f64,
 
     /// The preceding the current one
-    previous_line: SmallVec<[Range<f64>; 4]>,
+    previous_line: SmallVec<[Range<usize>; 4]>,
 
     /// The line following the current one
-    current_line: SmallVec<[Range<f64>; 4]>,
+    current_line: SmallVec<[Range<usize>; 4]>,
 
     /// Index into the previous line of the current x position
     previous_pos: usize,
@@ -30,7 +30,7 @@ where
     current_pos: usize,
 
     /// The next x position to return
-    xpos: f64,
+    xpos: usize,
 }
 
 impl<TContour> InterceptScanEdgeIterator<TContour>
@@ -49,13 +49,47 @@ where
             current_line:   smallvec![],
             previous_pos:   0,
             current_pos:    0,
-            xpos:           0.0,
+            xpos:           0,
         };
 
         // Load the first line into the iterator
         iterator.load_line(0.0);
 
         iterator
+    }
+
+    ///
+    /// Rounds an intercept in f64 coordinates to usize coordinates
+    ///
+    #[inline]
+    fn round_intercept(intercept: Range<f64>) -> Range<usize> {
+        const EPSILON: f64 = 0.000000001;
+
+        let min_x_ceil  = intercept.start.ceil();
+        let max_x_floor = (intercept.end + 1.0).floor();
+
+        // If the intercept is very close to the edge of the cell then assume a floating point rounding error
+        let min_x_ceil = if min_x_ceil - intercept.start > (1.0 - EPSILON) {
+            // Could be rounding error :-/
+            min_x_ceil - 1.0
+        } else {
+            min_x_ceil
+        };
+
+        let max_x_floor = if max_x_floor - intercept.end > (1.0 - EPSILON) {
+            // Another possible rounding error
+            max_x_floor - 1.0
+        } else if max_x_floor - intercept.end < EPSILON {
+            // Final rounding error
+            max_x_floor + 1.0
+        } else {
+            max_x_floor
+        };
+
+        let min_x = min_x_ceil as usize;
+        let max_x = max_x_floor as usize;
+
+        min_x..max_x
     }
 
     ///
@@ -73,7 +107,7 @@ where
 
             // Load the next line from the contour
             if ypos < height {
-                self.current_line = self.contour.intercepts_on_line(ypos);
+                self.current_line = self.contour.intercepts_on_line(ypos).into_iter().map(Self::round_intercept).filter(|i| i.start != i.end).collect();
             } else {
                 self.current_line = smallvec![];
             }
@@ -105,7 +139,7 @@ where
                 // No more lines in this shape
                 self.previous_pos   = 0;
                 self.current_pos    = 0;
-                self.xpos           = 0.0;
+                self.xpos           = 0;
                 self.ypos           = height;
                 break;
             }
@@ -189,7 +223,7 @@ where
                 let (bl, br) = lower.map_or((false, false), |lower| (xpos > lower.start && xpos <= lower.end, xpos >= lower.start && xpos < lower.end));
 
                 // Next iteration should look at the next cell along
-                self.xpos += 1.0;
+                self.xpos += 1;
 
                 // Found a cell to return to the caller
                 return Some((ContourPosition(xpos as _, self.ypos as _), ContourCell::from_corners(tl, tr, bl, br)));
