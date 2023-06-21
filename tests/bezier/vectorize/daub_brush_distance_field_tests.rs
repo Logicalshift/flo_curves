@@ -68,7 +68,7 @@ pub fn check_intercepts<TContour: SampledContour>(contour: TContour) {
     let mut num_empty = 0;
 
     for y in 0..height {
-        let intercepts  = contour.intercepts_on_line(y as _);
+        let intercepts  = contour.rounded_intercepts_on_line(y as _);
         let mut row     = vec![false; contour.contour_size().width()];
 
         if intercepts.len() == 0 {
