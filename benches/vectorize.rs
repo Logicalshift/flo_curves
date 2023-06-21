@@ -39,11 +39,11 @@ fn start_edge_iteration<TContour: SampledContour>(contour: TContour) -> impl Ite
     contour.edge_cell_iterator()
 }
 
-fn scan_intercepts<TContour: SampledContour>(contour: TContour) -> Vec<SmallVec<[Range<usize>; 4]>> {
+fn scan_intercepts<TContour: SampledContour>(contour: TContour) -> Vec<SmallVec<[Range<f64>; 4]>> {
     let mut result = vec![];
 
     for y in 0..contour.contour_size().height() {
-        result.push(contour.intercepts_on_line(y));
+        result.push(contour.intercepts_on_line(y as _));
     }
 
     result
