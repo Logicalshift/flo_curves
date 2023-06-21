@@ -14,7 +14,7 @@ fn basic_circle() {
 
     let mut num_intercepts = 0;
     for y in 0..1000 {
-        let intercepts = circle_contour.intercepts_on_line(y);
+        let intercepts = circle_contour.intercepts_on_line(y as _);
 
         num_intercepts += intercepts.len();
 
@@ -45,7 +45,7 @@ fn doughnut() {
 
     let mut num_intercepts = 0;
     for y in 0..1000 {
-        let intercepts = circle_contour.intercepts_on_line(y);
+        let intercepts = circle_contour.intercepts_on_line(y as _);
 
         num_intercepts += intercepts.len();
 

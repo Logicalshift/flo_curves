@@ -32,7 +32,7 @@ pub fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour)
 
     assert!(missing_bitmap_lines.is_empty(), "Contour contains extra lines: {:?}\n\n  {}", missing_bitmap_lines,
         missing_bitmap_lines.iter().sorted().map(|ypos| {
-            (*ypos, contour.intercepts_on_line(*ypos), bitmap.intercepts_on_line(*ypos), contour.intercepts_on_line(*ypos-1), bitmap.intercepts_on_line(*ypos-1))
+            (*ypos, contour.intercepts_on_line(*ypos as _), bitmap.intercepts_on_line(*ypos as _), contour.intercepts_on_line((*ypos-1) as _), bitmap.intercepts_on_line((*ypos-1) as _))
         })
         .map(|(ypos, contour1, bitmap1, contour2, bitmap2)| format!("{}: {} ({:?}, {:?}) {} ({:?} {:?})", 
             ypos, 
@@ -68,7 +68,7 @@ pub fn check_intercepts<TContour: SampledContour>(contour: TContour) {
     let mut num_empty = 0;
 
     for y in 0..height {
-        let intercepts  = contour.intercepts_on_line(y);
+        let intercepts  = contour.intercepts_on_line(y as _);
         let mut row     = vec![false; contour.contour_size().width()];
 
         if intercepts.len() == 0 {
@@ -82,13 +82,13 @@ pub fn check_intercepts<TContour: SampledContour>(contour: TContour) {
 
                 assert!(this_intercept.end != next_intercept.start, "Adjacent intercepts");
                 assert!(this_intercept.end < next_intercept.start, "Overlapping or unordered intercepts");
-                assert!(this_intercept.start < width, "Intercept starts beyond the width of the contour");
-                assert!(this_intercept.end <= width, "Intercept ends beyond the width of the contour");
+                assert!(this_intercept.start < width as _, "Intercept starts beyond the width of the contour");
+                assert!(this_intercept.end <= width as _, "Intercept ends beyond the width of the contour");
             }
         }
 
         for intercept in intercepts.iter() {
-            for x in intercept.clone() {
+            for x in (intercept.start as usize)..(intercept.end as usize) {
                 assert!(row[x] == false, "Overlapping intercept at {}, {}", x, y);
                 row[x] = true;
             }
