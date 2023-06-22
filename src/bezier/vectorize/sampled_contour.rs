@@ -117,26 +117,8 @@ pub trait SampledContour : Copy {
             .map(|intercept| {
                 const EPSILON: f64 = 0.000000001;
 
-                let min_x_ceil  = intercept.start.ceil();
-                let max_x_floor = (intercept.end + 1.0).floor();
-
-                // If the intercept is very close to the edge of the cell then assume a floating point rounding error
-                let min_x_ceil = if min_x_ceil - intercept.start > (1.0 - EPSILON) {
-                    // Could be rounding error :-/
-                    min_x_ceil - 1.0
-                } else {
-                    min_x_ceil
-                };
-
-                let max_x_floor = if max_x_floor - intercept.end > (1.0 - EPSILON) {
-                    // Another possible rounding error
-                    max_x_floor - 1.0
-                } else if max_x_floor - intercept.end < EPSILON {
-                    // Final rounding error
-                    max_x_floor + 1.0
-                } else {
-                    max_x_floor
-                };
+                let min_x_ceil  = (intercept.start - EPSILON).ceil();
+                let max_x_floor = (intercept.end + EPSILON).ceil();
 
                 let min_x = min_x_ceil as usize;
                 let max_x = max_x_floor as usize;
