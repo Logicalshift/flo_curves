@@ -277,7 +277,7 @@ where
                 if intercepts.len() == 0 {
                     // First intercept
                     intercepts.push(intercept);
-                } else if intercepts[intercepts.len()-1].end < intercept.start {
+                } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
                     // Beyond the end of the last intercept
                     intercepts.push(intercept);
                 } else {
@@ -286,13 +286,13 @@ where
                     let overlap_intercept = intercept.start..intercept.end;
 
                     for idx in (0..intercepts.len()).into_iter().rev() {
-                        if intercepts[idx].end < intercept.start {
+                        if intercepts[idx].end.floor() < intercept.start.ceil() {
                             // All the remaining ranges are before the start of this one
                             intercepts.insert(idx+1, intercept);
 
                             found_overlap = true;
                             break;
-                        } else if intercepts[idx].start <= intercept.end && intercepts[idx].end >= intercept.start {
+                        } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
                             // Ranges overlap
                             intercepts[idx].end = intercepts[idx].end.max(intercept.end);
 
