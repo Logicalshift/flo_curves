@@ -132,8 +132,19 @@ fn teeny_circle_offset_3() {
 }
 
 #[test]
+fn teeny_circle_offset_4() {
+    let contour = CircularDistanceField::with_radius(2.5).with_center_offset(0.3, 0.4);
+
+    println!("{:?} {:?}", contour.intercepts_on_line(2.0), contour.rounded_intercepts_on_line(2.0));
+
+    check_contour_against_bitmap(&contour, true);
+}
+
+#[test]
 fn medium_circle_1() {
     let contour = CircularDistanceField::with_radius(32.0);
+    println!("{:?} {:?}", contour.intercepts_on_line(1.0), contour.rounded_intercepts_on_line(1.0));
+
     check_contour_against_bitmap(&contour, false);
 }
 
