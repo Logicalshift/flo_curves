@@ -125,12 +125,16 @@ impl<'a> SampledContour for &'a CircularDistanceField {
 
     #[inline]
     fn point_is_inside(self, pos: ContourPosition) -> bool {
-        let pos_x       = pos.0 as f64;
-        let pos_y       = pos.1 as f64;
-        let offset_x    = pos_x - self.center_x;
-        let offset_y    = pos_y - self.center_y;
+        let intercepts = self.intercepts_on_line(pos.1 as f64);
 
-        (offset_x*offset_x + offset_y*offset_y) <= (self.radius*self.radius)
+        if let Some(intercept) = intercepts.get(0) {
+            // The x position must be within the requested range
+            let xpos = pos.0 as f64;
+            xpos >= intercept.start && xpos < intercept.end
+        } else {
+            // No intercept on the y axis
+            false
+        }
     }
 
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {

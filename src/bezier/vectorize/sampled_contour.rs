@@ -115,13 +115,11 @@ pub trait SampledContour : Copy {
         self.intercepts_on_line(y)
             .into_iter()
             .map(|intercept| {
-                const EPSILON: f64 = 0.000000001;
-
-                let min_x_ceil  = (intercept.start - EPSILON).ceil();
-                let max_x_floor = (intercept.end + EPSILON).ceil();
+                let min_x_ceil = intercept.start.ceil();
+                let max_x_ceil = intercept.end.ceil();
 
                 let min_x = min_x_ceil as usize;
-                let max_x = max_x_floor as usize;
+                let max_x = max_x_ceil as usize;
 
                 min_x..max_x
             })
