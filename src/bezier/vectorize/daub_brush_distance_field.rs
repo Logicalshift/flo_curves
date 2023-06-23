@@ -267,6 +267,9 @@ where
             let posy        = pos.1 as f64;
 
             for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
+                // Strip empty ranges if they occur
+                if intercept.start >= intercept.end { continue; }
+
                 // Offset the intercept by the position of this daub
                 let intercept = (posx + intercept.start)..(posx + intercept.end);
 
