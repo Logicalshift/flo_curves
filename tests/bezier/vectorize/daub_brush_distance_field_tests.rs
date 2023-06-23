@@ -334,6 +334,8 @@ fn doughnut_intercept_scan() {
             (&brush, ContourPosition(x.round() as _, y.round() as _))
         }));
 
+    println!("y=1, {:?} {:?}", distance_field.intercepts_on_line(1.0), distance_field.rounded_intercepts_on_line(1.0));
+
     check_intercepts(&distance_field);
 }
 
