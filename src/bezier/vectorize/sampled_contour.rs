@@ -111,8 +111,9 @@ pub trait SampledContour : Copy {
     ///
     /// Retrieves the intercepts on a line, rounded to pixel positions
     ///
+    #[inline]
     fn rounded_intercepts_on_line(self, y: f64) -> SmallVec<[Range<usize>; 4]> {
-        self.intercepts_on_line(y)
+        let intercepts = self.intercepts_on_line(y)
             .into_iter()
             .map(|intercept| {
                 let min_x_ceil = intercept.start.ceil();
@@ -124,8 +125,33 @@ pub trait SampledContour : Copy {
                 min_x..max_x
             })
             .filter(|intercept| intercept.start != intercept.end)
-            .collect()
+            .collect::<SmallVec<_>>();
+
+        if intercepts.len() <= 1 {
+            intercepts
+        } else {
+            merge_overlapping(intercepts)
+        }
     }
+}
+
+///
+/// Merges any intercepts that are adjacent or overlapping in the range
+///
+fn merge_overlapping(intercepts: SmallVec<[Range<usize>; 4]>) -> SmallVec<[Range<usize>; 4]> {
+    let mut intercepts = intercepts;
+
+    let mut idx = 0;
+    while idx < intercepts.len()-1 {
+        if intercepts[idx].end >= intercepts[idx+1].start {
+            intercepts[idx].end = intercepts[idx+1].end;
+            intercepts.remove(idx+1);
+        } else {
+            idx += 1;
+        }
+    }
+
+    intercepts
 }
 
 impl ContourCell {
