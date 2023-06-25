@@ -36,6 +36,9 @@ where
 
     /// The scanline cache is used to improve the performance of the `intercepts_on_line()` function by tracking what we found on the previous line
     scanline_cache: RefCell<Option<ScanlineCache>>,
+
+    /// Cached intercepts on a scanline, used for the 'point is inside' operation
+    cached_intercepts: RefCell<Option<(usize, SmallVec<[Range<usize>; 4]>)>>,
 }
 
 ///
@@ -193,7 +196,8 @@ where
     /// Creates a daub brush distance field from a list of daubs and their positions
     ///
     pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
-        let scanline_cache = RefCell::new(None);
+        let scanline_cache      = RefCell::new(None);
+        let cached_intercepts   = RefCell::new(None);
 
         // Collect the daubs
         let mut daubs   = daubs.into_iter().collect::<Vec<_>>();
@@ -215,7 +219,7 @@ where
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
         DaubBrushDistanceField {
-            size, daubs, scanline_cache
+            size, daubs, scanline_cache, cached_intercepts
         }
     }
 }
@@ -233,7 +237,25 @@ where
 
     #[inline]
     fn point_is_inside(self, pos: ContourPosition) -> bool {
-        self.distance_at_point(pos) <= 0.0
+        let mut cached_intercepts = self.cached_intercepts.borrow_mut();
+
+        // Read the intercepts on the current line, using the cached version if we already calculated it
+        let intercepts = if let Some((ypos, intercepts)) = &mut *cached_intercepts {
+            if *ypos == pos.1 {
+                intercepts
+            } else {
+                *intercepts = self.rounded_intercepts_on_line(pos.1 as _);
+                *ypos       = pos.1;
+
+                intercepts
+            }
+        } else {
+            *cached_intercepts = Some((pos.1, self.rounded_intercepts_on_line(pos.1 as _)));
+            &(*cached_intercepts).as_ref().unwrap().1
+        };
+
+        intercepts.iter()
+            .any(|range| range.start <= pos.0 && range.end > pos.0)
     }
 
     #[inline]

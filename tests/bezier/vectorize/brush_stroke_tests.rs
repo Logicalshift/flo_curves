@@ -77,6 +77,8 @@ fn broken_brush_is_smooth_1() {
 #[test]
 fn broken_brush_is_smooth_2() {
     for counter in 464..507 {
+        println!("counter = {:?}", counter);
+
         let brush_curve      = brush_curve(counter);
         let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
@@ -133,6 +135,30 @@ fn broken_brush_stroke_check_contour_1() {
 #[test]
 fn broken_brush_stroke_check_contour_2() {
     let counter = 507;
+
+    let brush_curve      = brush_curve(counter);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
+}
+
+#[test]
+fn broken_brush_stroke_check_contour_3() {
+    let counter = 466;
+
+    let brush_curve      = brush_curve(counter);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
+}
+
+#[test]
+fn broken_brush_stroke_check_contour_4() {
+    let counter = 379;
 
     let brush_curve      = brush_curve(counter);
     let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
