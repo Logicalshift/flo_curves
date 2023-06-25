@@ -202,89 +202,81 @@ where
     }
 
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        // Fetch the daubs at this y position
-        /*
-        let height = self.size.height();
-
-        if y < 0.0 || y >= height as _ {
-            return smallvec![];
-        }
-        */
-        if y < 0.0 {
-            return smallvec![];
-        }
-
-        let line_daubs = &self.daubs_for_line[y.floor() as usize];
-
-        // Scan the intercepts left-to-right to build up the intercepts on this line
         let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
-        let mut to_remove = vec![];
 
-        for daub_idx in line_daubs.iter().copied() {
-            let (daub, pos) = &self.daubs[daub_idx];
-            let posx        = pos.0 as f64;
-            let posy        = pos.1 as f64;
+        // Fetch the daubs at this y position
+        if y >= 0.0 && y < self.size.1 as f64 {
+            let line_daubs = &self.daubs_for_line[y.floor() as usize];
 
-            for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
-                // Strip empty ranges if they occur
-                if intercept.start >= intercept.end { continue; }
+            // Scan the intercepts left-to-right to build up the intercepts on this line
+            let mut to_remove = vec![];
 
-                // Offset the intercept by the position of this daub
-                let intercept = (posx + intercept.start)..(posx + intercept.end);
+            for daub_idx in line_daubs.iter().copied() {
+                let (daub, pos) = &self.daubs[daub_idx];
+                let posx        = pos.0 as f64;
+                let posy        = pos.1 as f64;
 
-                // In general, intercepts move left to right, so we should overlap the end of vec in general
-                if intercepts.len() == 0 {
-                    // First intercept
-                    intercepts.push(intercept);
-                } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
-                    // Beyond the end of the last intercept
-                    intercepts.push(intercept);
-                } else {
-                    // Might overlap one of the intercepts towards the end of the list
-                    let mut found_overlap = false;
-                    let overlap_intercept = intercept.start..intercept.end;
+                for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
+                    // Strip empty ranges if they occur
+                    if intercept.start >= intercept.end { continue; }
 
-                    for idx in (0..intercepts.len()).into_iter().rev() {
-                        if intercepts[idx].end.floor() < intercept.start.ceil() {
-                            // All the remaining ranges are before the start of this one
-                            intercepts.insert(idx+1, intercept);
+                    // Offset the intercept by the position of this daub
+                    let intercept = (posx + intercept.start)..(posx + intercept.end);
 
-                            found_overlap = true;
-                            break;
-                        } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
-                            // Ranges overlap
-                            intercepts[idx].end = intercepts[idx].end.max(intercept.end);
+                    // In general, intercepts move left to right, so we should overlap the end of vec in general
+                    if intercepts.len() == 0 {
+                        // First intercept
+                        intercepts.push(intercept);
+                    } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
+                        // Beyond the end of the last intercept
+                        intercepts.push(intercept);
+                    } else {
+                        // Might overlap one of the intercepts towards the end of the list
+                        let mut found_overlap = false;
+                        let overlap_intercept = intercept.start..intercept.end;
 
-                            if intercept.start < intercepts[idx].start {
-                                // Range extends to the left
-                                intercepts[idx].start = intercept.start;
+                        for idx in (0..intercepts.len()).into_iter().rev() {
+                            if intercepts[idx].end.floor() < intercept.start.ceil() {
+                                // All the remaining ranges are before the start of this one
+                                intercepts.insert(idx+1, intercept);
 
-                                // If a range start expands to the left, there may be preceding ranges that overlap this one
-                                to_remove.clear();
+                                found_overlap = true;
+                                break;
+                            } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
+                                // Ranges overlap
+                                intercepts[idx].end = intercepts[idx].end.max(intercept.end);
 
-                                for overlap_idx in (0..idx).into_iter().rev() {
-                                    if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
-                                        to_remove.push(overlap_idx);
-                                        intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
-                                        intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
-                                    } else {
-                                        break;
+                                if intercept.start < intercepts[idx].start {
+                                    // Range extends to the left
+                                    intercepts[idx].start = intercept.start;
+
+                                    // If a range start expands to the left, there may be preceding ranges that overlap this one
+                                    to_remove.clear();
+
+                                    for overlap_idx in (0..idx).into_iter().rev() {
+                                        if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
+                                            to_remove.push(overlap_idx);
+                                            intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
+                                            intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+                                    for remove_idx in to_remove.iter() {
+                                        intercepts.remove(*remove_idx);
                                     }
                                 }
 
-                                for remove_idx in to_remove.iter() {
-                                    intercepts.remove(*remove_idx);
-                                }
+                                found_overlap = true;
+                                break;
                             }
-
-                            found_overlap = true;
-                            break;
                         }
-                    }
 
-                    if !found_overlap {
-                        // Intercept must be at the start of the list
-                        intercepts.insert(0, overlap_intercept);
+                        if !found_overlap {
+                            // Intercept must be at the start of the list
+                            intercepts.insert(0, overlap_intercept);
+                        }
                     }
                 }
             }
