@@ -34,158 +34,11 @@ where
     /// to allow scanning downwards to find which 'daubs' influence which points
     daubs: Vec<(TDaub, ContourPosition)>,
 
-    /// The scanline cache is used to improve the performance of the `intercepts_on_line()` function by tracking what we found on the previous line
-    scanline_cache: RefCell<Option<ScanlineCache>>,
+    /// Indexed by y position and sorted by initial x position, the daubs that are on each line within the size of the distance field
+    daubs_for_line: Vec<Vec<usize>>,
 
     /// Cached intercepts on a scanline, used for the 'point is inside' operation
     cached_intercepts: RefCell<Option<(usize, SmallVec<[Range<usize>; 4]>)>>,
-}
-
-///
-/// Caches the indexes of the daubs that are on a particular scanline
-///
-struct ScanlineCache {
-    /// The y position of the scanline
-    ypos: f64,
-
-    /// The index of the first daub that has not been included in the cache
-    /// As the daubs are in y order, this will 
-    next_daub: usize,
-
-    /// The indexes of the daubs on this scanline, ordered by x position
-    scanline_daubs: Vec<usize>,
-
-    /// A preallocated vec ready to load the daubs for the next line
-    idle_daubs: Vec<usize>,
-}
-
-impl ScanlineCache {
-    ///
-    /// Creates a new daub scanline cache, initialised at ypos = 0
-    ///
-    pub fn new<TDaub>(daubs: &Vec<(TDaub, ContourPosition)>) -> Self {
-        let ypos                = 0.0;
-        let mut next_daub       = 0;
-        let mut scanline_daubs  = vec![];
-        let idle_daubs          = vec![];
-
-        // Read the daubs on the first scanline
-        while next_daub < daubs.len() && daubs[next_daub].1.1 <= (ypos as _) {
-            scanline_daubs.push(next_daub);
-            next_daub += 1;
-        }
-
-        // Order by x position
-        scanline_daubs.sort_by(|a, b| daubs[*a].1.0.cmp(&daubs[*b].1.0));
-
-        ScanlineCache {
-            ypos, next_daub, scanline_daubs, idle_daubs
-        }
-    }
-
-    ///
-    /// Moves forward in y position until the specified line is reached
-    ///
-    pub fn move_to_line<TDaub>(&mut self, daubs: &Vec<(TDaub, ContourPosition)>, new_ypos: f64) 
-    where
-        TDaub: SampledSignedDistanceField,
-    {
-        use std::mem;
-
-        // Nothing to do if we're already on the specified line
-        if self.ypos == new_ypos {
-            return;
-        }
-
-        // Build a list of the indexes of the daubs that are new to the next line
-        let mut new_daubs   = vec![];
-        let num_daubs       = daubs.len();
-
-        while self.next_daub < num_daubs {
-            let (possible_daub, pos) = &daubs[self.next_daub];
-
-            // Stop once we find a daub that's beyond the next point
-            if pos.1 > new_ypos as _ {
-                break;
-            }
-            
-            // Add the daub if its bounding box is not before the current position
-            let max_y = pos.1 + possible_daub.field_size().height();
-
-            if max_y > new_ypos as _ {
-                new_daubs.push(self.next_daub);
-            }
-
-            self.next_daub += 1;
-        }
-
-        // Order the new daubs so they can be mixed in to the existing ones
-        new_daubs.sort_by(|a, b| daubs[*a].1.0.cmp(&daubs[*b].1.0));
-
-        // Fill the idle structure from the new daubs and the existing daubs (we can just merge them together and eliminate any finished daubs as we go)
-        self.idle_daubs.clear();
-
-        let mut new_daubs       = new_daubs.into_iter();
-        let mut old_daubs       = self.scanline_daubs.iter();
-        let mut maybe_next_new  = new_daubs.next();
-        let mut maybe_next_old  = old_daubs.next();
-
-        loop {
-            // Skip the old daub if it ends at this position
-            if let Some(next_old) = maybe_next_old {
-                let (daub, pos) = &daubs[*next_old];
-                let max_y = pos.1 + daub.field_size().height();
-
-                if max_y <= new_ypos as _ {
-                    // We've moved beyond the end of this daub (keep going)
-                    maybe_next_old = old_daubs.next();
-                    continue;
-                }
-            }
-
-            match (maybe_next_old, maybe_next_new) {
-                (Some(next_old), Some(next_new)) => {
-                    // Decide whether or not to add the old or the new item next
-                    let (_old_daub, old_pos) = &daubs[*next_old];
-                    let (_new_daub, new_pos) = &daubs[next_new];
-
-                    if new_pos.x() < old_pos.x() {
-                        // New daub is before the old one
-                        self.idle_daubs.push(next_new);
-                        maybe_next_new = new_daubs.next();
-                    } else {
-                        // Old daub is before the new one
-                        self.idle_daubs.push(*next_old);
-                        maybe_next_old = old_daubs.next();
-                    }
-                }
-
-                (Some(next_old), None) => {
-                    // Add the next old item to the idle list
-                    self.idle_daubs.push(*next_old);
-
-                    // Move to the next item, then continue (so that the check above is made on the next item)
-                    maybe_next_old = old_daubs.next();
-                }
-
-                (None, Some(next_new)) => {
-                    // Add the remaining new items and stop
-                    self.idle_daubs.push(next_new);
-
-                    while let Some(next_new) = new_daubs.next() {
-                        self.idle_daubs.push(next_new);
-                    }
-                    break;
-                }
-
-                (None, None) => { break; }
-            }
-        }
-
-        // Swap the idle list for the active scanline daubs
-        mem::swap(&mut self.scanline_daubs, &mut self.idle_daubs);
-        self.ypos = new_ypos;
-    }
 }
 
 impl<TDaub> DaubBrushDistanceField<TDaub>
@@ -196,7 +49,6 @@ where
     /// Creates a daub brush distance field from a list of daubs and their positions
     ///
     pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
-        let scanline_cache      = RefCell::new(None);
         let cached_intercepts   = RefCell::new(None);
 
         // Collect the daubs
@@ -218,10 +70,96 @@ where
         // Sort the daubs by y position
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
+        // Figure out which daubs are on each line
+        let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
+
         DaubBrushDistanceField {
-            size, daubs, scanline_cache, cached_intercepts
+            size, daubs, daubs_for_line, cached_intercepts
         }
     }
+
+    ///
+    /// Creates the cache of daubs for each line in this brush stroke
+    ///
+    fn create_daubs_for_lines(ordered_daubs: &Vec<(TDaub, ContourPosition)>, height: usize) -> Vec<Vec<usize>> {
+        let mut daubs_for_line  = Vec::with_capacity(height);
+        let mut ypos            = 0;
+        let mut next_daub       = 0;
+        let mut current_line    = Vec::<usize>::new();
+
+        loop {
+            // Stop caching once we reach the end of the brush
+            if ypos >= height {
+                break;
+            }
+
+            // Remove any daubs that end before the current line
+            current_line.retain(|daub_idx| ordered_daubs[*daub_idx].1.1 + ordered_daubs[*daub_idx].0.field_size().height() > ypos);
+
+            // Add any daubs that first appear at the current y position
+            let mut new_daubs = vec![];
+
+            while next_daub < ordered_daubs.len() && ordered_daubs[next_daub].1.1 == ypos {
+                new_daubs.push(next_daub);
+                next_daub += 1;
+            }
+
+            // Order by x index
+            new_daubs.sort_by(|a, b| ordered_daubs[*a].1.0.cmp(&ordered_daubs[*b].1.0));
+
+            if current_line.len() == 0 {
+                current_line = new_daubs;
+            } else if new_daubs.len() > 0 {
+                // Merge the daubs into one line
+                let mut new_current_line    = vec![];
+                let mut current_iter        = current_line.into_iter();
+                let mut new_iter            = new_daubs.into_iter();
+
+                let mut current_next        = current_iter.next();
+                let mut new_next            = new_iter.next();
+                
+                loop {
+                    match (current_next, new_next) {
+                        (Some(current_idx), Some(new_idx)) => {
+                            let current_x   = ordered_daubs[current_idx].1.0;
+                            let new_x       = ordered_daubs[new_idx].1.0;
+
+                            if current_x < new_x {
+                                new_current_line.push(current_idx);
+                                current_next = current_iter.next();
+                            } else {
+                                new_current_line.push(new_idx);
+                                new_next = new_iter.next();
+                            }
+                        }
+
+                        (Some(current_idx), None) => {
+                            new_current_line.push(current_idx);
+                            current_next = current_iter.next();
+                        }
+
+                        (None, Some(new_idx)) => {
+                            new_current_line.push(new_idx);
+                            new_next = new_iter.next();
+                        }
+
+                        (None, None) => { break; }
+                    }
+                }
+
+                current_line = new_current_line;
+            }
+
+            // Add the daub indexes for the current line to the results
+            daubs_for_line.push(current_line.clone());
+
+            // Prepare to process the next line
+            ypos += 1;
+        }
+
+        daubs_for_line
+    }
+
 }
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
@@ -264,90 +202,81 @@ where
     }
 
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        // Create or fetch the cache
-        let mut cache = self.scanline_cache.borrow_mut();
-        let cache     = if let Some(cache) = &mut *cache {
-            cache
-        } else {
-            *cache = Some(ScanlineCache::new(&self.daubs));
-            cache.as_mut().unwrap()
-        };
-
-        // Update the cache to contain the daubs on the current line
-        if cache.ypos > y {
-            *cache = ScanlineCache::new(&self.daubs);
-        }
-        cache.move_to_line(&self.daubs, y);
-
-        // Scan the intercepts left-to-right to build up the intercepts on this line
         let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
-        let mut to_remove = vec![];
 
-        for daub_idx in cache.scanline_daubs.iter().copied() {
-            let (daub, pos) = &self.daubs[daub_idx];
-            let posx        = pos.0 as f64;
-            let posy        = pos.1 as f64;
+        // Fetch the daubs at this y position
+        if y >= 0.0 && y < self.size.1 as f64 {
+            let line_daubs = &self.daubs_for_line[y.floor() as usize];
 
-            for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
-                // Strip empty ranges if they occur
-                if intercept.start >= intercept.end { continue; }
+            // Scan the intercepts left-to-right to build up the intercepts on this line
+            let mut to_remove = vec![];
 
-                // Offset the intercept by the position of this daub
-                let intercept = (posx + intercept.start)..(posx + intercept.end);
+            for daub_idx in line_daubs.iter().copied() {
+                let (daub, pos) = &self.daubs[daub_idx];
+                let posx        = pos.0 as f64;
+                let posy        = pos.1 as f64;
 
-                // In general, intercepts move left to right, so we should overlap the end of vec in general
-                if intercepts.len() == 0 {
-                    // First intercept
-                    intercepts.push(intercept);
-                } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
-                    // Beyond the end of the last intercept
-                    intercepts.push(intercept);
-                } else {
-                    // Might overlap one of the intercepts towards the end of the list
-                    let mut found_overlap = false;
-                    let overlap_intercept = intercept.start..intercept.end;
+                for intercept in daub.as_contour().intercepts_on_line(y - posy).into_iter() {
+                    // Strip empty ranges if they occur
+                    if intercept.start >= intercept.end { continue; }
 
-                    for idx in (0..intercepts.len()).into_iter().rev() {
-                        if intercepts[idx].end.floor() < intercept.start.ceil() {
-                            // All the remaining ranges are before the start of this one
-                            intercepts.insert(idx+1, intercept);
+                    // Offset the intercept by the position of this daub
+                    let intercept = (posx + intercept.start)..(posx + intercept.end);
 
-                            found_overlap = true;
-                            break;
-                        } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
-                            // Ranges overlap
-                            intercepts[idx].end = intercepts[idx].end.max(intercept.end);
+                    // In general, intercepts move left to right, so we should overlap the end of vec in general
+                    if intercepts.len() == 0 {
+                        // First intercept
+                        intercepts.push(intercept);
+                    } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
+                        // Beyond the end of the last intercept
+                        intercepts.push(intercept);
+                    } else {
+                        // Might overlap one of the intercepts towards the end of the list
+                        let mut found_overlap = false;
+                        let overlap_intercept = intercept.start..intercept.end;
 
-                            if intercept.start < intercepts[idx].start {
-                                // Range extends to the left
-                                intercepts[idx].start = intercept.start;
+                        for idx in (0..intercepts.len()).into_iter().rev() {
+                            if intercepts[idx].end.floor() < intercept.start.ceil() {
+                                // All the remaining ranges are before the start of this one
+                                intercepts.insert(idx+1, intercept);
 
-                                // If a range start expands to the left, there may be preceding ranges that overlap this one
-                                to_remove.clear();
+                                found_overlap = true;
+                                break;
+                            } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
+                                // Ranges overlap
+                                intercepts[idx].end = intercepts[idx].end.max(intercept.end);
 
-                                for overlap_idx in (0..idx).into_iter().rev() {
-                                    if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
-                                        to_remove.push(overlap_idx);
-                                        intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
-                                        intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
-                                    } else {
-                                        break;
+                                if intercept.start < intercepts[idx].start {
+                                    // Range extends to the left
+                                    intercepts[idx].start = intercept.start;
+
+                                    // If a range start expands to the left, there may be preceding ranges that overlap this one
+                                    to_remove.clear();
+
+                                    for overlap_idx in (0..idx).into_iter().rev() {
+                                        if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
+                                            to_remove.push(overlap_idx);
+                                            intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
+                                            intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+                                    for remove_idx in to_remove.iter() {
+                                        intercepts.remove(*remove_idx);
                                     }
                                 }
 
-                                for remove_idx in to_remove.iter() {
-                                    intercepts.remove(*remove_idx);
-                                }
+                                found_overlap = true;
+                                break;
                             }
-
-                            found_overlap = true;
-                            break;
                         }
-                    }
 
-                    if !found_overlap {
-                        // Intercept must be at the start of the list
-                        intercepts.insert(0, overlap_intercept);
+                        if !found_overlap {
+                            // Intercept must be at the start of the list
+                            intercepts.insert(0, overlap_intercept);
+                        }
                     }
                 }
             }
@@ -372,31 +301,27 @@ where
         // Distance is the minimum of all the daubs that overlap this point
         let mut distance = f64::MAX;
 
-        for (daub, ContourPosition(x, y)) in self.daubs.iter() {
-            // The daubs are sorted in order, so a daub that starts beyond the current point means that all the future daubs also start beyond that point
-            if *y > pos.1 {
-                break;
-            }
+        if pos.1 < self.size.1 {
+            for daub_idx in self.daubs_for_line[pos.1].iter().copied() {
+                let (daub, ContourPosition(x, y)) = &self.daubs[daub_idx];
 
-            // Ignore daubs that occur before this position too
-            if *x > pos.0 {
-                continue;
-            }
+                // Ignore daubs that occur after the position we're interested in
+                if *x > pos.0 {
+                    break;
+                }
 
-            // Check for overlap
-            let ContourSize(w, h) = daub.field_size();
-            if x+w <= pos.0 {
-                continue;
-            }
-            if y+h <= pos.1 {
-                continue;
-            }
+                // Check for overlap
+                let ContourSize(w, _) = daub.field_size();
+                if x+w <= pos.0 {
+                    continue;
+                }
 
-            // Fetch the distance from the daub
-            let this_distance = daub.distance_at_point(ContourPosition(pos.0 - *x, pos.1 - *y));
+                // Fetch the distance from the daub
+                let this_distance = daub.distance_at_point(ContourPosition(pos.0 - *x, pos.1 - *y));
 
-            // The lowest distance of all the overlapping daubs is the distance for this point
-            distance = f64::min(distance, this_distance);
+                // The lowest distance of all the overlapping daubs is the distance for this point
+                distance = f64::min(distance, this_distance);
+            }
         }
 
         distance
