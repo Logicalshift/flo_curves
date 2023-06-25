@@ -301,31 +301,27 @@ where
         // Distance is the minimum of all the daubs that overlap this point
         let mut distance = f64::MAX;
 
-        for (daub, ContourPosition(x, y)) in self.daubs.iter() {
-            // The daubs are sorted in order, so a daub that starts beyond the current point means that all the future daubs also start beyond that point
-            if *y > pos.1 {
-                break;
-            }
+        if pos.1 < self.size.1 {
+            for daub_idx in self.daubs_for_line[pos.1].iter().copied() {
+                let (daub, ContourPosition(x, y)) = &self.daubs[daub_idx];
 
-            // Ignore daubs that occur before this position too
-            if *x > pos.0 {
-                continue;
-            }
+                // Ignore daubs that occur after the position we're interested in
+                if *x > pos.0 {
+                    break;
+                }
 
-            // Check for overlap
-            let ContourSize(w, h) = daub.field_size();
-            if x+w <= pos.0 {
-                continue;
-            }
-            if y+h <= pos.1 {
-                continue;
-            }
+                // Check for overlap
+                let ContourSize(w, _) = daub.field_size();
+                if x+w <= pos.0 {
+                    continue;
+                }
 
-            // Fetch the distance from the daub
-            let this_distance = daub.distance_at_point(ContourPosition(pos.0 - *x, pos.1 - *y));
+                // Fetch the distance from the daub
+                let this_distance = daub.distance_at_point(ContourPosition(pos.0 - *x, pos.1 - *y));
 
-            // The lowest distance of all the overlapping daubs is the distance for this point
-            distance = f64::min(distance, this_distance);
+                // The lowest distance of all the overlapping daubs is the distance for this point
+                distance = f64::min(distance, this_distance);
+            }
         }
 
         distance
