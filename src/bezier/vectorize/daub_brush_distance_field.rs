@@ -205,9 +205,11 @@ where
         // Fetch the daubs at this y position
         let height = self.size.height();
 
+        /*
         if y < 0.0 || y >= height as _ {
             return smallvec![];
         }
+        */
 
         let line_daubs = &self.daubs_for_line[y.floor() as usize];
 
