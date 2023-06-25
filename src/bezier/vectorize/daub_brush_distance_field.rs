@@ -37,9 +37,6 @@ where
     /// Indexed by y position and sorted by initial x position, the daubs that are on each line within the size of the distance field
     daubs_for_line: Vec<Vec<usize>>,
 
-    /// The scanline cache is used to improve the performance of the `intercepts_on_line()` function by tracking what we found on the previous line
-    scanline_cache: RefCell<Option<ScanlineCache>>,
-
     /// Cached intercepts on a scanline, used for the 'point is inside' operation
     cached_intercepts: RefCell<Option<(usize, SmallVec<[Range<usize>; 4]>)>>,
 }
@@ -199,7 +196,6 @@ where
     /// Creates a daub brush distance field from a list of daubs and their positions
     ///
     pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
-        let scanline_cache      = RefCell::new(None);
         let cached_intercepts   = RefCell::new(None);
 
         // Collect the daubs
@@ -225,7 +221,7 @@ where
         let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
 
         DaubBrushDistanceField {
-            size, daubs, daubs_for_line, scanline_cache, cached_intercepts
+            size, daubs, daubs_for_line, cached_intercepts
         }
     }
 
@@ -353,26 +349,20 @@ where
     }
 
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        // Create or fetch the cache
-        let mut cache = self.scanline_cache.borrow_mut();
-        let cache     = if let Some(cache) = &mut *cache {
-            cache
-        } else {
-            *cache = Some(ScanlineCache::new(&self.daubs));
-            cache.as_mut().unwrap()
-        };
+        // Fetch the daubs at this y position
+        let height = self.size.height();
 
-        // Update the cache to contain the daubs on the current line
-        if cache.ypos > y {
-            *cache = ScanlineCache::new(&self.daubs);
+        if y < 0.0 || y >= height as _ {
+            return smallvec![];
         }
-        cache.move_to_line(&self.daubs, y);
+
+        let line_daubs = &self.daubs_for_line[y.floor() as usize];
 
         // Scan the intercepts left-to-right to build up the intercepts on this line
         let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
         let mut to_remove = vec![];
 
-        for daub_idx in cache.scanline_daubs.iter().copied() {
+        for daub_idx in line_daubs.iter().copied() {
             let (daub, pos) = &self.daubs[daub_idx];
             let posx        = pos.0 as f64;
             let posy        = pos.1 as f64;
