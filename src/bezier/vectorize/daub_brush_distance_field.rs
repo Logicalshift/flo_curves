@@ -203,13 +203,16 @@ where
 
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         // Fetch the daubs at this y position
+        /*
         let height = self.size.height();
 
-        /*
         if y < 0.0 || y >= height as _ {
             return smallvec![];
         }
         */
+        if y < 0.0 {
+            return smallvec![];
+        }
 
         let line_daubs = &self.daubs_for_line[y.floor() as usize];
 
