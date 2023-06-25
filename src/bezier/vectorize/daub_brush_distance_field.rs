@@ -34,6 +34,9 @@ where
     /// to allow scanning downwards to find which 'daubs' influence which points
     daubs: Vec<(TDaub, ContourPosition)>,
 
+    /// Indexed by y position and sorted by initial x position, the daubs that are on each line within the size of the distance field
+    daubs_for_line: Vec<Vec<usize>>,
+
     /// The scanline cache is used to improve the performance of the `intercepts_on_line()` function by tracking what we found on the previous line
     scanline_cache: RefCell<Option<ScanlineCache>>,
 
@@ -218,10 +221,96 @@ where
         // Sort the daubs by y position
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
+        // Figure out which daubs are on each line
+        let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
+
         DaubBrushDistanceField {
-            size, daubs, scanline_cache, cached_intercepts
+            size, daubs, daubs_for_line, scanline_cache, cached_intercepts
         }
     }
+
+    ///
+    /// Creates the cache of daubs for each line in this brush stroke
+    ///
+    fn create_daubs_for_lines(ordered_daubs: &Vec<(TDaub, ContourPosition)>, height: usize) -> Vec<Vec<usize>> {
+        let mut daubs_for_line  = Vec::with_capacity(height);
+        let mut ypos            = 0;
+        let mut next_daub       = 0;
+        let mut current_line    = Vec::<usize>::new();
+
+        loop {
+            // Stop caching once we reach the end of the brush
+            if ypos >= height {
+                break;
+            }
+
+            // Remove any daubs that end before the current line
+            current_line.retain(|daub_idx| ordered_daubs[*daub_idx].1.1 + ordered_daubs[*daub_idx].0.field_size().height() > ypos);
+
+            // Add any daubs that first appear at the current y position
+            let mut new_daubs = vec![];
+
+            while next_daub < ordered_daubs.len() && ordered_daubs[next_daub].1.1 == ypos {
+                new_daubs.push(next_daub);
+                next_daub += 1;
+            }
+
+            // Order by x index
+            new_daubs.sort_by(|a, b| ordered_daubs[*a].1.0.cmp(&ordered_daubs[*b].1.0));
+
+            if current_line.len() == 0 {
+                current_line = new_daubs;
+            } else if new_daubs.len() > 0 {
+                // Merge the daubs into one line
+                let mut new_current_line    = vec![];
+                let mut current_iter        = current_line.into_iter();
+                let mut new_iter            = new_daubs.into_iter();
+
+                let mut current_next        = current_iter.next();
+                let mut new_next            = new_iter.next();
+                
+                loop {
+                    match (current_next, new_next) {
+                        (Some(current_idx), Some(new_idx)) => {
+                            let current_x   = ordered_daubs[current_idx].1.0;
+                            let new_x       = ordered_daubs[new_idx].1.0;
+
+                            if current_x < new_x {
+                                new_current_line.push(current_idx);
+                                current_next = current_iter.next();
+                            } else {
+                                new_current_line.push(new_idx);
+                                new_next = new_iter.next();
+                            }
+                        }
+
+                        (Some(current_idx), None) => {
+                            new_current_line.push(current_idx);
+                            current_next = current_iter.next();
+                        }
+
+                        (None, Some(new_idx)) => {
+                            new_current_line.push(new_idx);
+                            new_next = new_iter.next();
+                        }
+
+                        (None, None) => { break; }
+                    }
+                }
+
+                current_line = new_current_line;
+            }
+
+            // Add the daub indexes for the current line to the results
+            daubs_for_line.push(current_line.clone());
+
+            // Prepare to process the next line
+            ypos += 1;
+        }
+
+        daubs_for_line
+    }
+
 }
 
 impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
