@@ -58,11 +58,14 @@ fn circle_from_contours<TContour: SampledContour>(contour: TContour) {
     trace_paths_from_samples::<SimpleBezierPath>(contour, 0.1);
 }
 
-fn create_brush_stroke() -> Curve<Coord3> {
+fn create_brush_stroke(brush_size: f64) -> Curve<Coord3> {
     let pos  = 0.3 * 2.0*f64::consts::PI;
     let pos  = (pos.sin() + 1.0) * 200.0;
     let off1 = 200.0 - pos/2.0;
     let off2 = pos/2.0;
+
+    let off1 = off1 * (brush_size/200.0);
+    let off2 = off2 * (brush_size/200.0);
 
     let t  = 0.4f64;
     let p0 = Coord2(-(t*1.0/2.0).cos() * 400.0, (t*1.0/3.0).sin() * 500.0) + Coord2(500.0, 500.0);
@@ -92,7 +95,7 @@ fn create_lms_offset_curve(curve: Curve<Coord3>) -> Vec<Curve<Coord2>> {
 }
 
 fn create_brush_stroke_daubs() -> Vec<(CircularDistanceField, ContourPosition)> {
-    let brush_curve         = create_brush_stroke();
+    let brush_curve         = create_brush_stroke(200.0);
     let (daubs, _offset)    = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     daubs.collect::<Vec<_>>()
@@ -117,7 +120,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let daub_distance_field     = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs());
     let distance_field_edges    = find_edges(&daub_distance_field);
 
-    c.bench_function("offset_curves", |b| b.iter(|| create_lms_offset_curve(create_brush_stroke())));
+    c.bench_function("offset_curves", |b| b.iter(|| create_lms_offset_curve(create_brush_stroke(200.0))));
 
     c.bench_function("find_edges 100", |b| b.iter(|| find_edges(&circle_100)));
     c.bench_function("find_edges 1000", |b| b.iter(|| find_edges(&circle_1000)));
