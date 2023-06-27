@@ -215,6 +215,24 @@ Found 6 outliers among 100 measurements (6.00%)
   2 (2.00%) high mild
   3 (3.00%) high severe
 
+Benchmarking circle_path_intercepts_scan 1000: Collecting 100 samples in estimat
+circle_path_intercepts_scan 1000
+                        time:   [102.14 µs 102.38 µs 102.65 µs]
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) low severe
+  3 (3.00%) low mild
+  5 (5.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking circle_path_trace 1000: Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.2s, enable flat sampling, or reduce sample count to 50.
+Benchmarking circle_path_trace 1000: Collecting 100 samples in estimated 7.2450
+circle_path_trace 1000  time:   [1.4295 ms 1.4319 ms 1.4344 ms]
+Found 7 outliers among 100 measurements (7.00%)
+  2 (2.00%) low mild
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+
 Benchmarking create_brush_stroke_daubs: Collecting 100 samples in estimated 5.02
 create_brush_stroke_daubs
                         time:   [36.978 µs 37.986 µs 38.927 µs]

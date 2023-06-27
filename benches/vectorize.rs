@@ -1,9 +1,11 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
 use flo_curves::geo::*;
+use flo_curves::arc::*;
 use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
+use flo_curves::bezier::rasterize::*;
 
 use smallvec::*;
 
@@ -120,6 +122,9 @@ fn criterion_benchmark(c: &mut Criterion) {
     let daub_distance_field     = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(200.0));
     let distance_field_edges    = find_edges(&daub_distance_field);
 
+    let circle_path_1000        = Circle::new(Coord2(500.0, 500.0), 300.0).to_path::<SimpleBezierPath>();
+    let path_contour_1000       = PathContour::new_contour(vec![circle_path_1000], ContourSize(1000, 1000));
+
     c.bench_function("offset_curves", |b| b.iter(|| create_lms_offset_curve(create_brush_stroke(200.0))));
 
     c.bench_function("find_edges 100", |b| b.iter(|| find_edges(&circle_100)));
@@ -136,6 +141,9 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("circle_start_iteration", |b| b.iter(|| start_edge_iteration(&circle_1000_generated)));
     c.bench_function("circle_from_contours_not_sampled 100", |b| b.iter(|| circle_from_contours(&circle_100_generated)));
     c.bench_function("circle_from_contours_not_sampled 1000", |b| b.iter(|| circle_from_contours(&circle_1000_generated)));
+
+    c.bench_function("circle_path_intercepts_scan 1000", |b| b.iter(|| scan_intercepts(&path_contour_1000)));
+    c.bench_function("circle_path_trace 1000", |b| b.iter(|| circle_from_contours(&path_contour_1000)));
 
     c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs(200.0)));
     c.bench_function("create_brush_distance_field", |b| b.iter(|| DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(200.0))));
