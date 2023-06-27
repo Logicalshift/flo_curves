@@ -94,8 +94,8 @@ fn create_lms_offset_curve(curve: Curve<Coord3>) -> Vec<Curve<Coord2>> {
     offset_1.into_iter().chain(offset_2).collect()
 }
 
-fn create_brush_stroke_daubs() -> Vec<(CircularDistanceField, ContourPosition)> {
-    let brush_curve         = create_brush_stroke(200.0);
+fn create_brush_stroke_daubs(brush_size: f64) -> Vec<(CircularDistanceField, ContourPosition)> {
+    let brush_curve         = create_brush_stroke(brush_size);
     let (daubs, _offset)    = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
 
     daubs.collect::<Vec<_>>()
@@ -117,7 +117,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let circle_1000             = sampled_circle(1000, 300);
     let circle_100_generated    = CircularDistanceField::with_radius(30.0);
     let circle_1000_generated   = CircularDistanceField::with_radius(300.0);
-    let daub_distance_field     = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs());
+    let daub_distance_field     = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(200.0));
     let distance_field_edges    = find_edges(&daub_distance_field);
 
     c.bench_function("offset_curves", |b| b.iter(|| create_lms_offset_curve(create_brush_stroke(200.0))));
@@ -137,8 +137,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("circle_from_contours_not_sampled 100", |b| b.iter(|| circle_from_contours(&circle_100_generated)));
     c.bench_function("circle_from_contours_not_sampled 1000", |b| b.iter(|| circle_from_contours(&circle_1000_generated)));
 
-    c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs()));
-    c.bench_function("create_brush_distance_field", |b| b.iter(|| DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs())));
+    c.bench_function("create_brush_stroke_daubs", |b| b.iter(|| create_brush_stroke_daubs(200.0)));
+    c.bench_function("create_brush_distance_field", |b| b.iter(|| DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(200.0))));
     c.bench_function("start_brush_iteration", |b| b.iter(|| start_edge_iteration(&daub_distance_field)));
     c.bench_function("brush_intercepts_scan", |b| b.iter(|| scan_intercepts(&daub_distance_field)));
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| find_edges(&daub_distance_field)));
@@ -174,7 +174,11 @@ fn criterion_benchmark(c: &mut Criterion) {
        trace_distance_field(&distance_field);  
     }));
     c.bench_function("full_distance_field", |b| b.iter(|| {
-        let daub_distance_field = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs());
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(200.0));
+        trace_distance_field(&daub_distance_field)
+    }));
+    c.bench_function("full_distance_field_small_brush", |b| b.iter(|| {
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs(20.0));
         trace_distance_field(&daub_distance_field)
     }));
 }

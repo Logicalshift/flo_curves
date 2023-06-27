@@ -330,3 +330,10 @@ full_distance_field     time:   [6.9908 ms 7.0071 ms 7.0262 ms]
 Found 18 outliers among 100 measurements (18.00%)
   8 (8.00%) high mild
   10 (10.00%) high severe
+
+Benchmarking full_distance_field_small_brush: Collecting 100 samples in estimate
+full_distance_field_small_brush
+                        time:   [1.9786 ms 1.9813 ms 1.9847 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  4 (4.00%) high mild
+  5 (5.00%) high severe
