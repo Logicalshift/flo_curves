@@ -271,3 +271,16 @@ trace_distance_field    time:   [6.1612 ms 6.1656 ms 6.1706 ms]
 Found 8 outliers among 100 measurements (8.00%)
   1 (1.00%) high mild
   7 (7.00%) high severe
+
+Benchmarking single_daub: Collecting 100 samples in estimated 5.7351 s (10k iter
+single_daub             time:   [561.34 µs 562.67 µs 564.33 µs]
+Found 9 outliers among 100 measurements (9.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  6 (6.00%) high severe
+
+Benchmarking full_distance_field: Collecting 100 samples in estimated 5.6433 s (
+full_distance_field     time:   [6.9908 ms 7.0071 ms 7.0262 ms]
+Found 18 outliers among 100 measurements (18.00%)
+  8 (8.00%) high mild
+  10 (10.00%) high severe

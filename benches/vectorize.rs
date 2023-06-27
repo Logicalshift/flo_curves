@@ -141,6 +141,15 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| find_edges(&daub_distance_field)));
     c.bench_function("read_edge_distances", |b| b.iter(|| read_edge_distances(&daub_distance_field, &distance_field_edges)));
     c.bench_function("trace_distance_field", |b| b.iter(|| trace_distance_field(&daub_distance_field)));
+
+    c.bench_function("single_daub", |b| b.iter(|| {
+       let distance_field = DaubBrushDistanceField::from_daubs(vec![(CircularDistanceField::with_radius(300.0), ContourPosition(0, 0))]);
+       trace_distance_field(&distance_field);  
+    }));
+    c.bench_function("full_distance_field", |b| b.iter(|| {
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(create_brush_stroke_daubs());
+        trace_distance_field(&daub_distance_field)
+    }));
 }
 
 criterion_group!(benches, criterion_benchmark);
