@@ -279,6 +279,52 @@ Found 9 outliers among 100 measurements (9.00%)
   2 (2.00%) high mild
   6 (6.00%) high severe
 
+Benchmarking single_small_daub: Collecting 100 samples in estimated 5.0734 s (23
+single_small_daub       time:   [21.257 µs 21.284 µs 21.315 µs]
+                        change: [-0.2222% +0.0139% +0.2671%] (p = 0.91 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking ten_daubs: Collecting 100 samples in estimated 7.1284 s (10k iterat
+ten_daubs               time:   [707.45 µs 708.46 µs 709.83 µs]
+                        change: [-0.0721% +0.1380% +0.3910%] (p = 0.25 > 0.05)
+                        No change in performance detected.
+Found 9 outliers among 100 measurements (9.00%)
+  3 (3.00%) high mild
+  6 (6.00%) high severe
+
+Benchmarking hundred_daubs: Collecting 100 samples in estimated 8.9830 s (5050 i
+hundred_daubs           time:   [1.7817 ms 1.7850 ms 1.7887 ms]
+                        change: [-0.1110% +0.1783% +0.4611%] (p = 0.22 > 0.05)
+                        No change in performance detected.
+Found 8 outliers among 100 measurements (8.00%)
+  3 (3.00%) high mild
+  5 (5.00%) high severe
+
+Benchmarking hundred_small_daubs: Collecting 100 samples in estimated 5.0630 s (
+hundred_small_daubs     time:   [142.94 µs 143.12 µs 143.32 µs]
+                        change: [-1.9237% -1.4361% -0.8985%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 8 outliers among 100 measurements (8.00%)
+  4 (4.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking hundred_daubs_horiz: Collecting 100 samples in estimated 8.9246 s (
+hundred_daubs_horiz     time:   [1.7677 ms 1.7697 ms 1.7721 ms]
+Found 13 outliers among 100 measurements (13.00%)
+  6 (6.00%) high mild
+  7 (7.00%) high severe
+
+Benchmarking hundred_small_daubs_horiz: Collecting 100 samples in estimated 5.41
+hundred_small_daubs_horiz
+                        time:   [133.95 µs 134.08 µs 134.23 µs]
+Found 8 outliers among 100 measurements (8.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  5 (5.00%) high severe
+
 Benchmarking full_distance_field: Collecting 100 samples in estimated 5.6433 s (
 full_distance_field     time:   [6.9908 ms 7.0071 ms 7.0262 ms]
 Found 18 outliers among 100 measurements (18.00%)
