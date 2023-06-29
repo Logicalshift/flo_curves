@@ -138,19 +138,18 @@ where
             let curve2d_offset  = Curve::from_points(start_point-offset, (cp1-offset, cp2-offset), end_point-offset);
             let skip            = if idx == 0 { 0 } else { 1 };
 
-            walk_curve_evenly(&curve2d_offset, step, max_error)
-                .skip(skip)
-                .flat_map(move |curve_section| {
+            walk_curve_evenly_map(curve2d_offset, step, max_error, move |curve_section| {
                     let (t_min, t_max)  = curve_section.original_curve_t_values();
                     let t_mid           = (t_min+t_max)/2.0;
 
                     let pos     = curve2d_offset.point_at_pos(t_mid);
                     let radius  = radius.point_at_pos(t_mid);
 
+                    (pos, radius)
+                }).skip(skip)
+                .flat_map(move |(pos, radius)| {
                     TDistanceField::create_daub(pos, radius)
                 })
-                .collect::<Vec<_>>()    // TODO
-                .into_iter()
         });
 
     (iterator, offset)
