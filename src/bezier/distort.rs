@@ -18,7 +18,7 @@ where
     DistortFn:      Fn(CurveIn::Point, f64) -> CurveOut::Point,
 {
     // Walk the curve at roughly step_len increments
-    let sections    = walk_curve_evenly(curve, step_len, step_len / 4.0);
+    let sections    = walk_curve_evenly(curve.clone(), step_len, step_len / 4.0);
 
     // Generate the points to fit to using the distortion function
     let fit_points  = sections.map(|section| {
@@ -56,7 +56,7 @@ where
 
     loop {
         // Distort the current curve
-        let sections    = walk_curve_evenly(&current_curve, step_len, step_len / 4.0);
+        let sections    = walk_curve_evenly(current_curve, step_len, step_len / 4.0);
 
         let fit_points  = sections.map(|section| {
                 let (t, _)  = section.original_curve_t_values();
