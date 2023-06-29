@@ -20,7 +20,7 @@ impl PathContour {
     /// Creates a new path contour, which will produce a scan-converted contour for the specified path. The path will
     /// be processed with an even-odd winding rule. 
     ///
-    pub fn new_contour<TPath>(path: Vec<TPath>, size: ContourSize) -> Self
+    pub fn from_path<TPath>(path: Vec<TPath>, size: ContourSize) -> Self
     where
         TPath:          'static + BezierPath,
         TPath::Point:   Coordinate + Coordinate2D,
