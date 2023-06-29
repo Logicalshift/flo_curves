@@ -31,8 +31,7 @@ impl PathDistanceField {
                     .into_iter()
                     .flat_map(|curve| {
                         walk_curve_evenly(curve, 1.0, 0.1)
-                            .skip(1)
-                            .map(|section| section.point_at_pos(0.5))
+                            .map(|section| section.point_at_pos(1.0))
                     })
             });
 
