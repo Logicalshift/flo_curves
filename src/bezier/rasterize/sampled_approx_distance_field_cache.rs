@@ -34,7 +34,7 @@ impl SampledApproxDistanceFieldCache {
     /// The samples should be around 1 pixel distant from each other: closer samples will work but many will likely not contribute to the final
     /// shape, and samples that are further apart will produce larger distortions in the distance field.
     ///
-    pub fn from_points<'a, TPoint>(perimeter_samples: impl IntoIterator<Item=TPoint>, is_inside: impl 'a + Fn(f64, f64) -> bool, size: ContourSize) -> Self 
+    pub fn from_points<'a, TPoint>(perimeter_samples: impl 'a + IntoIterator<Item=TPoint>, is_inside: impl 'a + Fn(f64, f64) -> bool, size: ContourSize) -> Self 
     where
         TPoint: Coordinate2D,
     {
