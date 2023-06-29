@@ -62,7 +62,7 @@ where
     let curve2d         = Curve::from_points(Coord2(start_point.x(), start_point.y())-offset, (Coord2(cp1.x(), cp1.y())-offset, Coord2(cp2.x(), cp2.y())-offset), Coord2(end_point.x(), end_point.y())-offset);
 
     // Create the daubs by walking the 2D curve
-    let iterator = walk_curve_evenly(curve2d, step, max_error)
+    let iterator = walk_curve_evenly(&curve2d, step, max_error)
         .flat_map(move |curve_section| {
             let (t_min, t_max)  = curve_section.original_curve_t_values();
             let t_mid           = (t_min+t_max)/2.0;
@@ -72,6 +72,9 @@ where
 
             TDistanceField::create_daub(pos, radius)
         });
+
+    // TODO: figure out how to make curve2d owned by the iterator
+    let iterator = iterator.collect::<Vec<_>>().into_iter();
 
     (iterator, offset)
 }
@@ -137,7 +140,7 @@ where
             let curve2d_offset  = Curve::from_points(start_point-offset, (cp1-offset, cp2-offset), end_point-offset);
             let skip            = if idx == 0 { 0 } else { 1 };
 
-            walk_curve_evenly(curve2d_offset, step, max_error)
+            walk_curve_evenly(&curve2d_offset, step, max_error)
                 .skip(skip)
                 .flat_map(move |curve_section| {
                     let (t_min, t_max)  = curve_section.original_curve_t_values();
@@ -148,6 +151,8 @@ where
 
                     TDistanceField::create_daub(pos, radius)
                 })
+                .collect::<Vec<_>>()    // TODO
+                .into_iter()
         });
 
     (iterator, offset)
