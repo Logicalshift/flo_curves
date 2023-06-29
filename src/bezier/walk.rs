@@ -5,6 +5,8 @@ use super::derivative::*;
 
 use crate::geo::*;
 
+use ouroboros::*;
+
 ///
 /// Walks a bezier curve by dividing it into a number of sections
 ///
@@ -289,5 +291,53 @@ impl<'a, Curve: BezierCurve, DistanceIter: 'a+Iterator<Item=f64>> Iterator for V
 
         // Continue with the even iterator with the new distance
         self.even_iterator.next()
+    }
+}
+
+///
+/// Walks a curve at even increments and maps the sections to another type
+///
+/// This takes ownership of the curve rather than borrowing it to generate the sections, which makes it possible to use in circumstances where
+/// `walk_curve_evenly(...).map(...)` would require the result to be collected due to the borrowing. 
+///
+pub fn walk_curve_evenly_map<TCurve, TResult>(curve: TCurve, distance: f64, max_error: f64, map_fn: impl for<'a> Fn(CurveSection<'a, TCurve>) -> TResult) -> impl Iterator<Item=TResult>
+where
+    TCurve: 'static + BezierCurve,
+{
+    EvenWalkMapIteratorBuilder {
+        curve:                  curve,
+        map_fn:                 map_fn,
+        walk_iterator_builder:  move |curve| walk_curve_evenly(curve, distance, max_error)
+    }.build()
+}
+
+#[self_referencing]
+struct EvenWalkMapIterator<TCurve, TMapFn, TResult>
+where
+    TCurve: 'static + BezierCurve,
+    TMapFn: for<'a> Fn(CurveSection<'a, TCurve>) -> TResult,
+{
+    curve: TCurve,
+    map_fn: TMapFn,
+
+    #[borrows(curve)]
+    #[not_covariant]
+    walk_iterator: EvenWalkIterator<'this, TCurve>,
+}
+
+impl<TCurve, TMapFn, TResult> Iterator for EvenWalkMapIterator<TCurve, TMapFn, TResult>
+where
+    TCurve: 'static + BezierCurve,
+    TMapFn: for<'a> Fn(CurveSection<'a, TCurve>) -> TResult,
+{
+    type Item = TResult;
+
+    fn next(&mut self) -> Option<TResult> {
+        self.with_mut(|fields| {
+            let next = fields.walk_iterator.next();
+            let next = next.map(|next| (fields.map_fn)(next));
+
+            next
+        })
     }
 }
