@@ -30,8 +30,7 @@ impl PathDistanceField {
                 subpath.to_curves::<Curve<_>>()
                     .into_iter()
                     .flat_map(|curve| {
-                        walk_curve_evenly(&curve, 1.0, 0.1)
-                            .map(|section| section.point_at_pos(1.0))
+                        walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0))
                     })
             });
 
