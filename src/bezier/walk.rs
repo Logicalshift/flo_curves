@@ -300,6 +300,7 @@ impl<'a, Curve: BezierCurve, DistanceIter: 'a+Iterator<Item=f64>> Iterator for V
 /// This takes ownership of the curve rather than borrowing it to generate the sections, which makes it possible to use in circumstances where
 /// `walk_curve_evenly(...).map(...)` would require the result to be collected due to the borrowing. 
 ///
+#[inline]
 pub fn walk_curve_evenly_map<TCurve, TResult>(curve: TCurve, distance: f64, max_error: f64, map_fn: impl for<'a> Fn(CurveSection<'a, TCurve>) -> TResult) -> impl Iterator<Item=TResult>
 where
     TCurve: 'static + BezierCurve,
@@ -332,6 +333,7 @@ where
 {
     type Item = TResult;
 
+    #[inline]
     fn next(&mut self) -> Option<TResult> {
         self.with_mut(|fields| {
             let next = fields.walk_iterator.next();
