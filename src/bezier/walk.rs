@@ -65,10 +65,10 @@ where
     let initial_increment = if initial_increment > 0.25 { INITIAL_INCREMENT } else { initial_increment };
 
     EvenWalkIterator {
+        last_point:     curve.start_point(),
         curve:          curve,
         derivative:     (wn1, wn2, wn3),
         last_t:         0.0, 
-        last_point:     curve.start_point(),
         last_increment: initial_increment,
         distance:       distance,
         max_error:      max_error,
