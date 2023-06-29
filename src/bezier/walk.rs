@@ -14,7 +14,7 @@ use std::marker::{PhantomData};
 /// be spaced according to the shape of the curve (will have an uneven distance between them) 
 ///
 #[inline]
-pub fn walk_curve_unevenly<Curve: BezierCurve>(curve: &Curve, num_subdivisions: usize) -> impl '_+Iterator<Item=CurveSection<'_, Curve>> {
+pub fn walk_curve_unevenly<Curve: BezierCurve>(curve: &Curve, num_subdivisions: usize) -> impl '_ + Iterator<Item=CurveSection<'_, Curve>> {
     if num_subdivisions > 0 {
         UnevenWalkIterator {
             curve:              curve,
