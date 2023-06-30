@@ -37,10 +37,10 @@ impl PathDistanceField {
             });
 
         // Also need a 'point is inside' function (here just a basic 'count crossings' function)
-        let curves = path.iter().flat_map(|subpath| subpath.to_curves::<Curve<_>>()).collect::<Vec<_>>();
+        let curves          = path.iter().flat_map(|subpath| subpath.to_curves::<Curve<_>>()).collect::<Vec<_>>();
         let point_is_inside = move |x, y| {
-            let p1  = TPath::Point::from_components(&[x, y]);
-            let p2  = TPath::Point::from_components(&[x-1.0, y]);
+            let p1  = TPath::Point::from_components(&[x, y]) - offset;
+            let p2  = TPath::Point::from_components(&[x-1.0, y]) - offset;
             let ray = (p1, p2);
 
             // Count crossings on the negative side of the line, and not at the t=0 end of the curve (as those will match a t=1 collision)
