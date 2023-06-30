@@ -34,6 +34,54 @@ fn center_is_inside() {
 }
 
 #[test]
+fn outside_point_distances() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    for y in 0..1000 {
+        for x in 0..1000 {
+            let to_center = Coord2(x as _, y as _).distance_to(&center);
+
+            if to_center <= radius {
+                continue;
+            }
+
+            let field_distance = circle_field.distance_at_point(ContourPosition(x, y));
+
+            assert!(field_distance >= 0.0, "Distance at {}, {} is {} (this point is not inside the circle)", x, y, field_distance);
+            assert!((field_distance-(to_center-300.0)).abs() < 2.0, "Distance at {}, {} is {} ({} to center)", x, y, field_distance, to_center);
+        }
+    }
+}
+
+#[test]
+fn inside_point_distances() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    for y in 0..1000 {
+        for x in 0..1000 {
+            let to_center = Coord2(x as _, y as _).distance_to(&center);
+
+            if to_center >= radius {
+                continue;
+            }
+
+            let field_distance = circle_field.distance_at_point(ContourPosition(x, y));
+
+            assert!(field_distance < 0.0, "Distance at {}, {} is {} (this point is not outside the circle)", x, y, field_distance);
+            assert!((field_distance-(to_center-300.0)).abs() < 2.0, "Distance at {}, {} is {} ({} to center)", x, y, field_distance, to_center);
+        }
+    }
+}
+
+#[test]
 fn trace_circle() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
