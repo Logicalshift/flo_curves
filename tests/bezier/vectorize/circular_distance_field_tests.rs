@@ -86,6 +86,14 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
 }
 
 #[test]
+fn center_is_inside() {
+    let circle_field = CircularDistanceField::with_radius(300.0);
+
+    assert!(circle_field.distance_at_point(ContourPosition(301, 301)) < 0.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(301, 301)));
+    assert!((circle_field.distance_at_point(ContourPosition(301, 301))+300.0).abs() < 1.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(301, 301)));
+}
+
+#[test]
 fn reference_vs_copy_iterator() {
     let circle_1 = CircularDistanceField::with_radius(10.0);
 
