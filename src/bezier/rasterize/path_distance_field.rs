@@ -26,21 +26,20 @@ impl PathDistanceField {
         TPath::Point:   Coordinate + Coordinate2D,
     {
         // Generate the distance field cache: need to walk the perimeter of the curve to find evenly-spaced points
-        let offset = TPath::Point::from_components(&[1.0, 1.0]);
         let points = path.iter()
             .flat_map(|subpath| {
                 subpath.to_curves::<Curve<_>>()
                     .into_iter()
                     .flat_map(|curve| {
-                        walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0) + offset)
+                        walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0))
                     })
             });
 
         // Also need a 'point is inside' function (here just a basic 'count crossings' function)
         let curves          = path.iter().flat_map(|subpath| subpath.to_curves::<Curve<_>>()).collect::<Vec<_>>();
         let point_is_inside = move |x, y| {
-            let p1  = TPath::Point::from_components(&[x, y]) - offset;
-            let p2  = TPath::Point::from_components(&[x-1.0, y]) - offset;
+            let p1  = TPath::Point::from_components(&[x, y]);
+            let p2  = TPath::Point::from_components(&[x-1.0, y]);
             let ray = (p1, p2);
 
             // Count crossings on the negative side of the line, and not at the t=0 end of the curve (as those will match a t=1 collision)
