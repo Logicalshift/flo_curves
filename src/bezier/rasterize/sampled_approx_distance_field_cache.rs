@@ -103,6 +103,14 @@ impl SampledApproxDistanceFieldCache {
     }
 
     ///
+    /// The dimensions of this cache
+    ///
+    #[inline]
+    pub fn size(&self) -> ContourSize {
+        self.size
+    }
+
+    ///
     /// Process the waiting points to grow the set of points with distances set
     ///
     pub fn grow_samples(&mut self) {
