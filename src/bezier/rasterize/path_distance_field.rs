@@ -50,7 +50,7 @@ impl PathDistanceField {
                 .count();
 
             // Even crossings are outside, odd crossings are inside
-            (crossings%2) == 0
+            (crossings%2) == 1
         };
 
         let approx_distance_field = SampledApproxDistanceFieldCache::from_points(points, point_is_inside, size);
