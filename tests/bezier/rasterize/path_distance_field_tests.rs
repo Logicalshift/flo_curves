@@ -26,7 +26,10 @@ fn center_is_inside() {
 
     let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
 
-    assert!(circle_field.distance_at_point(ContourPosition(500, 500)) < 0.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(500, 500)));
+    println!("{:?}", circle_field.distance_at_point(ContourPosition(501, 501)));
+
+    assert!(circle_field.distance_at_point(ContourPosition(501, 501)) < 0.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(501, 501)));
+    assert!(circle_field.distance_at_point(ContourPosition(500, 500)) < 0.0, "Distance near center is {:?}", circle_field.distance_at_point(ContourPosition(500, 500)));
 }
 
 #[test]
