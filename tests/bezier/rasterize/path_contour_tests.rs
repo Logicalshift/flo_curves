@@ -40,9 +40,10 @@ fn trace_circle() {
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
     let circle_contour  = PathContour::from_path(vec![circle_path], ContourSize(1000, 1000));
-    let traced_circle   = trace_paths_from_samples::<SimpleBezierPath>(&circle_contour, 1.0);
+    let traced_circle   = trace_paths_from_samples::<SimpleBezierPath>(&circle_contour, 2.0);
 
     debug_assert!(traced_circle.len() == 1);
+    debug_assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 40, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 
     for curve in traced_circle[0].to_curves::<Curve<_>>() {
         for t in 0..100 {
