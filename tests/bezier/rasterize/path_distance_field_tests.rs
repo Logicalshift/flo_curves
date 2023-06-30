@@ -5,6 +5,31 @@ use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
 #[test]
+fn corners_are_outside() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    assert!(circle_field.distance_at_point(ContourPosition(0, 0)) > 0.0, "Distance at 0,0 is {:?}", circle_field.distance_at_point(ContourPosition(0, 0)));
+    assert!(circle_field.distance_at_point(ContourPosition(999, 0)) > 0.0, "Distance at 999,0 is {:?}", circle_field.distance_at_point(ContourPosition(999, 0)));
+    assert!(circle_field.distance_at_point(ContourPosition(0, 999)) > 0.0, "Distance at 0,999 is {:?}", circle_field.distance_at_point(ContourPosition(0, 999)));
+    assert!(circle_field.distance_at_point(ContourPosition(999, 999)) > 0.0, "Distance at 999,999 is {:?}", circle_field.distance_at_point(ContourPosition(999, 999)));
+}
+
+#[test]
+fn center_is_inside() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    assert!(circle_field.distance_at_point(ContourPosition(500, 500)) < 0.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(500, 500)));
+}
+
+#[test]
 fn trace_circle() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
