@@ -26,12 +26,13 @@ impl PathDistanceField {
         TPath::Point:   Coordinate + Coordinate2D,
     {
         // Generate the distance field cache: need to walk the perimeter of the curve to find evenly-spaced points
+        let offset = TPath::Point::from_components(&[1.0, 1.0]);
         let points = path.iter()
             .flat_map(|subpath| {
                 subpath.to_curves::<Curve<_>>()
                     .into_iter()
                     .flat_map(|curve| {
-                        walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0))
+                        walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0) + offset)
                     })
             });
 
