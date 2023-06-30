@@ -30,6 +30,7 @@ fn center_is_inside() {
 
     assert!(circle_field.distance_at_point(ContourPosition(501, 501)) < 0.0, "Distance at center is {:?}", circle_field.distance_at_point(ContourPosition(501, 501)));
     assert!(circle_field.distance_at_point(ContourPosition(500, 500)) < 0.0, "Distance near center is {:?}", circle_field.distance_at_point(ContourPosition(500, 500)));
+    assert!(circle_field.distance_at_point(ContourPosition(499, 499)) < 0.0, "Distance near center is {:?}", circle_field.distance_at_point(ContourPosition(499, 499)));
 }
 
 #[test]
