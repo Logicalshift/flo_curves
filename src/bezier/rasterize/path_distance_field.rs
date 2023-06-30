@@ -46,7 +46,7 @@ impl PathDistanceField {
             // Count crossings on the negative side of the line, and not at the t=0 end of the curve (as those will match a t=1 collision)
             let crossings = curves.iter()
                 .flat_map(|curve| curve_intersects_ray(curve, &ray))
-                .filter(|(curve_t, line_t, _)| *curve_t > 0.0 && *line_t < 0.0)
+                .filter(|(curve_t, line_t, _)| *curve_t >= 0.0 && *line_t <= 0.0)
                 .count();
 
             // Even crossings are outside, odd crossings are inside
