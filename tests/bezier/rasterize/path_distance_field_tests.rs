@@ -82,6 +82,39 @@ fn inside_point_distances() {
 }
 
 #[test]
+fn trace_circle_without_distance_field() {
+    // This is the equivalent of trace_circle except we don't load it into a distance field first
+    // If this test fails, then the other test will likely fail due to a problem with tracing the points rather than the distance field
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_points   = circle_path.to_curves::<Curve<_>>()
+        .into_iter()
+        .flat_map(|curve| {
+            walk_curve_evenly_map(curve, 1.0, 0.1, |section| section.point_at_pos(1.0))
+        })
+        .collect::<Vec<_>>();
+    let traced_circle   = fit_curve::<Curve<_>>(&circle_points, 0.1).unwrap();
+
+    debug_assert!(traced_circle.len() < 20, "Result has {} curves", traced_circle.len());
+
+    let mut num_points = 0;
+    for curve in traced_circle {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+
+            let distance    = point.distance_to(&Coord2(500.0, 500.0));
+
+            debug_assert!((distance - radius) < 1.0, "Point #{} at distance {:?}", num_points, distance);
+        }
+    }
+}
+
+#[test]
 fn trace_circle() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
