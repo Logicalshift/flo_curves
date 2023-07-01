@@ -46,7 +46,7 @@ fn create_circle_sample(num_points: usize, radius: f64) -> SampledApproxDistance
     SampledApproxDistanceFieldCache::from_points(points, intercepts, ContourSize(size, size))
 }
 
-fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f64) {
+fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f64, max_error: f64) {
     // Fetch the size and expected center point
     let size    = cache.size();
     let center  = Coord2(radius+1.0, radius+1.0);
@@ -68,7 +68,7 @@ fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f
             let from_center = circle_pos.dot(&circle_pos).sqrt();
             let from_edge   = from_center - radius;
 
-            debug_assert!((from_edge.abs() - distance.abs()).abs() < 4.0, "({}, {}) has distance {} but was expecting {}", x, y, from_edge.abs(), distance.abs());
+            debug_assert!((from_edge.abs() - distance.abs()).abs() < max_error, "({}, {}) has distance {} but was expecting {}", x, y, from_edge.abs(), distance.abs());
 
             debug_assert!(!is_inside || from_edge <= 0.0, "({}, {}) should be outside the circle but isn't. Real distance {} (approximated as {})", x, y, from_edge, distance);
             debug_assert!(is_inside || from_edge >= 0.0, "({}, {}) should be inside the circle but isn't. Real distance {} (approximated as {})", x, y, from_edge, distance);
@@ -78,5 +78,17 @@ fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f
 
 #[test]
 fn circle_100_many_points() {
-    check_circle_distances(&mut create_circle_sample(4000, 100.0), 100.0);
+    check_circle_distances(&mut create_circle_sample(4000, 100.0), 100.0, 2.0);
+}
+
+#[test]
+fn circle_1000_many_points() {
+    // Points further away will accumulate more errors
+    check_circle_distances(&mut create_circle_sample(16000, 1000.0), 1000.0, 32.0);
+}
+
+#[test]
+fn circle_100_few_points() {
+    // Fewer points will produce a less accurate distance field
+    check_circle_distances(&mut create_circle_sample(40, 100.0), 100.0, 32.0);
 }
