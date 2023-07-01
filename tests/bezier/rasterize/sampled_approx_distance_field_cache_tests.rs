@@ -2,6 +2,8 @@ use flo_curves::geo::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
+use smallvec::*;
+
 use std::f64;
 
 ///
@@ -25,17 +27,23 @@ fn create_circle_sample(num_points: usize, radius: f64) -> SampledApproxDistance
         });
 
     // Need an 'is_inside' function
-    let is_inside = move |x, y| {
-        let pos = Coord2(x, y);
-        let pos = pos - center;
+    let intercepts = (0..size).map(|y| {
+        let y = y as f64;
+        let y = y - center.y();
 
-        let distance_sq = pos.dot(&pos);
+        if y.abs() <= radius {
+            let intercept   = ((radius*radius) - (y*y)).sqrt();
+            let min_x       = center.x() - intercept;
+            let max_x       = center.x() + intercept;
 
-        distance_sq < (radius * radius)
-    };
+            smallvec![min_x..max_x]
+        } else {
+            smallvec![]
+        }
+    });
 
     // Generate a cache
-    SampledApproxDistanceFieldCache::from_points(points, is_inside, ContourSize(size, size))
+    SampledApproxDistanceFieldCache::from_points(points, intercepts, ContourSize(size, size))
 }
 
 fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f64) {
@@ -62,8 +70,8 @@ fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f
 
             debug_assert!((from_edge.abs() - distance.abs()).abs() < 4.0, "({}, {}) has distance {} but was expecting {}", x, y, from_edge.abs(), distance.abs());
 
-            debug_assert!(!is_inside || from_edge <= 0.0, "({}, {}) should be outside the circle but isn't. Distance {} (approximated as {})", x, y, from_edge, distance);
-            debug_assert!(is_inside || from_edge >= 0.0, "({}, {}) should be inside the circle but isn't. Distance {} (approximated as {})", x, y, from_edge, distance);
+            debug_assert!(!is_inside || from_edge <= 0.0, "({}, {}) should be outside the circle but isn't. Real distance {} (approximated as {})", x, y, from_edge, distance);
+            debug_assert!(is_inside || from_edge >= 0.0, "({}, {}) should be inside the circle but isn't. Real distance {} (approximated as {})", x, y, from_edge, distance);
         }
     } 
 }
