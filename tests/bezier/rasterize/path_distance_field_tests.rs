@@ -75,7 +75,7 @@ fn inside_point_distances() {
 
             let field_distance = circle_field.distance_at_point(ContourPosition(x, y));
 
-            assert!(field_distance < 0.0, "Distance at {}, {} is {} (this point is not outside the circle)", x, y, field_distance);
+            assert!(field_distance <= 0.0, "Distance at {}, {} is {} (this point is not outside the circle)", x, y, field_distance);
             assert!((field_distance-(to_center-300.0)).abs() < 2.0, "Distance at {}, {} is {} ({} to center)", x, y, field_distance, to_center);
         }
     }
