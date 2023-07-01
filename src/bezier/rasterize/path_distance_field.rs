@@ -40,24 +40,8 @@ impl PathDistanceField {
         let path_contour = PathContour::from_path(path, size);
         let path_contour = Rc::new(path_contour);
 
-        // Also need a 'point is inside' function (here just a basic 'count crossings' function)
-        let inside_contour  = path_contour.clone();
-        let point_is_inside = move |x, y| {
-            for range in inside_contour.intercepts_on_line(y) {
-                if range.start > x {
-                    return false;
-                }
-
-                if range.start <= x && range.end > x {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
         // The approximate distance field uses distances to points to estimate the distance at each point (cheaper than actually calculating the nearest point on every path, but less accurate)
-        let approx_distance_field = SampledApproxDistanceFieldCache::from_points(points, point_is_inside, size);
+        let approx_distance_field = SampledApproxDistanceFieldCache::from_points(points, (0..size.height()).map(|y| path_contour.rounded_intercepts_on_line(y as _)), size);
         let approx_distance_field = RefCell::new(approx_distance_field);
 
         PathDistanceField { path_contour, approx_distance_field }
@@ -74,6 +58,8 @@ impl<'a> SampledSignedDistanceField for &'a PathDistanceField {
 
     #[inline]
     fn distance_at_point(self, pos: ContourPosition) -> f64 {
+        // TODO: maybe store the intercept ranges for the whole shape and use those to determine if a distance is negative or positive? The current approach does not work and 
+        // I'm not sure if it's fixable: even if the approach coule be made to work, it'd break in any situation where there's a gap in the points
         let distance_squared = self.approx_distance_field.borrow_mut().distance_squared_at_point(pos);
 
         if distance_squared < 0.0 {

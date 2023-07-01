@@ -1,7 +1,10 @@
 use crate::bezier::vectorize::*;
 use crate::geo::*;
 
+use smallvec::*;
+
 use std::collections::{HashMap, HashSet};
+use std::ops::{Range};
 
 ///
 /// Produces an approximation of a distance field for a shape
@@ -14,6 +17,9 @@ use std::collections::{HashMap, HashSet};
 pub struct SampledApproxDistanceFieldCache {
     /// The size of the distance field (we stop generating at x=0, y=0 and thes bounds)
     size: ContourSize,
+
+    /// The ranges along each scanline that contain interior pixels
+    interior_pixels: Vec<SmallVec<[Range<usize>; 4]>>,
 
     /// Known points that are at 0 distance from the shape
     zero_points: Vec<(f64, f64)>,
@@ -28,16 +34,21 @@ pub struct SampledApproxDistanceFieldCache {
 
 impl SampledApproxDistanceFieldCache {
     ///
-    /// Begins populating the distance field cache from a list of points on the perimeter of the shape and a function to determine if a point is 
-    /// inside the shape or not.
+    /// Begins populating the distance field cache from a list of points on the perimeter of the shape and the ranges covered by the interior pixels 
+    /// of the shape.
     ///
     /// The samples should be around 1 pixel distant from each other: closer samples will work but many will likely not contribute to the final
     /// shape, and samples that are further apart will produce larger distortions in the distance field.
     ///
-    pub fn from_points<'a, TPoint>(perimeter_samples: impl 'a + IntoIterator<Item=TPoint>, is_inside: impl 'a + Fn(f64, f64) -> bool, size: ContourSize) -> Self 
+    /// The interior pixels are returned as an enumerator from y = 0 and should be ordered by x index (ie, in the same format as returned by
+    /// `SampledContour::rounded_intercepts_on_line()`)
+    ///
+    pub fn from_points<'a, TPoint>(perimeter_samples: impl 'a + IntoIterator<Item=TPoint>, interior_pixels: impl 'a + IntoIterator<Item=SmallVec<[Range<usize>; 4]>>, size: ContourSize) -> Self 
     where
         TPoint: Coordinate2D,
     {
+        let interior_pixels = interior_pixels.into_iter().collect();
+
         let width   = size.width() as f64;
         let height  = size.height() as f64;
 
@@ -72,7 +83,6 @@ impl SampledApproxDistanceFieldCache {
 
                     // Sample this position, determine if it's inside or not
                     let pos         = ContourPosition(point_x as usize, point_y as usize);
-                    let pos_inside  = is_inside(pos.x() as _, pos.y() as _);
 
                     let offset_x    = sample_x - point_x;
                     let offset_y    = sample_y - point_y;
@@ -82,14 +92,11 @@ impl SampledApproxDistanceFieldCache {
                     if let Some((existing_distance, existing_idx)) = cached_points.get_mut(&pos) {
                         // Replace the existing point if this one is closer
                         if distance < existing_distance.abs() {
-                            let distance = if pos_inside { -distance } else { distance };
-
                             *existing_distance  = distance;
                             *existing_idx       = idx;
                         }
                     } else {
                         // Haven't seen this point yet, so this is the closest perimeter point to it
-                        let distance = if pos_inside { -distance } else { distance };
                         cached_points.insert(pos, (distance, idx));
 
                         // As we haven't seen this point before, add to the waiting points
@@ -99,7 +106,31 @@ impl SampledApproxDistanceFieldCache {
             }
         }
 
-        SampledApproxDistanceFieldCache { size, zero_points, cached_points, waiting_points }
+        SampledApproxDistanceFieldCache { size, interior_pixels, zero_points, cached_points, waiting_points }
+    }
+
+    ///
+    /// Returns true if the pixel at the given position is inside the circle
+    ///
+    #[inline]
+    fn point_is_inside(&self, x: usize, y: usize) -> bool {
+        if y < self.interior_pixels.len() {
+            let line = &self.interior_pixels[y];
+
+            for range in line.iter() {
+                if range.start > x {
+                    break;
+                }
+
+                if range.start <= x && range.end > x {
+                    return true;
+                }
+            }
+
+            false
+        } else {
+            false
+        }
     }
 
     ///
@@ -189,23 +220,29 @@ impl SampledApproxDistanceFieldCache {
         if pos.0 >= self.size.width() { return f64::MAX };
         if pos.0 >= self.size.height() { return f64::MAX };
 
-        loop {
+        let distance_squared = loop {
             if self.waiting_points.is_empty() {
                 // Have run out of waiting points: always return a value
                 if let Some((distance, _)) = self.cached_points.get(&pos) {
-                    return *distance;
+                    break *distance;
                 } else {
-                    return f64::MAX;
+                    break f64::MAX;
                 }
             }
 
             // If we already have an estimate for the distance of this point, then use that
             if let Some((distance, _)) = self.cached_points.get(&pos) {
-                return *distance;
+                break *distance;
             }
 
             // Grow the set of samples and try again
             self.grow_samples();
+        };
+
+        if self.point_is_inside(pos.0, pos.1) {
+            -distance_squared
+        } else {
+            distance_squared
         }
     }
 }
