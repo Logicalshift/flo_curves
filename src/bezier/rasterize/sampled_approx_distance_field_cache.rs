@@ -19,7 +19,7 @@ pub struct SampledApproxDistanceFieldCache {
     size: ContourSize,
 
     /// The ranges along each scanline that contain interior pixels
-    interior_pixels: Vec<SmallVec<[Range<usize>; 4]>>,
+    interior_pixels: Vec<SmallVec<[Range<f64>; 4]>>,
 
     /// Known points that are at 0 distance from the shape
     zero_points: Vec<(f64, f64)>,
@@ -41,9 +41,9 @@ impl SampledApproxDistanceFieldCache {
     /// shape, and samples that are further apart will produce larger distortions in the distance field.
     ///
     /// The interior pixels are returned as an enumerator from y = 0 and should be ordered by x index (ie, in the same format as returned by
-    /// `SampledContour::rounded_intercepts_on_line()`)
+    /// `SampledContour::intercepts_on_line()`)
     ///
-    pub fn from_points<'a, TPoint>(perimeter_samples: impl 'a + IntoIterator<Item=TPoint>, interior_pixels: impl 'a + IntoIterator<Item=SmallVec<[Range<usize>; 4]>>, size: ContourSize) -> Self 
+    pub fn from_points<'a, TPoint>(perimeter_samples: impl 'a + IntoIterator<Item=TPoint>, interior_pixels: impl 'a + IntoIterator<Item=SmallVec<[Range<f64>; 4]>>, size: ContourSize) -> Self 
     where
         TPoint: Coordinate2D,
     {
@@ -115,7 +115,8 @@ impl SampledApproxDistanceFieldCache {
     #[inline]
     fn point_is_inside(&self, x: usize, y: usize) -> bool {
         if y < self.interior_pixels.len() {
-            let line = &self.interior_pixels[y];
+            let x       = x as f64;
+            let line    = &self.interior_pixels[y];
 
             for range in line.iter() {
                 if range.start > x {

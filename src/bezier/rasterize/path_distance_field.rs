@@ -41,7 +41,7 @@ impl PathDistanceField {
         let path_contour = Rc::new(path_contour);
 
         // The approximate distance field uses distances to points to estimate the distance at each point (cheaper than actually calculating the nearest point on every path, but less accurate)
-        let approx_distance_field = SampledApproxDistanceFieldCache::from_points(points, (0..size.height()).map(|y| path_contour.rounded_intercepts_on_line(y as _)), size);
+        let approx_distance_field = SampledApproxDistanceFieldCache::from_points(points, (0..size.height()).map(|y| path_contour.intercepts_on_line(y as _)), size);
         let approx_distance_field = RefCell::new(approx_distance_field);
 
         PathDistanceField { path_contour, approx_distance_field }
