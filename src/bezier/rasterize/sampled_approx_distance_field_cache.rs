@@ -84,8 +84,8 @@ impl SampledApproxDistanceFieldCache {
                     // Sample this position, determine if it's inside or not
                     let pos         = ContourPosition(point_x as usize, point_y as usize);
 
-                    let offset_x    = sample_x - point_x;
-                    let offset_y    = sample_y - point_y;
+                    let offset_x    = sample_x - (pos.0 as f64);
+                    let offset_y    = sample_y - (pos.1 as f64);
                     let distance    = offset_x*offset_x + offset_y*offset_y;
 
                     // Update the cache at this point
