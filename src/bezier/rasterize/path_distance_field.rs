@@ -32,6 +32,7 @@ impl PathDistanceField {
                 subpath.to_curves::<Curve<_>>()
                     .into_iter()
                     .flat_map(|curve| {
+                        // TODO: this is much too small a step, still produces inaccuracies. I suspect we need to use these as approximate nearest points and calculate a more accurate one later on
                         walk_curve_evenly_map(curve, 0.1, 0.1, |section| section.point_at_pos(1.0))
                     })
                     .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point))
