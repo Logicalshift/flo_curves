@@ -97,7 +97,7 @@ fn broken_brush_is_smooth_3() {
         println!("counter = {}", counter);
 
         let brush_curve = brush_curve(counter);
-        let paths       = brush_stroke_from_curve::<_, SimpleBezierPath, _>(&CircularBrush, &brush_curve, 0.5, 0.25);
+        let paths       = brush_stroke_from_curve::<SimpleBezierPath, _>(&CircularBrush, &brush_curve, 0.5, 0.25);
 
         for path in paths {
             assert!(path_is_smooth(&path));
@@ -112,7 +112,7 @@ fn broken_brush_is_smooth_4() {
 
         let brush_curve = brush_curve(counter);
         let brush_path  = BezierPathBuilder::<SimpleBezierPath3>::start(brush_curve.start_point()).curve_to(brush_curve.control_points(), brush_curve.end_point()).build();
-        let paths       = brush_stroke_from_path::<_, SimpleBezierPath, _>(&CircularBrush, &brush_path, 0.5, 0.25);
+        let paths       = brush_stroke_from_path::<SimpleBezierPath, _>(&CircularBrush, &brush_path, 0.5, 0.25);
 
         for path in paths {
             assert!(path_is_smooth(&path));

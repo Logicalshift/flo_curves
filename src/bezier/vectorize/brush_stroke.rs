@@ -174,13 +174,12 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_curve<'a, TDistanceField, TPath, TBrushCurve>(distance_field: &'a TDistanceField, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_curve<'a, TPath, TBrushCurve>(distance_field: &'a impl DaubBrush, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushCurve:        BezierCurve,
     TBrushCurve::Point: Coordinate + Coordinate3D,
-    TDistanceField:     'a + DaubBrush,
 {
     let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
@@ -210,13 +209,12 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_path<'a, TDistanceField, TPath, TBrushPath>(distance_field: &'a TDistanceField, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_path<'a, TPath, TBrushPath>(distance_field: &'a impl DaubBrush, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushPath:         BezierPath,
     TBrushPath::Point:  Coordinate + Coordinate3D,
-    TDistanceField:     'a + DaubBrush,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
