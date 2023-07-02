@@ -1,3 +1,4 @@
+use flo_curves::Line;
 use flo_curves::geo::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
@@ -5,6 +6,37 @@ use flo_curves::bezier::vectorize::*;
 use smallvec::*;
 
 use std::f64;
+
+///
+/// Returns the distance to the circle for a particular point
+///
+fn nearest_point_on_circle(x: f64, y: f64, radius: f64) -> Coord2 {
+    let line        = (Coord2(0.0, 0.0), Coord2(x, y));
+    let distance    = Coord2(0.0, 0.0).distance_to(&Coord2(x, y));
+    let t           = radius / distance;
+
+    line.point_at_pos(t)
+}
+
+fn nearby_points_on_circle(point: Coord2, radius: f64, center: Coord2) -> Vec<(ContourPosition, Coord2)> {
+    let mut points = vec![];
+    let grid_x = point.x().round();
+    let grid_y = point.y().round();
+
+    for offset_y in -1..=1 {
+        for offset_x in -1..=1 {
+            let grid_x = grid_x + (offset_x as f64);
+            let grid_y = grid_y + (offset_y as f64);
+
+            let pos     = ContourPosition(grid_x as _, grid_y as _);
+            let nearest = nearest_point_on_circle(grid_x - center.x(), grid_y - center.y(), radius);
+
+            points.push((pos, nearest + center));
+        }
+    }
+
+    points
+}
 
 ///
 /// Creates a cache containing a circle of the specified radius, with a center at (radius+1, radius+1)
@@ -25,7 +57,7 @@ fn create_circle_sample(num_points: usize, radius: f64) -> SampledApproxDistance
 
             Coord2(x, y) + center
         })
-        .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point));
+        .flat_map(|point| nearby_points_on_circle(point, radius, center));
 
     // Need an 'is_inside' function
     let intercepts = (0..size).map(|y| {
@@ -47,6 +79,9 @@ fn create_circle_sample(num_points: usize, radius: f64) -> SampledApproxDistance
     SampledApproxDistanceFieldCache::from_points(points, intercepts, ContourSize(size, size))
 }
 
+///
+/// Checks that all the values in the distance field cache are within max_error of the actual distance to the circle
+///
 fn check_circle_distances(cache: &mut SampledApproxDistanceFieldCache, radius: f64, max_error: f64) {
     // Fetch the size and expected center point
     let size    = cache.size();
