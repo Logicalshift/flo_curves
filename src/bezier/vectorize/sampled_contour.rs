@@ -81,32 +81,7 @@ pub trait SampledContour : Copy {
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        // Default implementation is a simple scan of the line: mathematically defined contours might use a ray-casting algorithm here instead
-        let width   = self.contour_size().width();
-        let y       = y.floor() as usize;
-
-        let mut ranges = smallvec![];
-        let mut inside = None;
-
-        for x in 0..width {
-            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
-            match (inside, self.point_is_inside(ContourPosition(x, y))) {
-                (None, true)            => { inside = Some(x); },
-                (Some(start_x), false)  => {
-                    inside = None;
-                    ranges.push((start_x as f64)..(x as f64));
-                }
-                _ => { }
-            }
-        }
-
-        if let Some(start_x) = inside {
-            ranges.push((start_x as f64)..(width as f64));
-        }
-
-        ranges
-    }
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]>;
 
     ///
     /// Retrieves the intercepts on a line, rounded to pixel positions
@@ -430,6 +405,37 @@ impl<'a> SampledContour for &'a BoolSampledContour {
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         SimpleEdgeCellIterator::from_contour(self)
     }
+
+    ///
+    /// Given a y coordinate returns ranges indicating the filled pixels on that line
+    ///
+    /// The ranges must be provided in ascending order, and must also not overlap.
+    ///
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        let width   = self.contour_size().width();
+        let y       = y.floor() as usize;
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for x in 0..width {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(x); },
+                (Some(start_x), false)  => {
+                    inside = None;
+                    ranges.push((start_x as f64)..(x as f64));
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_x) = inside {
+            ranges.push((start_x as f64)..(width as f64));
+        }
+
+        ranges
+    }
 }
 
 impl<'a> SampledContour for &'a U8SampledContour {
@@ -464,6 +470,37 @@ impl<'a> SampledContour for &'a U8SampledContour {
     ///
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         SimpleEdgeCellIterator::from_contour(self)
+    }
+
+    ///
+    /// Given a y coordinate returns ranges indicating the filled pixels on that line
+    ///
+    /// The ranges must be provided in ascending order, and must also not overlap.
+    ///
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        let width   = self.contour_size().width();
+        let y       = y.floor() as usize;
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for x in 0..width {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(x); },
+                (Some(start_x), false)  => {
+                    inside = None;
+                    ranges.push((start_x as f64)..(x as f64));
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_x) = inside {
+            ranges.push((start_x as f64)..(width as f64));
+        }
+
+        ranges
     }
 }
 

@@ -1,5 +1,9 @@
 use super::sampled_contour::*;
 
+use smallvec::*;
+
+use std::ops::{Range};
+
 ///
 /// A distance field represents a sampling of how far certain discrete points are from an edge in an image.
 /// This is a signed distance field, where negative distances are used to indicate samples that are inside a shape.
@@ -58,6 +62,37 @@ where
     #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         SimpleEdgeCellIterator::from_contour(self)
+    }
+
+    ///
+    /// Given a y coordinate returns ranges indicating the filled pixels on that line
+    ///
+    /// The ranges must be provided in ascending order, and must also not overlap.
+    ///
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        let width   = self.contour_size().width();
+        let y       = y.floor() as usize;
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for x in 0..width {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(x); },
+                (Some(start_x), false)  => {
+                    inside = None;
+                    ranges.push((start_x as f64)..(x as f64));
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_x) = inside {
+            ranges.push((start_x as f64)..(width as f64));
+        }
+
+        ranges
     }
 }
 
