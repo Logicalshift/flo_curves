@@ -107,40 +107,6 @@ where
 }
 
 ///
-/// Implementation of the `point_is_inside` trait function from `SampledContour`, implemented in terms of a function that
-/// returns where the intercepts are
-///
-#[inline]
-pub (crate) fn raycast_point_is_inside<TFn>(intercept_fn: &TFn, pos: ContourPosition, scale_factor: f64, size: ContourSize) -> bool 
-where
-    TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
-{
-    // Convert the y position to a coordinate
-    let x       = pos.x() as f64;
-    let y       = pos.y() as f64;
-    let y       = y * scale_factor;
-    let width   = size.width() as f64;
-
-    // Everything outside of the x-range is not inside in the contour
-    if x >= width {
-        return false;
-    }
-
-    for intercept in (intercept_fn)(y) {
-        if intercept.start <= x && intercept.end > x {
-            return true;
-        }
-
-        if intercept.start > x {
-            // Can give up early because the intercept function is assumed to return the intercepts in order
-            return false;
-        }
-    }
-
-    false
-}
-
-///
 /// Implementation of the `intercepts_on_line` trait function from `SampledContour`, implemented in terms of a function that
 /// returns where the intercepts are
 ///
