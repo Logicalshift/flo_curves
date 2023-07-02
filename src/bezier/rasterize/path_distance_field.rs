@@ -26,17 +26,10 @@ impl PathDistanceField {
         TPath::Point:   Coordinate + Coordinate2D,
     {
         // Generate the distance field cache: need to walk the perimeter of the curve to find evenly-spaced points
-        let path_clone  = path.clone();
-        let points      = path_clone.iter()
-            .flat_map(|subpath| {
-                subpath.to_curves::<Curve<_>>()
-                    .into_iter()
-                    .flat_map(|curve| {
-                        // TODO: this is much too small a step, still produces inaccuracies. I suspect we need to use these as approximate nearest points and calculate a more accurate one later on
-                        walk_curve_evenly_map(curve, 0.1, 0.1, |section| section.point_at_pos(1.0))
-                    })
-                    .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point))
-            });
+        let curves      = path.iter().flat_map(|subpath| subpath.to_curves::<Curve<_>>()).collect::<Vec<_>>();
+        let points      = curves.iter().enumerate()
+            .flat_map(|(curve_idx, curve)| walk_curve_evenly_map(*curve, 1.0, 0.1, |section| section.point_at_pos(1.0)))
+            .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point));
 
         // The path contour can be used both as the actual path contour and as a way to determine if a point is inside the path
         let path_contour = PathContour::from_path(path, size);
