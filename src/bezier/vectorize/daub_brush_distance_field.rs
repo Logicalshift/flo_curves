@@ -2,8 +2,6 @@ use super::distance_field::*;
 use super::sampled_contour::*;
 use super::intercept_scan_edge_iterator::*;
 
-use std::cell::{RefCell};
-
 use smallvec::*;
 
 use std::ops::{Range};
@@ -36,9 +34,6 @@ where
 
     /// Indexed by y position and sorted by initial x position, the daubs that are on each line within the size of the distance field
     daubs_for_line: Vec<Vec<usize>>,
-
-    /// Cached intercepts on a scanline, used for the 'point is inside' operation
-    cached_intercepts: RefCell<Option<(usize, SmallVec<[Range<usize>; 4]>)>>,
 }
 
 impl<TDaub> DaubBrushDistanceField<TDaub>
@@ -49,8 +44,6 @@ where
     /// Creates a daub brush distance field from a list of daubs and their positions
     ///
     pub fn from_daubs(daubs: impl IntoIterator<Item=(TDaub, ContourPosition)>) -> DaubBrushDistanceField<TDaub> {
-        let cached_intercepts   = RefCell::new(None);
-
         // Collect the daubs
         let mut daubs   = daubs.into_iter().collect::<Vec<_>>();
 
@@ -74,7 +67,7 @@ where
         let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
 
         DaubBrushDistanceField {
-            size, daubs, daubs_for_line, cached_intercepts
+            size, daubs, daubs_for_line
         }
     }
 
