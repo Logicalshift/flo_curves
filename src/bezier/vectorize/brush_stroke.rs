@@ -10,9 +10,9 @@ use crate::geo::*;
 /// Trait implemented by brushes that can generate discrete 'daubs' using a distance field
 ///
 /// This is used to generate brush strokes made up by layering images of the 'brush head' on top of each other, which can be converted
-/// to vectors by using the `DaubBrushDistanceField`. Things that implement this inter
+/// to vectors by using the `DaubBrushDistanceField` type.
 ///
-pub trait BrushDistanceField {
+pub trait DaubBrush {
     type DaubDistanceField: SampledSignedDistanceField;
 
     ///
@@ -39,7 +39,7 @@ pub fn brush_stroke_daubs_from_curve<'a, TDistanceField, TCurve>(distance_field:
 where
     TCurve:         BezierCurve,
     TCurve::Point:  Coordinate + Coordinate3D,
-    TDistanceField: 'a + BrushDistanceField,
+    TDistanceField: 'a + DaubBrush,
 {
     // Read the points from the curve
     let start_point = curve.start_point();
@@ -94,7 +94,7 @@ pub fn brush_stroke_daubs_from_path<'a, TDistanceField, TPath>(distance_field: &
 where
     TPath:          BezierPath,
     TPath::Point:   Coordinate + Coordinate3D,
-    TDistanceField: 'a + BrushDistanceField,
+    TDistanceField: 'a + DaubBrush,
 {
     // Break the path up into 2D curves for the main path, and 1D curves for the radius
     let mut curves = vec![];
@@ -180,7 +180,7 @@ where
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushCurve:        BezierCurve,
     TBrushCurve::Point: Coordinate + Coordinate3D,
-    TDistanceField:     'a + BrushDistanceField,
+    TDistanceField:     'a + DaubBrush,
 {
     let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
@@ -216,7 +216,7 @@ where
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushPath:         BezierPath,
     TBrushPath::Point:  Coordinate + Coordinate3D,
-    TDistanceField:     'a + BrushDistanceField,
+    TDistanceField:     'a + DaubBrush,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);

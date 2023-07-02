@@ -8,7 +8,7 @@ use crate::geo::*;
 ///
 pub struct CircularBrush;
 
-impl BrushDistanceField for CircularBrush {
+impl DaubBrush for CircularBrush {
     type DaubDistanceField = CircularDistanceField;
 
     #[inline]
