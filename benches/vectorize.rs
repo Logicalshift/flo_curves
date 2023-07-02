@@ -98,7 +98,7 @@ fn create_lms_offset_curve(curve: Curve<Coord3>) -> Vec<Curve<Coord2>> {
 
 fn create_brush_stroke_daubs(brush_size: f64) -> Vec<(CircularDistanceField, ContourPosition)> {
     let brush_curve         = create_brush_stroke(brush_size);
-    let (daubs, _offset)    = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset)    = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     daubs.collect::<Vec<_>>()
 }
@@ -123,7 +123,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let distance_field_edges    = find_edges(&daub_distance_field);
 
     let circle_path_1000        = Circle::new(Coord2(500.0, 500.0), 300.0).to_path::<SimpleBezierPath>();
-    let path_contour_1000       = PathContour::new_contour(vec![circle_path_1000], ContourSize(1000, 1000));
+    let path_contour_1000       = PathContour::from_path(vec![circle_path_1000], ContourSize(1000, 1000));
 
     c.bench_function("offset_curves", |b| b.iter(|| create_lms_offset_curve(create_brush_stroke(200.0))));
 

@@ -64,7 +64,7 @@ fn broken_brush_is_smooth_1() {
     let counter = 463;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
     let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
@@ -80,7 +80,7 @@ fn broken_brush_is_smooth_2() {
         println!("counter = {:?}", counter);
 
         let brush_curve      = brush_curve(counter);
-        let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+        let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
         let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
         let paths               = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
@@ -97,7 +97,7 @@ fn broken_brush_is_smooth_3() {
         println!("counter = {}", counter);
 
         let brush_curve = brush_curve(counter);
-        let paths       = brush_stroke_from_curve::<CircularDistanceField, SimpleBezierPath, _>(&brush_curve, 0.5, 0.25);
+        let paths       = brush_stroke_from_curve::<_, SimpleBezierPath, _>(&CircularBrush, &brush_curve, 0.5, 0.25);
 
         for path in paths {
             assert!(path_is_smooth(&path));
@@ -112,7 +112,7 @@ fn broken_brush_is_smooth_4() {
 
         let brush_curve = brush_curve(counter);
         let brush_path  = BezierPathBuilder::<SimpleBezierPath3>::start(brush_curve.start_point()).curve_to(brush_curve.control_points(), brush_curve.end_point()).build();
-        let paths       = brush_stroke_from_path::<CircularDistanceField, SimpleBezierPath, _>(&brush_path, 0.5, 0.25);
+        let paths       = brush_stroke_from_path::<_, SimpleBezierPath, _>(&CircularBrush, &brush_path, 0.5, 0.25);
 
         for path in paths {
             assert!(path_is_smooth(&path));
@@ -125,7 +125,7 @@ fn broken_brush_stroke_check_contour_1() {
     let counter = 463;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
@@ -137,7 +137,7 @@ fn broken_brush_stroke_check_contour_2() {
     let counter = 507;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
@@ -149,7 +149,7 @@ fn broken_brush_stroke_check_contour_3() {
     let counter = 466;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
@@ -161,7 +161,7 @@ fn broken_brush_stroke_check_contour_4() {
     let counter = 379;
 
     let brush_curve      = brush_curve(counter);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 

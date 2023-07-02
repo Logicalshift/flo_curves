@@ -315,7 +315,7 @@ fn brush_stroke_intercept_scan() {
     let p3_3 = Coord3::from((p3, off2));
 
     let brush_curve      = Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
-    let (daubs, _offset) = brush_stroke_daubs_from_curve::<CircularDistanceField, _>(&brush_curve, 0.5, 0.25);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
 
     let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
