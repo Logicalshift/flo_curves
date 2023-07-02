@@ -22,10 +22,16 @@ fn draw<TContour: SampledContour>(contour: TContour) {
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
     check_intercepts(contour);
 
-    // Use point_is_inside to generate a bitmap version of the contour
-    let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
-        .map(|pos| (pos % contour.contour_size().0, pos / contour.contour_size().0))
-        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
+    // Do a scan to generate a bitmap version of the contour
+    let size   = contour.contour_size();
+    let bitmap = (0..size.height())
+        .flat_map(|y| {
+            let mut pixels = vec![false; size.width()];
+            for fill_x in contour.rounded_intercepts_on_line(y as _).into_iter().flatten() {
+                pixels[fill_x] = true;
+            }
+            pixels
+        })
         .collect::<Vec<_>>();
 
     if draw_circle {
