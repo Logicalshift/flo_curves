@@ -49,7 +49,7 @@ where
     let mut min_distance    = f64::MAX;
 
     for t in test_positions {
-        let refined_t           = nearest_point_on_curve_newton_raphson_with_estimate(curve, point, t);
+        let refined_t           = nearest_point_on_curve_newton_raphson_with_estimate(curve, point, t, 12);
         let refined_point       = curve.point_at_pos(refined_t);
 
         let offset      = *point - refined_point;
@@ -68,7 +68,7 @@ where
 ///
 /// Optimises an estimate of a nearest point on a bezier curve using the newton-raphson method
 ///
-pub fn nearest_point_on_curve_newton_raphson_with_estimate<C>(curve: &C, point: &C::Point, estimated_t: f64) -> f64
+pub fn nearest_point_on_curve_newton_raphson_with_estimate<C>(curve: &C, point: &C::Point, estimated_t: f64, num_iterations: usize) -> f64
 where
     C: BezierCurve
 {
@@ -92,7 +92,7 @@ where
     let mut estimated_t = estimated_t;
 
     // Attempt to optimise the solution with up to 12 rounds of newton-raphson
-    for _ in 0..12 {
+    for _ in 0..num_iterations {
         // Compute Q(t) (where Q is our curve)
         let qt          = de_casteljau4(estimated_t, q1, q2, q3, q4);
 
