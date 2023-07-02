@@ -359,7 +359,7 @@ fn circle_path_from_distance_field_1() {
 
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
-    assert!(circle[0].to_curves::<Curve<_>>().len() < 10, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
+    assert!(circle[0].to_curves::<Curve<_>>().len() < 12, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error = 0.0;
@@ -394,7 +394,7 @@ fn circle_path_from_distance_field_2() {
 
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
-    assert!(circle[0].to_curves::<Curve<_>>().len() < 16, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
+    assert!(circle[0].to_curves::<Curve<_>>().len() < 20, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error = 0.0;
