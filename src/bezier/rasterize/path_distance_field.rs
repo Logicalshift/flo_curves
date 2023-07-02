@@ -59,8 +59,8 @@ where
     points.push((center_pos, center_point));
 
     // Create the surrounding points
-    for y_offset in -1..1 {
-        for x_offset in -1..1 {
+    for y_offset in -1..=1 {
+        for x_offset in -1..=1 {
             if y_offset == 0 && x_offset == 0 { continue; }
 
             let x_offset = x_offset as f64;
