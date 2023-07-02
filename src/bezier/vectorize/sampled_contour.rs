@@ -62,6 +62,13 @@ pub trait SampledContour : Copy {
     fn contour_size(self) -> ContourSize;
 
     ///
+    /// Given a y coordinate returns ranges indicating the filled pixels on that line
+    ///
+    /// The ranges must be provided in ascending order, and must also not overlap.
+    ///
+    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]>;
+
+    ///
     /// Returns true if the specified point is inside the contour, or false if it's outside
     ///
     /// A y-value of 0 is considered to be the 'top' of the bitmap
@@ -75,13 +82,6 @@ pub trait SampledContour : Copy {
     /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
     ///
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator;
-
-    ///
-    /// Given a y coordinate returns ranges indicating the filled pixels on that line
-    ///
-    /// The ranges must be provided in ascending order, and must also not overlap.
-    ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]>;
 
     ///
     /// Retrieves the intercepts on a line, rounded to pixel positions
