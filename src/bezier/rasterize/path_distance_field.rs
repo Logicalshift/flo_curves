@@ -5,6 +5,8 @@ use crate::bezier::*;
 use crate::bezier::path::*;
 use crate::bezier::vectorize::*;
 
+use smallvec::*;
+
 use std::rc::{Rc};
 use std::cell::{RefCell};
 
@@ -28,8 +30,8 @@ impl PathDistanceField {
         // Generate the distance field cache: need to walk the perimeter of the curve to find evenly-spaced points
         let curves      = path.iter().flat_map(|subpath| subpath.to_curves::<Curve<_>>()).collect::<Vec<_>>();
         let points      = curves.iter().enumerate()
-            .flat_map(|(curve_idx, curve)| walk_curve_evenly_map(*curve, 0.1, 0.1, move |section| (curve_idx, section.point_at_pos(1.0), section.t_for_t(1.0))))
-            .flat_map(|(curve_idx, point_guess, t_guess)| refine_closest_point(&curves[curve_idx], point_guess, t_guess));
+            .flat_map(|(curve_idx, curve)| walk_curve_evenly_map(*curve, 0.5, 0.1, move |section| (curve_idx, section.point_at_pos(1.0), section.t_for_t(1.0))))
+            .flat_map(|(curve_idx, point_guess, t_guess)| refine_nearby_points(&curves[curve_idx], point_guess, t_guess));
 
         // The path contour can be used both as the actual path contour and as a way to determine if a point is inside the path
         let path_contour = PathContour::from_path(path, size);
@@ -41,6 +43,38 @@ impl PathDistanceField {
 
         PathDistanceField { path_contour, approx_distance_field }
     }
+}
+
+///
+/// Takes a known point on the curve and refines both it and the surrounding points
+///
+fn refine_nearby_points<TPoint>(curve: &Curve<TPoint>, point_guess: TPoint, t_guess: f64) -> SmallVec<[(ContourPosition, TPoint); 9]> 
+where
+    TPoint: Coordinate + Coordinate2D,
+{
+    // Refine the central point to start with
+    let mut points                  = smallvec![];
+    let (center_pos, center_point)  = if let Some(point) = refine_closest_point(curve, point_guess, t_guess) { point } else { return smallvec![] };
+
+    points.push((center_pos, center_point));
+
+    // Create the surrounding points
+    for y_offset in -1..1 {
+        for x_offset in -1..1 {
+            if y_offset == 0 && x_offset == 0 { continue; }
+
+            let x_offset = x_offset as f64;
+            let y_offset = y_offset as f64;
+
+            // Try to refine a guess here
+            let new_point = TPoint::from_components(&[center_point.x() + x_offset, center_point.y() + y_offset]);
+            if let Some(new_point) = refine_closest_point(curve, new_point, t_guess) {
+                points.push(new_point);
+            }
+        }
+    }
+
+    points
 }
 
 ///
