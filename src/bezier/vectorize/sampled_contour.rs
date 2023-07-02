@@ -408,6 +408,42 @@ impl<'a> SampledContour for &'a U8SampledContour {
     }
 }
 
+///
+/// Returns true if the specified point is considered to be 'inside' the shape represented by a `SampledContour`
+///
+/// The `SampledContour` interface uses a scan-conversion model rather than a point-by-point model. This function makes
+/// it possible to test individual points without needing to handle the whole scanline, at the cost of poor performance.
+///
+/// In general, it is much more efficient to use the `intercepts_on_line()` function to find all of the 'inside' points
+/// at a given y position in one go, so avoid using this function where possible. For non-performance critical code, this
+/// can be a convenient way to check an individual point.
+///
+pub fn contour_point_is_inside(contour: impl SampledContour, pos: ContourPosition) -> bool {
+    // Convert the y position to a coordinate
+    let size    = contour.contour_size();
+    let x       = pos.x() as f64;
+    let y       = pos.y() as f64;
+    let width   = size.width() as f64;
+
+    // Everything outside of the x-range is not inside in the contour
+    if x >= width {
+        return false;
+    }
+
+    for intercept in contour.intercepts_on_line(y) {
+        if intercept.start <= x && intercept.end > x {
+            return true;
+        }
+
+        if intercept.start > x {
+            // Can give up early because the intercept function is assumed to return the intercepts in order
+            return false;
+        }
+    }
+
+    false
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
