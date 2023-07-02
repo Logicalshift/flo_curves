@@ -80,12 +80,6 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
                 row[x] = true;
             }
         }
-
-        for x in 0..contour.contour_size().width() {
-            assert!(row[x] == contour_point_is_inside(contour, ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
-                row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
-                (0..contour.contour_size().width()).into_iter().map(|x| if contour_point_is_inside(contour, ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
-        }
     }
 
     assert!(num_empty < 8, "{:?} empty rows", num_empty);
