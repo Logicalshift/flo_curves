@@ -9,7 +9,7 @@ use std::collections::{HashMap};
 fn draw<TContour: SampledContour>(contour: TContour) {
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
         .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
-        .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
+        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     for p in 0..bitmap.len() {
@@ -25,7 +25,7 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
         .map(|pos| (pos % contour.contour_size().0, pos / contour.contour_size().0))
-        .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
+        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     if draw_circle {
@@ -76,9 +76,9 @@ fn check_intercepts<TContour: SampledContour>(contour: TContour) {
         }
 
         for x in 0..contour.contour_size().width() {
-            assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
+            assert!(row[x] == contour_point_is_inside(contour, ContourPosition(x, y)), "Row content mismatch at y={} (intercepts look like:\n  {} but should be:\n  {})", y,
                 row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
-                (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
+                (0..contour.contour_size().width()).into_iter().map(|x| if contour_point_is_inside(contour, ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
         }
     }
 

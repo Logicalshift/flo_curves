@@ -14,7 +14,7 @@ pub fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour)
     // Use point_is_inside to generate a bitmap version of the contour
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
         .map(|pos| (pos % contour.contour_size().0, pos / contour.contour_size().0))
-        .map(|(x, y)| contour.point_is_inside(ContourPosition(x, y)))
+        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
@@ -95,9 +95,9 @@ pub fn check_intercepts<TContour: SampledContour>(contour: TContour) {
         }
 
         for x in 0..width {
-            assert!(row[x] == contour.point_is_inside(ContourPosition(x, y)), "Row content mismatch at y={} {:?} (intercepts look like:\n  {} but should be:\n  {})", y, intercepts,
+            assert!(row[x] == contour_point_is_inside(contour, ContourPosition(x, y)), "Row content mismatch at y={} {:?} (intercepts look like:\n  {} but should be:\n  {})", y, intercepts,
                 row.iter().map(|p| if *p { '#' } else { '.' }).collect::<String>(),
-                (0..contour.contour_size().width()).into_iter().map(|x| if contour.point_is_inside(ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
+                (0..contour.contour_size().width()).into_iter().map(|x| if contour_point_is_inside(contour, ContourPosition(x, y)) { '#' } else { '.' }).collect::<String>());
         }
     }
 
@@ -114,7 +114,7 @@ fn overlapping_circles_point_inside_first() {
         (&circle_2, ContourPosition(5, 18)),
     ]);
 
-    assert!(distance_field.as_contour().point_is_inside(ContourPosition(15, 8)));
+    assert!(contour_point_is_inside(distance_field.as_contour(), ContourPosition(15, 8)));
     assert!((distance_field.distance_at_point(ContourPosition(16, 16)) - -10.0).abs() < 0.1, "{}", distance_field.distance_at_point(ContourPosition(16, 16)));
 }
 
@@ -127,7 +127,7 @@ fn overlapping_circles_point_inside_second() {
         (&circle_2, ContourPosition(5, 18)),
     ]);
 
-    assert!(distance_field.as_contour().point_is_inside(ContourPosition(15, 21)));
+    assert!(contour_point_is_inside(distance_field.as_contour(), ContourPosition(15, 21)));
     assert!((distance_field.distance_at_point(ContourPosition(16, 29)) - -10.0).abs() < 0.1, "{}", distance_field.distance_at_point(ContourPosition(16, 29)));
 }
 
@@ -257,7 +257,7 @@ fn trace_int_doughnut() {
         .map(|y| {
             (0..size.width()).into_iter()
                 .map(|x| {
-                    if distance_field.as_contour().point_is_inside(ContourPosition(x, y)) {
+                    if contour_point_is_inside(distance_field.as_contour(), ContourPosition(x, y)) {
                         "#"
                     } else {
                         "."
