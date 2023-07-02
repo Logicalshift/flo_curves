@@ -86,15 +86,6 @@ where
     }
 
     ///
-    /// Returns true if the specified point is inside the contour, or false if it's outside
-    ///
-    /// A y-value of 0 is considered to be the 'top' of the bitmap
-    ///
-    fn point_is_inside(self, pos: ContourPosition) -> bool {
-        raycast_point_is_inside(&self.intercept_fn, pos, self.scale_factor, self.size)
-    }
-
-    ///
     /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
     /// starting from the top-left corner of the contour
     ///

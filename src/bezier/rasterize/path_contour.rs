@@ -80,11 +80,6 @@ impl<'a> SampledContour for &'a PathContour {
         (&self.contour).contour_size()
     }
 
-    #[inline]
-    fn point_is_inside(self, pos: ContourPosition) -> bool {
-        (&self.contour).point_is_inside(pos)
-    }
-
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         (&self.contour).edge_cell_iterator()
     }

@@ -174,29 +174,6 @@ where
     }
 
     #[inline]
-    fn point_is_inside(self, pos: ContourPosition) -> bool {
-        let mut cached_intercepts = self.cached_intercepts.borrow_mut();
-
-        // Read the intercepts on the current line, using the cached version if we already calculated it
-        let intercepts = if let Some((ypos, intercepts)) = &mut *cached_intercepts {
-            if *ypos == pos.1 {
-                intercepts
-            } else {
-                *intercepts = self.rounded_intercepts_on_line(pos.1 as _);
-                *ypos       = pos.1;
-
-                intercepts
-            }
-        } else {
-            *cached_intercepts = Some((pos.1, self.rounded_intercepts_on_line(pos.1 as _)));
-            &(*cached_intercepts).as_ref().unwrap().1
-        };
-
-        intercepts.iter()
-            .any(|range| range.start <= pos.0 && range.end > pos.0)
-    }
-
-    #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
         InterceptScanEdgeIterator::new(self)
     }

@@ -1,3 +1,4 @@
+use super::intercept_scan_edge_iterator::*;
 use super::sampled_contour::*;
 
 use smallvec::*;
@@ -43,11 +44,21 @@ pub struct ContourFromDistanceField<TDistanceField>(pub TDistanceField)
 where
     TDistanceField: SampledSignedDistanceField;
 
+impl<TDistanceField> ContourFromDistanceField<TDistanceField>
+where
+    TDistanceField: SampledSignedDistanceField,
+{
+    #[inline]
+    fn point_is_inside(self, pos: ContourPosition) -> bool {
+        self.0.distance_at_point(pos) <= 0.0
+    }
+}
+
 impl<TDistanceField> SampledContour for ContourFromDistanceField<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
 {
-    type EdgeCellIterator = SimpleEdgeCellIterator<Self>;
+    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
 
     #[inline]
     fn contour_size(self) -> ContourSize {
@@ -55,13 +66,8 @@ where
     }
 
     #[inline]
-    fn point_is_inside(self, pos: ContourPosition) -> bool {
-        self.0.distance_at_point(pos) <= 0.0
-    }
-
-    #[inline]
     fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        SimpleEdgeCellIterator::from_contour(self)
+        InterceptScanEdgeIterator::new(self)
     }
 
     ///
