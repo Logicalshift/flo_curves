@@ -161,7 +161,7 @@ fn trace_circle() {
             let t           = (t as f64) / 100.0;
             let point       = curve.point_at_pos(t);
 
-            let distance    = point.distance_to(&Coord2(500.0, 500.0));
+            let distance    = point.distance_to(&Coord2(501.0, 501.0));
 
             debug_assert!((distance - radius) < 1.0, "Point #{} at distance {:?}", num_points, distance);
         }
