@@ -24,7 +24,8 @@ fn create_circle_sample(num_points: usize, radius: f64) -> SampledApproxDistance
             let y = radius * t.cos();
 
             Coord2(x, y) + center
-        });
+        })
+        .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point));
 
     // Need an 'is_inside' function
     let intercepts = (0..size).map(|y| {

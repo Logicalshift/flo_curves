@@ -34,6 +34,7 @@ impl PathDistanceField {
                     .flat_map(|curve| {
                         walk_curve_evenly_map(curve, 0.1, 0.1, |section| section.point_at_pos(1.0))
                     })
+                    .map(|point| (ContourPosition(point.x().round() as _, point.y().round() as _), point))
             });
 
         // The path contour can be used both as the actual path contour and as a way to determine if a point is inside the path
