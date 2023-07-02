@@ -62,6 +62,8 @@ where
         let grid_position = ContourPosition(grid_x as _, grid_y as _);
 
         // Create a refined t value using a few rounds of newton-raphson that's near to the grid point
+        // TODO: singularities and very tight curves might produce absurd answers here (`nearest_point_on_curve_bezier_root_finder` will work in these cases)
+        // TODO: at the very ends of the curve, it's possible the nearest point is on a different curve. This might not matter if both curves are inspected for the same grid point
         let refined_t = nearest_point_on_curve_newton_raphson_with_estimate(curve, &TPoint::from_components(&[grid_x, grid_y]), t_guess, 3);
 
         // Generate this as the nearest point
