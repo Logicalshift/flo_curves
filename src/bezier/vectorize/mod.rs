@@ -1,6 +1,7 @@
 mod sampled_contour;
 mod distance_field;
 mod circular_distance_field;
+mod circular_brush;
 mod daub_brush_distance_field;
 mod marching_squares;
 mod contour_edges_by_scanline;
@@ -10,6 +11,7 @@ mod intercept_scan_edge_iterator;
 pub use sampled_contour::*;
 pub use distance_field::*;
 pub use circular_distance_field::*;
+pub use circular_brush::*;
 pub use daub_brush_distance_field::*;
 pub use marching_squares::*;
 pub use contour_edges_by_scanline::*;

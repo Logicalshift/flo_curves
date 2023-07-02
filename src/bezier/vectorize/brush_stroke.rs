@@ -12,14 +12,16 @@ use crate::geo::*;
 /// This is used to generate brush strokes made up by layering images of the 'brush head' on top of each other, which can be converted
 /// to vectors by using the `DaubBrushDistanceField`. Things that implement this inter
 ///
-pub trait BrushDistanceField : SampledSignedDistanceField {
+pub trait BrushDistanceField {
+    type DaubDistanceField: SampledSignedDistanceField;
+
     ///
     /// Creates a daub with a size at a position. Returns a distance field representing which parts of the daub are filled
     /// and unfilled, and a position that indicates the offset to place the as part of the brush stroke.
     ///
     /// The centered position will be chosen so that `centered_at.x()-radius` and `centered_at.y()-radius` is greater than 1.
     ///
-    fn create_daub(centered_at: impl Coordinate + Coordinate2D, radius: f64) -> Option<(Self, ContourPosition)>;
+    fn create_daub(&self, centered_at: impl Coordinate + Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)>;
 }
 
 ///
@@ -33,7 +35,7 @@ pub trait BrushDistanceField : SampledSignedDistanceField {
 /// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
 /// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
 ///
-pub fn brush_stroke_daubs_from_curve<'a, TDistanceField, TCurve>(curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField, ContourPosition)>, Coord2)
+pub fn brush_stroke_daubs_from_curve<'a, TDistanceField, TCurve>(distance_field: &'a TDistanceField, curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField::DaubDistanceField, ContourPosition)>, Coord2)
 where
     TCurve:         BezierCurve,
     TCurve::Point:  Coordinate + Coordinate3D,
@@ -71,7 +73,7 @@ where
 
             (pos, radius)
         }).flat_map(move |(pos, radius)| {
-            TDistanceField::create_daub(pos, radius)
+            distance_field.create_daub(pos, radius)
         });
 
     (iterator, offset)
@@ -88,7 +90,7 @@ where
 /// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
 /// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
 ///
-pub fn brush_stroke_daubs_from_path<'a, TDistanceField, TPath>(path: &'a TPath, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField, ContourPosition)>, Coord2)
+pub fn brush_stroke_daubs_from_path<'a, TDistanceField, TPath>(distance_field: &'a TDistanceField, path: &'a TPath, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField::DaubDistanceField, ContourPosition)>, Coord2)
 where
     TPath:          BezierPath,
     TPath::Point:   Coordinate + Coordinate3D,
@@ -148,7 +150,7 @@ where
                     (pos, radius)
                 }).skip(skip)
                 .flat_map(move |(pos, radius)| {
-                    TDistanceField::create_daub(pos, radius)
+                    distance_field.create_daub(pos, radius)
                 })
         });
 
@@ -172,7 +174,7 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_curve<'a, TDistanceField, TPath, TBrushCurve>(curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_curve<'a, TDistanceField, TPath, TBrushCurve>(distance_field: &'a TDistanceField, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
@@ -180,7 +182,7 @@ where
     TBrushCurve::Point: Coordinate + Coordinate3D,
     TDistanceField:     'a + BrushDistanceField,
 {
-    let (daubs, offset) = brush_stroke_daubs_from_curve::<TDistanceField, _>(curve, step, max_error);
+    let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
@@ -208,7 +210,7 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_path<'a, TDistanceField, TPath, TBrushPath>(path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_path<'a, TDistanceField, TPath, TBrushPath>(distance_field: &'a TDistanceField, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
@@ -216,7 +218,7 @@ where
     TBrushPath::Point:  Coordinate + Coordinate3D,
     TDistanceField:     'a + BrushDistanceField,
 {
-    let (daubs, offset) = brush_stroke_daubs_from_path::<TDistanceField, _>(path, step, max_error);
+    let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
