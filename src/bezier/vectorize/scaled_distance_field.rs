@@ -18,6 +18,19 @@ pub struct ScaledDistanceField<TDistanceField> {
     scale_factor: f64,
 }
 
+impl<TDistanceField> ScaledDistanceField<TDistanceField>
+where
+    TDistanceField: SampledSignedDistanceField,
+{
+    ///
+    /// Creates scaled version of another distance field
+    ///
+    #[inline]
+    pub fn from_distance_field(distance_field: TDistanceField, scale_factor: f64) -> Self {
+        ScaledDistanceField { distance_field, scale_factor }
+    }
+}
+
 impl<'a, TDistanceField> SampledSignedDistanceField for &'a ScaledDistanceField<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
