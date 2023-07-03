@@ -12,8 +12,11 @@ use crate::geo::*;
 /// This is used to generate brush strokes made up by layering images of the 'brush head' on top of each other, which can be converted
 /// to vectors by using the `DaubBrushDistanceField` type.
 ///
-pub trait DaubBrush {
-    type DaubDistanceField: SampledSignedDistanceField;
+pub trait DaubBrush 
+where
+    Self::DaubDistanceField: SampledSignedDistanceField,
+{
+    type DaubDistanceField;
 
     ///
     /// Creates a daub with a size at a position. Returns a distance field representing which parts of the daub are filled
