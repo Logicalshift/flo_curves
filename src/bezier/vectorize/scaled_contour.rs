@@ -1,5 +1,5 @@
-use super::sampled_contour::*;
 use super::intercept_scan_edge_iterator::*;
+use super::sampled_contour::*;
 
 use smallvec::*;
 
@@ -10,10 +10,7 @@ use std::ops::{Range};
 /// implementation of `intercepts_on_line` works: for many contour types (such as path contours), this will produce accurate
 /// results on non-integer positions, so will scale smoothly.
 ///
-pub struct ScaledContour<TContour> 
-where
-    TContour: SampledContour,
-{
+pub struct ScaledContour<TContour> {
     /// The contour whose contents will be scaled
     contour: TContour,
 
