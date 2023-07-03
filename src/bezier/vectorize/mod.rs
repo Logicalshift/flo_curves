@@ -9,6 +9,7 @@ mod brush_stroke;
 mod intercept_scan_edge_iterator;
 mod scaled_contour;
 mod scaled_distance_field;
+mod scaled_brush;
 
 pub use sampled_contour::*;
 pub use distance_field::*;
@@ -21,3 +22,4 @@ pub use brush_stroke::*;
 pub use intercept_scan_edge_iterator::*;
 pub use scaled_contour::*;
 pub use scaled_distance_field::*;
+pub use scaled_brush::*;
