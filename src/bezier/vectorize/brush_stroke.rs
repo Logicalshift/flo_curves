@@ -12,10 +12,7 @@ use crate::geo::*;
 /// This is used to generate brush strokes made up by layering images of the 'brush head' on top of each other, which can be converted
 /// to vectors by using the `DaubBrushDistanceField` type.
 ///
-pub trait DaubBrush 
-where
-    Self::DaubDistanceField: SampledSignedDistanceField,
-{
+pub trait DaubBrush {
     type DaubDistanceField;
 
     ///
@@ -177,12 +174,14 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_curve<'a, TPath, TBrushCurve>(distance_field: &'a impl DaubBrush, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_curve<'a, TPath, TBrushCurve, TBrush>(distance_field: &'a TBrush, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushCurve:        BezierCurve,
     TBrushCurve::Point: Coordinate + Coordinate3D,
+    TBrush:             'a + DaubBrush,
+    TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
@@ -212,12 +211,14 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_path<'a, TPath, TBrushPath>(distance_field: &'a impl DaubBrush, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_path<'a, TPath, TBrushPath, TBrush>(distance_field: &'a TBrush, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushPath:         BezierPath,
     TBrushPath::Point:  Coordinate + Coordinate3D,
+    TBrush:             'a + DaubBrush,
+    TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
     let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
