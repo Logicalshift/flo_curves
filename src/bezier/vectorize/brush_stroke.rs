@@ -38,11 +38,11 @@ where
 /// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
 /// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
 ///
-pub fn brush_stroke_daubs_from_curve<'a, TDistanceField, TCurve>(distance_field: &'a TDistanceField, curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField::DaubDistanceField, ContourPosition)>, Coord2)
+pub fn brush_stroke_daubs_from_curve<'a, TBrush, TCurve>(distance_field: &'a TBrush, curve: &'a TCurve, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TBrush::DaubDistanceField, ContourPosition)>, Coord2)
 where
     TCurve:         BezierCurve,
     TCurve::Point:  Coordinate + Coordinate3D,
-    TDistanceField: 'a + DaubBrush,
+    TBrush:         'a + DaubBrush,
 {
     // Read the points from the curve
     let start_point = curve.start_point();
@@ -93,11 +93,11 @@ where
 /// The step value is the distance between each daub (smaller distances generate more points but are more accurate) and the max error is 
 /// the amount of 'jitter' that is allowed in the spacing of the daubs. Values of `0.5` and `0.25` should produce good results.
 ///
-pub fn brush_stroke_daubs_from_path<'a, TDistanceField, TPath>(distance_field: &'a TDistanceField, path: &'a TPath, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TDistanceField::DaubDistanceField, ContourPosition)>, Coord2)
+pub fn brush_stroke_daubs_from_path<'a, TBrush, TPath>(distance_field: &'a TBrush, path: &'a TPath, step: f64, max_error: f64) -> (impl 'a + Iterator<Item=(TBrush::DaubDistanceField, ContourPosition)>, Coord2)
 where
     TPath:          BezierPath,
     TPath::Point:   Coordinate + Coordinate3D,
-    TDistanceField: 'a + DaubBrush,
+    TBrush:         'a + DaubBrush,
 {
     // Break the path up into 2D curves for the main path, and 1D curves for the radius
     let mut curves = vec![];
@@ -165,7 +165,7 @@ where
 ///
 /// The brush stroke is made by combining discrete 'daubs' and then tracing the resulting path.
 ///
-/// `TDistanceField` specifies the type of distance field that make up the 'daubs' of the brush stroke. The simplest possible
+/// `TBrush` specifies the type of distance field that make up the 'daubs' of the brush stroke. The simplest possible
 /// distance field that can be used here is `CircularDistanceField`.
 ///
 /// `TPath` specifies the type of path structure to produce (such as `SimpleBezierPath`)
@@ -200,7 +200,7 @@ where
 ///
 /// The brush stroke is made by combining discrete 'daubs' and then tracing the resulting path.
 ///
-/// `TDistanceField` specifies the type of distance field that make up the 'daubs' of the brush stroke. The simplest possible
+/// `TBrush` specifies the type of distance field that make up the 'daubs' of the brush stroke. The simplest possible
 /// distance field that can be used here is `CircularDistanceField`.
 ///
 /// `TPath` specifies the type of path structure to produce (such as `SimpleBezierPath`)
