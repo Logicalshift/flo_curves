@@ -51,7 +51,7 @@ where
 
     #[inline]
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        let y = y * self.scale_factor;
+        let y = y / self.scale_factor;
 
         self.contour.intercepts_on_line(y)
             .into_iter()
