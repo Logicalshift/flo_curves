@@ -28,8 +28,8 @@ where
     fn field_size(self) -> ContourSize {
         let ContourSize(width, height)  = self.distance_field.field_size();
 
-        let width   = (width as f64) * self.scale_factor;
-        let height  = (height as f64) * self.scale_factor;
+        let width   = (width as f64) / self.scale_factor;
+        let height  = (height as f64) / self.scale_factor;
         let width   = width.ceil();
         let height  = height.ceil();
 
@@ -37,11 +37,19 @@ where
     }
 
     fn distance_at_point(self, pos: super::ContourPosition) -> f64 {
+        let ContourPosition(x, y) = pos;
+
+        let x = x as f64;
+        let y = y as f64;
+        let x = x * self.scale_factor;
+        let y = y * self.scale_factor;
+
         todo!()
     }
 
+    #[inline]
     fn as_contour(self) -> Self::Contour {
-        todo!()
+        self
     }
 }
 
