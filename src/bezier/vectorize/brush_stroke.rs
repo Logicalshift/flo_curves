@@ -181,10 +181,11 @@ where
     TBrushCurve:        BezierCurve,
     TBrushCurve::Point: Coordinate + Coordinate3D,
     TBrush:             'a + DaubBrush,
-    TBrush::DaubDistanceField: SampledSignedDistanceField,
+    for<'b> &'b TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
-    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
+    let daubs           = daubs.collect::<Vec<_>>();
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs.iter().map(|(daub, p)| (daub, *p)));
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
@@ -218,10 +219,11 @@ where
     TBrushPath:         BezierPath,
     TBrushPath::Point:  Coordinate + Coordinate3D,
     TBrush:             'a + DaubBrush,
-    TBrush::DaubDistanceField: SampledSignedDistanceField,
+    for<'b> &'b TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
-    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
+    let daubs           = daubs.collect::<Vec<_>>();
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs.iter().map(|(daub, p)| (daub, *p)));
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
