@@ -1,5 +1,4 @@
 use super::distance_field::*;
-use super::intercept_scan_edge_iterator::*;
 use super::sampled_contour::*;
 use super::scaled_contour::*;
 

@@ -1,6 +1,5 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
-use super::intercept_scan_edge_iterator::*;
 use crate::geo::*;
 
 use smallvec::*;

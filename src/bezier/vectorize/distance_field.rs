@@ -1,4 +1,3 @@
-use super::intercept_scan_edge_iterator::*;
 use super::sampled_contour::*;
 
 use smallvec::*;
