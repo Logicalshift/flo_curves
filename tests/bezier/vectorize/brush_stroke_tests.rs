@@ -169,3 +169,23 @@ fn broken_brush_stroke_check_contour_4() {
 
     check_contour_against_bitmap(&daub_distance_field);
 }
+
+#[test]
+fn path_brush_check_contour_1() {
+    let radius          = 32.0;
+    let center          = Coord2(radius+1.0, radius+1.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    let brush           = ScaledBrush::from_distance_field(&circle_field);
+
+    let counter = 463;
+
+    let brush_curve      = brush_curve(counter);
+    let brush            = &brush;
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&brush, &brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
+}
