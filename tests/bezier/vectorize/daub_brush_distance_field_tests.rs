@@ -8,7 +8,7 @@ use itertools::*;
 use std::f64;
 use std::collections::{HashMap, HashSet};
 
-pub fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour) {
+pub fn check_contour_against_bitmap<TContour: SampledContour>(contour: &TContour) {
     check_intercepts(contour);
 
     // Do a scan to generate a bitmap version of the contour
@@ -68,7 +68,7 @@ pub fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour)
             .join("\n  "));
 }
 
-pub fn check_intercepts<TContour: SampledContour>(contour: TContour) {
+pub fn check_intercepts<TContour: SampledContour>(contour: &TContour) {
     let width         = contour.contour_size().width();
     let height        = contour.contour_size().height();
     let mut num_empty = 0;

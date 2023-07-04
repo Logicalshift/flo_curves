@@ -72,20 +72,14 @@ impl PathContour {
     }
 }
 
-impl<'a> SampledContour for &'a PathContour {
-    type EdgeCellIterator = <&'a DynRayCastContour as SampledContour>::EdgeCellIterator;
-
+impl SampledContour for PathContour {
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         (&self.contour).contour_size()
     }
 
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        (&self.contour).edge_cell_iterator()
-    }
-
     #[inline]
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         (&self.contour).intercepts_on_line(y)
     }
 }

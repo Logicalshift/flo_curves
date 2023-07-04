@@ -1,4 +1,3 @@
-use super::intercept_scan_edge_iterator::*;
 use super::sampled_contour::*;
 
 use smallvec::*;
@@ -53,19 +52,17 @@ where
     }
 }
 
-impl<'a, TContour> SampledContour for &'a ScaledContour<TContour>
+impl<TContour> SampledContour for ScaledContour<TContour>
 where
     TContour: SampledContour,
 {
-    type EdgeCellIterator = InterceptScanEdgeIterator<&'a ScaledContour<TContour>>;
-
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         self.size
     }
 
     #[inline]
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         let y = (y - self.offset_y) / self.scale_factor;
 
         self.contour.intercepts_on_line(y)
@@ -74,10 +71,5 @@ where
                 (range.start * self.scale_factor + self.offset_x)..(range.end * self.scale_factor + self.offset_x)
             })
             .collect()
-    }
-
-    #[inline]
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
     }
 }

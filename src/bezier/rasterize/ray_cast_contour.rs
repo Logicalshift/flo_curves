@@ -70,30 +70,16 @@ where
     }
 }
 
-impl<'a, TFn> SampledContour for &'a RayCastContour<TFn>
+impl<TFn> SampledContour for RayCastContour<TFn>
 where
     TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
 {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = InterceptScanEdgeIterator<&'a RayCastContour<TFn>>;
-
     ///
     /// The size of this contour
     ///
     #[inline]
-    fn contour_size(self) -> ContourSize { 
+    fn contour_size(&self) -> ContourSize { 
         self.size
-    }
-
-    ///
-    /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
-    /// starting from the top-left corner of the contour
-    ///
-    /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
-    ///
-    #[inline]
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
     }
 
     ///
@@ -101,7 +87,7 @@ where
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         raycast_intercepts_on_line(&self.intercept_fn, y, self.scale_factor, self.size)
     }
 }

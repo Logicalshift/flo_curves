@@ -53,21 +53,18 @@ pub struct ContourEdge(pub (crate) usize);
 ///
 /// Implement this trait on a reference to a storage type rather than the type itself
 ///
-pub trait SampledContour : Copy {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator: Iterator<Item=(ContourPosition, ContourCell)>;
-
+pub trait SampledContour : Sized {
     ///
     /// The size of this contour
     ///
-    fn contour_size(self) -> ContourSize;
+    fn contour_size(&self) -> ContourSize;
 
     ///
     /// Given a y coordinate returns ranges indicating the filled pixels on that line
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]>;
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]>;
 
     ///
     /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
@@ -75,13 +72,15 @@ pub trait SampledContour : Copy {
     ///
     /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
     ///
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator;
+    #[inline] fn edge_cell_iterator<'a>(&'a self) -> InterceptScanEdgeIterator<'a, Self> {
+        InterceptScanEdgeIterator::new(self)
+    }
 
     ///
     /// Retrieves the intercepts on a line, rounded to pixel positions
     ///
     #[inline]
-    fn rounded_intercepts_on_line(self, y: f64) -> SmallVec<[Range<usize>; 4]> {
+    fn rounded_intercepts_on_line(&self, y: f64) -> SmallVec<[Range<usize>; 4]> {
         let intercepts = self.intercepts_on_line(y)
             .into_iter()
             .map(|intercept| {
@@ -102,6 +101,15 @@ pub trait SampledContour : Copy {
             merge_overlapping(intercepts)
         }
     }
+}
+
+impl<'a, T> SampledContour for &'a T
+where
+    T: SampledContour,
+{
+    #[inline] fn contour_size(&self) -> ContourSize { (*self).contour_size() }
+    #[inline] fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> { (*self).intercepts_on_line(y) }
+    #[inline] fn rounded_intercepts_on_line(&self, y: f64) -> SmallVec<[Range<usize>; 4]> { (*self).rounded_intercepts_on_line(y) }
 }
 
 ///
@@ -302,25 +310,13 @@ impl U8SampledContour {
     }
 }
 
-impl<'a> SampledContour for &'a BoolSampledContour {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
-
+impl SampledContour for BoolSampledContour {
     ///
     /// The size of this contour
     ///
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         self.0
-    }
-
-    ///
-    /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
-    ///
-    /// The position returned here is the position of the bottom-right corner of the cell.
-    ///
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
     }
 
     ///
@@ -328,7 +324,7 @@ impl<'a> SampledContour for &'a BoolSampledContour {
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         let width   = self.contour_size().width();
         let y       = y.floor() as usize;
 
@@ -355,25 +351,13 @@ impl<'a> SampledContour for &'a BoolSampledContour {
     }
 }
 
-impl<'a> SampledContour for &'a U8SampledContour {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
-
+impl SampledContour for U8SampledContour {
     ///
     /// The size of this contour
     ///
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         self.0
-    }
-
-    ///
-    /// Returns an iterator that visits all of the cells that are on an edge (has at least one set and one unset bit in the ContourCell)
-    ///
-    /// The position returned here is the position of the bottom-right corner of the cell.
-    ///
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
     }
 
     ///
@@ -381,7 +365,7 @@ impl<'a> SampledContour for &'a U8SampledContour {
     ///
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         let width   = self.contour_size().width();
         let y       = y.floor() as usize;
 
@@ -418,7 +402,7 @@ impl<'a> SampledContour for &'a U8SampledContour {
 /// at a given y position in one go, so avoid using this function where possible. For non-performance critical code, this
 /// can be a convenient way to check an individual point.
 ///
-pub fn contour_point_is_inside(contour: impl SampledContour, pos: ContourPosition) -> bool {
+pub fn contour_point_is_inside(contour: &impl SampledContour, pos: ContourPosition) -> bool {
     // Convert the y position to a coordinate
     let size    = contour.contour_size();
     let x       = pos.x() as f64;

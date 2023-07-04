@@ -107,16 +107,16 @@ where
     }
 }
 
-impl<'a> SampledSignedDistanceField for &'a PathDistanceField {
-    type Contour = &'a PathContour;
+impl SampledSignedDistanceField for PathDistanceField {
+    type Contour = PathContour;
 
     #[inline]
-    fn field_size(self) -> ContourSize {
+    fn field_size(&self) -> ContourSize {
         self.path_contour.contour_size()
     }
 
     #[inline]
-    fn distance_at_point(self, pos: ContourPosition) -> f64 {
+    fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         // TODO: maybe store the intercept ranges for the whole shape and use those to determine if a distance is negative or positive? The current approach does not work and 
         // I'm not sure if it's fixable: even if the approach coule be made to work, it'd break in any situation where there's a gap in the points
         let distance_squared = self.approx_distance_field.borrow_mut().distance_squared_at_point(pos);
@@ -129,7 +129,7 @@ impl<'a> SampledSignedDistanceField for &'a PathDistanceField {
     }
 
     #[inline]
-    fn as_contour(self) -> Self::Contour {
+    fn as_contour<'a>(&'a self) -> &'a Self::Contour {
         &self.path_contour
     }
 }

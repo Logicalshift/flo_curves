@@ -174,18 +174,17 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_curve<'a, TPath, TBrushCurve, TBrush>(distance_field: &'a TBrush, curve: &'a TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_curve<TPath, TBrushCurve, TBrush>(distance_field: &TBrush, curve: &TBrushCurve, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushCurve:        BezierCurve,
     TBrushCurve::Point: Coordinate + Coordinate3D,
-    TBrush:             'a + DaubBrush,
-    for<'b> &'b TBrush::DaubDistanceField: SampledSignedDistanceField,
+    TBrush:             DaubBrush,
+    TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_curve(distance_field, curve, step, max_error);
-    let daubs           = daubs.collect::<Vec<_>>();
-    let distance_field  = DaubBrushDistanceField::from_daubs(daubs.iter().map(|(daub, p)| (daub, *p)));
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
@@ -212,18 +211,17 @@ where
 /// the daubs and the final path: `0.25` is a good default value for this parameter. Too low a value for `max_error` may produce artifacts
 /// from over-fitting against the shape of the distance field.
 ///
-pub fn brush_stroke_from_path<'a, TPath, TBrushPath, TBrush>(distance_field: &'a TBrush, path: &'a TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
+pub fn brush_stroke_from_path<TPath, TBrushPath, TBrush>(distance_field: &TBrush, path: &TBrushPath, step: f64, max_error: f64) -> Vec<TPath>
 where
     TPath:              BezierPathFactory,
     TPath::Point:       Coordinate + Coordinate2D,
     TBrushPath:         BezierPath,
     TBrushPath::Point:  Coordinate + Coordinate3D,
-    TBrush:             'a + DaubBrush,
-    for<'b> &'b TBrush::DaubDistanceField: SampledSignedDistanceField,
+    TBrush:             DaubBrush,
+    TBrush::DaubDistanceField: SampledSignedDistanceField,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
-    let daubs           = daubs.collect::<Vec<_>>();
-    let distance_field  = DaubBrushDistanceField::from_daubs(daubs.iter().map(|(daub, p)| (daub, *p)));
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
     let mut paths       = trace_paths_from_distance_field::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);

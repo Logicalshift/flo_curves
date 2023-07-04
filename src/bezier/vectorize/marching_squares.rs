@@ -113,7 +113,7 @@ impl ContourCell {
 ///
 /// Uses the marching squares algorithm to trace the edges represented by a sampled contour
 ///
-pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<ContourEdge>> {
+pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<ContourEdge>> {
     // Hash map indicating which edges are connected to each other
     let mut edge_graph  = HashMap::<_, SmallVec<[_; 2]>>::new();
     let contour_size    = contours.contour_size();
@@ -199,7 +199,7 @@ pub fn trace_contours_from_samples(contours: impl SampledContour) -> Vec<Vec<Con
 /// All samples are placed at the middle of the edge, so a fit accuracy > 1.0 should be used to smooth out the shape (1.5 is a good value).
 /// A distance field can be used to get sub-pixel accuracy (see `trace_contours_from_distance_field()`) if that's needed.
 ///
-pub fn trace_paths_from_samples<TPathFactory>(contours: impl SampledContour, accuracy: f64) -> Vec<TPathFactory>
+pub fn trace_paths_from_samples<TPathFactory>(contours: &impl SampledContour, accuracy: f64) -> Vec<TPathFactory>
 where
     TPathFactory:           BezierPathFactory,
     TPathFactory::Point:    Coordinate + Coordinate2D,
@@ -226,13 +226,14 @@ where
 ///
 /// Traces contours from a distance field using the marching squares algorithm
 ///
-pub fn trace_contours_from_distance_field<TCoord>(distance_field: impl SampledSignedDistanceField) -> Vec<Vec<TCoord>> 
+pub fn trace_contours_from_distance_field<TCoord>(distance_field: &impl SampledSignedDistanceField) -> Vec<Vec<TCoord>> 
 where
     TCoord: Coordinate + Coordinate2D,
 {
     // Trace the edges
     let field_size  = distance_field.field_size();
-    let loops       = trace_contours_from_samples(distance_field.as_contour());
+    let contours    = distance_field.as_contour();
+    let loops       = trace_contours_from_samples(contours);
 
     #[inline]
     fn edge_coord_to_field_coord(pos: ContourPosition) -> ContourPosition {
@@ -273,7 +274,7 @@ where
 ///
 /// Creates a bezier path from a sampled set of contours
 ///
-pub fn trace_paths_from_distance_field<TPathFactory>(distance_field: impl SampledSignedDistanceField, accuracy: f64) -> Vec<TPathFactory>
+pub fn trace_paths_from_distance_field<TPathFactory>(distance_field: &impl SampledSignedDistanceField, accuracy: f64) -> Vec<TPathFactory>
 where
     TPathFactory:           BezierPathFactory,
     TPathFactory::Point:    Coordinate + Coordinate2D,

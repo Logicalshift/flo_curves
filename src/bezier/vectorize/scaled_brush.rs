@@ -6,10 +6,7 @@ use super::scaled_distance_field::*;
 ///
 /// Brush that returns a scaled version of a distance field for each daub
 ///
-pub struct ScaledBrush<TDistanceField> 
-where
-    TDistanceField: SampledSignedDistanceField,
-{
+pub struct ScaledBrush<TDistanceField> {
     /// The base distance field for the brush
     distance_field: TDistanceField,
 
@@ -25,7 +22,7 @@ where
 
 impl<TDistanceField> ScaledBrush<TDistanceField>
 where
-    TDistanceField: SampledSignedDistanceField
+    TDistanceField: SampledSignedDistanceField,
 {
     ///
     /// Creates a new scaled brush that will produce scaled versions of the supplied distance field
@@ -48,11 +45,11 @@ where
     }
 }
 
-impl<TDistanceField> DaubBrush for ScaledBrush<TDistanceField> 
+impl<'a, TDistanceField> DaubBrush for &'a ScaledBrush<TDistanceField> 
 where
     TDistanceField: SampledSignedDistanceField,
 {
-    type DaubDistanceField = ScaledDistanceField<TDistanceField>;
+    type DaubDistanceField = ScaledDistanceField<&'a TDistanceField>;
 
     #[inline]
     fn create_daub(&self, pos: impl crate::Coordinate + crate::Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)> {
@@ -62,14 +59,13 @@ where
 
             if x < 0.0 || y < 0.0 { return None; }
 
-            // TODO: the scaled distance field needs to support the offset too
             let offset_x = x - x.floor();
             let offset_y = y - y.floor();
 
-            let circle      = ScaledDistanceField::from_distance_field(self.distance_field, radius * self.radius_scale, (offset_x, offset_y));
-            let position    = ContourPosition(x.floor() as usize, y.floor() as usize);
+            let distance_field  = ScaledDistanceField::from_distance_field(&self.distance_field, radius * self.radius_scale, (offset_x, offset_y));
+            let position        = ContourPosition(x.floor() as usize, y.floor() as usize);
 
-            Some((circle, position))
+            Some((distance_field, position))
         } else {
             None
         }

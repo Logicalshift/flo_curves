@@ -31,7 +31,7 @@ fn create_circle(radius: f64) -> DynRayCastContour {
 fn draw<TContour: SampledContour>(contour: TContour) {
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
         .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
-        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
+        .map(|(x, y)| contour_point_is_inside(&contour, ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     for p in 0..bitmap.len() {
@@ -41,7 +41,7 @@ fn draw<TContour: SampledContour>(contour: TContour) {
     println!();
 }
 
-fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
+fn check_contour_against_bitmap<TContour: SampledContour>(contour: &TContour, draw_circle: bool) {
     // Do a scan to generate a bitmap version of the contour
     let size   = contour.contour_size();
     let bitmap = (0..size.height())

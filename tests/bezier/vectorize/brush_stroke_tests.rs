@@ -1,8 +1,10 @@
 use super::daub_brush_distance_field_tests::{check_contour_against_bitmap};
 
+use flo_curves::arc::*;
 use flo_curves::geo::*;
 use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
+use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
 use std::f64;

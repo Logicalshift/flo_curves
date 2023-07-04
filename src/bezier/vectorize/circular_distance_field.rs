@@ -4,7 +4,6 @@ use super::intercept_scan_edge_iterator::*;
 use crate::geo::*;
 
 use smallvec::*;
-use ouroboros::self_referencing;
 
 use std::ops::{Range};
 
@@ -84,45 +83,13 @@ impl CircularDistanceField {
 }
 
 impl SampledContour for CircularDistanceField {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = Box<dyn Iterator<Item=(ContourPosition, ContourCell)>>;
-
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 
     #[inline]
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        let iterator = SelfReferentialIteratorBuilder {
-            owner:              self,
-            iterator_builder:   |owner| owner.edge_cell_iterator(),
-        }.build();
-
-        Box::new(iterator)
-    }
-
-    #[inline]
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        (&self).intercepts_on_line(y)
-    }
-}
-
-impl<'a> SampledContour for &'a CircularDistanceField {
-    /// Iterator that visits all of the cells in this contour
-    type EdgeCellIterator = InterceptScanEdgeIterator<&'a CircularDistanceField>;
-
-    #[inline]
-    fn contour_size(self) -> ContourSize {
-        ContourSize(self.diameter, self.diameter)
-    }
-
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
-    }
-
-    #[inline]
-    fn intercepts_on_line(self, ypos: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, ypos: f64) -> SmallVec<[Range<f64>; 4]> {
         let y = ypos - self.center_y;
 
         if y.abs() <= self.radius {
@@ -141,28 +108,11 @@ impl SampledSignedDistanceField for CircularDistanceField {
     type Contour = CircularDistanceField;
 
     #[inline]
-    fn field_size(self) -> ContourSize {
+    fn field_size(&self) -> ContourSize {
         ContourSize(self.diameter, self.diameter)
     }
 
-    #[inline]
-    fn distance_at_point(self, pos: ContourPosition) -> f64 {
-        (&self).distance_at_point(pos)
-    }
-
-    #[inline]
-    fn as_contour(self) -> Self::Contour { self }
-}
-
-impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
-    type Contour = &'a CircularDistanceField;
-
-    #[inline]
-    fn field_size(self) -> ContourSize {
-        ContourSize(self.diameter, self.diameter)
-    }
-
-    fn distance_at_point(self, pos: ContourPosition) -> f64 {
+    fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         let pos_x       = pos.0 as f64;
         let pos_y       = pos.1 as f64;
         let offset_x    = pos_x - self.center_x;
@@ -172,36 +122,5 @@ impl<'a> SampledSignedDistanceField for &'a CircularDistanceField {
     }
 
     #[inline]
-    fn as_contour(self) -> Self::Contour { self }
-}
-
-///
-/// Self-referential iterator using ouroboros
-///
-#[self_referencing]
-struct SelfReferentialIterator<TOwner> 
-where
-    TOwner: 'static,
-    for<'a> &'a TOwner: SampledContour,
-{
-    /// The object that the iterator borrows
-    owner: TOwner,
-
-    /// The iterator that this will evaluate
-    #[borrows(owner)]
-    #[not_covariant]
-    iterator: InterceptScanEdgeIterator<&'this TOwner>,
-}
-
-impl<TOwner> Iterator for SelfReferentialIterator<TOwner> 
-where
-    TOwner: 'static,
-    for<'a> &'a TOwner: SampledContour,
-{
-    type Item = (ContourPosition, ContourCell);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.with_iterator_mut(|iterator| iterator.next())
-    }
+    fn as_contour<'a>(&'a self) -> &'a Self::Contour { self }
 }

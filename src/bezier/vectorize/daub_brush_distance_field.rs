@@ -21,10 +21,7 @@ use std::ops::{Range};
 ///
 /// This provides the most general purpose approach to generating vectors from brush strokes or other patterns.
 ///
-pub struct DaubBrushDistanceField<TDaub>
-where
-    TDaub: SampledSignedDistanceField,
-{
+pub struct DaubBrushDistanceField<TDaub> {
     /// The size of this distance field, sufficient to contain all of the 'daubs'
     size: ContourSize,
 
@@ -155,23 +152,16 @@ where
 
 }
 
-impl<'a, TDaub> SampledContour for &'a DaubBrushDistanceField<TDaub> 
+impl<TDaub> SampledContour for DaubBrushDistanceField<TDaub> 
 where
     TDaub: SampledSignedDistanceField,
 {
-    type EdgeCellIterator = InterceptScanEdgeIterator<Self>;
-
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         self.size
     }
 
-    #[inline]
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
-    }
-
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
 
         // Fetch the daubs at this y position
@@ -256,18 +246,18 @@ where
     }
 }
 
-impl<'a, TDaub> SampledSignedDistanceField for &'a DaubBrushDistanceField<TDaub>
+impl<TDaub> SampledSignedDistanceField for DaubBrushDistanceField<TDaub>
 where
     TDaub: SampledSignedDistanceField,
 {
-    type Contour = &'a DaubBrushDistanceField<TDaub>;
+    type Contour = DaubBrushDistanceField<TDaub>;
 
     #[inline]
-    fn field_size(self) -> ContourSize {
+    fn field_size(&self) -> ContourSize {
         self.size
     }
 
-    fn distance_at_point(self, pos: ContourPosition) -> f64 {
+    fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         // Distance is the minimum of all the daubs that overlap this point
         let mut distance = f64::MAX;
 
@@ -298,7 +288,7 @@ where
     }
 
     #[inline]
-    fn as_contour(self) -> Self::Contour {
+    fn as_contour<'a>(&'a self) -> &'a Self::Contour {
         self
     }
 }

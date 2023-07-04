@@ -6,10 +6,10 @@ use itertools::*;
 
 use std::collections::{HashMap};
 
-fn draw<TContour: SampledContour>(contour: TContour) {
+fn draw<TContour: SampledContour>(contour: &TContour) {
     let bitmap = (0..(contour.contour_size().0 * contour.contour_size().1)).into_iter()
         .map(|pos| (pos % contour.contour_size().1, pos / contour.contour_size().1))
-        .map(|(x, y)| contour_point_is_inside(contour, ContourPosition(x, y)))
+        .map(|(x, y)| contour_point_is_inside(&contour, ContourPosition(x, y)))
         .collect::<Vec<_>>();
 
     for p in 0..bitmap.len() {
@@ -20,7 +20,7 @@ fn draw<TContour: SampledContour>(contour: TContour) {
 }
 
 fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, draw_circle: bool) {
-    check_intercepts(contour);
+    check_intercepts(&contour);
 
     // Do a scan to generate a bitmap version of the contour
     let size   = contour.contour_size();
@@ -35,7 +35,7 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
         .collect::<Vec<_>>();
 
     if draw_circle {
-        draw(contour);
+        draw(&contour);
     }
 
     let bitmap = BoolSampledContour(contour.contour_size(), bitmap);
@@ -63,7 +63,7 @@ fn check_contour_against_bitmap<TContour: SampledContour>(contour: TContour, dra
             .join("\n  "));
 }
 
-fn check_intercepts<TContour: SampledContour>(contour: TContour) {
+fn check_intercepts<TContour: SampledContour>(contour: &TContour) {
     let mut num_empty = 0;
 
     for y in 0..contour.contour_size().height() {
@@ -422,7 +422,7 @@ fn circle_path_from_distance_field_offset() {
     let offset          = 0.3;
     let distance_field  = CircularDistanceField::with_radius(radius).with_center_offset(offset, offset);
 
-    draw(CircularDistanceField::with_radius(radius));
+    draw(&CircularDistanceField::with_radius(radius));
     check_contour_against_bitmap(&distance_field, true);
 
     let size            = distance_field.contour_size().0;

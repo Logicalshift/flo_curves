@@ -53,18 +53,18 @@ where
     }
 }
 
-impl<'a, TDistanceField> SampledSignedDistanceField for &'a ScaledDistanceField<TDistanceField>
+impl<TDistanceField> SampledSignedDistanceField for ScaledDistanceField<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
 {
-    type Contour = &'a ScaledDistanceField<TDistanceField>;
+    type Contour = ScaledDistanceField<TDistanceField>;
 
     #[inline]
-    fn field_size(self) -> ContourSize {
+    fn field_size(&self) -> ContourSize {
         self.size
     }
 
-    fn distance_at_point(self, pos: super::ContourPosition) -> f64 {
+    fn distance_at_point(&self, pos: super::ContourPosition) -> f64 {
         let ContourPosition(x, y) = pos;
 
         // Scale the x & y positions
@@ -94,29 +94,22 @@ where
     }
 
     #[inline]
-    fn as_contour(self) -> Self::Contour {
+    fn as_contour<'a>(&'a self) -> &'a Self::Contour {
         self
     }
 }
 
-impl<'a, TDistanceField> SampledContour for &'a ScaledDistanceField<TDistanceField> 
+impl<TDistanceField> SampledContour for ScaledDistanceField<TDistanceField> 
 where
     TDistanceField: SampledSignedDistanceField,
 {
-    type EdgeCellIterator = InterceptScanEdgeIterator<&'a ScaledDistanceField<TDistanceField>>;
-
     #[inline]
-    fn contour_size(self) -> ContourSize {
+    fn contour_size(&self) -> ContourSize {
         self.field_size()
     }
 
     #[inline]
-    fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_line(y)
-    }
-
-    #[inline]
-    fn edge_cell_iterator(self) -> Self::EdgeCellIterator {
-        InterceptScanEdgeIterator::new(self)
     }
 }
