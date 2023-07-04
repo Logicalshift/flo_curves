@@ -14,8 +14,17 @@ pub struct ScaledDistanceField<TDistanceField> {
     /// The distance field that is being scaled
     distance_field: TDistanceField,
 
-    /// The scale factor of 
+    /// The scale factor to apply to the source distance field
     scale_factor: f64,
+
+    /// X offset to apply to the result
+    offset_x: f64,
+
+    /// Y offset to apply to the result
+    offset_y: f64,
+
+    /// The size of 
+    size: ContourSize,
 }
 
 impl<TDistanceField> ScaledDistanceField<TDistanceField>
@@ -26,8 +35,21 @@ where
     /// Creates scaled version of another distance field
     ///
     #[inline]
-    pub fn from_distance_field(distance_field: TDistanceField, scale_factor: f64) -> Self {
-        ScaledDistanceField { distance_field, scale_factor }
+    pub fn from_distance_field(distance_field: TDistanceField, scale_factor: f64, offset: (f64, f64)) -> Self {
+        // Multiply the original size by the scale factor to get the new size
+        let ContourSize(width, height)  = distance_field.field_size();
+
+        let width   = (width as f64) * scale_factor + offset.0;
+        let height  = (height as f64) * scale_factor + offset.1;
+        let width   = width.ceil();
+        let height  = height.ceil();
+
+        let size = ContourSize(width as _, height as _);
+
+        // The offset is added to the position to allow for aligning the distance field to non-integer grids (eg, when this is used as a brush)
+        let (offset_x, offset_y) = offset;
+
+        ScaledDistanceField { distance_field, scale_factor, size, offset_x, offset_y }
     }
 }
 
@@ -39,22 +61,15 @@ where
 
     #[inline]
     fn field_size(self) -> ContourSize {
-        let ContourSize(width, height)  = self.distance_field.field_size();
-
-        let width   = (width as f64) * self.scale_factor;
-        let height  = (height as f64) * self.scale_factor;
-        let width   = width.ceil();
-        let height  = height.ceil();
-
-        ContourSize(width as usize, height as usize)
+        self.size
     }
 
     fn distance_at_point(self, pos: super::ContourPosition) -> f64 {
         let ContourPosition(x, y) = pos;
 
         // Scale the x & y positions
-        let x = x as f64;
-        let y = y as f64;
+        let x = x as f64 - self.offset_x;
+        let y = y as f64 - self.offset_y;
         let x = x / self.scale_factor;
         let y = y / self.scale_factor;
 
@@ -97,7 +112,7 @@ where
 
     #[inline]
     fn intercepts_on_line(self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor).intercepts_on_line(y)
+        ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_line(y)
     }
 
     #[inline]

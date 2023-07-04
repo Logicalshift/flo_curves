@@ -34,7 +34,7 @@ where
             let offset_x = x - x.floor();
             let offset_y = y - y.floor();
 
-            let circle      = ScaledDistanceField::from_distance_field(self.distance_field, radius * self.radius_scale);
+            let circle      = ScaledDistanceField::from_distance_field(self.distance_field, radius * self.radius_scale, (offset_x, offset_y));
             let position    = ContourPosition(x.floor() as usize, y.floor() as usize);
 
             Some((circle, position))
