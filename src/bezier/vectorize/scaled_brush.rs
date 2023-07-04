@@ -10,10 +10,42 @@ pub struct ScaledBrush<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
 {
+    /// The base distance field for the brush
     distance_field: TDistanceField,
+
+    /// The x offset to the center of the distance field (point we scale around)
     center_x: f64,
+
+    /// The y offset to the center of the distance field (point we scale around)
     center_y: f64,
+
+    /// The scale factor to apply to the radius in the daubs
     radius_scale: f64,
+}
+
+impl<TDistanceField> ScaledBrush<TDistanceField>
+where
+    TDistanceField: SampledSignedDistanceField
+{
+    ///
+    /// Creates a new scaled brush that will produce scaled versions of the supplied distance field
+    ///
+    pub fn from_distance_field(distance_field: TDistanceField) -> Self {
+        // Scale around the center of the distance field
+        let size                        = distance_field.field_size();
+        let ContourSize(width, height)  = size;
+
+        let center_x    = (width as f64) / 2.0;
+        let center_y    = (height as f64) / 2.0;
+
+        // Scale to the largest of the width/height
+        let radius          = width.max(height);
+        let radius_scale    = 1.0 / (radius as f64);
+
+        ScaledBrush {
+            distance_field, center_x, center_y, radius_scale
+        }
+    }
 }
 
 impl<TDistanceField> DaubBrush for ScaledBrush<TDistanceField> 
