@@ -51,8 +51,6 @@ pub struct ContourEdge(pub (crate) usize);
 ///
 /// Represents a contour stored as samples at integer coordinates, where each sample can either be within the shape (1) or outside of the shape (0)
 ///
-/// Implement this trait on a reference to a storage type rather than the type itself
-///
 pub trait SampledContour : Sized {
     ///
     /// The size of this contour

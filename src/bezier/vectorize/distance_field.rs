@@ -14,8 +14,6 @@ use std::ops::{Range};
 /// Distances are typically in pixels, however some implementations (eg U8SampledDistanceField) may use arbitrary units.
 /// (The units typically don't matter when searching for the edge as '0' is a common point)
 ///
-/// Implement this trait on a reference to a storage type rather than the type itself
-///
 pub trait SampledSignedDistanceField {
     /// A type that can represent the edge contour for this distance field (see `ContourFromDistanceField` for a basic implementation)
     type Contour: SampledContour;
