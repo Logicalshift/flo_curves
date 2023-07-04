@@ -4,25 +4,23 @@ use flo_curves::arc::*;
 use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
+use flo_curves::bezier::vectorize::*;
 
-fn scan_convert_curve(curve: Curve<Coord2>) -> Vec<ScanEdgeFragment> {
-    let scan_converter = RootSolvingScanConverter::new(0..1000);
-    scan_converter.scan_convert(&curve).collect()
-}
+use smallvec::*;
 
-fn scan_convert_circle(path: &Vec<SimpleBezierPath>) -> Vec<ScanEdgeFragment> {
-    let scan_converter = BezierPathScanConverter::new(0..1000);
-    scan_converter.scan_convert(&path).collect()
+use std::ops::{Range};
+
+fn scan_convert_path(path: &Vec<SimpleBezierPath>) -> Vec<SmallVec<[Range<usize>; 4]>> {
+    let scan_converter = PathContour::from_path(path.clone(), ContourSize(1000, 1000));
+    (0..1000).map(|y| scan_converter.rounded_intercepts_on_line(y as f64)).collect()
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
-    let circle_curves   = circle_path.to_curves::<Curve<_>>();
 
-    c.bench_function("scan_convert_circle", |b| b.iter(|| scan_convert_circle(&vec![circle_path.clone()])));
-    c.bench_function("scan_convert_curve", |b| b.iter(|| scan_convert_curve(circle_curves[0].clone())));
+    c.bench_function("scan_convert_circle", |b| b.iter(|| scan_convert_path(&vec![circle_path.clone()])));
 }
 
 criterion_group!(benches, criterion_benchmark);

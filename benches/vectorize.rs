@@ -37,7 +37,7 @@ fn sampled_circle(size: usize, radius: usize) -> BoolSampledContour {
     contour
 }
 
-fn start_edge_iteration<TContour: SampledContour>(contour: TContour) -> impl Iterator<Item=(ContourPosition, ContourCell)> {
+fn start_edge_iteration<'a, TContour: SampledContour>(contour: &'a TContour) -> impl 'a + Iterator<Item=(ContourPosition, ContourCell)> {
     contour.edge_cell_iterator()
 }
 
@@ -57,7 +57,7 @@ fn find_edges<TContour: SampledContour>(contour: TContour) -> Vec<(ContourPositi
 
 fn circle_from_contours<TContour: SampledContour>(contour: TContour) {
     // Trace the samples to generate a vector
-    trace_paths_from_samples::<SimpleBezierPath>(contour, 0.1);
+    trace_paths_from_samples::<SimpleBezierPath>(&contour, 0.1);
 }
 
 fn create_brush_stroke(brush_size: f64) -> Curve<Coord3> {
