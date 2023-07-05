@@ -89,7 +89,7 @@ where
         let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
         let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
 
-        distance
+        distance * self.scale_factor
     }
 
     #[inline]
