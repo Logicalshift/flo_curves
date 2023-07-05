@@ -166,6 +166,8 @@ fn main() {
             gc.canvas_height(1000.0);
             gc.center_region(0.0, 0.0, 1000.0, 1000.0);
 
+            gc.winding_rule(WindingRule::EvenOdd);
+
             let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
                 .line_to(Coord2(12.0, 36.0))
                 .line_to(Coord2(36.0, 48.0))
@@ -180,11 +182,17 @@ fn main() {
                 .line_to(Coord2(22.0, 0.0))
                 .build();
 
+            let two_circles = vec![
+                Circle::new(Coord2(0.0, 0.0), 8.0).to_path::<SimpleBezierPath>(),
+                Circle::new(Coord2(24.0, 24.0), 8.0).to_path::<SimpleBezierPath>(),
+            ];
+
             draw_offset_brush_stroke(gc, 100.0, 800.0);
             draw_circle_brush_stroke(gc, 200.0, 800.0);
             draw_path_brush_stroke(gc, 300.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
             draw_path_brush_stroke(gc, 400.0, 800.0, vec![chisel]);
             draw_path_brush_stroke(gc, 500.0, 800.0, vec![oblique]);
+            draw_path_brush_stroke(gc, 600.0, 800.0, two_circles);
         });
     });
 }
