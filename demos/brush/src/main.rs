@@ -64,7 +64,7 @@ fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
     let brush       = CircularBrush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 1.0);
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
 
     // Draw it as a preview
     draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
@@ -117,7 +117,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     let brush       = &brush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 1.0);
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
 
     // Draw it as a preview
     draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
@@ -140,9 +140,17 @@ fn main() {
                 .line_to(Coord2(0.0, 0.0))
                 .build();
 
+            let oblique = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(22.0, 0.0))
+                .line_to(Coord2(0.0, 46.0))
+                .line_to(Coord2(6.0, 48.0))
+                .line_to(Coord2(28.0, 2.0))
+                .line_to(Coord2(22.0, 0.0))
+                .build();
+
             draw_circle_brush_stroke(gc, 100.0, 800.0);
             draw_path_brush_stroke(gc, 200.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
             draw_path_brush_stroke(gc, 300.0, 800.0, vec![chisel]);
+            draw_path_brush_stroke(gc, 400.0, 800.0, vec![oblique]);
         });
     });
 }
