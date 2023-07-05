@@ -119,6 +119,28 @@ pub trait BezierPathFactory : BezierPath {
     fn from_path<FromPath: BezierPath<Point=Self::Point>>(path: &FromPath) -> Self {
         Self::from_points(path.start_point(), path.points())
     }
+
+    ///
+    /// Creates a new instance of this path from a list of curves
+    ///
+    /// Only the start point of the first curve will be used
+    ///
+    fn from_connected_curves<TCurve: BezierCurve<Point=Self::Point>>(curves: impl IntoIterator<Item=TCurve>) -> Self {
+        let mut curves  = curves.into_iter();
+
+        // Peek at the first curve to get the start point
+        let first_curve = curves.next();
+        let start_point = first_curve.as_ref().map(|c| c.start_point()).unwrap_or_else(|| Self::Point::origin());
+
+        // Put the start curve back again and generate the path by reading the other points of the curves
+        let points      = first_curve.into_iter().chain(curves)
+            .map(|curve| {
+                let (_, (cp1, cp2), ep) = curve.all_points();
+                (cp1, cp2, ep)
+            });
+
+        Self::from_points(start_point, points)
+    }
 }
 
 impl<Point: Clone+Coordinate> Geo for (Point, Vec<(Point, Point, Point)>) {
