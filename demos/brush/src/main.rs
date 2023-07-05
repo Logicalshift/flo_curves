@@ -12,6 +12,35 @@ use flo_curves::geo::{Coord2};
 use std::f64;
 
 ///
+/// Creates a brush stroke path
+///
+fn brush_stroke(center_x: f64, length: f64, width: f64) -> SimpleBezierPath3 {
+    // Limit the range of the length
+    let length = length.max(0.0);
+    let length = length.min(800.0);
+
+    // Create some curves by fitting along the length
+    let brush_stroke = (0..(length as isize))
+        .map(|p| {
+            // p gives us the y position
+            let p       = p as f64;
+            let y_pos   = p + 100.0;
+
+            let p = p / 800.0;
+            let p = p * f64::consts::PI;
+
+            let x_pos = center_x + (p*7.0).sin()*32.0;
+            let width = p.sin().abs() * width;
+
+            Coord3(x_pos, y_pos, width)
+        });
+    let brush_stroke = fit_curve::<Curve<_>>(&brush_stroke.collect::<Vec<_>>(), 0.1).unwrap();
+    let brush_stroke = SimpleBezierPath3::from_connected_curves(brush_stroke);
+
+    brush_stroke
+}
+
+///
 /// Draws the outline of a path
 ///
 fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path: impl IntoIterator<Item=SimpleBezierPath>, col1: Color, col2: Color) {
@@ -46,23 +75,7 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
 /// Draws the outline of a simple brush stroke using the 'circular' brush head
 ///
 fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
-    // Create some curves by fitting along the length
-    let brush_stroke = (0..(length as isize))
-        .map(|p| {
-            // p gives us the y position
-            let p       = p as f64;
-            let y_pos   = p + 100.0;
-
-            let p = p / 800.0;
-            let p = p * f64::consts::PI;
-
-            let x_pos = center_x + (p*7.0).sin()*32.0;
-            let width = p.sin().abs() * 10.0;
-
-            Coord3(x_pos, y_pos, width)
-        });
-    let brush_stroke = fit_curve::<Curve<_>>(&brush_stroke.collect::<Vec<_>>(), 0.1).unwrap();
-    let brush_stroke = SimpleBezierPath3::from_connected_curves(brush_stroke);
+    let brush_stroke = brush_stroke(center_x, length, 10.0);
 
     // Use the circular brush
     let brush       = CircularBrush;
@@ -80,8 +93,8 @@ fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
 fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64, brush_head: Vec<SimpleBezierPath>) {
     let bounds = brush_head.iter().map(|subpath| subpath.bounding_box::<Bounds<_>>()).reduce(|a, b| a.union_bounds(b)).unwrap();
 
-    let length = length.max(0.0);
-    let length = length.min(800.0);
+    // Create some curves by fitting along the length
+    let brush_stroke = brush_stroke(center_x, length, 20.0);
 
     // Draw the brush preview
     let offset  = bounds.min();
@@ -96,25 +109,6 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
         });
 
     draw_path_outline(gc, preview, Color::Rgba(0.4, 0.85, 1.0, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
-
-    // Create some curves by fitting along the length
-    let brush_stroke = (0..(length as isize))
-        .map(|p| {
-            // p gives us the y position
-            let p       = p as f64;
-            let y_pos   = p + 100.0;
-
-            let p = p / 800.0;
-            let p = p * f64::consts::PI;
-
-            let x_pos = center_x + (p*7.0).sin()*32.0;
-            let width = p.sin().abs() * 20.0;
-            let width = 32.0;
-
-            Coord3(x_pos, y_pos, width)
-        });
-    let brush_stroke = fit_curve::<Curve<_>>(&brush_stroke.collect::<Vec<_>>(), 0.1).unwrap();
-    let brush_stroke = SimpleBezierPath3::from_connected_curves(brush_stroke);
 
     // Create a brush from the path
     let (field, _)  = PathDistanceField::center_path(brush_head);
