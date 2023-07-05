@@ -75,7 +75,7 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
 /// Draws the outline of a simple brush stroke by offsetting the path
 ///
 fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
-    let brush_stroke = brush_stroke(center_x, length, 20.0, 14.0);
+    let brush_stroke = brush_stroke(center_x, length, 20.0, 16.0);
 
     // Offset the curves in the brush stroke to generate the reuslt
     let offsets = brush_stroke.to_curves::<Curve<_>>().into_iter()
@@ -109,7 +109,7 @@ fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
 /// Draws the outline of a simple brush stroke using the 'circular' brush head
 ///
 fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
-    let brush_stroke = brush_stroke(center_x, length, 20.0, 14.0);
+    let brush_stroke = brush_stroke(center_x, length, 20.0, 16.0);
 
     // Use the circular brush
     let brush       = CircularBrush;
