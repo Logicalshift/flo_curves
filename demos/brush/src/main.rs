@@ -52,7 +52,7 @@ fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
             let p = p / 800.0;
             let p = p * f64::consts::PI;
 
-            let x_pos = center_x + (p*2.5).sin()*32.0;
+            let x_pos = center_x + (p*7.0).sin()*32.0;
             let width = p.sin().abs() * 10.0;
 
             Coord3(x_pos, y_pos, width)
@@ -103,7 +103,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
             let p = p / 800.0;
             let p = p * f64::consts::PI;
 
-            let x_pos = center_x + (p*2.5).sin()*32.0;
+            let x_pos = center_x + (p*7.0).sin()*32.0;
             let width = p.sin().abs() * 20.0;
 
             Coord3(x_pos, y_pos, width)
