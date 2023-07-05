@@ -43,6 +43,47 @@ impl PathDistanceField {
 
         PathDistanceField { path_contour, approx_distance_field }
     }
+
+    ///
+    /// Creates a distance field that has the specified path at the center
+    ///
+    /// The coordinate returned is the offset of the resulting distance field (add to the coordinates to get the coordinates on the original path)
+    ///
+    pub fn center_path<TPath>(path: Vec<TPath>) -> (Self, TPath::Point) 
+    where
+        TPath:          'static + BezierPath + BezierPathFactory,
+        TPath::Point:   Coordinate + Coordinate2D,
+    {
+        // Figure out the bounding box of the path
+        let bounds = path.iter()
+            .map(|subpath| subpath.bounding_box::<Bounds<_>>())
+            .reduce(|a, b| a.union_bounds(b))
+            .unwrap_or_else(|| Bounds::empty());
+
+        // Offset is the lower-left corner of the bounding box
+        let offset  = bounds.min();
+        let size    = bounds.max() - bounds.min();
+
+        // Allow a 1px border around the path
+        let offset  = offset - TPath::Point::from_components(&[1.0, 1.0]);
+
+        // Move the path so that its lower bound is at 1,1
+        let mut path = path;
+        path.iter_mut().for_each(|subpath| {
+            let new_subpath = subpath.map_points(|p| p - offset);
+            *subpath        = new_subpath;
+        });
+
+        // The size of the distance field is the size of the path with a 2px border
+        let width   = size.x().ceil() + 2.0;
+        let height  = size.y().ceil() + 2.0;
+        let size    = ContourSize(width as _, height as _);
+
+        // Create the distance field
+        let distance_field = Self::from_path(path, size);
+
+        (distance_field, offset)
+    }
 }
 
 ///
