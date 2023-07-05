@@ -109,6 +109,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
 
             let x_pos = center_x + (p*7.0).sin()*32.0;
             let width = p.sin().abs() * 20.0;
+            let width = 32.0;
 
             Coord3(x_pos, y_pos, width)
         });
