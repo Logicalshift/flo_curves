@@ -14,7 +14,7 @@ use std::f64;
 ///
 /// Creates a brush stroke path
 ///
-fn brush_stroke(center_x: f64, length: f64, width: f64) -> SimpleBezierPath3 {
+fn brush_stroke(center_x: f64, length: f64, width: f64, wiggle: f64) -> SimpleBezierPath3 {
     // Limit the range of the length
     let length = length.max(0.0);
     let length = length.min(800.0);
@@ -29,7 +29,7 @@ fn brush_stroke(center_x: f64, length: f64, width: f64) -> SimpleBezierPath3 {
             let p = p / 800.0;
             let p = p * f64::consts::PI;
 
-            let x_pos = center_x + (p*7.0).sin()*32.0;
+            let x_pos = center_x + (p*wiggle).sin()*32.0;
             let width = p.sin().abs() * width;
 
             Coord3(x_pos, y_pos, width)
@@ -75,7 +75,7 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
 /// Draws the outline of a simple brush stroke by offsetting the path
 ///
 fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
-    let brush_stroke = brush_stroke(center_x, length, 20.0);
+    let brush_stroke = brush_stroke(center_x, length, 20.0, 14.0);
 
     // Offset the curves in the brush stroke to generate the reuslt
     let offsets = brush_stroke.to_curves::<Curve<_>>().into_iter()
@@ -109,7 +109,7 @@ fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
 /// Draws the outline of a simple brush stroke using the 'circular' brush head
 ///
 fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
-    let brush_stroke = brush_stroke(center_x, length, 20.0);
+    let brush_stroke = brush_stroke(center_x, length, 20.0, 14.0);
 
     // Use the circular brush
     let brush       = CircularBrush;
@@ -128,7 +128,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     let bounds = brush_head.iter().map(|subpath| subpath.bounding_box::<Bounds<_>>()).reduce(|a, b| a.union_bounds(b)).unwrap();
 
     // Create some curves by fitting along the length
-    let brush_stroke = brush_stroke(center_x, length, 40.0);
+    let brush_stroke = brush_stroke(center_x, length, 40.0, 7.0);
 
     // Draw the brush preview
     let offset  = bounds.min();
