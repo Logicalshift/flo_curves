@@ -28,12 +28,12 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
     }
 
     // Thick 'outer' path
-    gc.line_width(6.0);
+    gc.line_width(4.0);
     gc.stroke_color(col1);
     gc.stroke();
 
     // Thin 'inner' path
-    gc.line_width(1.0);
+    gc.line_width(2.0);
     gc.stroke_color(col2);
     gc.stroke();
 }
@@ -133,8 +133,16 @@ fn main() {
             gc.canvas_height(1000.0);
             gc.center_region(0.0, 0.0, 1000.0, 1000.0);
 
+            let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+                .line_to(Coord2(12.0, 36.0))
+                .line_to(Coord2(36.0, 48.0))
+                .line_to(Coord2(24.0, 12.0))
+                .line_to(Coord2(0.0, 0.0))
+                .build();
+
             draw_circle_brush_stroke(gc, 100.0, 800.0);
             draw_path_brush_stroke(gc, 200.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
+            draw_path_brush_stroke(gc, 300.0, 800.0, vec![chisel]);
         });
     });
 }
