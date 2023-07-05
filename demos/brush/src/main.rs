@@ -28,14 +28,46 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
     }
 
     // Thick 'outer' path
-    gc.line_width(4.0);
+    gc.line_width(6.0);
     gc.stroke_color(col1);
     gc.stroke();
 
     // Thin 'inner' path
-    gc.line_width(1.5);
+    gc.line_width(1.0);
     gc.stroke_color(col2);
     gc.stroke();
+}
+
+///
+/// Draws the outline of a simple brush stroke using the 'circular' brush head
+///
+fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
+    // Create some curves by fitting along the length
+    let brush_stroke = (0..(length as isize))
+        .map(|p| {
+            // p gives us the y position
+            let p       = p as f64;
+            let y_pos   = p + 100.0;
+
+            let p = p / 800.0;
+            let p = p * f64::consts::PI;
+
+            let x_pos = center_x + (p*2.5).sin()*32.0;
+            let width = p.sin().abs() * 10.0;
+
+            Coord3(x_pos, y_pos, width)
+        });
+    let brush_stroke = fit_curve::<Curve<_>>(&brush_stroke.collect::<Vec<_>>(), 0.1).unwrap();
+    let brush_stroke = SimpleBezierPath3::from_connected_curves(brush_stroke);
+
+    // Use the circular brush
+    let brush       = CircularBrush;
+
+    // Use the brush to create a brush stroke path
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 1.0);
+
+    // Draw it as a preview
+    draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
 }
 
 ///
@@ -85,7 +117,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     let brush       = &brush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 1.0);
 
     // Draw it as a preview
     draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
@@ -101,7 +133,8 @@ fn main() {
             gc.canvas_height(1000.0);
             gc.center_region(0.0, 0.0, 1000.0, 1000.0);
 
-            draw_path_brush_stroke(gc, 100.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
+            draw_circle_brush_stroke(gc, 100.0, 800.0);
+            draw_path_brush_stroke(gc, 200.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
         });
     });
 }
