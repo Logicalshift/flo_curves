@@ -1,0 +1,10 @@
+[package]
+name        = "brush_demo"
+version     = "0.1.0"
+authors     = ["Andrew Hunter <andrew@logicalshift.co.uk>"]
+edition     = "2018"
+description = "Demonstrates brush strokes in flo_curve"
+
+[dependencies]
+flo_curves  = "0.8"
+flo_draw    = "0.4"
