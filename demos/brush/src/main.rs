@@ -27,6 +27,10 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
         }
     }
 
+    // Filled center
+    gc.fill_color(Color::Rgba(0.6, 0.9, 0.9, 0.8));
+    gc.fill();
+
     // Thick 'outer' path
     gc.line_width(4.0);
     gc.stroke_color(col1);
