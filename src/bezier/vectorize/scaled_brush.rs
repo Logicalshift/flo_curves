@@ -54,15 +54,17 @@ where
     #[inline]
     fn create_daub(&self, pos: impl crate::Coordinate + crate::Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)> {
         if radius > 0.0 {
-            let x = pos.x() - self.center_x - 1.0;
-            let y = pos.y() - self.center_y - 1.0;
+            let scale = radius * self.radius_scale;
+
+            let x = pos.x() - (self.center_x * scale) - 1.0;
+            let y = pos.y() - (self.center_y * scale) - 1.0;
 
             if x < 0.0 || y < 0.0 { return None; }
 
             let offset_x = x - x.floor();
             let offset_y = y - y.floor();
 
-            let distance_field  = ScaledDistanceField::from_distance_field(&self.distance_field, radius * self.radius_scale, (offset_x, offset_y));
+            let distance_field  = ScaledDistanceField::from_distance_field(&self.distance_field, scale, (offset_x, offset_y));
             let position        = ContourPosition(x.floor() as usize, y.floor() as usize);
 
             Some((distance_field, position))
