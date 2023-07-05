@@ -72,6 +72,40 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
 }
 
 ///
+/// Draws the outline of a simple brush stroke by offsetting the path
+///
+fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
+    let brush_stroke = brush_stroke(center_x, length, 10.0);
+
+    // Offset the curves in the brush stroke to generate the reuslt
+    let offsets = brush_stroke.to_curves::<Curve<_>>().into_iter()
+        .map(|curve| {
+            let (sp, (cp1, cp2), ep)    = curve.all_points();
+            let base_curve              = Curve::from_points(Coord2(sp.x(), sp.y()), (Coord2(cp1.x(), cp1.y()), Coord2(cp2.x(), cp2.y())), Coord2(ep.x(), ep.y()));
+            let distance_curve          = Curve::from_points(sp.z(), (cp1.z(), cp2.z()), ep.z());
+
+            let outwards = offset_lms_sampling(&base_curve, |t| distance_curve.point_at_pos(t), |_| 0.0, 400, 0.1).unwrap();
+            let inwards  = offset_lms_sampling(&base_curve, |t| -distance_curve.point_at_pos(t), |_| 0.0, 400, 0.1).unwrap();
+
+            (inwards, outwards)
+        })
+        .collect::<Vec<_>>();
+
+    let mut curves = vec![];
+    for (inward, _) in offsets.iter() {
+        curves.extend(inward.clone());
+    }
+    for (_, outward) in offsets.iter().rev() {
+        curves.extend(outward.iter().rev().map(|curve| curve.reverse::<Curve<_>>()));
+    }
+
+    let brush_stroke_path = SimpleBezierPath::from_connected_curves(curves);
+
+    // Draw it as a preview
+    draw_path_outline(gc, vec![brush_stroke_path], Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+}
+
+///
 /// Draws the outline of a simple brush stroke using the 'circular' brush head
 ///
 fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64) {
@@ -146,10 +180,11 @@ fn main() {
                 .line_to(Coord2(22.0, 0.0))
                 .build();
 
-            draw_circle_brush_stroke(gc, 100.0, 800.0);
-            draw_path_brush_stroke(gc, 200.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
-            draw_path_brush_stroke(gc, 300.0, 800.0, vec![chisel]);
-            draw_path_brush_stroke(gc, 400.0, 800.0, vec![oblique]);
+            draw_offset_brush_stroke(gc, 100.0, 800.0);
+            draw_circle_brush_stroke(gc, 200.0, 800.0);
+            draw_path_brush_stroke(gc, 300.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
+            draw_path_brush_stroke(gc, 400.0, 800.0, vec![chisel]);
+            draw_path_brush_stroke(gc, 500.0, 800.0, vec![oblique]);
         });
     });
 }
