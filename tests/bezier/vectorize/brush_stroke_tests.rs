@@ -172,10 +172,10 @@ fn broken_brush_stroke_check_contour_4() {
 
 #[test]
 fn path_brush_check_contour_1() {
-    let radius          = 32.0;
-    let center          = Coord2(radius+1.0, radius+1.0);
-    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
-    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(66, 66));
+    let radius              = 32.0;
+    let center              = Coord2(radius+1.0, radius+1.0);
+    let circle_path         = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+    let (circle_field, _)   = PathDistanceField::center_path(vec![circle_path]);
 
     let brush           = ScaledBrush::from_distance_field(&circle_field);
 
