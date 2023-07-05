@@ -77,6 +77,21 @@ pub trait BezierPath : Geo+Clone+Sized {
     }
 
     ///
+    /// Creates a new path from this one by mapping the points using an arbitrary function
+    ///
+    #[inline]
+    fn map_points<POut>(&self, map_fn: impl Fn(Self::Point) -> Self::Point) -> POut
+    where
+        POut: BezierPathFactory<Point=Self::Point>,
+    {
+        let start_point = map_fn(self.start_point());
+
+        POut::from_points(start_point, self.points().map(|(p1, p2, p3)| 
+            (map_fn(p1), map_fn(p2), map_fn(p3))            
+        ))
+    }
+
+    ///
     /// Creates a new path by adding a coordinate to all of the control points of this one
     ///
     #[inline]
@@ -84,9 +99,7 @@ pub trait BezierPath : Geo+Clone+Sized {
     where
         POut: BezierPathFactory<Point=Self::Point>,
     {
-        let start_point = self.start_point() + offset;
-
-        POut::from_points(start_point, self.points().map(|(p1, p2, p3)| (p1+offset, p2+offset, p3+offset)))
+        self.map_points(|p| p + offset)
     }
 }
 
