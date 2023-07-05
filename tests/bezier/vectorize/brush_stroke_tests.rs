@@ -177,7 +177,7 @@ fn path_brush_check_contour_1() {
     let circle_path         = Circle::new(center, radius).to_path::<SimpleBezierPath>();
     let (circle_field, _)   = PathDistanceField::center_path(vec![circle_path]);
 
-    let brush           = ScaledBrush::from_distance_field(&circle_field);
+    let brush               = ScaledBrush::from_distance_field(&circle_field);
 
     let counter = 463;
 
