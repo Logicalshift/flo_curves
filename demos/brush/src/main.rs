@@ -187,12 +187,12 @@ fn main() {
                 Circle::new(Coord2(24.0, 24.0), 8.0).to_path::<SimpleBezierPath>(),
             ];
 
-            draw_offset_brush_stroke(gc, 100.0, 800.0);
-            draw_circle_brush_stroke(gc, 200.0, 800.0);
-            draw_path_brush_stroke(gc, 300.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
-            draw_path_brush_stroke(gc, 400.0, 800.0, vec![chisel]);
-            draw_path_brush_stroke(gc, 500.0, 800.0, vec![oblique]);
-            draw_path_brush_stroke(gc, 600.0, 800.0, two_circles);
+            draw_offset_brush_stroke(gc, 120.0, 800.0);
+            draw_circle_brush_stroke(gc, 240.0, 800.0);
+            draw_path_brush_stroke(gc, 360.0, 800.0, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
+            draw_path_brush_stroke(gc, 480.0, 800.0, vec![chisel]);
+            draw_path_brush_stroke(gc, 600.0, 800.0, vec![oblique]);
+            draw_path_brush_stroke(gc, 720.0, 800.0, two_circles);
         });
     });
 }
