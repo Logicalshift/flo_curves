@@ -96,7 +96,7 @@ pub trait SampledContour : Sized {
         if intercepts.len() <= 1 {
             intercepts
         } else {
-            merge_overlapping(intercepts)
+            merge_overlapping_intercepts(intercepts)
         }
     }
 }
@@ -113,7 +113,7 @@ where
 ///
 /// Merges any intercepts that are adjacent or overlapping in the range
 ///
-fn merge_overlapping(intercepts: SmallVec<[Range<usize>; 4]>) -> SmallVec<[Range<usize>; 4]> {
+pub (crate) fn merge_overlapping_intercepts(intercepts: SmallVec<[Range<usize>; 4]>) -> SmallVec<[Range<usize>; 4]> {
     let mut intercepts = intercepts;
 
     let mut idx = 0;
