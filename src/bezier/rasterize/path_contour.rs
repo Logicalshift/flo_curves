@@ -88,6 +88,30 @@ impl SampledContour for PathContour {
 impl ColumnSampledContour for PathContour {
     #[inline]
     fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
-        todo!()
+        raycast_intercepts_on_line(&|x| {
+            // Iterate through all of the curves to find the intercepts
+            let mut intercepts = vec![];
+
+            for (curve_x, curve_y, bounding_box) in self.curves.iter() {
+                // Skip curves if they don't intercept this contour
+                if x < bounding_box.min().x() || x > bounding_box.max().x() { continue; }
+
+                // Solve the intercepts on the x axis
+                let (w1, (w2, w3), w4)  = curve_x.all_points();
+                let curve_intercepts    = solve_basis_for_t(w1, w2, w3, w4, x);
+
+                // Add the intercepts to the list that we've been generating (we ignore t=0 as there should be a corresponding intercept at t=1 on the previous curve)
+                intercepts.extend(curve_intercepts.into_iter().filter(|t| *t > 0.0).map(|t| curve_y.point_at_pos(t)));
+            }
+
+            // Order the intercepts to generate ranges
+            intercepts.sort_unstable_by(|a, b| a.total_cmp(b));
+
+            // Each tuple represents a range that is within the shape
+            return intercepts.into_iter()
+                .tuples()
+                .map(|(start, end)| start..end)
+                .collect();
+        }, x, 1.0, self.size.height())
     }
 }
