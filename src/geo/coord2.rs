@@ -6,6 +6,16 @@ use std::ops::*;
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Coord2(pub f64, pub f64);
 
+impl Coord2 {
+    ///
+    /// Creates a Coord2 from any other implementation of Coordinate2D
+    ///
+    #[inline]
+    pub fn from_coordinate(coord: impl Coordinate2D) -> Coord2 {
+        Coord2(coord.x(), coord.y())
+    }
+}
+
 impl Coordinate2D for Coord2 {
     ///
     /// X component of this coordinate
