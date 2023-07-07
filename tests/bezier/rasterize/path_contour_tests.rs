@@ -152,3 +152,17 @@ fn doughnut() {
     // 600 intercepts on the outer circle, 400 on in the inner
     assert!(num_intercepts >= 997 && num_intercepts <= 1003, "num_intercepts = {:?}", num_intercepts);
 }
+
+#[test]
+fn chisel_columns() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let chisel_contour = PathContour::from_path(vec![chisel], ContourSize(50, 50));
+
+    check_columns_vs_rows(&chisel_contour);
+}
