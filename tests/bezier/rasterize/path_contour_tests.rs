@@ -4,6 +4,47 @@ use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
+fn check_columns_vs_rows(contour: &impl ColumnSampledContour) {
+    // Create a vec of the rows in the contour
+    let pixels_from_rows = (0..contour.contour_size().height())
+        .map(|y| contour.rounded_intercepts_on_line(y as _))
+        .map(|intercepts| {
+            let mut line = vec![false; contour.contour_size().width()];
+
+            for range in intercepts {
+                for pixel in range {
+                    line[pixel] = true;
+                }
+            }
+
+            line
+        })
+        .collect::<Vec<_>>();
+
+    // ... and also the columns
+    let pixels_from_columns = (0..contour.contour_size().width())
+        .map(|x| contour.rounded_intercepts_on_column(x as _))
+        .map(|intercepts| {
+            let mut column = vec![false; contour.contour_size().width()];
+
+            for range in intercepts {
+                for pixel in range {
+                    column[pixel] = true;
+                }
+            }
+
+            column
+        })
+        .collect::<Vec<_>>();
+
+    // Test all the pixels
+    for y in 0..(contour.contour_size().height()) {
+        for x in 0..(contour.contour_size().width()) {
+            assert!(pixels_from_rows[y][x] == pixels_from_columns[x][y], "Row/column mismatch at {}, {}", x, y);
+        }
+    }
+}
+
 #[test]
 fn basic_circle() {
     let radius          = 300.0;
@@ -31,6 +72,17 @@ fn basic_circle() {
     }
 
     assert!(num_intercepts >= 600 && num_intercepts <= 602, "num_intercepts = {:?}", num_intercepts);
+}
+
+#[test]
+fn basic_circle_columns() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_contour  = PathContour::from_path(vec![circle_path], ContourSize(1000, 1000));
+
+    check_columns_vs_rows(&circle_contour);
 }
 
 #[test]
