@@ -154,11 +154,12 @@ fn trace_circle() {
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
-    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+    let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
     let traced_circle   = trace_paths_from_distance_field::<SimpleBezierPath>(&circle_field, 0.1);
 
     debug_assert!(traced_circle.len() == 1);
 
+    // Test against the ideal circle
     let mut num_points = 0;
     for curve in traced_circle[0].to_curves::<Curve<_>>() {
         for t in 0..100 {
@@ -170,6 +171,25 @@ fn trace_circle() {
             let distance    = point.distance_to(&Coord2(501.0, 501.0));
 
             debug_assert!((distance - radius) < 0.2, "Point #{} at distance {:?}", num_points, distance);
+        }
+    }
+
+    // Test against the actual path
+    let mut num_points = 0;
+    for curve in traced_circle[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+            let point       = point - Coord2(1.0, 1.0);
+
+            let nearest_distance = circle_path.to_curves::<Curve<_>>().into_iter()
+                .map(|curve| curve.distance_to(&point))
+                .reduce(|d1, d2| d1.min(d2))
+                .unwrap();
+
+            debug_assert!(nearest_distance.abs() < 0.1, "Point #{} at distance {:?}", num_points, nearest_distance);
         }
     }
 
