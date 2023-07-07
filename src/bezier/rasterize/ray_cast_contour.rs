@@ -88,7 +88,7 @@ where
     /// The ranges must be provided in ascending order, and must also not overlap.
     ///
     fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        raycast_intercepts_on_line(&self.intercept_fn, y, self.scale_factor, self.size)
+        raycast_intercepts_on_line(&self.intercept_fn, y, self.scale_factor, self.size.width())
     }
 }
 
@@ -97,14 +97,14 @@ where
 /// returns where the intercepts are
 ///
 #[inline]
-pub (crate) fn raycast_intercepts_on_line<TFn>(intercept_fn: &TFn, y: f64, scale_factor: f64, size: ContourSize) -> SmallVec<[Range<f64>; 4]> 
+pub (crate) fn raycast_intercepts_on_line<TFn>(intercept_fn: &TFn, y: f64, scale_factor: f64, width: usize) -> SmallVec<[Range<f64>; 4]> 
 where
     TFn: Fn(f64) -> SmallVec<[Range<f64>; 4]>,
 {
     // Convert the y position to a coordinate
     let y       = y as f64;
     let y       = y * scale_factor;
-    let width   = size.width() as f64;
+    let width   = width as f64;
 
     // Find the intercepts on this line
     let intercepts = (intercept_fn)(y);
