@@ -4,6 +4,19 @@ use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
+fn draw(contour: &Vec<Vec<bool>>, size: ContourSize) {
+    let bitmap = (0..(size.0 * size.1)).into_iter()
+        .map(|pos| (pos % size.1, pos / size.1))
+        .map(|(x, y)| contour[y][x])
+        .collect::<Vec<_>>();
+
+    for p in 0..bitmap.len() {
+        print!("{}", if bitmap[p] { '#' } else { '.' });
+        if ((p+1)%size.1) == 0 { println!() };
+    }
+    println!();
+}
+
 fn check_columns_vs_rows(contour: &impl ColumnSampledContour) {
     // Create a vec of the rows in the contour
     let pixels_from_rows = (0..contour.contour_size().height())
@@ -36,6 +49,9 @@ fn check_columns_vs_rows(contour: &impl ColumnSampledContour) {
             column
         })
         .collect::<Vec<_>>();
+
+    draw(&pixels_from_rows, contour.contour_size());
+    draw(&pixels_from_columns, contour.contour_size());
 
     // Test all the pixels
     for y in 0..(contour.contour_size().height()) {
