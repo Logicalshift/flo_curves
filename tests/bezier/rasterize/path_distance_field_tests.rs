@@ -169,7 +169,7 @@ fn trace_circle() {
 
             let distance    = point.distance_to(&Coord2(501.0, 501.0));
 
-            debug_assert!((distance - radius) < 1.0, "Point #{} at distance {:?}", num_points, distance);
+            debug_assert!((distance - radius) < 0.2, "Point #{} at distance {:?}", num_points, distance);
         }
     }
 
