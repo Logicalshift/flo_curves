@@ -1,4 +1,5 @@
 mod sampled_contour;
+mod column_sampled_contour;
 mod distance_field;
 mod circular_distance_field;
 mod circular_brush;
@@ -12,6 +13,7 @@ mod scaled_distance_field;
 mod scaled_brush;
 
 pub use sampled_contour::*;
+pub use column_sampled_contour::*;
 pub use distance_field::*;
 pub use circular_distance_field::*;
 pub use circular_brush::*;
