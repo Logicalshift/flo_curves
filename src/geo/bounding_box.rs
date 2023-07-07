@@ -96,7 +96,7 @@ pub trait BoundingBox : Geo+Sized {
 /// (Unlike a normal point tuple this always represents its bounds in minimum/maximum order)
 /// 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Bounds<Point: Coordinate>(Point, Point);
+pub struct Bounds<Point: Coordinate>(pub Point, pub Point);
 
 impl<Point: Coordinate> BoundingBox for (Point, Point) {
     #[inline]
