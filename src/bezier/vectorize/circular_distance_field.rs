@@ -1,5 +1,6 @@
 use super::distance_field::*;
 use super::sampled_contour::*;
+use super::column_sampled_contour::*;
 use crate::geo::*;
 
 use smallvec::*;
@@ -97,6 +98,23 @@ impl SampledContour for CircularDistanceField {
             let max_x       = self.center_x + intercept;
 
             smallvec![min_x..max_x]
+        } else {
+            smallvec![]
+        }
+    }
+}
+
+impl ColumnSampledContour for CircularDistanceField {
+    #[inline]
+    fn intercepts_on_column(&self, xpos: f64) -> SmallVec<[Range<f64>; 4]> {
+        let x = xpos - self.center_x;
+
+        if x.abs() <= self.radius {
+            let intercept   = ((self.radius*self.radius) - (x*x)).sqrt();
+            let min_y       = self.center_y - intercept;
+            let max_y       = self.center_y + intercept;
+
+            smallvec![min_y..max_y]
         } else {
             smallvec![]
         }
