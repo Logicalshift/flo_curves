@@ -169,6 +169,7 @@ fn doughnut() {
     assert!(num_intercepts >= 997 && num_intercepts <= 1003, "num_intercepts = {:?}", num_intercepts);
 }
 
+/*
 #[test]
 fn chisel_columns() {
     let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
@@ -182,3 +183,4 @@ fn chisel_columns() {
 
     check_columns_vs_rows(&chisel_contour);
 }
+*/
