@@ -175,3 +175,38 @@ fn trace_circle() {
 
     debug_assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 32, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 }
+
+#[test]
+fn trace_chisel() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let (chisel_field, offset)  = PathDistanceField::center_path(vec![chisel.clone()]);
+    let traced_chisel           = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
+
+    debug_assert!(traced_chisel.len() == 1);
+
+    let mut num_points = 0;
+    for curve in traced_chisel[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+            let point       = point + offset - Coord2(1.0, 1.0);
+
+            let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
+                .map(|curve| curve.distance_to(&point))
+                .reduce(|d1, d2| d1.min(d2))
+                .unwrap();
+
+            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}", num_points, nearest_distance);
+        }
+    }
+
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
+}
