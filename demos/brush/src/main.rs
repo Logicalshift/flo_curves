@@ -170,7 +170,8 @@ fn main() {
             let since_start     = since_start.as_nanos() as f64;
             let since_start     = since_start / 1_000_000_000.0;
 
-            let length = (since_start / 10.0) * 790.0;
+            let length = ((since_start / 5.0).sin() + 1.0)/2.0;
+            let length = length * 790.0;
             let length = length % 790.0;
             let length = length + 10.0;
 
