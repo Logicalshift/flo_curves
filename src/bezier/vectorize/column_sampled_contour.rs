@@ -43,3 +43,10 @@ pub trait ColumnSampledContour : SampledContour {
         }
     }
 }
+
+impl<'a, T> ColumnSampledContour for &'a T
+where
+    T: ColumnSampledContour,
+{
+    #[inline] fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> { (*self).intercepts_on_column(x) }
+}
