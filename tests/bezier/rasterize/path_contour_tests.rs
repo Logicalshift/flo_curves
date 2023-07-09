@@ -179,13 +179,14 @@ fn trace_chisel_using_intercepts() {
         .build();
 
     let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()]);
-    let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.1);
+    let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.05);
 
     debug_assert!(traced_chisel.len() == 1);
 
     let mut num_points  = 0;
     let mut max_error   = 0.0f64;
     let mut total_error = 0.0f64;
+    let mut error_count = 0;
     for curve in traced_chisel[0].to_curves::<Curve<_>>() {
         for t in 0..100 {
             num_points += 1;
@@ -197,17 +198,20 @@ fn trace_chisel_using_intercepts() {
             let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
                 .map(|curve| curve.distance_to(&point))
                 .reduce(|d1, d2| d1.min(d2))
-                .unwrap();
+                .unwrap()
+                .abs();
             max_error   = max_error.max(nearest_distance);
             total_error += nearest_distance;
 
-            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}", num_points, nearest_distance);
+            if nearest_distance > 0.1 {
+                error_count += 1;
+            }
         }
     }
 
     let avg_error = total_error / (num_points as f64);
 
-    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})", max_error, avg_error);
+    debug_assert!(max_error < 0.4, "Max error was {} (average {}, num >0.1 {}/{})", max_error, avg_error, error_count, num_points);
     debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
 }
 
