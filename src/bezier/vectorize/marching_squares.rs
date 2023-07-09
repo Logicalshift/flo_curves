@@ -211,10 +211,10 @@ fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, estimate: usize) -> f6
     let estimate = estimate as f64;
 
     for range in intercepts.iter() {
-        if (estimate-range.start).abs() < 1.0 {
+        if (estimate-range.start).abs() <= 1.0 {
             return range.start;
         }
-        if (range.end-estimate).abs() < 1.0 {
+        if (range.end-estimate).abs() <= 1.0 {
             return range.end;
         }
     }
@@ -275,14 +275,14 @@ where
                 .map(|edge| {
                     let (_from, to) = edge.to_contour_coords(contour_size);
 
-                    if edge.is_horizontal() {
+                    if edge.is_vertical() {
                         // Find the intercept in the columns
-                        let ypos = find_intercept(&column_intercepts[to.x()], to.y());
-                        TCoord::from_components(&[to.x() as f64, ypos])
+                        let ypos = find_intercept(&column_intercepts[to.x()-1], to.y()-1);
+                        TCoord::from_components(&[to.x() as f64, ypos + 1.0])
                     } else {
                         // Find the intercept in the rows
-                        let xpos = find_intercept(&line_intercepts[to.y()], to.x());
-                        TCoord::from_components(&[xpos, to.y() as f64])
+                        let xpos = find_intercept(&line_intercepts[to.y()-1], to.x()-1);
+                        TCoord::from_components(&[xpos + 1.0, to.y() as f64])
                     }
                 })
                 .collect()
