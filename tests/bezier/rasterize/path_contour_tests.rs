@@ -252,7 +252,7 @@ fn trace_chisel_paths_using_intercepts() {
 
     let avg_error = total_error / (num_points as f64);
 
-    debug_assert!(max_error < 0.4, "Max error was {} (average {}, num >0.1 {}/{})", max_error, avg_error, error_count, num_points);
+    debug_assert!(max_error < 0.4, "Max error was {} in {} curves (average {}, num >0.1 {}/{})", max_error, traced_chisel[0].to_curves::<Curve<_>>().len(), avg_error, error_count, num_points);
     debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
 }
 
