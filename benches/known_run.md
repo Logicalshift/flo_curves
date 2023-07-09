@@ -205,14 +205,14 @@ Found 4 outliers among 100 measurements (4.00%)
   2 (2.00%) high mild
   2 (2.00%) high severe
 
-Benchmarking full_distance_field_small_brush: Warming up for 3.0000 s
-Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 9.8s, enable flat sampling, or reduce sample count to 50.
 Benchmarking full_distance_field_small_brush: Collecting 100 samples in estimate
 full_distance_field_small_brush
-                        time:   [1.9383 ms 1.9480 ms 1.9585 ms]
-Found 2 outliers among 100 measurements (2.00%)
-  1 (1.00%) high mild
-  1 (1.00%) high severe
+                        time:   [2.4060 ms 2.4086 ms 2.4119 ms]
+                        change: [+23.210% +23.543% +23.836%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 8 outliers among 100 measurements (8.00%)
+  4 (4.00%) high mild
+  4 (4.00%) high severe
 
 Benchmarking full_distance_field_large_path_brush: Warming up for 3.0000 s
 Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 12.4s, or reduce sample count to 40.
