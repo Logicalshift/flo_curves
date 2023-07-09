@@ -151,11 +151,21 @@ Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target
 Benchmarking read_edge_distances: Collecting 100 samples in estimated 6.8409 s (
 read_edge_distances     time:   [1.3550 ms 1.3606 ms 1.3664 ms]
 
-Benchmarking trace_distance_field: Collecting 100 samples in estimated 5.1690 s
-trace_distance_field    time:   [5.7182 ms 5.7425 ms 5.7687 ms]
-Found 10 outliers among 100 measurements (10.00%)
-  8 (8.00%) high mild
-  2 (2.00%) high severe
+Benchmarking trace_distance_field: Collecting 100 samples in estimated 5.2943 s
+trace_distance_field    time:   [10.586 ms 10.594 ms 10.603 ms]
+                        change: [+86.771% +87.336% +87.886%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 7 outliers among 100 measurements (7.00%)
+  3 (3.00%) low mild
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking trace_contour_intercepts: Collecting 100 samples in estimated 5.441
+trace_contour_intercepts
+                        time:   [10.882 ms 10.899 ms 10.918 ms]
+Found 3 outliers among 100 measurements (3.00%)
+  2 (2.00%) high mild
+  1 (1.00%) high severe
 
 Benchmarking single_daub: Collecting 100 samples in estimated 5.5959 s (10k iter
 single_daub             time:   [552.47 µs 554.90 µs 557.35 µs]

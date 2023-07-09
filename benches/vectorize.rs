@@ -155,6 +155,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("read_brush_stroke_edges", |b| b.iter(|| find_edges(&daub_distance_field)));
     c.bench_function("read_edge_distances", |b| b.iter(|| read_edge_distances(&daub_distance_field, &distance_field_edges)));
     c.bench_function("trace_distance_field", |b| b.iter(|| trace_distance_field(&daub_distance_field)));
+    c.bench_function("trace_contour_intercepts", |b| b.iter(|| trace_paths_from_intercepts::<SimpleBezierPath>(&daub_distance_field, 0.1)));
 
     c.bench_function("single_daub", |b| b.iter(|| {
        let distance_field = DaubBrushDistanceField::from_daubs(vec![(CircularDistanceField::with_radius(300.0), ContourPosition(0, 0))]);
@@ -223,6 +224,22 @@ fn criterion_benchmark(c: &mut Criterion) {
         let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
 
         trace_distance_field(&daub_distance_field)
+    }));
+    c.bench_function("full_intercepts_small_path_brush", |b| b.iter(|| {
+        let radius          = 32.0;
+        let center          = Coord2(radius+1.0, radius+1.0);
+        let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+        let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(65, 65));
+
+        let brush           = ScaledBrush::from_distance_field(&circle_field);
+
+        let brush_curve      = create_brush_stroke(20.0);
+        let brush            = &brush;
+        let (daubs, _offset) = brush_stroke_daubs_from_curve(&brush, &brush_curve, 0.5, 0.25);
+
+        let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+        trace_paths_from_intercepts::<SimpleBezierPath>(&daub_distance_field, 0.1)
     }));
 }
 
