@@ -264,6 +264,9 @@ fn trace_chisel_paths_using_intercepts() {
 
     let avg_error = total_error / (num_points as f64);
 
+    // TODO: this subdivides a lot, even though the straight edges should provide good fits, so there's probably some improvements that can be made to fit_curves 
+    //  - maybe not actually picking the correct point when we subdivide (supposed to be the point of biggest error, which intuitively seems if should be the corner)
+    //  - maybe curves can be joined after fitting
     debug_assert!(max_error < 0.4, "Max error was {} in {} curves (average {}, num >0.1 {}/{})", max_error, traced_chisel[0].to_curves::<Curve<_>>().len(), avg_error, error_count, num_points);
     debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 20, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
 }
