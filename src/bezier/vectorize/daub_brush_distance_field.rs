@@ -293,7 +293,7 @@ where
 
 impl<TDaub> ColumnSampledContour for DaubBrushDistanceField<TDaub> 
 where
-    TDaub: SampledSignedDistanceField,
+    TDaub:          SampledSignedDistanceField,
     TDaub::Contour: ColumnSampledContour,
 {
     fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
