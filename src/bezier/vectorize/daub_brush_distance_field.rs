@@ -3,6 +3,7 @@ use super::sampled_contour::*;
 
 use smallvec::*;
 
+use std::cell::{RefCell};
 use std::ops::{Range};
 
 ///
@@ -30,6 +31,9 @@ pub struct DaubBrushDistanceField<TDaub> {
 
     /// Indexed by y position and sorted by initial x position, the daubs that are on each line within the size of the distance field
     daubs_for_line: Vec<Vec<usize>>,
+
+    /// If we're using the distance field in column mode, the daubs that appear in each column of the distance field
+    daubs_for_column: RefCell<Option<Vec<Vec<usize>>>>,
 }
 
 impl<TDaub> DaubBrushDistanceField<TDaub>
@@ -61,9 +65,10 @@ where
 
         // Figure out which daubs are on each line
         let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
+        let daubs_for_column    = RefCell::new(None);
 
         DaubBrushDistanceField {
-            size, daubs, daubs_for_line
+            size, daubs, daubs_for_line, daubs_for_column
         }
     }
 
