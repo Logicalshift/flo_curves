@@ -150,7 +150,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     let brush       = &brush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+    let brush_stroke_path = brush_stroke_from_path_intercepts::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
 
     // Draw it as a preview
     draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
