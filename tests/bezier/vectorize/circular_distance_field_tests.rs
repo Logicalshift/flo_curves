@@ -346,6 +346,41 @@ fn circle_path_from_contours() {
 }
 
 #[test]
+fn circle_path_from_intercepts() {
+    // Create a contour containing a circle in the middle, using the circular distance field
+    let radius          = 300.0;
+    let distance_field  = CircularDistanceField::with_radius(radius);
+
+    let size            = distance_field.contour_size().0;
+    let center          = ((size as f64)/2.0).floor();
+
+    // Trace the samples to generate a vector
+    let circle = trace_paths_from_intercepts::<SimpleBezierPath>(&distance_field, 0.1);
+
+    // Should contain a single path
+    assert!(circle.len() == 1, "{:?}", circle);
+    assert!(circle[0].to_curves::<Curve<_>>().len() < 20, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
+
+    // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
+    let mut max_error = 0.0;
+
+    for curve in circle[0].to_curves::<Curve<Coord2>>() {
+        for t in 0..100 {
+            let t           = (t as f64)/100.0;
+            let point       = curve.point_at_pos(t);
+            let distance    = point.distance_to(&Coord2(center+1.0, center+1.0));
+            let offset      = (distance-radius).abs();
+
+            println!("{:?} {:?} {}", offset, point, center);
+            max_error = f64::max(max_error, offset);
+        }
+    }
+
+    // The error here is semi-random due to the hash table used to store the edge graph
+    assert!(max_error <= 0.2, "Max error {:?} > 0.2. Path generated was {:?}", max_error, circle);
+}
+
+#[test]
 fn circle_path_from_distance_field_1() {
     // Create a contour containing a circle in the middle, using the circular distance field
     let radius          = 30.0;

@@ -169,6 +169,48 @@ fn doughnut() {
     assert!(num_intercepts >= 997 && num_intercepts <= 1003, "num_intercepts = {:?}", num_intercepts);
 }
 
+#[test]
+fn trace_chisel_using_intercepts() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()]);
+    let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.1);
+
+    debug_assert!(traced_chisel.len() == 1);
+
+    let mut num_points  = 0;
+    let mut max_error   = 0.0f64;
+    let mut total_error = 0.0f64;
+    for curve in traced_chisel[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+            let point       = point + offset - Coord2(1.0, 1.0);
+
+            let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
+                .map(|curve| curve.distance_to(&point))
+                .reduce(|d1, d2| d1.min(d2))
+                .unwrap();
+            max_error   = max_error.max(nearest_distance);
+            total_error += nearest_distance;
+
+            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}", num_points, nearest_distance);
+        }
+    }
+
+    let avg_error = total_error / (num_points as f64);
+
+    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})", max_error, avg_error);
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
+}
+
 /*
 #[test]
 fn chisel_columns() {
