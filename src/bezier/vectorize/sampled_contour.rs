@@ -113,6 +113,7 @@ where
 ///
 /// Merges any intercepts that are adjacent or overlapping in the range
 ///
+#[inline]
 pub (crate) fn merge_overlapping_intercepts(intercepts: SmallVec<[Range<usize>; 4]>) -> SmallVec<[Range<usize>; 4]> {
     let mut intercepts = intercepts;
 
@@ -211,6 +212,22 @@ impl ContourEdge {
     }
 
     ///
+    /// True if this is a horizontal edgge
+    ///
+    #[inline]
+    pub fn is_horizontal(self) -> bool {
+        (self.0&1) == 1
+    }
+
+    ///
+    /// True if this is a vertical edgge
+    ///
+    #[inline]
+    pub fn is_vertical(self) -> bool {
+        (self.0&1) != 1
+    }
+
+    ///
     /// Returns the coordinates of the samples in the original `SampledContour` for this edge
     ///
     #[inline]
@@ -219,7 +236,7 @@ impl ContourEdge {
         let x           = (self.0 >> 1) % edge_width;
         let y           = (self.0 >> 1) / edge_width;
 
-        if (self.0&1) == 1 {
+        if self.is_horizontal() {
             // Horizontal edge
             (ContourPosition(x, y), ContourPosition(x+1, y))
         } else {

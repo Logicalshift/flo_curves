@@ -1,6 +1,8 @@
+use super::ColumnSampledContour;
 use super::sampled_contour::*;
 use super::distance_field::*;
 
+use crate::bezier::vectorize::InterceptScanEdgeIterator;
 use crate::geo::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
@@ -8,6 +10,7 @@ use crate::bezier::path::*;
 use smallvec::*;
 
 use std::collections::{HashMap};
+use std::ops::{Range};
 
 ///
 /// Describes a connected set of contour edges
@@ -113,13 +116,12 @@ impl ContourCell {
 ///
 /// Uses the marching squares algorithm to trace the edges represented by a sampled contour
 ///
-pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<ContourEdge>> {
+pub fn trace_contours_from_edges(edges: impl Iterator<Item=(ContourPosition, ContourCell)>, contour_size: ContourSize) -> Vec<Vec<ContourEdge>> {
     // Hash map indicating which edges are connected to each other
     let mut edge_graph  = HashMap::<_, SmallVec<[_; 2]>>::new();
-    let contour_size    = contours.contour_size();
 
     // Create the graph of connected edges
-    for (pos, cell) in contours.edge_cell_iterator() {
+    for (pos, cell) in edges {
         match cell.connected_edges() {
             ConnectedEdges::None => { }
 
@@ -191,6 +193,102 @@ pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<Co
 
     // Result is the final graph
     result
+}
+
+///
+/// Uses the marching squares algorithm to trace the edges represented by a sampled contour
+///
+#[inline]
+pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<ContourEdge>> {
+    trace_contours_from_edges(contours.edge_cell_iterator(), contours.contour_size())
+}
+
+///
+/// Updates an estimated point position using the intercepts in a range. The estimate is expected to fall near the start or end of a point
+///
+#[inline]
+fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, estimate: usize) -> f64 {
+    let estimate = estimate as f64;
+
+    for range in intercepts.iter() {
+        if (estimate-range.start).abs() < 1.0 {
+            return range.start;
+        }
+        if (range.end-estimate).abs() < 1.0 {
+            return range.end;
+        }
+    }
+
+    debug_assert!(false, "Could not find estimate {} in intercept ranges {:?}", estimate, intercepts);
+    estimate
+}
+
+///
+/// Uses the marching squares algorithm to trace the edges represented by a sampled contour, and then fine-tunes the positions
+/// using the precise intercepts
+///
+/// This can be used for cases where there isn't a distance field function, or where generating the distance field is 
+/// considered to be too slow. It's no so useful for strucures where the intercepts are only known to low accuracy,
+/// however.
+///
+pub fn trace_contours_from_intercepts<TCoord>(contours: &impl ColumnSampledContour) -> Vec<Vec<TCoord>> 
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    // Cache the intercepts for the contours
+    let contour_size        = contours.contour_size();
+    let width               = contour_size.width();
+    let height              = contour_size.height();
+    let line_intercepts     = (0..height).map(|y| contours.intercepts_on_line(y as _)).collect::<Vec<_>>();
+    let column_intercepts   = (0..width).map(|x| contours.intercepts_on_column(x as _)).collect::<Vec<_>>();
+
+    // Trace the contours using the intercepts we just cached
+    // This re-implements the rounding routine from SampledContour (to avoid calculating the intercepts twice)
+    let edges = InterceptScanEdgeIterator::from_iterator(line_intercepts.iter()
+        .map(|intercepts| {
+            let intercepts = intercepts
+                .into_iter()
+                .map(|intercept| {
+                    let min_x_ceil = intercept.start.ceil();
+                    let max_x_ceil = intercept.end.ceil();
+
+                    let min_x = min_x_ceil as usize;
+                    let max_x = max_x_ceil as usize;
+
+                    min_x..max_x
+                })
+                .filter(|intercept| intercept.start != intercept.end)
+                .collect::<SmallVec<_>>();
+
+            if intercepts.len() <= 1 {
+                intercepts
+            } else {
+                merge_overlapping_intercepts(intercepts)
+            }
+        }));
+    let edges = trace_contours_from_edges(edges, contour_size);
+
+    // Use the line and the column intercepts to adjust the positions returned by the contours
+    let adjusted_edges = edges.into_iter()
+        .map(|edge_loop| {
+            edge_loop.into_iter()
+                .map(|edge| {
+                    let (_from, to) = edge.to_contour_coords(contour_size);
+
+                    if edge.is_horizontal() {
+                        // Find the intercept in the columns
+                        let ypos = find_intercept(&column_intercepts[to.x()], to.y());
+                        TCoord::from_components(&[to.x() as f64, ypos])
+                    } else {
+                        // Find the intercept in the rows
+                        let xpos = find_intercept(&line_intercepts[to.y()], to.x());
+                        TCoord::from_components(&[xpos, to.y() as f64])
+                    }
+                })
+                .collect()
+        });
+
+    adjusted_edges.collect()
 }
 
 ///
@@ -272,7 +370,36 @@ where
 }
 
 ///
-/// Creates a bezier path from a sampled set of contours
+/// Creates a bezier path using a contour and fine-tuning with the intercepts function
+///
+/// This can be used for cases where there isn't a distance field function, or where generating the distance field is 
+/// considered to be too slow. It's no so useful for strucures where the intercepts are only known to low accuracy,
+/// however.
+///
+pub fn trace_paths_from_intercepts<TPathFactory>(contours: &impl ColumnSampledContour, accuracy: f64) -> Vec<TPathFactory> 
+where
+    TPathFactory:           BezierPathFactory,
+    TPathFactory::Point:    Coordinate + Coordinate2D,
+{
+    // Trace out the contours
+    let contours    = trace_contours_from_intercepts(contours);
+
+    // Convert the edges into points, then fit curves against the points (using low accuracy)
+    contours.into_iter()
+        .filter_map(|points| {
+            let curves = fit_curve_loop::<Curve<TPathFactory::Point>>(&points, accuracy)?;
+            Some(TPathFactory::from_points(curves[0].start_point(), curves.into_iter().map(|curve| {
+                let (cp1, cp2)  = curve.control_points();
+                let end_point   = curve.end_point();
+
+                (cp1, cp2, end_point)
+            })))
+        })
+        .collect()
+}
+
+///
+/// Creates a bezier path from a distance field
 ///
 pub fn trace_paths_from_distance_field<TPathFactory>(distance_field: &impl SampledSignedDistanceField, accuracy: f64) -> Vec<TPathFactory>
 where
