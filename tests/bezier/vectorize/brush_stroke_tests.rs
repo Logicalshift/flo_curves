@@ -123,6 +123,22 @@ fn broken_brush_is_smooth_4() {
 }
 
 #[test]
+fn broken_brush_is_smooth_5() {
+    // 463 367.161472273654 16.419263863173 183.580736136827
+    let counter = 463;
+
+    let brush_curve      = brush_curve(counter);
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&CircularBrush, &brush_curve, 0.5, 0.25);
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+    let paths               = trace_paths_from_intercepts::<SimpleBezierPath>(&daub_distance_field, 0.5);
+
+    for path in paths {
+        assert!(path_is_smooth(&path));
+    }
+}
+
+#[test]
 fn broken_brush_stroke_check_contour_1() {
     let counter = 463;
 
@@ -192,6 +208,35 @@ fn path_brush_check_contour_1() {
     check_contour_against_bitmap(&daub_distance_field);
 
     let paths = trace_paths_from_distance_field::<SimpleBezierPath>(&daub_distance_field, 0.5);
+    assert!(paths.len() == 1, "Found {:?} paths", paths.len());
+
+    for path in paths {
+        assert!(path_is_smooth(&path));
+    }
+}
+
+#[test]
+fn path_brush_check_contour_2() {
+    let radius              = 32.0;
+    let center              = Coord2(radius+1.0, radius+1.0);
+    let circle_path         = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+    let (circle_field, _)   = PathDistanceField::center_path(vec![circle_path]);
+
+    let brush               = ScaledBrush::from_distance_field(&circle_field);
+
+    let counter = 463;
+
+    let brush_curve      = brush_curve(counter);
+    let brush            = &brush;
+    let (daubs, _offset) = brush_stroke_daubs_from_curve(&brush, &brush_curve, 0.5, 0.25);
+    let daubs            = daubs.collect::<Vec<_>>();
+    assert!(daubs.len() > 1, "Created {:?} daubs", daubs.len());
+
+    let daub_distance_field = DaubBrushDistanceField::from_daubs(daubs);
+
+    check_contour_against_bitmap(&daub_distance_field);
+
+    let paths = trace_paths_from_intercepts::<SimpleBezierPath>(&daub_distance_field, 0.5);
     assert!(paths.len() == 1, "Found {:?} paths", paths.len());
 
     for path in paths {
