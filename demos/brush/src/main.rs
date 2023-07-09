@@ -4,6 +4,7 @@ use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
+use flo_curves::line::*;
 use flo_draw::*;
 use flo_draw::canvas::*;
 
@@ -94,9 +95,16 @@ fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
         .collect::<Vec<_>>();
 
     let mut curves = vec![];
+
     for (inward, _) in offsets.iter() {
         curves.extend(inward.clone());
     }
+
+    let inward_end  = offsets.last().map(|(inward, _)| *inward.last().unwrap()).unwrap();
+    let outward_end = offsets.last().map(|(_, outward)| *outward.last().unwrap()).unwrap();
+    let end_cap     = line_to_bezier(&(inward_end.end_point(), outward_end.end_point()));
+    curves.push(end_cap);
+
     for (_, outward) in offsets.iter().rev() {
         curves.extend(outward.iter().rev().map(|curve| curve.reverse::<Curve<_>>()));
     }
