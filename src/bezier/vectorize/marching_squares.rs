@@ -226,7 +226,7 @@ fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, estimate: usize) -> f6
         }
     }
 
-    debug_assert!(distance < 2.0, "Could not find estimate {} in intercept ranges {:?}", estimate, intercepts);
+    debug_assert!(distance < 1.1, "Could not find estimate {} in intercept ranges {:?}", estimate, intercepts);
     estimate
 }
 
