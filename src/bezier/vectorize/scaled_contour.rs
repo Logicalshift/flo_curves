@@ -1,4 +1,5 @@
 use super::sampled_contour::*;
+use super::column_sampled_contour::*;
 
 use smallvec::*;
 
@@ -69,6 +70,23 @@ where
             .into_iter()
             .map(|range| {
                 (range.start * self.scale_factor + self.offset_x)..(range.end * self.scale_factor + self.offset_x)
+            })
+            .collect()
+    }
+}
+
+impl<TContour> ColumnSampledContour for ScaledContour<TContour>
+where
+    TContour: ColumnSampledContour,
+{
+    #[inline]
+    fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
+        let x = (x - self.offset_x) / self.scale_factor;
+
+        self.contour.intercepts_on_column(x)
+            .into_iter()
+            .map(|range| {
+                (range.start * self.scale_factor + self.offset_y)..(range.end * self.scale_factor + self.offset_y)
             })
             .collect()
     }
