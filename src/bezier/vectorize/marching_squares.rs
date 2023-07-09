@@ -207,8 +207,8 @@ pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<Co
 /// Updates an estimated point position using the intercepts in a range. The estimate is expected to fall near the start or end of a point
 ///
 #[inline]
-fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, estimate: usize) -> f64 {
-    let mut estimate = estimate as f64;
+fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, initial_estimate: usize) -> f64 {
+    let mut estimate = initial_estimate as f64;
     let mut distance = f64::MAX;
 
     for range in intercepts.iter() {
@@ -226,7 +226,7 @@ fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, estimate: usize) -> f6
         }
     }
 
-    debug_assert!(distance < 1.1, "Could not find estimate {} in intercept ranges {:?}", estimate, intercepts);
+    debug_assert!(distance < 1.1, "Could not find estimate {} in intercept ranges {:?} (min distance {})", initial_estimate, intercepts, distance);
     estimate
 }
 
