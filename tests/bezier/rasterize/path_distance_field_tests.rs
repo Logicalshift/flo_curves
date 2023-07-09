@@ -197,7 +197,48 @@ fn trace_circle() {
 }
 
 #[test]
-fn trace_chisel() {
+fn trace_chisel_contours() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let (chisel_field, offset)  = PathDistanceField::center_path(vec![chisel.clone()]);
+    let traced_chisel           = trace_contours_from_distance_field::<Coord2>(&chisel_field);
+
+    debug_assert!(traced_chisel.len() == 1);
+
+    let mut num_points  = 0;
+    let mut max_error   = 0.0f64;
+    let mut total_error = 0.0f64;
+    let mut error_count = 0;
+    for point in traced_chisel[0].iter().copied() {
+        num_points += 1;
+
+        let point = point + offset - Coord2(1.0, 1.0);
+
+        let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
+            .map(|curve| curve.distance_to(&point))
+            .reduce(|d1, d2| d1.min(d2))
+            .unwrap()
+            .abs();
+        max_error   = max_error.max(nearest_distance);
+        total_error += nearest_distance;
+
+        if nearest_distance > 0.1 {
+            error_count += 1;
+        }
+    }
+
+    let avg_error = total_error / (num_points as f64);
+
+    debug_assert!(max_error < 0.1, "Max error was {} (average {}, num >0.1 {}/{})", max_error, avg_error, error_count, num_points);
+}
+
+#[test]
+fn trace_chisel_paths() {
     let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
         .line_to(Coord2(12.0, 36.0))
         .line_to(Coord2(36.0, 48.0))
