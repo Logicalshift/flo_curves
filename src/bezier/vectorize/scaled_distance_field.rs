@@ -1,3 +1,4 @@
+use super::column_sampled_contour::*;
 use super::distance_field::*;
 use super::sampled_contour::*;
 use super::scaled_contour::*;
@@ -110,5 +111,16 @@ where
     #[inline]
     fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_line(y)
+    }
+}
+
+impl<TDistanceField> ColumnSampledContour for ScaledDistanceField<TDistanceField> 
+where
+    TDistanceField:             SampledSignedDistanceField,
+    TDistanceField::Contour:    ColumnSampledContour,
+{
+    #[inline]
+    fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
+        ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_column(x)
     }
 }
