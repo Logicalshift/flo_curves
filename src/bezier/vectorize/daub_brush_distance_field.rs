@@ -1,3 +1,4 @@
+use super::ColumnSampledContour;
 use super::distance_field::*;
 use super::sampled_contour::*;
 
@@ -70,7 +71,7 @@ where
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
         // Figure out which daubs are on each line
-        let daubs_for_line      = Self::create_daubs_for_lines(daubs.iter().map(|(daub, pos)| {
+        let daubs_for_line = Self::create_daubs_for_positions(daubs.iter().map(|(daub, pos)| {
             DaubPosition {
                 pos:            (pos.1)..(pos.1 + daub.field_size().height()),
                 covered_pixels: (pos.0)..(pos.0 + daub.field_size().width())
@@ -84,9 +85,38 @@ where
     }
 
     ///
+    /// Fills in the 'daubs for column' cache
+    ///
+    fn calculate_daubs_for_column(&self) -> Vec<Vec<usize>> {
+        // Get the indexes of the daubs sorted by x position
+        let mut idx_sorted_by_x = (0..self.daubs.len()).collect::<Vec<_>>();
+        idx_sorted_by_x.sort_by_key(|idx| self.daubs[*idx].1.0);
+
+        // Figure out the daubs on each column
+        let mut daubs_for_column = Self::create_daubs_for_positions(idx_sorted_by_x.iter().map(|idx| {
+            let (daub, pos) = &self.daubs[*idx];
+
+            DaubPosition {
+                pos:            (pos.0)..(pos.0 + daub.field_size().width()),
+                covered_pixels: (pos.1)..(pos.1 + daub.field_size().height())
+            }
+        }).collect(), self.size.width());
+
+        // Remap the indexes into the daubs array
+        for row in daubs_for_column.iter_mut() {
+            for column in row.iter_mut() {
+                *column = idx_sorted_by_x[*column];
+            }
+        }
+
+        // Cache the daubs
+        daubs_for_column
+    }
+
+    ///
     /// Creates the cache of daubs for each line or column in this brush stroke
     ///
-    fn create_daubs_for_lines(ordered_daub_positions: Vec<DaubPosition>, size: usize) -> Vec<Vec<usize>> {
+    fn create_daubs_for_positions(ordered_daub_positions: Vec<DaubPosition>, size: usize) -> Vec<Vec<usize>> {
         let mut daubs_for_line  = Vec::with_capacity(size);
         let mut pos             = 0;
         let mut next_daub       = 0;
@@ -197,6 +227,104 @@ where
 
                     // Offset the intercept by the position of this daub
                     let intercept = (posx + intercept.start)..(posx + intercept.end);
+
+                    // In general, intercepts move left to right, so we should overlap the end of vec in general
+                    if intercepts.len() == 0 {
+                        // First intercept
+                        intercepts.push(intercept);
+                    } else if intercepts[intercepts.len()-1].end.floor() < intercept.start.ceil() {
+                        // Beyond the end of the last intercept
+                        intercepts.push(intercept);
+                    } else {
+                        // Might overlap one of the intercepts towards the end of the list
+                        let mut found_overlap = false;
+                        let overlap_intercept = intercept.start..intercept.end;
+
+                        for idx in (0..intercepts.len()).into_iter().rev() {
+                            if intercepts[idx].end.floor() < intercept.start.ceil() {
+                                // All the remaining ranges are before the start of this one
+                                intercepts.insert(idx+1, intercept);
+
+                                found_overlap = true;
+                                break;
+                            } else if intercepts[idx].start.floor() <= intercept.end.ceil() && intercepts[idx].end.ceil() >= intercept.start.floor() {
+                                // Ranges overlap
+                                intercepts[idx].end = intercepts[idx].end.max(intercept.end);
+
+                                if intercept.start < intercepts[idx].start {
+                                    // Range extends to the left
+                                    intercepts[idx].start = intercept.start;
+
+                                    // If a range start expands to the left, there may be preceding ranges that overlap this one
+                                    to_remove.clear();
+
+                                    for overlap_idx in (0..idx).into_iter().rev() {
+                                        if intercepts[overlap_idx].start <= intercepts[idx].end && intercepts[overlap_idx].end >= intercepts[idx].start {
+                                            to_remove.push(overlap_idx);
+                                            intercepts[idx].start   = intercepts[idx].start.min(intercepts[overlap_idx].start);
+                                            intercepts[idx].end     = intercepts[idx].end.max(intercepts[overlap_idx].end);
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+                                    for remove_idx in to_remove.iter() {
+                                        intercepts.remove(*remove_idx);
+                                    }
+                                }
+
+                                found_overlap = true;
+                                break;
+                            }
+                        }
+
+                        if !found_overlap {
+                            // Intercept must be at the start of the list
+                            intercepts.insert(0, overlap_intercept);
+                        }
+                    }
+                }
+            }
+        }
+
+        intercepts
+    }
+}
+
+impl<TDaub> ColumnSampledContour for DaubBrushDistanceField<TDaub> 
+where
+    TDaub: SampledSignedDistanceField,
+    TDaub::Contour: ColumnSampledContour,
+{
+    fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
+        let mut intercepts: SmallVec<[Range<f64>; 4]> = smallvec![];
+
+        // Fetch the daubs at this y position
+        if x >= 0.0 && x < self.size.width() as f64 {
+            let mut daubs_for_column = self.daubs_for_column.borrow_mut();
+            let daubs_for_column = if let Some(daubs_for_column) = &*daubs_for_column {
+                daubs_for_column
+            } else {
+                *daubs_for_column = Some(self.calculate_daubs_for_column());
+                daubs_for_column.as_ref().unwrap()
+            };
+
+            let line_daubs = &daubs_for_column[x.floor() as usize];
+
+            // Scan the intercepts left-to-right to build up the intercepts on this line
+            let mut to_remove = vec![];
+
+            for daub_idx in line_daubs.iter().copied() {
+                let (daub, pos) = &self.daubs[daub_idx];
+                let posx        = pos.0 as f64;
+                let posy        = pos.1 as f64;
+
+                for intercept in daub.as_contour().intercepts_on_column(x - posx).into_iter() {
+                    // Strip empty ranges if they occur
+                    if intercept.start >= intercept.end { continue; }
+
+                    // Offset the intercept by the position of this daub
+                    let intercept = (posy + intercept.start)..(posy + intercept.end);
 
                     // In general, intercepts move left to right, so we should overlap the end of vec in general
                     if intercepts.len() == 0 {
