@@ -70,8 +70,8 @@ pub trait SampledContour : Sized {
     ///
     /// The position returned here is the position of the bottom-right corner of the cell containing the edge.
     ///
-    #[inline] fn edge_cell_iterator<'a>(&'a self) -> InterceptScanEdgeIterator<'a, Self> {
-        InterceptScanEdgeIterator::new(self)
+    #[inline] fn edge_cell_iterator<'a>(&'a self) -> InterceptScanEdgeIterator<ContourInterceptsIterator<'a, Self>> {
+        InterceptScanEdgeIterator::from_iterator(ContourInterceptsIterator::new(self))
     }
 
     ///

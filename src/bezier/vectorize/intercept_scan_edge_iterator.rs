@@ -7,9 +7,12 @@ use std::ops::{Range};
 ///
 /// An iterator that finds the edges of a contour by calling the `intercepts_on_line()` function
 ///
-pub struct InterceptScanEdgeIterator<'a, TContour> {
+pub struct InterceptScanEdgeIterator<TLineIterator> {
     /// The contour that this is tracing the edges of
-    contour: &'a TContour,
+    line_iterator: TLineIterator,
+
+    /// Set to true once there are no more lines in the line iterator
+    finished: bool,
 
     /// The y pos of the current line
     ypos: f64,
@@ -30,17 +33,20 @@ pub struct InterceptScanEdgeIterator<'a, TContour> {
     xpos: usize,
 }
 
-impl<'a, TContour> InterceptScanEdgeIterator<'a, TContour>
+impl<TLineIterator> InterceptScanEdgeIterator<TLineIterator>
 where
-    TContour: SampledContour,
+    TLineIterator: Iterator<Item=SmallVec<[Range<usize>; 4]>>,
 {
     ///
     /// Creates a new edge iterator at the top-left corner of a contour
     ///
-    pub fn new(contour: &'a TContour) -> InterceptScanEdgeIterator<TContour> {
+    /// The line iterator should return the rounded intercepts on each line in the contour
+    ///
+    pub fn from_iterator(line_iterator: TLineIterator) -> InterceptScanEdgeIterator<TLineIterator> {
         // Create an edge iterator in a neutral state
         let mut iterator = InterceptScanEdgeIterator {
-            contour:        contour,
+            line_iterator:  line_iterator,
+            finished:       false,
             ypos:           0.0,
             previous_line:  smallvec![],
             current_line:   smallvec![],
@@ -61,7 +67,6 @@ where
     fn load_line(&mut self, ypos: f64) {
         use std::mem;
 
-        let height      = self.contour.contour_size().height() as f64;
         let mut ypos    = ypos;
 
         loop {
@@ -69,10 +74,11 @@ where
             mem::swap(&mut self.previous_line, &mut self.current_line);
 
             // Load the next line from the contour
-            if ypos < height {
-                self.current_line = self.contour.rounded_intercepts_on_line(ypos).into_iter().collect();
+            if let Some(line) = self.line_iterator.next() {
+                self.current_line   = line;
             } else {
-                self.current_line = smallvec![];
+                self.finished       = true;
+                self.current_line   = smallvec![];
             }
 
             // Try to pick an x position to start at (one of the lines must be non-empty)
@@ -98,30 +104,27 @@ where
             // Try the next y position if we didn't find a match
             ypos += 1.0;
 
-            if ypos > height {
+            if self.finished {
                 // No more lines in this shape
                 self.previous_pos   = 0;
                 self.current_pos    = 0;
                 self.xpos           = 0;
-                self.ypos           = height;
                 break;
             }
         }
     }
 }
 
-impl<'a, TContour> Iterator for InterceptScanEdgeIterator<'a, TContour>
+impl<TLineIterator> Iterator for InterceptScanEdgeIterator<TLineIterator>
 where
-    TContour: SampledContour,
+    TLineIterator: Iterator<Item=SmallVec<[Range<usize>; 4]>>,
 {
     type Item = (ContourPosition, ContourCell);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let height = self.contour.contour_size().height() as f64;
-
         // Outer loop: move lines
         loop {
-            if self.ypos >= height && self.previous_line.is_empty() {
+            if self.finished && self.previous_line.is_empty() {
                 // Stop once the ypos leaves the end of the shape and there's no previous line
                 return None;
             }
@@ -194,6 +197,60 @@ where
 
             // Read in the next line from the contour
             self.load_line(self.ypos + 1.0);
+        }
+    }
+}
+
+///
+/// Iterator that returns the intercepts for each line of a contour
+///
+pub struct ContourInterceptsIterator<'a, TContour> {
+    /// The contour to find the intercepts on
+    contour: &'a TContour,
+
+    /// The height of the contour
+    height: f64,
+
+    /// The current y position along the contour
+    ypos: f64,
+}
+
+impl<'a, TContour> ContourInterceptsIterator<'a, TContour> 
+where
+    TContour: SampledContour,
+{
+    ///
+    /// Creates a new iterator that will return the intercepts in a contour
+    ///
+    #[inline]
+    pub fn new(contour: &'a TContour) -> ContourInterceptsIterator<'a, TContour> {
+        ContourInterceptsIterator {
+            contour:    contour, 
+            height:     contour.contour_size().height() as _,
+            ypos:       0.0,
+        }
+    }
+}
+
+impl<'a, TContour> Iterator for ContourInterceptsIterator<'a, TContour> 
+where
+    TContour: SampledContour,
+{
+    type Item = SmallVec<[Range<usize>; 4]>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ypos >= self.height {
+            // Finished all the lines in the contour
+            None
+        } else {
+            // Get the current line
+            let current_line = self.contour.rounded_intercepts_on_line(self.ypos);
+
+            // Move to the next line
+            self.ypos += 1.0;
+
+            Some(current_line)
         }
     }
 }
