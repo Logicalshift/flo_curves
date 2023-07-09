@@ -33,7 +33,7 @@ fn brush_stroke(center_x: f64, length: f64, width: f64, wiggle: f64) -> SimpleBe
             let p = p * f64::consts::PI;
 
             let x_pos = center_x + (p*wiggle).sin()*32.0;
-            let width = p.sin().abs() * width;
+            let width = p.sin().abs() * (width - 2.0) + 2.0;
 
             Coord3(x_pos, y_pos, width)
         });
