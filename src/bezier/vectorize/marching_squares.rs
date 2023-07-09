@@ -208,12 +208,13 @@ pub fn trace_contours_from_samples(contours: &impl SampledContour) -> Vec<Vec<Co
 ///
 #[inline]
 fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, initial_estimate: usize) -> f64 {
-    let mut estimate = initial_estimate as f64;
-    let mut distance = f64::MAX;
+    let initial_estimate    = initial_estimate as f64;
+    let mut estimate        = initial_estimate;
+    let mut distance        = f64::MAX;
 
     for range in intercepts.iter() {
-        let start_distance  = (estimate - range.start).abs();
-        let end_distance    = (estimate - range.end).abs();
+        let start_distance  = (initial_estimate - range.start).abs();
+        let end_distance    = (initial_estimate - range.end).abs();
 
         if start_distance < distance {
             estimate = range.start;
