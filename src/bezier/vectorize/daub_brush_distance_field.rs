@@ -36,6 +36,12 @@ pub struct DaubBrushDistanceField<TDaub> {
     daubs_for_column: RefCell<Option<Vec<Vec<usize>>>>,
 }
 
+struct DaubPosition {
+    pos: Range<usize>,
+
+    covered_pixels: Range<usize>,
+}
+
 impl<TDaub> DaubBrushDistanceField<TDaub>
 where
     TDaub: SampledSignedDistanceField,
@@ -64,7 +70,12 @@ where
         daubs.sort_by_key(|(_, ContourPosition(_, y))| *y);
 
         // Figure out which daubs are on each line
-        let daubs_for_line      = Self::create_daubs_for_lines(&daubs, size.height());
+        let daubs_for_line      = Self::create_daubs_for_lines(daubs.iter().map(|(daub, pos)| {
+            DaubPosition {
+                pos:            (pos.1)..(pos.1 + daub.field_size().height()),
+                covered_pixels: (pos.0)..(pos.0 + daub.field_size().width())
+            }
+        }).collect(), size.height());
         let daubs_for_column    = RefCell::new(None);
 
         DaubBrushDistanceField {
@@ -73,33 +84,33 @@ where
     }
 
     ///
-    /// Creates the cache of daubs for each line in this brush stroke
+    /// Creates the cache of daubs for each line or column in this brush stroke
     ///
-    fn create_daubs_for_lines(ordered_daubs: &Vec<(TDaub, ContourPosition)>, height: usize) -> Vec<Vec<usize>> {
-        let mut daubs_for_line  = Vec::with_capacity(height);
-        let mut ypos            = 0;
+    fn create_daubs_for_lines(ordered_daub_positions: Vec<DaubPosition>, size: usize) -> Vec<Vec<usize>> {
+        let mut daubs_for_line  = Vec::with_capacity(size);
+        let mut pos             = 0;
         let mut next_daub       = 0;
         let mut current_line    = Vec::<usize>::new();
 
         loop {
             // Stop caching once we reach the end of the brush
-            if ypos >= height {
+            if pos >= size {
                 break;
             }
 
             // Remove any daubs that end before the current line
-            current_line.retain(|daub_idx| ordered_daubs[*daub_idx].1.1 + ordered_daubs[*daub_idx].0.field_size().height() > ypos);
+            current_line.retain(|daub_idx| ordered_daub_positions[*daub_idx].pos.end > pos);
 
             // Add any daubs that first appear at the current y position
             let mut new_daubs = vec![];
 
-            while next_daub < ordered_daubs.len() && ordered_daubs[next_daub].1.1 == ypos {
+            while next_daub < ordered_daub_positions.len() && ordered_daub_positions[next_daub].pos.start == pos {
                 new_daubs.push(next_daub);
                 next_daub += 1;
             }
 
             // Order by x index
-            new_daubs.sort_by(|a, b| ordered_daubs[*a].1.0.cmp(&ordered_daubs[*b].1.0));
+            new_daubs.sort_by(|a, b| ordered_daub_positions[*a].covered_pixels.start.cmp(&ordered_daub_positions[*b].covered_pixels.start));
 
             if current_line.len() == 0 {
                 current_line = new_daubs;
@@ -115,8 +126,8 @@ where
                 loop {
                     match (current_next, new_next) {
                         (Some(current_idx), Some(new_idx)) => {
-                            let current_x   = ordered_daubs[current_idx].1.0;
-                            let new_x       = ordered_daubs[new_idx].1.0;
+                            let current_x   = ordered_daub_positions[current_idx].covered_pixels.start;
+                            let new_x       = ordered_daub_positions[new_idx].covered_pixels.start;
 
                             if current_x < new_x {
                                 new_current_line.push(current_idx);
@@ -144,11 +155,11 @@ where
                 current_line = new_current_line;
             }
 
-            // Add the daub indexes for the current line to the results
+            // Add the daub indexes for the row/column to the results
             daubs_for_line.push(current_line.clone());
 
-            // Prepare to process the next line
-            ypos += 1;
+            // Prepare to process the next set of daubs
+            pos += 1;
         }
 
         daubs_for_line
