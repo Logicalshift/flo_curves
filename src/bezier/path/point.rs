@@ -124,7 +124,7 @@ where
 ///
 /// The return value is `(curve_index, t_value, distance, point)` of the point that was found
 ///
-pub fn path_closest_point<TPath>(path: TPath, point: &TPath::Point) -> (usize, f64, f64, TPath::Point) 
+pub fn path_closest_point<TPath>(path: &TPath, point: &TPath::Point) -> (usize, f64, f64, TPath::Point) 
 where
     TPath:          BezierPath,
     TPath::Point:   Coordinate + Coordinate2D,
