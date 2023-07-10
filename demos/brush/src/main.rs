@@ -198,12 +198,24 @@ fn main() {
                     .line_to(Coord2(0.0, 0.0))
                     .build();
 
+                let scale = 1.0/6.0;
+                let angle = 2.0 * f64::consts::PI / 6.0;
+                let oblique = Circle::new(Coord2(0.0, 0.0), 48.0)
+                    .to_path::<SimpleBezierPath>()
+                    .map_points::<SimpleBezierPath>(|p| {
+                        Coord2(p.x() * scale, p.y())
+                    })
+                    .map_points::<SimpleBezierPath>(|p| {
+                        Coord2(angle.sin()*p.x() + angle.cos()*p.y(), angle.cos()*p.x() - angle.sin()*p.y())
+                    });
+                /*
                 let oblique = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(22.0, 0.0))
                     .line_to(Coord2(0.0, 46.0))
                     .line_to(Coord2(6.0, 48.0))
                     .line_to(Coord2(28.0, 2.0))
                     .line_to(Coord2(22.0, 0.0))
                     .build();
+                */
 
                 let two_circles = vec![
                     Circle::new(Coord2(0.0, 0.0), 8.0).to_path::<SimpleBezierPath>(),

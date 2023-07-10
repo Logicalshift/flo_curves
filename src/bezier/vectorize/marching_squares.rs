@@ -229,6 +229,9 @@ fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, initial_estimate: usiz
 
     // The brush demo does manage to fail this assertion but seems to produce decent results anyway so this is commented out for now
     // debug_assert!(distance < 1.1, "Could not find estimate {} in intercept ranges {:?} (min distance {})", initial_estimate, intercepts, distance);
+    if distance > 2.0 {
+        estimate = initial_estimate;
+    }
     estimate
 }
 
