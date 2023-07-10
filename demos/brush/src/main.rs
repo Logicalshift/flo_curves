@@ -204,20 +204,26 @@ fn draw_field_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext),
     // Create some curves by fitting along the length
     let brush_stroke = brush_stroke(center_x, length, 40.0, 7.0);
 
-    /*
-    // Draw the brush preview
+    // Draw a brush preview
+    let preview = trace_paths_from_distance_field::<SimpleBezierPath>(brush_head, 0.1);
+
+    let bounds  = preview.iter().map(|subpath| subpath.bounding_box::<Bounds<_>>()).reduce(|a, b| a.union_bounds(b)).unwrap();
+    let offset  = bounds.min();
     let size    = bounds.max() - bounds.min();
     let scale   = size.x().max(size.y());
 
-    let preview = brush_head.iter()
+    let preview = preview.iter()
         .map(|subpath| {
             subpath.map_points::<SimpleBezierPath>(|point| {
+                if point.x().is_nan() || point.y().is_nan() {
+                    panic!("Preview has a NaN point");
+                }
+
                 (point - offset - (size*0.5)) * (1.0/scale) * 32.0 + Coord2(center_x, 50.0)
             })
         });
 
     draw_path_outline(gc, preview, Color::Rgba(0.4, 0.85, 1.0, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
-    */
 
     // Create a brush from the path
     let brush       = ScaledBrush::from_distance_field(brush_head);
