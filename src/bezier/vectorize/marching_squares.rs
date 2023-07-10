@@ -376,6 +376,8 @@ where
                     let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
                     let y = ((to.1 as f64) - (from.1 as f64)) * zero_point + (from.1 as f64);
 
+                    debug_assert!(!x.is_nan() && !y.is_nan());
+
                     TCoord::from_components(&[x, y])
                 }).collect()
         }).collect()
