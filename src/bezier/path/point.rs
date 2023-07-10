@@ -120,7 +120,43 @@ where
 }
 
 ///
+/// Finds the closest point on an edge of this path to a reference point
+///
+/// The return value is `(curve_index, t_value, distance, point)` of the point that was found
+///
+pub fn path_closest_point<TPath>(path: TPath, point: &TPath::Point) -> (usize, f64, f64, TPath::Point) 
+where
+    TPath:          BezierPath,
+    TPath::Point:   Coordinate + Coordinate2D,
+{
+    let mut curve_index             = 0;
+    let mut t_value                 = 0.0;
+    let mut min_distance_squared    = f64::MAX;
+    let mut closest_point           = TPath::Point::origin();
+
+    // Just compare all the point against all the curves in the path to find the closest
+    for (idx, curve) in path.to_curves::<Curve<_>>().into_iter().enumerate() {
+        let this_t          = curve.nearest_t(point);
+
+        let this_pos        = curve.point_at_pos(this_t);
+        let this_offset     = *point - this_pos;
+        let this_distance   = this_offset.dot(&this_offset);
+
+        if this_distance < min_distance_squared {
+            curve_index             = idx;
+            t_value                 = this_t;
+            min_distance_squared    = this_distance;
+            closest_point           = this_pos;
+        }
+    }
+
+    (curve_index, t_value, min_distance_squared.sqrt(), closest_point)
+}
+
+///
 /// Returns true if a particular point is within a bezier path
+///
+/// If checking a lot of points against a path, consider using the `PathContour` type
 /// 
 pub fn path_contains_point<P: BezierPath>(path: &P, point: &P::Point) -> bool
 where 
