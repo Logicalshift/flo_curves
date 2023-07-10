@@ -136,9 +136,14 @@ impl SampledSignedDistanceField for F32SampledDistanceField {
     #[inline]
     fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         let width   = self.0.0;
-        let pos     = pos.0 + (pos.1 * width);
+        let height  = self.0.1;
 
-        self.1[pos] as _
+        if pos.0 < width && pos.1 < height {
+            let pos = pos.0 + (pos.1 * width);
+            self.1[pos] as _
+        } else {
+            f64::MAX
+        }
     }
 
     #[inline]
@@ -163,9 +168,14 @@ impl SampledSignedDistanceField for F64SampledDistanceField {
     #[inline]
     fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         let width   = self.0.0;
-        let pos     = pos.0 + (pos.1 * width);
+        let height  = self.0.1;
 
-        self.1[pos]
+        if pos.0 < width && pos.1 < height {
+            let pos = pos.0 + (pos.1 * width);
+            self.1[pos]
+        } else {
+            f64::MAX
+        }
     }
 
     #[inline]
