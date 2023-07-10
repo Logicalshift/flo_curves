@@ -15,6 +15,33 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 ///
+/// Creates a slow but accurate signed distance field from a path
+///
+fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDistanceField {
+    // Use PathContour to determine if a point is inside or not, and also to generate an offset for the path
+    let (contour, offset) = PathContour::center_path(path.clone());
+
+    // Create the distance field by slowly measuring the path at every point
+    create_distance_field(|x, y| {
+        let is_inside = contour_point_is_inside(&contour, ContourPosition(x as _, y as _));
+        let distance  = path.iter()
+            .map(|subpath| path_closest_point(subpath, &(Coord2(x, y)-offset)))
+            .map(|(_, _, distance, _)| distance)
+            .reduce(|a, b| {
+                if a < b { a } else { b }
+            })
+            .unwrap()
+            .abs();
+
+        if is_inside {
+            -distance
+        } else {
+            distance
+        }
+    }, contour.contour_size())
+}
+
+///
 /// Creates a brush stroke path
 ///
 fn brush_stroke(center_x: f64, length: f64, width: f64, wiggle: f64) -> SimpleBezierPath3 {
