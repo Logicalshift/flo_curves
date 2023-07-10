@@ -22,7 +22,7 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
     let (contour, offset) = PathContour::center_path(path.clone());
 
     // Create the distance field by slowly measuring the path at every point
-    create_distance_field(|x, y| {
+    let distance_field = create_distance_field(|x, y| {
         let is_inside = contour_point_is_inside(&contour, ContourPosition(x as _, y as _));
         let distance  = path.iter()
             .map(|subpath| path_closest_point(subpath, &(Coord2(x, y)-offset)))
@@ -42,7 +42,35 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
         } else {
             distance
         }
-    }, contour.contour_size())
+    }, contour.contour_size());
+
+    let width   = contour.contour_size().width();
+    let height  = contour.contour_size().height();
+    for y in 0..height {
+        for x in 0..width {
+            let distance = distance_field.distance_at_point(ContourPosition(x, y));
+
+            if distance.is_nan() {
+                print!("/");
+            }
+
+            if distance < 0.0 {
+                print!("#");
+            } else if distance < 1.0 {
+                print!("*");
+            } else if distance < 4.0 {
+                print!("!");
+            } else if distance < 8.0 {
+                print!(".");
+            } else {
+                print!(" ");
+            }
+        }
+
+        println!();
+    }
+
+    distance_field
 }
 
 ///
