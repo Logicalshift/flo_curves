@@ -1,7 +1,93 @@
 use flo_curves::geo::*;
 use flo_curves::bezier::*;
 use flo_curves::bezier::path::*;
+use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
+
+///
+/// Creates a slow but accurate signed distance field from a path
+///
+fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDistanceField {
+    // Use PathContour to determine if a point is inside or not, and also to generate an offset for the path
+    let (contour, offset) = PathContour::center_path(path.clone());
+
+    // Create the distance field by slowly measuring the path at every point
+    let distance_field = create_distance_field(|x, y| {
+        let is_inside = contour_point_is_inside(&contour, ContourPosition(x as _, y as _));
+        let distance  = path.iter()
+            .map(|subpath| path_closest_point(subpath, &(Coord2(x, y)+offset)))
+            .map(|(_, _, distance, _)| distance)
+            .reduce(|a, b| {
+                if a < b { a } else { b }
+            })
+            .unwrap()
+            .abs();
+
+        if distance.is_nan() {
+            panic!("NaN distance");
+        }
+
+        if is_inside {
+            -distance
+        } else {
+            distance
+        }
+    }, contour.contour_size());
+
+    let width   = contour.contour_size().width();
+    let height  = contour.contour_size().height();
+
+    for y in 0..height {
+        for x in 0..width {
+            let distance = distance_field.distance_at_point(ContourPosition(x, y));
+
+            if distance.is_nan() {
+                print!("/");
+            }
+
+            if distance <= 0.0 {
+                print!("#");
+            } else if distance < 1.0 {
+                print!("*");
+            } else if distance < 4.0 {
+                print!("!");
+            } else if distance < 8.0 {
+                print!(".");
+            } else {
+                print!(" ");
+            }
+        }
+
+        println!();
+    }
+
+    println!();
+
+    for y in 0..height {
+        let intercepts  = distance_field.as_contour().rounded_intercepts_on_line(y as _);
+        let mut line    = vec![false; width];
+
+        for range in intercepts {
+            for x in range {
+                line[x] = true;
+            }
+        }
+
+        for x in 0..width {
+            if line[x] {
+                print!("#");
+            } else {
+                print!(" ");
+            }
+        }
+
+        println!();
+    }
+
+    println!();
+
+    distance_field
+}
 
 #[test]
 fn single_sample_loop() {
@@ -314,4 +400,48 @@ fn circle_path_from_distance_field() {
 
     // The error here is semi-random due to the hash table used to store the edge graph
     assert!(max_error <= 0.2, "Max error {:?} > 0.2. Path generated was {:?}", max_error, circle);
+}
+
+#[test]
+fn chisel_from_contours() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+    let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
+
+    let chisel_again    = trace_paths_from_samples::<SimpleBezierPath>(&chisel_field, 1.0);
+    assert!(chisel_again.len() <= 3, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
+    let no_nans         = chisel_again.into_iter().map(|subpath| subpath.map_points::<SimpleBezierPath>(|point| {
+        assert!(!point.x().is_nan() && !point.y().is_nan());
+        point
+    })).collect::<Vec<_>>();
+
+    for path in no_nans {
+        assert!(path.points().count() < 20, "Generated {} points", path.points().count());
+    }
+}
+
+#[test]
+fn chisel_from_distance_field() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+    let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
+
+    let chisel_again    = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
+    assert!(chisel_again.len() <= 3, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
+    let no_nans         = chisel_again.into_iter().map(|subpath| subpath.map_points::<SimpleBezierPath>(|point| {
+        assert!(!point.x().is_nan() && !point.y().is_nan());
+        point
+    })).collect::<Vec<_>>();
+
+    for path in no_nans {
+        assert!(path.points().count() < 20, "Generated {} points", path.points().count());
+    }
 }
