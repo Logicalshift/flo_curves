@@ -193,10 +193,75 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
 }
 
+///
+/// Draws the outline of a simple brush stroke alongside an image of the brush head
+///
+fn draw_field_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), center_x: f64, length: f64, brush_head: &impl SampledSignedDistanceField) {
+    // Create some curves by fitting along the length
+    let brush_stroke = brush_stroke(center_x, length, 40.0, 7.0);
+
+    /*
+    // Draw the brush preview
+    let size    = bounds.max() - bounds.min();
+    let scale   = size.x().max(size.y());
+
+    let preview = brush_head.iter()
+        .map(|subpath| {
+            subpath.map_points::<SimpleBezierPath>(|point| {
+                (point - offset - (size*0.5)) * (1.0/scale) * 32.0 + Coord2(center_x, 50.0)
+            })
+        });
+
+    draw_path_outline(gc, preview, Color::Rgba(0.4, 0.85, 1.0, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    */
+
+    // Create a brush from the path
+    let brush       = ScaledBrush::from_distance_field(brush_head);
+    let brush       = &brush;
+
+    // Use the brush to create a brush stroke path
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+
+    // Draw it as a preview
+    draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+}
+
 fn main() {
     with_2d_graphics(|| {
         let canvas      = create_canvas_window("Brush demo");
         let start_time  = Instant::now();
+
+        let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+            .line_to(Coord2(12.0, 36.0))
+            .line_to(Coord2(36.0, 48.0))
+            .line_to(Coord2(24.0, 12.0))
+            .line_to(Coord2(0.0, 0.0))
+            .build();
+        let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
+
+        let scale = 1.0/6.0;
+        let angle = 2.0 * f64::consts::PI / 6.0;
+        let oblique = Circle::new(Coord2(0.0, 0.0), 48.0)
+            .to_path::<SimpleBezierPath>()
+            .map_points::<SimpleBezierPath>(|p| {
+                Coord2(p.x() * scale, p.y())
+            })
+            .map_points::<SimpleBezierPath>(|p| {
+                Coord2(angle.sin()*p.x() + angle.cos()*p.y(), angle.cos()*p.x() - angle.sin()*p.y())
+            });
+        /*
+        let oblique = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(22.0, 0.0))
+            .line_to(Coord2(0.0, 46.0))
+            .line_to(Coord2(6.0, 48.0))
+            .line_to(Coord2(28.0, 2.0))
+            .line_to(Coord2(22.0, 0.0))
+            .build();
+        */
+
+        let two_circles = vec![
+            Circle::new(Coord2(0.0, 0.0), 8.0).to_path::<SimpleBezierPath>(),
+            Circle::new(Coord2(24.0, 24.0), 8.0).to_path::<SimpleBezierPath>(),
+        ];
 
         loop {
             thread::sleep(Duration::from_nanos(1_000_000_000 / 60));
@@ -218,43 +283,13 @@ fn main() {
 
                 gc.winding_rule(WindingRule::EvenOdd);
 
-                let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
-                    .line_to(Coord2(12.0, 36.0))
-                    .line_to(Coord2(36.0, 48.0))
-                    .line_to(Coord2(24.0, 12.0))
-                    .line_to(Coord2(0.0, 0.0))
-                    .build();
-
-                let scale = 1.0/6.0;
-                let angle = 2.0 * f64::consts::PI / 6.0;
-                let oblique = Circle::new(Coord2(0.0, 0.0), 48.0)
-                    .to_path::<SimpleBezierPath>()
-                    .map_points::<SimpleBezierPath>(|p| {
-                        Coord2(p.x() * scale, p.y())
-                    })
-                    .map_points::<SimpleBezierPath>(|p| {
-                        Coord2(angle.sin()*p.x() + angle.cos()*p.y(), angle.cos()*p.x() - angle.sin()*p.y())
-                    });
-                /*
-                let oblique = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(22.0, 0.0))
-                    .line_to(Coord2(0.0, 46.0))
-                    .line_to(Coord2(6.0, 48.0))
-                    .line_to(Coord2(28.0, 2.0))
-                    .line_to(Coord2(22.0, 0.0))
-                    .build();
-                */
-
-                let two_circles = vec![
-                    Circle::new(Coord2(0.0, 0.0), 8.0).to_path::<SimpleBezierPath>(),
-                    Circle::new(Coord2(24.0, 24.0), 8.0).to_path::<SimpleBezierPath>(),
-                ];
-
                 draw_offset_brush_stroke(gc, 120.0, length);
                 draw_circle_brush_stroke(gc, 240.0, length);
                 draw_path_brush_stroke(gc, 360.0, length, vec![Circle::new(Coord2(0.0, 0.0), 32.0).to_path::<SimpleBezierPath>()]);
-                draw_path_brush_stroke(gc, 480.0, length, vec![chisel]);
-                draw_path_brush_stroke(gc, 600.0, length, vec![oblique]);
-                draw_path_brush_stroke(gc, 720.0, length, two_circles);
+                draw_path_brush_stroke(gc, 480.0, length, vec![chisel.clone()]);
+                draw_field_brush_stroke(gc, 600.0, length, &chisel_field);
+                draw_path_brush_stroke(gc, 720.0, length, vec![oblique.clone()]);
+                draw_path_brush_stroke(gc, 840.0, length, two_circles.clone());
             });
         }
     });
