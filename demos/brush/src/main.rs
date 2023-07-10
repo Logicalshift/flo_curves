@@ -23,7 +23,7 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
 
     // Create the distance field by slowly measuring the path at every point
     let distance_field = create_distance_field(|x, y| {
-        let is_inside = contour_point_is_inside(&contour, ContourPosition(x as _, y as _));
+        let is_inside = path_contains_point(&path[0], &(Coord2(x, y)-offset));
         let distance  = path.iter()
             .map(|subpath| path_closest_point(subpath, &(Coord2(x, y)-offset)))
             .map(|(_, _, distance, _)| distance)
