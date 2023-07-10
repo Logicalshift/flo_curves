@@ -33,6 +33,10 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
             .unwrap()
             .abs();
 
+        if distance.is_nan() {
+            panic!("NaN distance");
+        }
+
         if is_inside {
             -distance
         } else {
