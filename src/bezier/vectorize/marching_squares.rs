@@ -236,6 +236,54 @@ fn find_intercept(intercepts: &SmallVec<[Range<f64>; 4]>, initial_estimate: usiz
 }
 
 ///
+/// Removes any very near or overlapping points from a list of coordinates
+///
+fn remove_overlapping_points(coords: &mut Vec<impl Coordinate>) {
+    const MIN_DISTANCE: f64     = 0.2;
+    const MIN_DISTANCE_SQ: f64  = MIN_DISTANCE * MIN_DISTANCE;
+
+    // None, or whether or not to keep coordinates
+    let mut keep = None;
+
+    // Compare neighboring coordinates and 
+    let mut previous_idx    = 0;
+    let mut idx             = 1;
+
+    while idx < coords.len() {
+        let p1 = &coords[previous_idx];
+        let p2 = &coords[idx];
+
+        let offset      = *p1-*p2;
+        let distance_sq = offset.dot(&offset);
+
+        if distance_sq < MIN_DISTANCE_SQ {
+            // Points are too close together: mark the later point to be removed later on
+            let keep = if let Some(keep) = &mut keep { 
+                keep 
+            } else {
+                keep = Some(vec![true; coords.len()]);
+                keep.as_mut().unwrap()
+            };
+
+            keep[idx] = false;
+        } else {
+            // Move to the next point
+            previous_idx = idx;
+        }
+
+        idx += 1;
+    }
+
+    // Remove the overlapping points
+    if let Some(keep) = keep {
+        let mut keep = keep.into_iter();
+        coords.retain(|_| {
+            keep.next() == Some(true)
+        })
+    }
+}
+
+///
 /// Uses the marching squares algorithm to trace the edges represented by a sampled contour, and then fine-tunes the positions
 /// using the precise intercepts
 ///
@@ -298,7 +346,7 @@ where
                     }
                 })
                 .collect()
-        });
+        }).map(|mut coords| { remove_overlapping_points(&mut coords); coords });
 
     adjusted_edges.collect()
 }
@@ -372,6 +420,7 @@ where
                     // If the zero point is calculated correctly it should be between 0 and 1
                     // Rounding errors at the very edge of things might push this beyond 1 however, so we allow the value to get as high as 2 here
                     debug_assert!(zero_point >= -2.0 && zero_point <= 2.0, "Zero point out of range, {:?} {:?} {:?} {:?} {:?}", zero_point, from_distance, to_distance, from, to);
+                    let zero_point = zero_point.max(-2.0).min(2.0);
 
                     let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
                     let y = ((to.1 as f64) - (from.1 as f64)) * zero_point + (from.1 as f64);
@@ -380,7 +429,9 @@ where
 
                     TCoord::from_components(&[x, y])
                 }).collect()
-        }).collect()
+        })
+        .map(|mut coords| { remove_overlapping_points(&mut coords); coords })
+        .collect()
 }
 
 ///
