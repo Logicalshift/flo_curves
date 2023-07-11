@@ -4,6 +4,8 @@ use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
+use itertools::*;
+
 #[test]
 fn corners_are_outside() {
     let radius          = 300.0;
@@ -235,6 +237,29 @@ fn trace_chisel_contours() {
     let avg_error = total_error / (num_points as f64);
 
     debug_assert!(max_error < 0.1, "Max error was {} (average {}, num >0.1 {}/{})", max_error, avg_error, error_count, num_points);
+}
+
+#[test]
+fn chisel_no_very_close_points() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+    let (chisel_field, _) = PathDistanceField::center_path(vec![chisel.clone()]);
+
+    let chisel_points = trace_contours_from_distance_field::<Coord2>(&chisel_field);
+    assert!(chisel_points.len() > 0);
+
+    for subpath in chisel_points {
+        for (p1, p2) in subpath.iter().tuple_windows() {
+            let distance = p1.distance_to(p2);
+
+            assert!(distance > 0.1, "{:?} {:?} are very close", p1, p2);
+            assert!(distance < 2.0, "{:?} {:?} are very far apart", p1, p2);
+        }
+    }
 }
 
 #[test]
