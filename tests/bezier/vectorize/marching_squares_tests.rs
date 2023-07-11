@@ -444,6 +444,7 @@ fn chisel_no_very_close_points() {
             let distance = p1.distance_to(p2);
 
             assert!(distance > 0.1, "{:?} {:?} are very close", p1, p2);
+            assert!(distance < 2.0, "{:?} {:?} are very far apart", p1, p2);
         }
     }
 }
