@@ -413,7 +413,7 @@ fn chisel_from_contours() {
     let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
 
     let chisel_again    = trace_paths_from_samples::<SimpleBezierPath>(&chisel_field, 1.0);
-    assert!(chisel_again.len() <= 3, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
+    assert!(chisel_again.len() == 1, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
     let no_nans         = chisel_again.into_iter().map(|subpath| subpath.map_points::<SimpleBezierPath>(|point| {
         assert!(!point.x().is_nan() && !point.y().is_nan());
         point
@@ -435,7 +435,7 @@ fn chisel_from_distance_field() {
     let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
 
     let chisel_again    = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
-    assert!(chisel_again.len() <= 3, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
+    assert!(chisel_again.len() == 1, "Made {} paths ({:?})", chisel_again.len(), chisel_again);
     let no_nans         = chisel_again.into_iter().map(|subpath| subpath.map_points::<SimpleBezierPath>(|point| {
         assert!(!point.x().is_nan() && !point.y().is_nan());
         point
