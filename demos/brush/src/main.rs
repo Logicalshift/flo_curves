@@ -70,6 +70,40 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
         println!();
     }
 
+
+    println!();
+
+    for y in 0..height {
+        let intercepts  = distance_field.as_contour().rounded_intercepts_on_line(y as _);
+        let mut line    = vec![false; width];
+
+        for range in intercepts {
+            for x in range {
+                line[x] = true;
+            }
+        }
+
+        for x in 0..width {
+            if line[x] {
+                if contour_point_is_inside(&contour, ContourPosition(x, y)) {
+                    print!("#");
+                } else {
+                    print!("?");
+                }
+            } else {
+                if !contour_point_is_inside(&contour, ContourPosition(x, y)) {
+                    print!(" ");
+                } else {
+                    print!(".");
+                }
+            }
+        }
+
+        println!();
+    }
+
+    println!();
+
     distance_field
 }
 
