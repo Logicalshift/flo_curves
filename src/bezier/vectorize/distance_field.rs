@@ -58,7 +58,7 @@ where
 {
     #[inline]
     fn point_is_inside(&self, pos: ContourPosition) -> bool {
-        self.0.distance_at_point(pos) <= 0.0
+        self.0.distance_at_point(pos) < 0.0
     }
 }
 
