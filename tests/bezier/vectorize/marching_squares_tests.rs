@@ -4,6 +4,8 @@ use flo_curves::bezier::path::*;
 use flo_curves::bezier::rasterize::*;
 use flo_curves::bezier::vectorize::*;
 
+use itertools::*;
+
 ///
 /// Creates a slow but accurate signed distance field from a path
 ///
@@ -421,6 +423,28 @@ fn chisel_from_contours() {
 
     for path in no_nans {
         assert!(path.points().count() < 20, "Generated {} points", path.points().count());
+    }
+}
+
+#[test]
+fn chisel_no_very_close_points() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+    let chisel_field = slow_distance_field_from_path(vec![chisel.clone()]);
+
+    let chisel_points = trace_contours_from_distance_field::<Coord2>(&chisel_field);
+    assert!(chisel_points.len() > 0);
+
+    for subpath in chisel_points {
+        for (p1, p2) in subpath.iter().tuple_windows() {
+            let distance = p1.distance_to(p2);
+
+            assert!(distance > 0.1, "{:?} {:?} are very close", p1, p2);
+        }
     }
 }
 
