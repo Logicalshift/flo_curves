@@ -321,19 +321,12 @@ fn main() {
             .map_points::<SimpleBezierPath>(|p| {
                 Coord2(angle.sin()*p.x() + angle.cos()*p.y(), angle.cos()*p.x() - angle.sin()*p.y())
             });
-        /*
-        let oblique = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(22.0, 0.0))
-            .line_to(Coord2(0.0, 46.0))
-            .line_to(Coord2(6.0, 48.0))
-            .line_to(Coord2(28.0, 2.0))
-            .line_to(Coord2(22.0, 0.0))
-            .build();
-        */
 
         let two_circles = vec![
             Circle::new(Coord2(0.0, 0.0), 8.0).to_path::<SimpleBezierPath>(),
             Circle::new(Coord2(24.0, 24.0), 8.0).to_path::<SimpleBezierPath>(),
         ];
+        let two_circles_field = slow_distance_field_from_path(two_circles.clone());
 
         loop {
             thread::sleep(Duration::from_nanos(1_000_000_000 / 60));
@@ -362,6 +355,7 @@ fn main() {
                 draw_field_brush_stroke(gc, 600.0, length, &chisel_field);
                 draw_path_brush_stroke(gc, 720.0, length, vec![oblique.clone()]);
                 draw_path_brush_stroke(gc, 840.0, length, two_circles.clone());
+                draw_field_brush_stroke(gc, 960.0, length, &two_circles_field);
             });
         }
     });
