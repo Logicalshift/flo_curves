@@ -11,7 +11,7 @@ use itertools::*;
 ///
 fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDistanceField {
     // Use PathContour to determine if a point is inside or not, and also to generate an offset for the path
-    let (contour, offset) = PathContour::center_path(path.clone());
+    let (contour, offset) = PathContour::center_path(path.clone(), 4);
 
     // Create the distance field by slowly measuring the path at every point
     let distance_field = create_distance_field(|x, y| {

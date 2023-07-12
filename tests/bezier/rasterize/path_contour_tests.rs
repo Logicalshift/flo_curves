@@ -180,7 +180,7 @@ fn trace_chisel_contours_using_intercepts() {
         .line_to(Coord2(0.0, 0.0))
         .build();
 
-    let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()]);
+    let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()], 4);
     let traced_chisel           = trace_contours_from_intercepts::<Coord2>(&chisel_field);
 
     debug_assert!(traced_chisel.len() == 1);
@@ -220,7 +220,7 @@ fn chisel_no_very_close_points_samples() {
         .line_to(Coord2(24.0, 12.0))
         .line_to(Coord2(0.0, 0.0))
         .build();
-    let (chisel_field, _) = PathContour::center_path(vec![chisel.clone()]);
+    let (chisel_field, _) = PathContour::center_path(vec![chisel.clone()], 4);
 
     let chisel_edges  = trace_contours_from_samples(&chisel_field);
     let contour_size  = chisel_field.contour_size();
@@ -247,7 +247,7 @@ fn chisel_no_very_close_points_intercepts() {
         .line_to(Coord2(24.0, 12.0))
         .line_to(Coord2(0.0, 0.0))
         .build();
-    let (chisel_field, _) = PathContour::center_path(vec![chisel.clone()]);
+    let (chisel_field, _) = PathContour::center_path(vec![chisel.clone()], 4);
 
     let chisel_points = trace_contours_from_intercepts::<Coord2>(&chisel_field);
     assert!(chisel_points.len() > 0);
@@ -271,7 +271,7 @@ fn trace_chisel_paths_using_intercepts() {
         .line_to(Coord2(0.0, 0.0))
         .build();
 
-    let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()]);
+    let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()], 4);
     let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.05);
 
     debug_assert!(traced_chisel.len() == 1);

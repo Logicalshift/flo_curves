@@ -19,9 +19,11 @@ use std::time::{Duration, Instant};
 ///
 fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDistanceField {
     // Use PathContour to determine if a point is inside or not, and also to generate an offset for the path
-    let (contour, offset) = PathContour::center_path(path.clone());
+    let (contour, offset) = PathContour::center_path(path.clone(), 8);
 
     // Create the distance field by slowly measuring the path at every point
+    let size = contour.contour_size();
+
     let distance_field = create_distance_field(|x, y| {
         let is_inside = contour_point_is_inside(&contour, ContourPosition(x as _, y as _));
         let distance  = path.iter()
@@ -42,10 +44,10 @@ fn slow_distance_field_from_path(path: Vec<SimpleBezierPath>) -> F64SampledDista
         } else {
             distance
         }
-    }, contour.contour_size());
+    }, size);
 
-    let width   = contour.contour_size().width();
-    let height  = contour.contour_size().height();
+    let width   = distance_field.contour_size().width();
+    let height  = distance_field.contour_size().height();
     for y in 0..height {
         for x in 0..width {
             let distance = distance_field.distance_at_point(ContourPosition(x, y));
@@ -248,7 +250,7 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     draw_path_outline(gc, preview, Color::Rgba(0.4, 0.85, 1.0, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
 
     // Create a brush from the path
-    let (field, _)  = PathDistanceField::center_path(brush_head);
+    let (field, _)  = PathDistanceField::center_path(brush_head, 4);
     let brush       = ScaledBrush::from_distance_field(&field);
     let brush       = &brush;
 

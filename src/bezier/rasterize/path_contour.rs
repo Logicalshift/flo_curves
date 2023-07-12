@@ -53,7 +53,7 @@ impl PathContour {
     ///
     /// The coordinate returned is the offset of the resulting contour (add to the coordinates to get the coordinates on the original path)
     ///
-    pub fn center_path<TPath>(path: Vec<TPath>) -> (Self, TPath::Point) 
+    pub fn center_path<TPath>(path: Vec<TPath>, border: usize) -> (Self, TPath::Point) 
     where
         TPath:          'static + BezierPath + BezierPathFactory,
         TPath::Point:   Coordinate + Coordinate2D,
@@ -65,8 +65,10 @@ impl PathContour {
             .unwrap_or_else(|| Bounds::empty());
 
         // Offset is the lower-left corner of the bounding box
-        let offset  = bounds.min();
+        let border  = TPath::Point::from_components(&[border as f64, border as f64]);
+        let offset  = bounds.min() - border;
         let size    = bounds.max() - bounds.min();
+        let size    = size + (border * 2.0);
 
         // Allow a 1px border around the path
         let offset  = offset - TPath::Point::from_components(&[1.0, 1.0]);
