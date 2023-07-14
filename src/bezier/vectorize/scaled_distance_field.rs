@@ -73,24 +73,30 @@ where
         let x = x / self.scale_factor;
         let y = y / self.scale_factor;
 
-        // We want to read the distance between the low and high positions
         let low_x   = x.floor();
         let low_y   = y.floor();
-        let high_x  = low_x + 1.0;
-        let high_y  = low_y + 1.0;
 
-        // Read the distances at the 4 corners
-        let distances = [
-            [self.distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _)), self.distance_field.distance_at_point(ContourPosition(low_x as _, high_y as _))],
-            [self.distance_field.distance_at_point(ContourPosition(high_x as _, low_y as _)), self.distance_field.distance_at_point(ContourPosition(high_x as _, high_y as _))]
-        ];
+        if self.scale_factor >= 1.0 {
+            // Read the position without interpolating/resampling
+            self.distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _))
+        } else {
+            // We want to read the distance between the low and high positions
+            let high_x  = low_x + 1.0;
+            let high_y  = low_y + 1.0;
 
-        // Interpolate the distances
-        let distance_x1 = ((high_x - x)/(high_x - low_x)) * distances[0][0] + ((x - low_x)/(high_x - low_x)) * distances[1][0];
-        let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
-        let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
+            // Read the distances at the 4 corners
+            let distances = [
+                [self.distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _)), self.distance_field.distance_at_point(ContourPosition(low_x as _, high_y as _))],
+                [self.distance_field.distance_at_point(ContourPosition(high_x as _, low_y as _)), self.distance_field.distance_at_point(ContourPosition(high_x as _, high_y as _))]
+            ];
 
-        distance * self.scale_factor
+            // Interpolate the distances
+            let distance_x1 = ((high_x - x)/(high_x - low_x)) * distances[0][0] + ((x - low_x)/(high_x - low_x)) * distances[1][0];
+            let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
+            let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
+
+            distance * self.scale_factor
+        }
     }
 
     #[inline]
