@@ -169,6 +169,28 @@ fn draw_path_outline(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path:
     gc.stroke();
 }
 
+
+///
+/// Draws the end points of a path
+///
+fn draw_end_points(gc: &mut (impl GraphicsPrimitives + GraphicsContext), path: impl IntoIterator<Item=SimpleBezierPath>) {
+    gc.sprite(SpriteId(0));
+    gc.fill_color(Color::Rgba(0.0, 0.6, 1.0, 0.1));
+    gc.new_path();
+    gc.circle(0.0, 0.0, 4.0);
+    gc.fill();
+
+    gc.layer(LayerId(0));
+
+    for subpath in path {
+        for (_, _, ep) in subpath.points() {
+            gc.sprite_transform(SpriteTransform::Identity);
+            gc.sprite_transform(SpriteTransform::Translate(ep.x() as f32, ep.y() as f32));
+            gc.draw_sprite(SpriteId(0));
+        }
+    }
+}
+
 ///
 /// Draws the outline of a simple brush stroke by offsetting the path
 ///
@@ -207,7 +229,8 @@ fn draw_offset_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
     let brush_stroke_path = SimpleBezierPath::from_connected_curves(curves);
 
     // Draw it as a preview
-    draw_path_outline(gc, vec![brush_stroke_path], Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_path_outline(gc, vec![brush_stroke_path.clone()], Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_end_points(gc, vec![brush_stroke_path]);
 }
 
 ///
@@ -220,10 +243,11 @@ fn draw_circle_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext)
     let brush = CircularBrush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.5);
 
     // Draw it as a preview
-    draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_path_outline(gc, brush_stroke_path.iter().cloned(), Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_end_points(gc, brush_stroke_path.iter().cloned());
 }
 
 ///
@@ -255,10 +279,11 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     let brush       = &brush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path_intercepts::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+    let brush_stroke_path = brush_stroke_from_path_intercepts::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.5);
 
     // Draw it as a preview
-    draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_path_outline(gc, brush_stroke_path.iter().cloned(), Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_end_points(gc, brush_stroke_path.iter().cloned());
 }
 
 ///
@@ -294,10 +319,11 @@ fn draw_field_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext),
     let brush       = &brush;
 
     // Use the brush to create a brush stroke path
-    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.25);
+    let brush_stroke_path = brush_stroke_from_path::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.5);
 
     // Draw it as a preview
-    draw_path_outline(gc, brush_stroke_path, Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_path_outline(gc, brush_stroke_path.iter().cloned(), Color::Rgba(1.0, 0.8, 0.8, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
+    draw_end_points(gc, brush_stroke_path.iter().cloned());
 }
 
 fn main() {
