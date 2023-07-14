@@ -420,7 +420,7 @@ where
                     // If the zero point is calculated correctly it should be between 0 and 1
                     // Rounding errors at the very edge of things might push this beyond 1 however, so we allow the value to get as high as 2 here
                     debug_assert!(zero_point >= -2.0 && zero_point <= 2.0, "Zero point out of range, {:?} {:?} {:?} {:?} {:?}", zero_point, from_distance, to_distance, from, to);
-                    let zero_point = zero_point.max(-2.0).min(2.0);
+                    let zero_point = zero_point.max(-1.0).min(1.0);
 
                     let x = ((to.0 as f64) - (from.0 as f64)) * zero_point + (from.0 as f64);
                     let y = ((to.1 as f64) - (from.1 as f64)) * zero_point + (from.1 as f64);
