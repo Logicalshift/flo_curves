@@ -104,6 +104,8 @@ impl SampledContour for PathContour {
             // Iterate through all of the curves to find the intercepts
             let mut intercepts = vec![];
 
+            let only_one_curve = self.curves.len() == 1;
+
             for (curve_x, curve_y, bounding_box) in self.curves.iter() {
                 // Skip curves if they don't intercept this contour
                 if y < bounding_box.min().y() || y > bounding_box.max().y() { continue; }
@@ -113,7 +115,8 @@ impl SampledContour for PathContour {
                 let curve_intercepts    = solve_basis_for_t(w1, w2, w3, w4, y);
 
                 // Add the intercepts to the list that we've been generating (we ignore t=0 as there should be a corresponding intercept at t=1 on the previous curve)
-                intercepts.extend(curve_intercepts.into_iter().filter(|t| *t > 0.0).map(|t| curve_x.point_at_pos(t)));
+                // If there's only one curve forming a closed shape, then this isn't true (the 'following' curve is the same curve)
+                intercepts.extend(curve_intercepts.into_iter().filter(|t| *t > 0.0 || only_one_curve).map(|t| curve_x.point_at_pos(t)));
             }
 
             // Order the intercepts to generate ranges
