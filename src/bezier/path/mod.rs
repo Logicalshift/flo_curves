@@ -45,6 +45,7 @@ mod path_builder;
 mod graph_path;
 mod is_clockwise;
 mod arithmetic;
+mod stroke;
 pub mod algorithms;
 
 pub use self::path::*;
@@ -56,3 +57,4 @@ pub use self::path_builder::*;
 pub use self::graph_path::*;
 pub use self::is_clockwise::*;
 pub use self::arithmetic::*;
+pub use self::stroke::*;
