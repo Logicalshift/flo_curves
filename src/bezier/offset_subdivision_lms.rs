@@ -34,7 +34,7 @@ impl Default for SubdivisionOffsetOptions {
             initial_subdivisions:   8,
             min_tangent:            0.05,
             min_distance:           0.1,
-            max_distance:           10.0,
+            max_distance:           30.0,
             max_error:              1.0,
         }
     }
