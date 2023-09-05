@@ -11,11 +11,11 @@ use crate::geo::*;
 /// represents a line segment of a certain flatness or length. This struct can be used to configure these parameters.
 ///
 #[derive(Copy, Clone)]
-pub struct SubdivsionOffsetOptions {
+pub struct SubdivisionOffsetOptions {
     /// The minimum initial number of subdivisions to use
     initial_subdivisions: usize,
 
-    /// The minimum difference between tangents where no further subdivsions are made  
+    /// The minimum difference between tangents where no further subdivisions are made  
     min_tangent: f64,
 
     /// The distance between points to give up on the subdivision routine
@@ -28,9 +28,9 @@ pub struct SubdivsionOffsetOptions {
     max_error: f64,
 }
 
-impl Default for SubdivsionOffsetOptions {
+impl Default for SubdivisionOffsetOptions {
     fn default() -> Self {
-        SubdivsionOffsetOptions {
+        SubdivisionOffsetOptions {
             initial_subdivisions:   8,
             min_tangent:            0.05,
             min_distance:           0.1,
@@ -40,7 +40,7 @@ impl Default for SubdivsionOffsetOptions {
     }
 }
 
-impl SubdivsionOffsetOptions {
+impl SubdivisionOffsetOptions {
     ///
     /// Sets the minimum number of subdivisions to use for any curve
     ///
@@ -73,6 +73,18 @@ impl SubdivsionOffsetOptions {
     #[inline]
     pub fn with_min_distance(mut self, min_distance: f64) -> Self {
         self.min_distance = min_distance;
+
+        self
+    }
+
+    ///
+    /// Sets the maximum distance between samples
+    ///
+    /// If any two samples are further apart than this, the curve will be subdivided further
+    ///
+    #[inline]
+    pub fn with_max_distance(mut self, max_distance: f64) -> Self {
+        self.max_distance = max_distance;
 
         self
     }
@@ -119,7 +131,7 @@ where
 ///
 /// The samples are obtained by subdividing the curve until the 
 ///
-pub fn offset_lms_subdivisions<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivision_options: SubdivsionOffsetOptions) -> Option<Vec<Curve>>
+pub fn offset_lms_subdivisions<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivision_options: SubdivisionOffsetOptions) -> Option<Vec<Curve>>
 where
     Curve:              BezierCurveFactory+NormalCurve,
     Curve::Point:       Normalize+Coordinate2D,
@@ -139,6 +151,8 @@ where
     if extremities.last() != Some(&1.0) {
         extremities.push(1.0);
     }
+
+    // TODO: subdivide according to the initial subdivisions
 
     // Calculate the offsets at these as the initial set of samples
     let mut samples = extremities.into_iter()
