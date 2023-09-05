@@ -286,3 +286,83 @@ fn offset_lms_sampling_arc_fit_single_curve() {
     // We should be able to find a single bezier curve that fits these points
     assert!(offset_arc.len() == 1);
 }
+
+#[test]
+fn offset_lms_subdivision_sampling_arc_start_tangent() {
+    use flo_curves::arc::*;
+
+    // 90 degree circle arc
+    let circle      = Circle::new(Coord2(0.0, 0.0), 100.0);
+    let arc         = circle.arc(0.0, f64::consts::PI / 2.0);
+    let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
+
+    // Offset by 10
+    let offset_arc  = offset_lms_subdivisions(&arc_curve, |_t| 10.0, |_t| 0.0, SubdivisionOffsetOptions::default().with_max_error(0.01)).expect("Offset curve");
+
+    let start_tangent_original  = arc_curve.tangent_at_pos(0.0).to_unit_vector();
+    let start_tangent_new       = offset_arc[0].tangent_at_pos(0.0).to_unit_vector();
+
+    println!("{:?} {:?}", start_tangent_original, start_tangent_new);
+
+    assert!(start_tangent_original.distance_to(&start_tangent_new) < 0.01);
+}
+
+#[test]
+fn offset_lms_subdivision_sampling_arc_end_tangent() {
+    use flo_curves::arc::*;
+
+    // 90 degree circle arc
+    let circle      = Circle::new(Coord2(0.0, 0.0), 100.0);
+    let arc         = circle.arc(0.0, f64::consts::PI / 2.0);
+    let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
+
+    // Offset by 10
+    let offset_arc  = offset_lms_subdivisions(&arc_curve, |_t| 10.0, |_t| 0.0, SubdivisionOffsetOptions::default().with_max_error(0.01)).expect("Offset curve");
+
+    let end_tangent_original    = arc_curve.tangent_at_pos(1.0).to_unit_vector();
+    let end_tangent_new         = offset_arc[offset_arc.len()-1].tangent_at_pos(1.0).to_unit_vector();
+
+    println!("{:?} {:?}", end_tangent_original, end_tangent_new);
+
+    assert!(end_tangent_original.distance_to(&end_tangent_new) < 0.01);
+}
+
+#[test]
+fn offset_lms_subdivision_sampling_arc_end_point() {
+    use flo_curves::arc::*;
+
+    // 90 degree circle arc
+    let circle      = Circle::new(Coord2(0.0, 0.0), 100.0);
+    let arc         = circle.arc(0.0, f64::consts::PI / 2.0);
+    let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
+
+    // Offset by 10
+    let offset_arc  = offset_lms_subdivisions(&arc_curve, |_t| 10.0, |_t| 0.0, SubdivisionOffsetOptions::default().with_max_error(0.01)).expect("Offset curve");
+
+    let end_point_original      = arc_curve.point_at_pos(1.0);
+    let end_point_new           = offset_arc[offset_arc.len()-1].point_at_pos(1.0);
+    let end_point_expected      = Coord2(end_point_original.x() + 10.0, end_point_original.y());
+
+    println!("{:?} {:?}", end_point_original, end_point_new);
+
+    assert!((end_point_original.distance_to(&end_point_new)-10.0).abs() < 0.01);
+    assert!(end_point_expected.distance_to(&end_point_new) < 0.01);
+}
+
+/* -- TODO: doesn't pass with the offset algorithm
+#[test]
+fn offset_lms_subdivision_sampling_arc_fit_single_curve() {
+    use flo_curves::arc::*;
+
+    // 90 degree circle arc
+    let circle      = Circle::new(Coord2(0.0, 0.0), 100.0);
+    let arc         = circle.arc(0.0, f64::consts::PI / 2.0);
+    let arc_curve   = arc.to_bezier_curve::<Curve<Coord2>>();
+
+    // Offset by 10
+    let offset_arc  = offset_lms_subdivisions(&arc_curve, |_t| 10.0, |_t| 0.0, SubdivisionOffsetOptions::default().with_max_error(0.01).with_max_distance(1.0)).expect("Offset curve");
+
+    // We should be able to find a single bezier curve that fits these points
+    assert!(offset_arc.len() == 1, "Fit {} curves: {:?}", offset_arc.len(), offset_arc);
+}
+*/
