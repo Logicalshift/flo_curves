@@ -12,7 +12,8 @@ use std::iter;
 ///
 /// This is about 5x slower than the scaling algorithm with 10 subdivisions (which is a number that seems to
 /// produce good results). Too few subdivisions can result in flat sections in the curve, and sharp bends in
-/// the curve may require more samples to produce a good reslt.
+/// the curve may require more samples to produce a good result. See `offset_lms_subdivisions` for a version
+/// designed to work more effectively with curves with sharp bends in them.
 ///
 /// Samples are output at the normal of every point on the curve. This produces good results when the offsets 
 /// do not change much over the length of the curve, but can produce points that are too close to the curve
