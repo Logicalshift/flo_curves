@@ -36,7 +36,7 @@ fn main() {
 
             let initial_curve   = bezier::Curve::from_points(p0, (p1, p2), p3);
             let offset_curve_1  = bezier::offset(&initial_curve, off1, off2);
-            let offset_curve_2  = bezier::offset_lms_sampling(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, 40, 1.0).unwrap();
+            let offset_curve_2  = bezier::offset_lms_subdivisions(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, bezier::SubdivisionOffsetOptions::default()).unwrap();
             //let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
 
             // Create a curve with radius to use with the brush stroke algorithm
@@ -49,7 +49,7 @@ fn main() {
             let brush_curve     = bezier::Curve::from_points(p0_3, (p1_3, p2_3), p3_3);
 
             // Render to a path
-            let offset_curve_3  = brush_stroke_from_curve::<CircularDistanceField, SimpleBezierPath, _>(&brush_curve, 0.5, 0.25);
+            let offset_curve_3  = brush_stroke_from_curve::<SimpleBezierPath, _, _>(&CircularBrush, &brush_curve, 0.5, 0.25);
 
             let mut has_weird_curve = false;
             for path in offset_curve_3.iter() {
