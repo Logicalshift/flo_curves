@@ -131,7 +131,7 @@ where
 ///
 /// The samples are obtained by subdividing the curve until the 
 ///
-pub fn offset_lms_subdivisions<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivision_options: SubdivisionOffsetOptions) -> Option<Vec<Curve>>
+pub fn offset_lms_subdivisions<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivision_options: &SubdivisionOffsetOptions) -> Option<Vec<Curve>>
 where
     Curve:              BezierCurveFactory+NormalCurve,
     Curve::Point:       Normalize+Coordinate2D,
