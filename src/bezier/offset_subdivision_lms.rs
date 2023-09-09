@@ -21,9 +21,6 @@ pub struct SubdivisionOffsetOptions {
     /// The minimum initial number of subdivisions to use
     initial_subdivisions: usize,
 
-    /// The minimum difference between tangents where no further subdivisions are made  
-    min_tangent: f64,
-
     /// The distance between points to give up on the subdivision routine
     min_distance: f64,
 
@@ -38,7 +35,6 @@ impl Default for SubdivisionOffsetOptions {
     fn default() -> Self {
         SubdivisionOffsetOptions {
             initial_subdivisions:   3,
-            min_tangent:            0.05,
             min_distance:           0.1,
             max_distance:           30.0,
             max_error:              1.0,
@@ -66,8 +62,6 @@ impl SubdivisionOffsetOptions {
     ///
     #[inline]
     pub fn with_min_tangent(mut self, min_tangent: f64) -> Self {
-        self.min_tangent = min_tangent;
-
         self
     }
 
@@ -218,13 +212,8 @@ where
 
                 let estimate_point = (*first_point + *next_point) * 0.5;
 
-                // See how straight the resulting curve section is
-                let first_angle     = f64::atan2(first_tangent.x(), first_tangent.y());
-                let second_angle    = f64::atan2(mid_tangent.x(), mid_tangent.y());
-                let angle_diff      = (first_angle-second_angle).abs();
-
-                // Subdivide if there's a large angle between the two points or the midpoint is further than max_error away from the expected point
-                if angle_diff >= subdivision_options.min_tangent || estimate_point.distance_to(&mid_point) > subdivision_options.max_error {
+                // Subdivide if the midpoint is further than max_error away from the expected point
+                if estimate_point.distance_to(&mid_point) > subdivision_options.max_error {
                     next_samples.push((t3, (mid_point, mid_tangent)));
                     subdivided = true;
                 }
