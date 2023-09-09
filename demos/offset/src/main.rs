@@ -40,7 +40,7 @@ fn main() {
             //let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
 
             let curve_path      = SimpleBezierPath::from_points(p0, vec![(p1, p2, p3)]);
-            let stroked_curve   = stroke_path::<SimpleBezierPath, _>(&curve_path, 10.0, &StrokeOptions::default().with_accuracy(0.25)).unwrap();
+            let stroked_curve   = stroke_path::<SimpleBezierPath, _>(&curve_path, 10.0, &StrokeOptions::default().with_accuracy(0.25).with_remove_interior_points());
 
             // Create a curve with radius to use with the brush stroke algorithm
             let p0_3 = Coord3::from((p0, off1));
@@ -80,7 +80,9 @@ fn main() {
                 gc.line_width(2.0);
 
                 gc.new_path();
-                gc.bezier_path(&stroked_curve);
+                for path in stroked_curve.iter() {
+                    gc.bezier_path(path);
+                }
                 gc.fill_color(Color::Rgba(0.0, 0.5, 0.0, 1.0));
                 gc.stroke_color(Color::Rgba(0.0, 0.0, 0.0, 1.0));
                 gc.fill();

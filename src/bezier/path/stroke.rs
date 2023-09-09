@@ -1,4 +1,5 @@
 use super::path::*;
+use super::arithmetic::*;
 
 use crate::geo::*;
 use crate::bezier::*;
@@ -43,6 +44,9 @@ pub struct StrokeOptions {
 
     /// How to finish the line
     end_cap: LineCap,
+
+    /// Set to true if the interior points should be removed from the resulting stroke (producing a path that is always non-overlapping)
+    remove_interior_points: bool,
 }
 
 impl Default for StrokeOptions {
@@ -54,6 +58,7 @@ impl Default for StrokeOptions {
             join:                   LineJoin::Bevel,
             start_cap:              LineCap::Butt,
             end_cap:                LineCap::Butt,
+            remove_interior_points: false,
         }
     }
 }
@@ -108,6 +113,18 @@ impl StrokeOptions {
         self.end_cap = end_cap;
         self
     }
+
+    ///
+    /// Indicates that the path should be post-processed to remove any interior points
+    ///
+    /// By default, this option is not set. In this state, the generated path may self-overlap, so will need to be rendered with a non-zero
+    /// winding rule. If this is set, the resulting path will be processed to remove any overlapping sections.
+    ///
+    #[inline]
+    pub fn with_remove_interior_points(mut self) -> Self {
+        self.remove_interior_points = true;
+        self
+    }
 }
 
 ///
@@ -154,7 +171,7 @@ where
 ///
 /// The width describes how wide to make the resulting line. 
 ///
-pub fn stroke_path<TPathFactory, TCoord>(path: &impl BezierPath<Point=TCoord>, width: f64, options: &StrokeOptions) -> Option<TPathFactory>
+pub fn stroke_path<TPathFactory, TCoord>(path: &impl BezierPath<Point=TCoord>, width: f64, options: &StrokeOptions) -> Vec<TPathFactory>
 where
     TPathFactory:   BezierPathFactory<Point=TCoord>,
     TCoord:         Coordinate + Coordinate2D,
@@ -210,13 +227,21 @@ where
     // Result is the path if we generated at least 2 points
     if let Some(start_point) = start_point {
         if points.len() > 0 {
-            Some(TPathFactory::from_points(start_point, points.into_iter()))
+            let path = TPathFactory::from_points(start_point, points.into_iter());
+
+            if options.remove_interior_points {
+                // Remove the interior points to generate the results (can have holes, so there can be more than one path)
+                path_remove_interior_points(&vec![path], options.accuracy)
+            } else {
+                // Just return the single path that we generated
+                vec![path]
+            }
         } else {
             // Only generated one point
-            None
+            vec![]
         }
     } else {
         // Never generated a curve
-        None
+        vec![]
     }
 }
