@@ -48,6 +48,83 @@ pub struct StrokeOptions {
     end_cap: LineCap,
 }
 
+impl Default for StrokeOptions {
+    #[inline]
+    fn default() -> Self {
+        StrokeOptions {
+            accuracy:               0.1,
+            min_tangent_difference: 0.1,
+            min_sample_distance:    0.1,
+            join:                   LineJoin::Bevel,
+            start_cap:              LineCap::Butt,
+            end_cap:                LineCap::Butt,
+        }
+    }
+}
+
+impl StrokeOptions {
+    ///
+    /// Sets the maximum distance allowed between the result and the ideal curve
+    ///
+    /// Setting this to lower values can result in more curves the fit the offset curves more precisely
+    ///
+    #[inline]
+    pub fn with_accuracy(mut self, accuracy: f64) -> Self {
+        self.accuracy = accuracy;
+        self
+    }
+
+    ///
+    /// Sets the minimum difference in tangents between two samples
+    ///
+    /// Value is in radians. Lower values result in more accurate curves but generate more samples (so are slower)
+    ///
+    #[inline]
+    pub fn with_min_tangent(mut self, min_tangent: f64) -> Self {
+        self.min_tangent_difference = min_tangent;
+        self
+    }
+
+    ///
+    /// Provides a lower limit on the length that a curve will be subdivided to when trying to fit the offset curve
+    ///
+    /// Lower values produce more accurate curves but can generate large numbers of samples (so takes longer)
+    /// This is used as a lower limit when the min tangent is never reached (usually for very high curvature curves)
+    ///
+    #[inline]
+    pub fn with_min_sample_distance(mut self, min_sample_distance: f64) -> Self {
+        self.min_sample_distance = min_sample_distance;
+        self
+    }
+
+    ///
+    /// If two sections have a large difference in angles, this specifies how the two sections should be joined 
+    ///
+    #[inline]
+    pub fn with_join(mut self, join: LineJoin) -> Self {
+        self.join = join;
+        self
+    }
+
+    ///
+    /// Sets the type of start cap to generate 
+    ///
+    #[inline]
+    pub fn with_start_cap(mut self, start_cap: LineCap) -> Self {
+        self.start_cap = start_cap;
+        self
+    }
+
+    ///
+    /// Sets the type of end cap to generate 
+    ///
+    #[inline]
+    pub fn with_end_cap(mut self, end_cap: LineCap) -> Self {
+        self.end_cap = end_cap;
+        self
+    }
+}
+
 ///
 /// Generates the edges for a single curve
 ///
