@@ -139,8 +139,8 @@ where
 ///
 pub fn offset_lms_subdivisions<Curve, NormalOffsetFn, TangentOffsetFn>(curve: &Curve, normal_offset_for_t: NormalOffsetFn, tangent_offset_for_t: TangentOffsetFn, subdivision_options: &SubdivisionOffsetOptions) -> Option<Vec<Curve>>
 where
-    Curve:              BezierCurveFactory+NormalCurve,
-    Curve::Point:       Normalize+Coordinate2D,
+    Curve:              BezierCurveFactory + NormalCurve,
+    Curve::Point:       Normalize + Coordinate2D,
     NormalOffsetFn:     Fn(f64) -> f64,
     TangentOffsetFn:    Fn(f64) -> f64,
 {
@@ -212,35 +212,22 @@ where
 
                 subdivided = true;
             } else if distance > subdivision_options.min_distance && idx < samples.len()-1 {
-                let section             = curve.section(*t1, *t2);
-                let perimeter_length    = control_polygon_length(&section);
-                let chord_length        = chord_length(&section);
-
-                let length_ratio        = if chord_length == 0.0 { 1.0 } else { perimeter_length/chord_length };
-                let length_diff         = (1.0-length_ratio).abs();
-
-                if length_diff >= subdivision_options.min_tangent {
-                    let t3 = (t1+t2)/2.0;
-                    next_samples.push((t3, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3)));
-
-                    subdivided = true;
-                }
-
-                /*
                 // Sample the midpoint of these two points
                 let t3 = (t1+t2)/2.0;
                 let (mid_point, mid_tangent) = calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3);
+
+                let estimate_point = (*first_point + *next_point) * 0.5;
 
                 // See how straight the resulting curve section is
                 let first_angle     = f64::atan2(first_tangent.x(), first_tangent.y());
                 let second_angle    = f64::atan2(mid_tangent.x(), mid_tangent.y());
                 let angle_diff      = (first_angle-second_angle).abs();
 
-                if angle_diff >= subdivision_options.min_tangent {
+                // Subdivide if there's a large angle between the two points or the midpoint is further than max_error away from the expected point
+                if angle_diff >= subdivision_options.min_tangent || estimate_point.distance_to(&mid_point) > subdivision_options.max_error {
                     next_samples.push((t3, (mid_point, mid_tangent)));
                     subdivided = true;
                 }
-                */
             }
 
             // Move to the next sample
