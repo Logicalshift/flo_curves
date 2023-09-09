@@ -1,7 +1,7 @@
 use flo_curves::*;
 use flo_curves::bezier;
 use flo_curves::bezier::{NormalCurve};
-use flo_curves::bezier::path::{BezierPath, SimpleBezierPath};
+use flo_curves::bezier::path::*;
 use flo_curves::bezier::vectorize::*;
 use flo_draw::*;
 use flo_draw::canvas::*;
@@ -36,8 +36,11 @@ fn main() {
 
             let initial_curve   = bezier::Curve::from_points(p0, (p1, p2), p3);
             let offset_curve_1  = bezier::offset(&initial_curve, off1, off2);
-            let offset_curve_2  = bezier::offset_lms_subdivisions(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, bezier::SubdivisionOffsetOptions::default()).unwrap();
+            let offset_curve_2  = bezier::offset_lms_subdivisions(&initial_curve, |t| -((off2-off1)*t+off1), |_| 0.0, &bezier::SubdivisionOffsetOptions::default()).unwrap();
             //let offset_curve_3  = bezier::offset_lms_sampling(&initial_curve, |t| ((off2-off1)*t+off1) * (t*32.0).cos(), |_| 0.0, 200, 1.0).unwrap();
+
+            let curve_path      = SimpleBezierPath::from_points(p0, vec![(p1, p2, p3)]);
+            let stroked_curve   = stroke_path::<SimpleBezierPath, _>(&curve_path, 10.0, &StrokeOptions::default()).unwrap();
 
             // Create a curve with radius to use with the brush stroke algorithm
             let p0_3 = Coord3::from((p0, off1));
@@ -75,6 +78,13 @@ fn main() {
                 gc.center_region(0.0, 0.0, 1000.0, 1000.0);
                 
                 gc.line_width(2.0);
+
+                gc.new_path();
+                gc.bezier_path(&stroked_curve);
+                gc.fill_color(Color::Rgba(0.0, 0.5, 0.0, 1.0));
+                gc.stroke_color(Color::Rgba(0.0, 0.0, 0.0, 1.0));
+                gc.fill();
+                gc.stroke();
 
                 gc.new_path();
                 gc.move_to(initial_curve.start_point().x() as _, initial_curve.start_point().y() as _);
