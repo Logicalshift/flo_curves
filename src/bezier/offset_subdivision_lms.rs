@@ -212,6 +212,21 @@ where
 
                 subdivided = true;
             } else if distance > subdivision_options.min_distance && idx < samples.len()-1 {
+                let section             = curve.section(*t1, *t2);
+                let perimeter_length    = control_polygon_length(&section);
+                let chord_length        = chord_length(&section);
+
+                let length_ratio        = if chord_length == 0.0 { 1.0 } else { perimeter_length/chord_length };
+                let length_diff         = (1.0-length_ratio).abs();
+
+                if length_diff >= subdivision_options.min_tangent {
+                    let t3 = (t1+t2)/2.0;
+                    next_samples.push((t3, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3)));
+
+                    subdivided = true;
+                }
+
+                /*
                 // Sample the midpoint of these two points
                 let t3 = (t1+t2)/2.0;
                 let (mid_point, mid_tangent) = calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3);
@@ -225,6 +240,7 @@ where
                     next_samples.push((t3, (mid_point, mid_tangent)));
                     subdivided = true;
                 }
+                */
             }
 
             // Move to the next sample
