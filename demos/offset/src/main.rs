@@ -80,6 +80,8 @@ fn main() {
                 gc.line_width(2.0);
 
                 gc.new_path();
+                gc.push_state();
+                gc.winding_rule(WindingRule::EvenOdd);
                 for path in stroked_curve.iter() {
                     gc.bezier_path(path);
                 }
@@ -87,6 +89,7 @@ fn main() {
                 gc.stroke_color(Color::Rgba(0.0, 0.0, 0.0, 1.0));
                 gc.fill();
                 gc.stroke();
+                gc.pop_state();
 
                 gc.new_path();
                 gc.move_to(initial_curve.start_point().x() as _, initial_curve.start_point().y() as _);

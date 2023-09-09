@@ -118,7 +118,8 @@ impl StrokeOptions {
     /// Indicates that the path should be post-processed to remove any interior points
     ///
     /// By default, this option is not set. In this state, the generated path may self-overlap, so will need to be rendered with a non-zero
-    /// winding rule. If this is set, the resulting path will be processed to remove any overlapping sections.
+    /// winding rule. If this is set, the resulting path will be processed to remove any overlapping sections, and should be rendered using
+    /// the even-odd winding rule.
     ///
     #[inline]
     pub fn with_remove_interior_points(mut self) -> Self {
