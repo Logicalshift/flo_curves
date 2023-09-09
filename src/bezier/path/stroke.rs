@@ -202,14 +202,14 @@ where
 
     // Draw backwards
     let mut added_end_cap = false;
-    for curve in path_curves.iter().rev() {
+    for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &|start_point, end_point| {
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
                 // TODO: support end cap types
                 line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()
             });
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &|start_point, end_point| {
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
                 // TODO: support other join types
                 line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()
             });
