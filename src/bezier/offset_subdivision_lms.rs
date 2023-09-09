@@ -1,5 +1,3 @@
-use super::chord_length;
-use super::control_polygon_length;
 use super::fit::*;
 use super::curve::*;
 use super::bounds::*;
@@ -52,16 +50,6 @@ impl SubdivisionOffsetOptions {
     pub fn with_initial_subdivisions(mut self, initial_subdivisions: usize) -> Self {
         self.initial_subdivisions = initial_subdivisions;
 
-        self
-    }
-
-    ///
-    /// Sets the minimum tangent difference between any two sections of the samples
-    ///
-    /// This defines the minimum difference in slope between two sections of the curve
-    ///
-    #[inline]
-    pub fn with_min_tangent(mut self, min_tangent: f64) -> Self {
         self
     }
 

@@ -32,9 +32,6 @@ pub struct StrokeOptions {
     /// How accurately to match the curves,
     accuracy: f64,
 
-    /// The minimum difference in tangent between two samples used for fitting the resulting path
-    min_tangent_difference: f64,
-
     /// The minimum distance between samples, when the minimum tangent is not reached
     min_sample_distance: f64,
 
@@ -53,7 +50,6 @@ impl Default for StrokeOptions {
     fn default() -> Self {
         StrokeOptions {
             accuracy:               0.1,
-            min_tangent_difference: 0.1,
             min_sample_distance:    0.1,
             join:                   LineJoin::Bevel,
             start_cap:              LineCap::Butt,
@@ -71,17 +67,6 @@ impl StrokeOptions {
     #[inline]
     pub fn with_accuracy(mut self, accuracy: f64) -> Self {
         self.accuracy = accuracy;
-        self
-    }
-
-    ///
-    /// Sets the minimum difference in tangents between two samples
-    ///
-    /// Value is in radians. Lower values result in more accurate curves but generate more samples (so are slower)
-    ///
-    #[inline]
-    pub fn with_min_tangent(mut self, min_tangent: f64) -> Self {
-        self.min_tangent_difference = min_tangent;
         self
     }
 
@@ -187,7 +172,6 @@ where
     // Create subdivision options, using the width of the curve as a guide
     let subdivision_options = SubdivisionOffsetOptions::default()
         .with_min_distance(options.min_sample_distance)
-        .with_min_tangent(options.min_tangent_difference)
         .with_max_error(options.accuracy)
         .with_max_distance(width * 20.0);
 
