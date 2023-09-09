@@ -223,6 +223,7 @@ where
 
                 if angle_diff >= subdivision_options.min_tangent {
                     next_samples.push((t3, (mid_point, mid_tangent)));
+                    subdivided = true;
                 }
             }
 
