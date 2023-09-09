@@ -53,7 +53,7 @@ impl Default for StrokeOptions {
     fn default() -> Self {
         StrokeOptions {
             accuracy:               0.1,
-            min_tangent_difference: 0.1,
+            min_tangent_difference: 0.01,
             min_sample_distance:    0.1,
             join:                   LineJoin::Bevel,
             start_cap:              LineCap::Butt,
