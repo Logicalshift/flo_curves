@@ -1,3 +1,5 @@
+use super::chord_length;
+use super::control_polygon_length;
 use super::fit::*;
 use super::curve::*;
 use super::bounds::*;
@@ -196,7 +198,7 @@ where
         while idx < samples.len()-1 {
             // Read the next two points
             let (t1, (first_point, first_tangent))  = &samples[idx];
-            let (t2, (next_point, next_tangent))    = &samples[idx+1];
+            let (t2, (next_point, _next_tangent))   = &samples[idx+1];
 
             // Keep the first point for the next set of samples
             next_samples.push((*t1, (*first_point, *first_tangent)));
@@ -209,27 +211,18 @@ where
                 next_samples.push((t3, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3)));
 
                 subdivided = true;
-            } else if distance > subdivision_options.min_distance && idx < samples.len()-2 {
-                // Subdivide the current and next section if the angle difference is low enough
+            } else if distance > subdivision_options.min_distance && idx < samples.len()-1 {
+                // Sample the midpoint of these two points
+                let t3 = (t1+t2)/2.0;
+                let (mid_point, mid_tangent) = calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t3);
+
+                // See how straight the resulting curve section is
                 let first_angle     = f64::atan2(first_tangent.x(), first_tangent.y());
-                let second_angle    = f64::atan2(next_tangent.x(), next_tangent.y());
+                let second_angle    = f64::atan2(mid_tangent.x(), mid_tangent.y());
                 let angle_diff      = (first_angle-second_angle).abs();
 
-                if angle_diff > subdivision_options.min_tangent {
-                    // Subdivide both sides of the points (we already checked that the index is early enough that we can do this)
-                    let (t3, (_, _)) = &samples[idx+2];
-                    let t4 = (t1+t2)/2.0;
-                    let t5 = (t2+t3)/2.0;
-
-                    // Add the three new points
-                    next_samples.push((t4, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t4)));
-                    next_samples.push((*t2, (*next_point, *next_tangent)));
-                    next_samples.push((t5, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t5)));
-
-                    subdivided = true;
-
-                    // Already added idx+1, so skip it to avoid creating points out of order
-                    idx += 1;
+                if angle_diff >= subdivision_options.min_tangent {
+                    next_samples.push((t3, (mid_point, mid_tangent)));
                 }
             }
 
