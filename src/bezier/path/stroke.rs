@@ -169,11 +169,14 @@ where
 ///
 /// The width describes how wide to make the resulting line. 
 ///
-pub fn stroke_path<TPathFactory, TCoord>(path: impl BezierPath<Point=TCoord>, width: f64, options: &StrokeOptions) -> Option<TPathFactory>
+pub fn stroke_path<TPathFactory, TCoord>(path: &impl BezierPath<Point=TCoord>, width: f64, options: &StrokeOptions) -> Option<TPathFactory>
 where
     TPathFactory:   BezierPathFactory<Point=TCoord>,
     TCoord:         Coordinate + Coordinate2D,
 {
+    // Half the width (we add and subtract this from the centerline)
+    let half_width = width/2.0;
+
     // Create the list of points that make up the path
     let mut start_point = None;
     let mut points      = vec![];
@@ -191,7 +194,7 @@ where
     // Draw forward
     for curve in path_curves.iter() {
         // Offset this curve using the subdivision algorithm
-        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, width, &|start_point, end_point| {
+        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
             // TODO: support other join types
             line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()
         });
@@ -201,12 +204,12 @@ where
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev() {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -width, &|start_point, end_point| {
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &|start_point, end_point| {
                 // TODO: support end cap types
                 line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()
             });
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -width, &|start_point, end_point| {
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &|start_point, end_point| {
                 // TODO: support other join types
                 line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()
             });
