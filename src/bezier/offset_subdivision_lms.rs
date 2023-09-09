@@ -2,7 +2,11 @@ use super::fit::*;
 use super::curve::*;
 use super::bounds::*;
 use super::normal::*;
+
 use crate::geo::*;
+
+use std::iter;
+use itertools::*;
 
 ///
 /// Options for the `offset_lms_subdivisions` function
@@ -31,7 +35,7 @@ pub struct SubdivisionOffsetOptions {
 impl Default for SubdivisionOffsetOptions {
     fn default() -> Self {
         SubdivisionOffsetOptions {
-            initial_subdivisions:   8,
+            initial_subdivisions:   3,
             min_tangent:            0.05,
             min_distance:           0.1,
             max_distance:           30.0,
@@ -152,12 +156,34 @@ where
         extremities.push(1.0);
     }
 
-    // TODO: subdivide according to the initial subdivisions
-
     // Calculate the offsets at these as the initial set of samples
-    let mut samples = extremities.into_iter()
+    let samples = extremities.into_iter()
         .map(|t| (t, calc_offset_point(curve, &normal_offset_for_t, &tangent_offset_for_t, t)))
         .collect::<Vec<_>>();
+    let last_sample = samples.last().copied();
+
+    // Add extra subdivisions between the samples at the extremities
+    let initial_subdivisions    = subdivision_options.initial_subdivisions;
+    let mut samples             = if initial_subdivisions > 0 {
+        let normal_offset_for_t     = &normal_offset_for_t;
+        let tangent_offset_for_t    = &tangent_offset_for_t;
+
+        samples.into_iter().tuple_windows()
+            .flat_map(|((t1, p1), (t2, _p2))| {
+                iter::once((t1, p1))
+                    .chain((0..initial_subdivisions)
+                        .map(move |div| {
+                            let div = ((div+1) as f64) / ((initial_subdivisions+2) as f64);
+                            let t   = (t2-t1)*div + t1;
+
+                            (t, calc_offset_point(curve, normal_offset_for_t, tangent_offset_for_t, t))
+                        }))
+            })
+            .chain(last_sample)
+            .collect::<Vec<_>>()
+    } else {
+        samples
+    };
 
     // Subdivide any point that is too far away or has a big difference in angles to
     loop {
