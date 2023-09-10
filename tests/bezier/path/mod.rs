@@ -15,3 +15,4 @@ mod arithmetic_cut;
 mod arithmetic_intersect;
 mod arithmetic_complicated_paths;
 mod rays;
+mod stroke_tests;

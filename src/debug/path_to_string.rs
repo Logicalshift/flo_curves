@@ -8,7 +8,7 @@ use std::fmt::*;
 /// 
 /// This can be used to generate code for a test when a path definition fails to perform as expected
 ///
-pub fn bezier_path_to_rust_definition<C: Coordinate+Coordinate2D, P: BezierPath<Point=C>>(path: &P) -> String {
+pub fn bezier_path_to_rust_definition<C: Coordinate + Coordinate2D, P: BezierPath<Point=C>>(path: &P) -> String {
     let mut rust_code = String::new();
 
     let start = path.start_point();
