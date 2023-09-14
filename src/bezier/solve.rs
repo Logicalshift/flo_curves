@@ -28,10 +28,10 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
         Roots::Four([a, b, c, d])   => smallvec![a, b, c, d]
     };
 
-    // Clip to 0/1 for small ranges outside
+    // Clip to 0/1 if we solve slightly outside that value but the start/end point matches the target point
     for root in roots.iter_mut() {
-        if *root < 0.0 && *root > -0.001 { *root = 0.0 }
-        if *root > 1.0 && *root < 1.001 { *root = 1.0 }
+        if *root < 0.0 && w1 == p { *root = 0.0 }
+        if *root > 1.0 && w4 == p { *root = 1.0 }
     }
 
     // Remove any roots outside the range of the function
