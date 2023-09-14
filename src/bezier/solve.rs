@@ -12,6 +12,8 @@ pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 /// function evaluates to p)
 /// 
 pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec<[f64; 4]> {
+    const TINY_T: f64 = 1e-16;
+
     // Compute the coefficients for the cubic bezier function
     let d = w1-p;
     let c = 3.0*(w2-w1);
@@ -33,10 +35,12 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
 
     // Add 0.0 and 1.0 if they are an exact match
     if w1 == p {
+        roots.retain(|r| *r > TINY_T);
         roots.insert(0, 0.0);
     }
 
     if w4 == p {
+        roots.retain(|r| *r < 1.0-TINY_T);
         roots.push(1.0);
     }
 
