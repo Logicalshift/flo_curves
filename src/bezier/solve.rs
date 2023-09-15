@@ -12,7 +12,7 @@ pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 /// function evaluates to p)
 /// 
 pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec<[f64; 4]> {
-    const TINY_T: f64 = 1e-16;
+    const TINY_T: f64 = 1e-6;
 
     // Compute the coefficients for the cubic bezier function
     let d = w1-p;
