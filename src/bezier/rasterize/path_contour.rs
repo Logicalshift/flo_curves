@@ -122,6 +122,8 @@ impl SampledContour for PathContour {
             // Order the intercepts to generate ranges
             intercepts.sort_unstable_by(|a, b| a.total_cmp(b));
 
+            debug_assert!(intercepts.len() <= 1 || intercepts.len()%2 == 0, "Found an uneven number of intercepts ({:?}, y={})", intercepts, y);
+
             // Each tuple represents a range that is within the shape
             return intercepts.into_iter()
                 .tuples()
