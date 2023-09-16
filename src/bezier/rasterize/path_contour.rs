@@ -32,6 +32,7 @@ impl PathContour {
         // Convert the path to individual curves
         let curves = path.iter()
             .flat_map(|path| path.to_curves::<Curve<_>>())
+            .filter(|curve| !curve_is_tiny(curve))
             .map(|curve| {
                 let Bounds(min, max)        = curve.bounding_box::<Bounds<_>>();
                 let bounds                  = Bounds(Coord2::from_coordinate(min), Coord2::from_coordinate(max));
