@@ -71,3 +71,29 @@ where
 
     total_length
 }
+
+///
+/// Returns true if a curve is so small it could be considered to represent an individual point
+///
+/// 'Tiny' in this instance is a curve with a maximum arc length of 1e-6
+///
+#[inline]
+pub fn curve_is_tiny(curve: &impl BezierCurve) -> bool {
+    // Distance that we consider 'tiny'
+    const MAX_DISTANCE: f64 = 1e-6;
+
+    let (sp, (cp1, cp2), ep) = curve.all_points();
+
+    if sp.is_near_to(&ep, MAX_DISTANCE) {
+        // Start point and end point are close together (curve could be a long loop or a short section)
+
+        // Calculate the length of the control polygon
+        let total_length = sp.distance_to(&cp1) + cp1.distance_to(&cp2) + cp2.distance_to(&ep);
+
+        // If the control polygon is shorter than MAX_DISTANCE then the whole curve
+        total_length <= MAX_DISTANCE
+    } else {
+        // Start and end point are far apart
+        false
+    }
+}
