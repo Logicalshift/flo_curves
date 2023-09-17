@@ -182,7 +182,11 @@ impl PathContour {
                 };
 
                 // Calculate the control polygon length
-                let control_polygon_length = Self::control_polygon_length(&section_1.0, &section_1.1) + Self::control_polygon_length(&section_2.0, &section_2.1);
+                let control_polygon_length = if (prev.t == 0.0 && next.t == 1.0) || (prev.t == 1.0 && next.t == 0.0) {
+                    0.0
+                } else {
+                    Self::control_polygon_length(&section_1.0, &section_1.1) + Self::control_polygon_length(&section_2.0, &section_2.1)
+                };
 
                 if control_polygon_length <= MIN_DISTANCE && self.points_are_same_side_horiz(prev, next) {
                     // This curve is very short, so remove it
