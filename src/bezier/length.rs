@@ -5,7 +5,7 @@ use crate::geo::*;
 ///
 /// Returns the length of the control polygon for a bezier curve
 ///
-pub fn control_polygon_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
+pub fn control_polygon_length(curve: &impl BezierCurve) -> f64 {
     let p1          = curve.start_point();
     let (p2, p3)    = curve.control_points();
     let p4          = curve.end_point();
@@ -18,7 +18,7 @@ pub fn control_polygon_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
 ///
 /// Returns the length of the chord of a bezier curve
 ///
-pub fn chord_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
+pub fn chord_length(curve: &impl BezierCurve) -> f64 {
     let p1  = curve.start_point();
     let p2  = curve.end_point();
 
@@ -28,17 +28,14 @@ pub fn chord_length<Curve: BezierCurve>(curve: &Curve) -> f64 {
 ///
 /// Estimates the length of a bezier curve within a particular error tolerance
 ///
-pub fn curve_length<Curve: BezierCurve>(curve: &Curve, max_error: f64) -> f64 {
+pub fn curve_length(curve: &impl BezierCurve, max_error: f64) -> f64 {
     section_length(curve.section(0.0, 1.0), max_error)
 }
 
 ///
 /// Computes the length of a section of a bezier curve
 ///
-fn section_length<Curve>(section: CurveSection<'_, Curve>, max_error: f64) -> f64
-where
-    Curve: BezierCurve,
-{
+fn section_length(section: CurveSection<'_, impl BezierCurve>, max_error: f64) -> f64 {
     // This algorithm is described in Graphics Gems V IV.7
 
     // The MIN_ERROR guards against cases where the length of a section fails to converge for some reason
