@@ -131,6 +131,24 @@ impl PathContour {
     }
 
     ///
+    /// Returns true if two points are on the same side of the curve, from the point of view of a horizontal ray
+    ///
+    fn points_are_same_side_horiz(&self, prev: &ContourIntercept, next: &ContourIntercept) -> bool {
+        let prev_curve_y = &self.curves[prev.curve_idx].1;
+        let next_curve_y = &self.curves[next.curve_idx].1;
+
+        let (w1, (w2, w3), w4)  = prev_curve_y.all_points();
+        let (d1, d2, d3)        = derivative4(w1, w2, w3, w4);
+        let prev_tangent        = de_casteljau3(prev.t, d1, d2, d3);
+
+        let (w1, (w2, w3), w4)  = next_curve_y.all_points();
+        let (d1, d2, d3)        = derivative4(w1, w2, w3, w4);
+        let next_tangent        = de_casteljau3(next.t, d1, d2, d3);
+
+        prev_tangent.signum() == next_tangent.signum()
+    }
+
+    ///
     /// Removes any places where a ray has intercepted the path twice
     ///
     /// This is mainly at points where two path sections join, where we solve twice at two very close x-positions
@@ -166,7 +184,7 @@ impl PathContour {
                 // Calculate the control polygon length
                 let control_polygon_length = Self::control_polygon_length(&section_1.0, &section_1.1) + Self::control_polygon_length(&section_2.0, &section_2.1);
 
-                if control_polygon_length <= MIN_DISTANCE {
+                if control_polygon_length <= MIN_DISTANCE && self.points_are_same_side_horiz(prev, next) {
                     // This curve is very short, so remove it
                     intercepts.remove(idx);
                 } else {
