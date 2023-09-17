@@ -15,7 +15,7 @@ pub struct PathContour {
     /// The size of this contour
     size: ContourSize,
 
-    /// The curves in the path
+    /// The curves in the path (divided into x and y portions)
     curves: Vec<(Curve<f64>, Curve<f64>, Bounds<Coord2>)>,
 }
 
@@ -93,6 +93,93 @@ impl PathContour {
     }
 }
 
+/// Intermediate structure used to represent an intercept from intercepts_on_line
+#[derive(Debug)]
+struct ContourIntercept {
+    curve_idx:  usize,
+    t:          f64,
+    x_pos:      f64,
+}
+
+impl PathContour {
+    ///
+    /// Returns true if two indices indicate neighboring curves
+    ///
+    #[inline]
+    fn curves_are_neighbors(&self, idx1: usize, idx2: usize) -> bool {
+        if idx1+1 == idx2 || idx2+1 == idx1 {
+            true
+        } else if idx1 == 0 && idx2 == self.curves.len()-1 {
+            true
+        } else if idx2 == 0 && idx1 == self.curves.len()-1 {
+            true
+        } else {
+            false
+        }
+    }
+
+    ///
+    /// Returns the length of the control polygon for a bezier curve
+    ///
+    fn control_polygon_length(x_curve: &impl BezierCurve<Point=f64>, y_curve: &impl BezierCurve<Point=f64>) -> f64 {
+        let (spx, (cp1x, cp2x), epx) = x_curve.all_points();
+        let (spy, (cp1y, cp2y), epy) = y_curve.all_points();
+
+        Coord2(spx, spy).distance_to(&Coord2(cp1x, cp1y))
+            + Coord2(cp1x, cp1y).distance_to(&Coord2(cp2x, cp2y))
+            + Coord2(cp2x, cp2y).distance_to(&Coord2(epx, epy))
+    }
+
+    ///
+    /// Removes any places where a ray has intercepted the path twice
+    ///
+    /// This is mainly at points where two path sections join, where we solve twice at two very close x-positions
+    ///
+    #[inline]
+    fn remove_duplicate_intercepts(&self, intercepts: &mut Vec<ContourIntercept>) {
+        // How close two points must be to each other to be considered the same
+        const MIN_DISTANCE: f64 = 1e-6;
+
+        let mut idx = 0;
+        while idx < intercepts.len() {
+            let next_idx = if idx < intercepts.len()-1 { idx + 1 } else { 0 };
+
+            let prev = &intercepts[idx];
+            let next = &intercepts[next_idx];
+
+            let prev_curve_idx = prev.curve_idx;
+            let next_curve_idx = next.curve_idx;
+
+            if self.curves_are_neighbors(prev_curve_idx, next_curve_idx) && (prev.x_pos - next.x_pos).abs() <= MIN_DISTANCE {
+                // These two curves and points are close to each other: get the two curve sections
+                let section_1 = if prev.t < 0.5 { 
+                    (self.curves[prev_curve_idx].0.section(0.0, prev.t), self.curves[prev_curve_idx].1.section(0.0, prev.t)) 
+                } else {
+                    (self.curves[prev_curve_idx].0.section(prev.t, 1.0), self.curves[prev_curve_idx].1.section(prev.t, 1.0)) 
+                };
+                let section_2 = if next.t < 0.5 { 
+                    (self.curves[next_curve_idx].0.section(0.0, next.t), self.curves[next_curve_idx].1.section(0.0, next.t)) 
+                } else {
+                    (self.curves[next_curve_idx].0.section(next.t, 1.0), self.curves[next_curve_idx].1.section(next.t, 1.0)) 
+                };
+
+                // Calculate the control polygon length
+                let control_polygon_length = Self::control_polygon_length(&section_1.0, &section_1.1) + Self::control_polygon_length(&section_2.0, &section_2.1);
+
+                if control_polygon_length <= MIN_DISTANCE {
+                    // This curve is very short, so remove it
+                    intercepts.remove(idx);
+                } else {
+                    // x positions are almost the same but the curve has a long arc length, so we keep it (eg it's a loop)
+                    idx += 1;
+                }
+            } else {
+                idx += 1;
+            }
+        }
+    }
+}
+
 impl SampledContour for PathContour {
     #[inline]
     fn contour_size(&self) -> ContourSize {
@@ -107,7 +194,7 @@ impl SampledContour for PathContour {
 
             let only_one_curve = self.curves.len() == 1;
 
-            for (curve_x, curve_y, bounding_box) in self.curves.iter() {
+            for (idx, (curve_x, curve_y, bounding_box)) in self.curves.iter().enumerate() {
                 // Skip curves if they don't intercept this contour
                 if y < bounding_box.min().y() || y > bounding_box.max().y() { continue; }
 
@@ -117,18 +204,25 @@ impl SampledContour for PathContour {
 
                 // Add the intercepts to the list that we've been generating (we ignore t=0 as there should be a corresponding intercept at t=1 on the previous curve)
                 // If there's only one curve forming a closed shape, then this isn't true (the 'following' curve is the same curve)
-                intercepts.extend(curve_intercepts.into_iter().filter(|t| *t > 0.0 || only_one_curve).map(|t| curve_x.point_at_pos(t)));
+                intercepts.extend(curve_intercepts.into_iter()
+                    .filter(|t| *t > 0.0 || only_one_curve)
+                        .map(|t| ContourIntercept {
+                            curve_idx:  idx,
+                            t:          t,
+                            x_pos:      curve_x.point_at_pos(t)
+                        }));
             }
 
             // Order the intercepts to generate ranges
-            intercepts.sort_unstable_by(|a, b| a.total_cmp(b));
+            intercepts.sort_unstable_by(|a, b| a.x_pos.total_cmp(&b.x_pos));
+            self.remove_duplicate_intercepts(&mut intercepts);
 
             debug_assert!(intercepts.len() <= 1 || intercepts.len()%2 == 0, "Found an uneven number of intercepts ({:?}, y={})", intercepts, y);
 
             // Each tuple represents a range that is within the shape
             return intercepts.into_iter()
                 .tuples()
-                .map(|(start, end)| start..end)
+                .map(|(start, end)| (start.x_pos)..(end.x_pos))
                 .collect();
         }, y, 1.0, self.size.width())
     }
