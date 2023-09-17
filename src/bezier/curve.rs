@@ -181,7 +181,7 @@ pub trait BezierCurve: Geo+Clone+Sized {
     }
 
     ///
-    /// Attempts to estimate the length of this curve
+    /// Attempts to estimate the arc length of this curve
     /// 
     fn estimate_length(&self) -> f64 {
         curve_length(self, 0.01)
