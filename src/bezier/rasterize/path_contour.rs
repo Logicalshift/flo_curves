@@ -223,12 +223,12 @@ impl SampledContour for PathContour {
                 // Add the intercepts to the list that we've been generating (we ignore t=0 as there should be a corresponding intercept at t=1 on the previous curve)
                 // If there's only one curve forming a closed shape, then this isn't true (the 'following' curve is the same curve)
                 intercepts.extend(curve_intercepts.into_iter()
-                    .filter(|t| *t > 0.0 || only_one_curve)
-                        .map(|t| ContourIntercept {
-                            curve_idx:  idx,
-                            t:          t,
-                            x_pos:      curve_x.point_at_pos(t)
-                        }));
+                    .filter(|t| *t >= 0.0 || only_one_curve)
+                    .map(|t| ContourIntercept {
+                        curve_idx:  idx,
+                        t:          t,
+                        x_pos:      curve_x.point_at_pos(t)
+                    }));
             }
 
             // Order the intercepts to generate ranges
