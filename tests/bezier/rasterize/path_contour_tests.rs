@@ -373,10 +373,8 @@ pub fn intercepts_1() {
         // Check each intercept represents a section inside the path
         for intercept in intercepts.iter() {
             let mid_point       = (intercept.start + intercept.end) / 2.0;
-            let ray             = (Coord2(mid_point - offset.x(), 0.0), Coord2(mid_point - offset.x(), 1.0));
             let mid_intercepts  = contour.intercepts_on_column(mid_point);
 
-            println!("    {:?}", mid_intercepts);
             assert!(mid_intercepts.iter().any(|intercept| intercept.contains(&(y_pos - offset.y()))), 
                 "Intercept seems to create a region outside of the path x={} y={} ({}) ({:?})", mid_point, y_pos, (y_pos/100.0)-1.0, mid_intercepts);
         }
