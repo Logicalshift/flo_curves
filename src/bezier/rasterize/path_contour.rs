@@ -145,7 +145,7 @@ impl PathContour {
         let (d1, d2, d3)        = derivative4(w1, w2, w3, w4);
         let next_tangent        = de_casteljau3(next.t, d1, d2, d3);
 
-        prev_tangent.signum() == next_tangent.signum()
+        prev_tangent.signum() == next_tangent.signum() || prev_tangent == 0.0 || next_tangent == 0.0
     }
 
     ///
