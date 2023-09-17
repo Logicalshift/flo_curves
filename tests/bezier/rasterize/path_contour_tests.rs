@@ -373,17 +373,12 @@ pub fn intercepts_1() {
         // Check each intercept represents a section inside the path
         for intercept in intercepts.iter() {
             let mid_point       = (intercept.start + intercept.end) / 2.0;
-            let ray             = (Coord2(mid_point, 0.0), Coord2(mid_point, 1.0));
-            let mid_intercepts  = path_intersects_ray(&path, &ray)
-                .sorted_by(|(_, _, line_t1), (_, _, line_t2)| line_t1.total_cmp(line_t2))
-                .collect::<Vec<_>>();
-
-            let count_to_mid    = mid_intercepts.iter()
-                .filter(|(_, _, line_t)| { ray.point_at_pos(*line_t).y() <= y_pos })
-                .count();
+            let ray             = (Coord2(mid_point - offset.x(), 0.0), Coord2(mid_point - offset.x(), 1.0));
+            let mid_intercepts  = contour.intercepts_on_column(mid_point);
 
             println!("    {:?}", mid_intercepts);
-            //assert!(count_to_mid%2 == 1, "Intercept seems to create a region outside of the path x={} y={} ({}) ({:?})", mid_point, y_pos, (y_pos/100.0)-1.0, mid_intercepts);
+            assert!(mid_intercepts.iter().any(|intercept| intercept.contains(&(y_pos - offset.y()))), 
+                "Intercept seems to create a region outside of the path x={} y={} ({}) ({:?})", mid_point, y_pos, (y_pos/100.0)-1.0, mid_intercepts);
         }
 
         //assert!(intercepts.len()%2 == 0, "Uneven number of intercepts at ypos {:?} {:?} ({:?})", y_pos, (y_pos/100.0)-1.0, intercepts);
