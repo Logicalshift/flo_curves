@@ -171,7 +171,16 @@ where
                     line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
                 ]
             } else {
-                bevel_join(start_line, end_line, limit)
+                let start_vector    = (start_line.0 - start_line.1).to_unit_vector();
+                let end_vector      = (end_line.0 - end_line.1).to_unit_vector();
+                let start_vector    = start_vector * limit;
+                let end_vector      = end_vector * limit;
+
+                vec![
+                    line_to_bezier::<Curve<_>>(&(start_line.0, start_line.0 + start_vector)).all_points(),
+                    line_to_bezier::<Curve<_>>(&(start_line.0 + start_vector, end_line.0 + end_vector)).all_points(),
+                    line_to_bezier::<Curve<_>>(&(end_line.0 + end_vector, end_line.0)).all_points(),
+                ]
             }
         } else {
             bevel_join(start_line, end_line, limit)
