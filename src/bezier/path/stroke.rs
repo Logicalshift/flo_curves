@@ -131,7 +131,7 @@ impl StrokeOptions {
 ///
 /// Generates the edges for a single curve
 ///
-fn stroke_edge<TCoord>(start_point: &mut Option<TCoord>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, TCoord) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
+fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, TCoord) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -139,9 +139,10 @@ where
 
     // Offset this curve using the subdivision algorithm
     if let Some(offset_curve) = offset_lms_subdivisions(curve, |_| width, |_| 0.0, &subdivision_options) {
-        let initial_point = offset_curve[0].start_point();
+        let initial_point   = offset_curve[0].start_point();
+        let initial_tangent = offset_curve[0].control_points().0;
 
-        if let Some(start_point) = start_point {
+        if let Some((start_point, start_tangent)) = start_point {
             // Add a join to the existing curve using the join style
             let last_point = points.last().map(|(_, _, ep)| *ep).unwrap_or(*start_point);
 
@@ -152,7 +153,7 @@ where
             added_points = true;
         } else {
             // Start a new curve
-            *start_point = Some(initial_point);
+            *start_point = Some((initial_point, initial_tangent));
         }
 
         // Add the remaining points
@@ -221,14 +222,14 @@ where
     // Add start cap
     // TODO: support other cap types
     if let (Some(start_point), Some(end_point)) = (start_point, points.last().map(|(_, _, p)| p).copied()) {
-        let (_, (cp1, cp2), ep) = line_to_bezier::<Curve<_>>(&(end_point, start_point)).all_points();
+        let (_, (cp1, cp2), ep) = line_to_bezier::<Curve<_>>(&(end_point, start_point.0)).all_points();
         points.push((cp1, cp2, ep));
     }
 
     // Result is the path if we generated at least 2 points
     if let Some(start_point) = start_point {
         if points.len() > 0 {
-            let path = TPathFactory::from_points(start_point, points.into_iter());
+            let path = TPathFactory::from_points(start_point.0, points.into_iter());
 
             if options.remove_interior_points {
                 // Remove the interior points to generate the results (can have holes, so there can be more than one path)
