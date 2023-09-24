@@ -189,6 +189,48 @@ impl<TData> Space1D<TData> {
     }
 
     ///
+    /// Finds all of the data that overlaps a particular range
+    ///
+    pub fn data_in_region<'a>(&'a self, range: Range<f64>) -> impl 'a + Iterator<Item=&'a TData> {
+        // Search for the first ares that is covered by this range
+        let mut idx = match self.search(range.start) { Ok(idx) => idx, Err(idx) => idx };
+
+        // Create the result in a vec, use a bit field to indicate which values are used
+        let num_words           = (self.values.len() / 64) + 1;
+        let mut used_handles    = vec![0u64; num_words];
+        let mut result          = vec![];
+
+        loop {
+            // Stop once we get to the end of the space
+            if idx >= self.space.len() { break; }
+
+            let (space_range, handles) = &self.space[idx];
+
+            // Also stop once we've covered all of the ranges
+            if space_range.start >= range.end {
+                break;
+            }
+
+            // Add any data we haven't seen before to the result
+            for handle in handles.iter().copied() {
+                let word    = handle >> 6;
+                let bit     = handle & 63;
+                let mask    = 1u64<<bit;
+
+                if used_handles[word]&mask == 0 {
+                    result.push(&self.values[handle]);
+                    used_handles[word] |= mask;
+                }
+            }
+
+            // Move to the next range
+            idx += 1;
+        }
+
+        result.into_iter()
+    }
+
+    ///
     /// Checks that the representation of the space within this object is valid
     ///
     #[cfg(test)]
@@ -244,6 +286,10 @@ mod test {
                 assert!(data_at_end.len() > 0, "No data found at end of {:?}", range);
                 assert!(data_at_end.contains(&idx), "Could not find section index {} for end of range {:?} (found {:?} instead)", idx, range, data_at_mid);
             }
+
+            let all_data = space.data_in_region(0.0..201.0).collect::<Vec<_>>();
+            assert!(all_data.len() == num_sections, "Retrieved {} items for the whole range (should have been {}) - {:?}", all_data.len(), num_sections, all_data);
+            assert!((0..num_sections).all(|section_id| all_data.contains(&&section_id)));
         }
     }
 }
