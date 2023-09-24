@@ -139,6 +139,21 @@ where
     vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
 }
 
+#[inline]
+fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    if let Some(final_point) = ray_intersects_ray(&start_line, &end_line) {
+        vec![
+            line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
+            line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
+        ]
+    } else {
+        bevel_join(start_line, end_line)
+    }
+}
+
 ///
 /// Generates the edges for a single curve
 ///
@@ -208,16 +223,16 @@ where
     // Draw forward
     for curve in path_curves.iter() {
         // Offset this curve using the subdivision algorithm
-        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
+        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
     }
 
     // Draw backwards
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
         }
     }
 
