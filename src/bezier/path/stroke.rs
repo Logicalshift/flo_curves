@@ -129,6 +129,17 @@ impl StrokeOptions {
 }
 
 ///
+/// The bevel join is the simplest way to join two lines, it will just join the two coordinates together
+///
+#[inline]
+fn bevel_join<TCoord>((start_point, _start_tangent): (TCoord, TCoord), (end_point, _end_tangent): (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
+}
+
+///
 /// Generates the edges for a single curve
 ///
 fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn((TCoord, TCoord), (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
@@ -197,25 +208,16 @@ where
     // Draw forward
     for curve in path_curves.iter() {
         // Offset this curve using the subdivision algorithm
-        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
-            // TODO: support other join types
-            vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
-        });
+        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
     }
 
     // Draw backwards
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
-                // TODO: support end cap types
-                vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
-            });
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
-                // TODO: support other join types
-                vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
-            });
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
         }
     }
 
