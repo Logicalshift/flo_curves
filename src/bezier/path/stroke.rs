@@ -131,7 +131,7 @@ impl StrokeOptions {
 ///
 /// Generates the edges for a single curve
 ///
-fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, TCoord) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
+fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn((TCoord, TCoord), (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -144,9 +144,9 @@ where
 
         if let Some((start_point, start_tangent)) = start_point {
             // Add a join to the existing curve using the join style
-            let last_point = points.last().map(|(_, _, ep)| *ep).unwrap_or(*start_point);
+            let (last_point, last_tangent) = points.last().map(|(_, cp2, ep)| (*ep, *cp2)).unwrap_or((*start_point, *start_tangent));
 
-            for (_, (cp1, cp2), ep) in join(last_point, initial_point) {
+            for (_, (cp1, cp2), ep) in join((last_point, last_tangent), (initial_point, initial_tangent)) {
                 points.push((cp1, cp2, ep));
             }
 
@@ -197,7 +197,7 @@ where
     // Draw forward
     for curve in path_curves.iter() {
         // Offset this curve using the subdivision algorithm
-        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
+        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
             // TODO: support other join types
             vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
         });
@@ -207,12 +207,12 @@ where
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
                 // TODO: support end cap types
                 vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
             });
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|start_point, end_point| {
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &|(start_point, _), (end_point, _)| {
                 // TODO: support other join types
                 vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
             });
