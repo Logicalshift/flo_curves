@@ -1,5 +1,7 @@
 use super::coefficients::*;
-use super::super::geo::*;
+use crate::geo::*;
+
+use std::f64;
 
 ///
 /// Represents a straight line
@@ -85,6 +87,16 @@ pub trait Line2D {
     /// Returns the t values of the closest point on the line to the specified point
     ///
     fn nearest_pos(&self, point: &Self::Point) -> f64;
+
+    ///
+    /// Finds the angle in radians between this line and another at the point they intersect, moving clockwise
+    ///
+    fn angle_to(&self, other_line: &impl Line<Point=Self::Point>) -> f64;
+
+    ///
+    /// Finds the angle of this line from the x-axis
+    ///
+    fn angle(&self) -> f64;
 }
 
 impl<Point> Geo for (Point, Point) 
@@ -174,5 +186,37 @@ where
     #[inline]
     fn nearest_pos(&self, point: &Self::Point) -> f64 {
         self.pos_for_point(&self.nearest_point(point))
+    }
+
+    ///
+    /// Finds the angle of this line from the x-axis
+    ///
+    fn angle(&self) -> f64 {
+        let (sp, ep)    = self.points();
+        let vector      = ep - sp;
+
+        let angle = f64::atan2(vector.y(), vector.x());
+
+        if angle >= 0.0 {
+            angle
+        } else {
+            angle + 2.0*f64::consts::PI
+        }
+    }
+
+    ///
+    /// Finds the angle in radians between this line and another at the point they intersect, moving clockwise
+    ///
+    #[inline]
+    fn angle_to(&self, other_line: &impl Line<Point=Self::Point>) -> f64 {
+        let angle1 = self.angle();
+        let angle2 = other_line.angle();
+
+        let angle_between = angle1 - angle2;
+        if angle_between >= 0.0 {
+            angle_between
+        } else {
+            angle_between + 2.0*f64::consts::PI
+        }
     }
 }
