@@ -5,6 +5,8 @@ use crate::geo::*;
 use crate::bezier::*;
 use crate::line::*;
 
+use std::f64;
+
 ///
 /// How two segments of a line should be joined together
 ///
@@ -144,11 +146,15 @@ fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord)) 
 where
     TCoord: Coordinate + Coordinate2D,
 {
-    if let Some(final_point) = ray_intersects_ray(&start_line, &end_line) {
-        vec![
-            line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
-            line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
-        ]
+    if start_line.angle_to(&end_line) > f64::consts::PI {
+        if let Some(final_point) = ray_intersects_ray(&start_line, &end_line) {
+            vec![
+                line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
+                line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
+            ]
+        } else {
+            bevel_join(start_line, end_line)
+        }
     } else {
         bevel_join(start_line, end_line)
     }
