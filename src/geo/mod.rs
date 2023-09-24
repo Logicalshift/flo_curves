@@ -19,6 +19,7 @@ mod coord2;
 mod coord3;
 mod coordinate_ext;
 mod bounding_box;
+mod space1;
 
 pub use self::geo::*;
 pub use self::sweep::*;
@@ -29,4 +30,4 @@ pub use self::has_bounds::*;
 pub use self::coordinate::*;
 pub use self::bounding_box::*;
 pub use self::coordinate_ext::*;
-
+pub use self::space1::*;
