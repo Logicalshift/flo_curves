@@ -130,6 +130,23 @@ impl StrokeOptions {
     }
 }
 
+impl LineJoin {
+    ///
+    /// Returns the function to use for joining line segments together for a particular join style
+    ///
+    #[inline]
+    fn join_function<TCoord>(&self, line_width: f64) -> impl Fn((TCoord, TCoord), (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+    where
+        TCoord: Coordinate + Coordinate2D,
+    {
+        match self {
+            LineJoin::Miter     => miter_join,
+            LineJoin::Round     => bevel_join,
+            LineJoin::Bevel     => bevel_join,
+        }
+    }
+}
+
 ///
 /// The bevel join is the simplest way to join two lines, it will just join the two coordinates together
 ///
@@ -211,7 +228,8 @@ where
     TCoord:         Coordinate + Coordinate2D,
 {
     // Half the width (we add and subtract this from the centerline)
-    let half_width = width/2.0;
+    let half_width  = width/2.0;
+    let join_fn     = options.join.join_function(width);
 
     // Create the list of points that make up the path
     let mut start_point = None;
@@ -229,16 +247,16 @@ where
     // Draw forward
     for curve in path_curves.iter() {
         // Offset this curve using the subdivision algorithm
-        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
+        stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
     }
 
     // Draw backwards
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
+            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
         } else {
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &miter_join);
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
         }
     }
 
