@@ -10,9 +10,6 @@ pub struct Space1D<TData> {
     /// The data stored in this structure
     values: Vec<TData>,
 
-    /// Where each data item is located in space
-    locations: Vec<Range<f64>>,
-
     /// Which data items are located where, sorted into order. The ranges are non-overlapping, so the same data item can be stored multiple times
     space: Vec<(Range<f64>, SmallVec<[usize; 2]>)>,
 }
@@ -24,7 +21,6 @@ impl<TData> Space1D<TData> {
     pub fn empty() -> Self {
         Space1D {
             values:     vec![],
-            locations:  vec![],
             space:      vec![],
         }
     }
@@ -139,9 +135,8 @@ impl<TData> Space1D<TData> {
         combined_space.extend(remaining.drain(..).rev());
 
         Space1D {
-            values:     values,
-            locations:  locations,
-            space:      combined_space,
+            values: values,
+            space:  combined_space,
         }
     }
 
@@ -231,6 +226,28 @@ impl<TData> Space1D<TData> {
     }
 
     ///
+    /// Returns the non-overlapping regions and data that makes up this space (data may appear multiple times if it's in several regions)
+    ///
+    #[inline]
+    pub fn all_regions<'a>(&'a self) -> impl 'a + Iterator<Item=(Range<f64>, SmallVec<[&'a TData; 2]>)> {
+        self.space.iter()
+            .map(move |(range, handles)| (range.clone(), handles.iter().map(|handle| &self.values[*handle]).collect()))
+    }
+
+    ///
+    /// Returns the non-overlapping regions and data that makes up this space (data may appear multiple times if it's in several regions)
+    ///
+    #[inline]
+    pub fn regions_in_range<'a>(&'a self, range: Range<f64>) -> impl 'a + Iterator<Item=(Range<f64>, SmallVec<[&'a TData; 2]>)> {
+        let start_idx = match self.search(range.start) { Ok(idx) => idx, Err(idx) => idx };
+
+        self.space.iter()
+            .skip(start_idx)
+            .take_while(move |(space_range, _)| space_range.start < range.end)
+            .map(move |(range, handles)| (range.clone(), handles.iter().map(|handle| &self.values[*handle]).collect()))
+    }
+
+    ///
     /// Checks that the representation of the space within this object is valid
     ///
     #[cfg(test)]
@@ -285,6 +302,9 @@ mod test {
 
                 assert!(data_at_end.len() > 0, "No data found at end of {:?}", range);
                 assert!(data_at_end.contains(&idx), "Could not find section index {} for end of range {:?} (found {:?} instead)", idx, range, data_at_mid);
+
+                let regions_in_range = space.regions_in_range(range.clone()).collect::<Vec<_>>();
+                assert!(regions_in_range.iter().all(|(_, handles)| handles.contains(&idx)), "Over the whole range, found a section that's missing this handle ({}: {:?})", idx, regions_in_range);
             }
 
             let all_data = space.data_in_region(0.0..201.0).collect::<Vec<_>>();
