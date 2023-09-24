@@ -26,6 +26,14 @@ impl<TData> Space1D<TData> {
     }
 
     ///
+    /// Returns the data in this space without the locations
+    ///
+    #[inline]
+    pub fn data<'a>(&'a self) -> impl 'a + Iterator<Item=&'a TData> {
+        self.values.iter()
+    }
+
+    ///
     /// Creates a new space from a data iterator
     ///
     pub fn from_data(data: impl IntoIterator<Item=(Range<f64>, TData)>) -> Self {
