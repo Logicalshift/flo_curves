@@ -135,7 +135,7 @@ impl LineJoin {
     /// Returns the function to use for joining line segments together for a particular join style
     ///
     #[inline]
-    fn join_function<TCoord>(&self, line_width: f64) -> impl Fn((TCoord, TCoord), (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+    fn join_function<TCoord>(&self, line_width: f64) -> impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
     where
         TCoord: Coordinate + Coordinate2D,
     {
@@ -151,7 +151,7 @@ impl LineJoin {
 /// The bevel join is the simplest way to join two lines, it will just join the two coordinates together
 ///
 #[inline]
-fn bevel_join<TCoord>((start_point, _start_tangent): (TCoord, TCoord), (end_point, _end_tangent): (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn bevel_join<TCoord>((start_point, _start_tangent): (TCoord, TCoord), (end_point, _end_tangent): (TCoord, TCoord), _limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -159,28 +159,32 @@ where
 }
 
 #[inline]
-fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
     if start_line.angle_to(&end_line) > f64::consts::PI {
         if let Some(final_point) = ray_intersects_ray(&start_line, &end_line) {
-            vec![
-                line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
-                line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
-            ]
+            if start_line.0.is_near_to(&final_point, limit) {
+                vec![
+                    line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
+                    line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
+                ]
+            } else {
+                bevel_join(start_line, end_line, limit)
+            }
         } else {
-            bevel_join(start_line, end_line)
+            bevel_join(start_line, end_line, limit)
         }
     } else {
-        bevel_join(start_line, end_line)
+        bevel_join(start_line, end_line, limit)
     }
 }
 
 ///
 /// Generates the edges for a single curve
 ///
-fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn((TCoord, TCoord), (TCoord, TCoord)) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
+fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -195,7 +199,7 @@ where
             // Add a join to the existing curve using the join style
             let (last_point, last_tangent) = points.last().map(|(_, cp2, ep)| (*ep, *cp2)).unwrap_or((*start_point, *start_tangent));
 
-            for (_, (cp1, cp2), ep) in join((last_point, last_tangent), (initial_point, initial_tangent)) {
+            for (_, (cp1, cp2), ep) in join((last_point, last_tangent), (initial_point, initial_tangent), width * 4.0) {
                 points.push((cp1, cp2, ep));
             }
 
