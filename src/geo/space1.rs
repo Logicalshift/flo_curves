@@ -5,6 +5,7 @@ use smallvec::*;
 ///
 /// Spatial data structure that allows addressing data by where it's located in a 1-dimensional space
 ///
+#[derive(Clone)]
 pub struct Space1D<TData> {
     /// The data stored in this structure
     values: Vec<TData>,
@@ -145,6 +146,49 @@ impl<TData> Space1D<TData> {
     }
 
     ///
+    /// Returns the first point that overlaps a point
+    ///
+    #[inline]
+    fn search(&self, point: f64) -> Result<usize, usize> {
+        match self.space.binary_search_by(|(range, _)| range.start.total_cmp(&point)) 
+        {
+            Ok(idx)     => Ok(idx),
+            Err(idx)    => {
+                // idx = first range starting after this point
+                if idx == 0 {
+                    Err(0)
+                } else {
+                    let possible_range = &self.space[idx-1].0;
+                    if possible_range.end > point {
+                        // idx-1 contains this point
+                        Ok(idx-1)
+                    } else {
+                        // idx is the first range 
+                        Err(idx)
+                    }
+                }
+            }
+        }
+    }
+
+    ///
+    /// Returns the data items that are at a particular point
+    ///
+    #[inline]
+    pub fn data_at_point<'a>(&'a self, point: f64) -> impl 'a + Iterator<Item=&'a TData> {
+        if let Ok(idx) = self.search(point) {
+            // Found a range matching this point
+            let data = self.space[idx].1.iter()
+                .map(move |handle| &self.values[*handle]);
+
+            Some(data).into_iter().flatten()
+        } else {
+            // No ranges match this point
+            None.into_iter().flatten()
+        }
+    }
+
+    ///
     /// Checks that the representation of the space within this object is valid
     ///
     #[cfg(test)]
@@ -182,11 +226,24 @@ mod test {
                     let len = rng.gen_range(0.0..100.0);
 
                     (start..(start+len), section)
-                });
-            let space = Space1D::from_data(sections);
+                })
+                .collect::<Vec<_>>();
+            let space = Space1D::from_data(sections.iter().cloned());
 
             space.verify();
             assert!(space.space.len() >= num_sections);
+
+            for (range, idx) in sections.iter() {
+                let data_at_mid = space.data_at_point((range.start + range.end)/2.0).collect::<Vec<_>>();
+
+                assert!(data_at_mid.len() > 0, "No data found at middle of {:?}", range);
+                assert!(data_at_mid.contains(&idx), "Could not find section index {} for middle of range {:?} (found {:?} instead)", idx, range, data_at_mid);
+
+                let data_at_end = space.data_at_point(range.end - 0.001).collect::<Vec<_>>();
+
+                assert!(data_at_end.len() > 0, "No data found at end of {:?}", range);
+                assert!(data_at_end.contains(&idx), "Could not find section index {} for end of range {:?} (found {:?} instead)", idx, range, data_at_mid);
+            }
         }
     }
 }
