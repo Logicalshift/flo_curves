@@ -203,11 +203,33 @@ where
 /// The round join joins two edges using an arc
 ///
 #[inline]
-fn round_join<TCoord>((start_point, start_tangent): (TCoord, TCoord), (end_point, end_tangent): (TCoord, TCoord), _limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn round_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
-    vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
+    // Must be the outer part of the corner
+    if start_line.angle_to(&end_line) > f64::consts::PI {
+        // Create a curve between the start and the end point
+        // (TODO: need multiple curves depending on the angle between the lines)
+        let sp  = start_line.0;
+        let cp1 = (start_line.0 - start_line.1).to_unit_vector() * (limit/8.0);
+        let cp1 = cp1 + sp;
+        let cp2 = (end_line.0 - end_line.1).to_unit_vector() * (limit/8.0);
+        let ep  = end_line.0;
+        let cp2 = cp2 + ep;
+
+        // Create a curve from these points
+        let curve       = Curve::from_points(sp, (cp1, cp2), ep);
+
+        // TODO: Circularise the curve
+        //let mid_point   = curve.point_at_pos(0.0);
+        //let curve       = move_point::<Curve<_>>(&curve, 0.5, &TCoord::from_components(&[0.0, 0.0]));
+
+        vec![curve.all_points()]
+    } else {
+        // Bevel join on the inside part of the corner
+        bevel_join(start_line, end_line, limit)
+    }
 }
 
 ///
