@@ -135,7 +135,7 @@ impl LineJoin {
     /// Returns the function to use for joining line segments together for a particular join style
     ///
     #[inline]
-    fn join_function<TCoord>(&self, line_width: f64) -> impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+    fn join_function<TCoord>(&self) -> impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
     where
         TCoord: Coordinate + Coordinate2D,
     {
@@ -284,7 +284,7 @@ where
 {
     // Half the width (we add and subtract this from the centerline)
     let half_width  = width/2.0;
-    let join_fn     = options.join.join_function(width);
+    let join_fn     = options.join.join_function();
 
     // Create the list of points that make up the path
     let mut start_point = None;
