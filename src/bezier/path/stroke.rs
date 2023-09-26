@@ -141,7 +141,7 @@ impl LineJoin {
     {
         match self {
             LineJoin::Miter     => miter_join,
-            LineJoin::Round     => bevel_join,
+            LineJoin::Round     => round_join,
             LineJoin::Bevel     => bevel_join,
         }
     }
@@ -158,19 +158,26 @@ where
     vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
 }
 
+///
+/// The miter join extends the lines from the two edges of the curve until they meet (or up until a particular limit)
+///
 #[inline]
 fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
+    // Must be the outer part of the corner
     if start_line.angle_to(&end_line) > f64::consts::PI {
+        // Find where the curves intersect
         if let Some(final_point) = ray_intersects_ray(&start_line, &end_line) {
             if start_line.0.is_near_to(&final_point, limit) {
+                // Draw to the intersection point if the lines are shorter than the limit
                 vec![
                     line_to_bezier::<Curve<_>>(&(start_line.0, final_point)).all_points(),
                     line_to_bezier::<Curve<_>>(&(final_point, end_line.0)).all_points(),
                 ]
             } else {
+                // Draw to the limit if the lines are very long
                 let start_vector    = (start_line.0 - start_line.1).to_unit_vector();
                 let end_vector      = (end_line.0 - end_line.1).to_unit_vector();
                 let start_vector    = start_vector * limit;
@@ -183,11 +190,24 @@ where
                 ]
             }
         } else {
+            // If the rays don't intersect, use a bevel join instead
             bevel_join(start_line, end_line, limit)
         }
     } else {
+        // Bevel join on the inside part of the corner
         bevel_join(start_line, end_line, limit)
     }
+}
+
+///
+/// The round join joins two edges using an arc
+///
+#[inline]
+fn round_join<TCoord>((start_point, start_tangent): (TCoord, TCoord), (end_point, end_tangent): (TCoord, TCoord), _limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    vec![line_to_bezier::<Curve<_>>(&(start_point, end_point)).all_points()]
 }
 
 ///
