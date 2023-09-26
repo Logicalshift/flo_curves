@@ -1,5 +1,4 @@
 use super::curve::*;
-use super::super::geo::*;
 
 ///
 /// Moves the point at 't' on the curve by the offset vector
@@ -7,7 +6,7 @@ use super::super::geo::*;
 /// This recomputes the control points such that the point at t on the original curve
 /// is moved by the vector specified by `offset`.
 /// 
-pub fn move_point<P: Coordinate, CurveIn: BezierCurve<Point=P>, CurveOut: BezierCurveFactory<Point=P>>(curve: &CurveIn, t: f64, offset: &P) -> CurveOut {
+pub fn move_point<CurveOut: BezierCurveFactory>(curve: &impl BezierCurve<Point=CurveOut::Point>, t: f64, offset: &CurveOut::Point) -> CurveOut {
     // Fetch the points from the curve
     let w1          = curve.start_point();
     let w4          = curve.end_point();
