@@ -2,6 +2,7 @@ use super::path::*;
 use super::arithmetic::*;
 
 use crate::geo::*;
+use crate::arc::*;
 use crate::bezier::*;
 use crate::line::*;
 
@@ -207,25 +208,49 @@ fn round_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), 
 where
     TCoord: Coordinate + Coordinate2D,
 {
+    const VERY_CLOSE: f64 = 1e-5;
+
     // Must be the outer part of the corner
-    if start_line.angle_to(&end_line) > f64::consts::PI {
-        // Create a curve between the start and the end point
-        // (TODO: need multiple curves depending on the angle between the lines)
-        let sp  = start_line.0;
-        let cp1 = (start_line.0 - start_line.1).to_unit_vector() * (limit/8.0);
-        let cp1 = cp1 + sp;
-        let cp2 = (end_line.0 - end_line.1).to_unit_vector() * (limit/8.0);
-        let ep  = end_line.0;
-        let cp2 = cp2 + ep;
+    if !start_line.0.is_near_to(&end_line.0, VERY_CLOSE) && start_line.angle_to(&end_line) > f64::consts::PI {
+        // Get the normals at the start and end of the curve section
+        let start_tangent   = (start_line.0 - start_line.1).to_unit_vector();
+        let end_tangent     = (end_line.0 - end_line.1).to_unit_vector();
+        let start_normal    = TCoord::from_components(&[start_tangent.y(), -start_tangent.x()]);
+        let end_normal      = TCoord::from_components(&[end_tangent.y(), -end_tangent.x()]);
 
-        // Create a curve from these points
-        let curve       = Curve::from_points(sp, (cp1, cp2), ep);
+        // Center of the circle is where the lines defined by the normals meet
+        let line_1          = (start_line.0, start_line.0 + start_normal);
+        let line_2          = (end_line.0, end_line.0 + end_normal);
+        let center_point    = ray_intersects_ray(&line_1, &line_2);
 
-        // TODO: Circularise the curve
-        //let mid_point   = curve.point_at_pos(0.0);
-        //let curve       = move_point::<Curve<_>>(&curve, 0.5, &TCoord::from_components(&[0.0, 0.0]));
+        if let Some(center_point) = center_point {
+            // Radius of the circle is the distance between the center point and either of the two points
+            let radius = center_point.distance_to(&start_line.0);
 
-        vec![curve.all_points()]
+            let angle_1 = f64::atan2(start_normal.y(), start_normal.x());
+            let angle_2 = f64::atan2(end_normal.y(), end_normal.x());
+
+            let circle  = Circle::new(center_point, radius);
+            let arc     = circle.arc(angle_1, angle_2);
+
+            let p1 = TCoord::from_components(&[
+                center_point.x() + angle_1.sin()*radius,
+                center_point.y() + angle_1.cos()*radius,
+                ]);
+
+            let arc_curve = arc.to_bezier_curve::<Curve<_>>();
+            debug_assert!((center_point.distance_to(&end_line.0)-center_point.distance_to(&start_line.0)).abs() < 0.01, "Radius doesn't match: {} {}", radius, center_point.distance_to(&end_line.0));
+            debug_assert!(p1.is_near_to(&start_line.0, 0.01), "p1: {:?} != {:?} (angle1: {}, radius: {})", (p1.x(), p1.y()), (start_line.0.x(), start_line.0.y()), angle_1, radius);
+            debug_assert!(arc_curve.end_point().is_near_to(&end_line.0, 0.01), "End: r{} {} -> {}, {:?} {:?}", radius, angle_1, angle_2, (arc_curve.end_point.x(), arc_curve.end_point.y()), (end_line.0.x(), end_line.0.y()));
+            debug_assert!(arc_curve.start_point().is_near_to(&start_line.0, 0.01), "Start: {} -> {}, {:?} {:?}", angle_1, angle_2, (start_normal.x(), start_normal.y()), (end_normal.x(), end_normal.y()));
+
+            vec![
+                arc_curve.all_points(),
+            ]
+        } else {
+            // Arc is too flat to represent a bend
+            bevel_join(start_line, end_line, limit)
+        }
     } else {
         // Bevel join on the inside part of the corner
         bevel_join(start_line, end_line, limit)
