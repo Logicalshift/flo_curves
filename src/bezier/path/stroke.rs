@@ -227,8 +227,8 @@ where
             // Radius of the circle is the distance between the center point and either of the two points
             let radius = center_point.distance_to(&start_line.0);
 
-            let angle_1 = f64::atan2(start_normal.y(), start_normal.x());
-            let angle_2 = f64::atan2(end_normal.y(), end_normal.x());
+            let angle_1 = f64::atan2(start_normal.x(), start_normal.y());
+            let angle_2 = f64::atan2(end_normal.x(), end_normal.y());
 
             let circle  = Circle::new(center_point, radius);
             let arc     = circle.arc(angle_1, angle_2);
