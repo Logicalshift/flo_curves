@@ -233,16 +233,8 @@ where
             let circle  = Circle::new(center_point, radius);
             let arc     = circle.arc(angle_1, angle_2);
 
-            let p1 = TCoord::from_components(&[
-                center_point.x() + angle_1.sin()*radius,
-                center_point.y() + angle_1.cos()*radius,
-                ]);
-
             let arc_curve = arc.to_bezier_curve::<Curve<_>>();
             debug_assert!((center_point.distance_to(&end_line.0)-center_point.distance_to(&start_line.0)).abs() < 0.01, "Radius doesn't match: {} {}", radius, center_point.distance_to(&end_line.0));
-            debug_assert!(p1.is_near_to(&start_line.0, 0.01), "p1: {:?} != {:?} (angle1: {}, radius: {})", (p1.x(), p1.y()), (start_line.0.x(), start_line.0.y()), angle_1, radius);
-            debug_assert!(arc_curve.end_point().is_near_to(&end_line.0, 0.01), "End: r{} {} -> {}, {:?} {:?}", radius, angle_1, angle_2, (arc_curve.end_point.x(), arc_curve.end_point.y()), (end_line.0.x(), end_line.0.y()));
-            debug_assert!(arc_curve.start_point().is_near_to(&start_line.0, 0.01), "Start: {} -> {}, {:?} {:?}", angle_1, angle_2, (start_normal.x(), start_normal.y()), (end_normal.x(), end_normal.y()));
 
             vec![
                 arc_curve.all_points(),
@@ -366,5 +358,40 @@ where
     } else {
         // Never generated a curve
         vec![]
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bevel_join_90_degrees() {
+        let corner = bevel_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 2.0)), 20.0);
+        println!("{:?}", corner);
+
+        let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
+        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+    }
+
+    #[test]
+    fn rounded_join_90_degrees() {
+        let corner = round_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 2.0)), 20.0);
+        println!("{:?}", corner);
+
+        let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
+        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+    }
+
+    #[test]
+    fn rounded_join_180_degrees() {
+        let corner = round_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
+        println!("{:?}", corner);
+
+        let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
+        debug_assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 }
