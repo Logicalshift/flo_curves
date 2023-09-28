@@ -136,7 +136,7 @@ impl LineJoin {
     /// Returns the function to use for joining line segments together for a particular join style
     ///
     #[inline]
-    fn join_function<TCoord>(&self) -> impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+    fn join_function<TCoord>(&self) -> impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
     where
         TCoord: Coordinate + Coordinate2D,
     {
@@ -152,7 +152,7 @@ impl LineJoin {
 /// The bevel join is the simplest way to join two lines, it will just join the two coordinates together
 ///
 #[inline]
-fn bevel_join<TCoord>((start_point, _start_tangent): (TCoord, TCoord), (end_point, _end_tangent): (TCoord, TCoord), _limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn bevel_join<TCoord>(_join_point: TCoord, (start_point, _start_tangent): (TCoord, TCoord), (end_point, _end_tangent): (TCoord, TCoord), _limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -163,7 +163,7 @@ where
 /// The miter join extends the lines from the two edges of the curve until they meet (or up until a particular limit)
 ///
 #[inline]
-fn miter_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn miter_join<TCoord>(join_point: TCoord, start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -192,11 +192,11 @@ where
             }
         } else {
             // If the rays don't intersect, use a bevel join instead
-            bevel_join(start_line, end_line, limit)
+            bevel_join(join_point, start_line, end_line, limit)
         }
     } else {
         // Bevel join on the inside part of the corner
-        bevel_join(start_line, end_line, limit)
+        bevel_join(join_point, start_line, end_line, limit)
     }
 }
 
@@ -204,7 +204,7 @@ where
 /// The round join joins two edges using an arc
 ///
 #[inline]
-fn round_join<TCoord>(start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
+fn round_join<TCoord>(join_point: TCoord, start_line: (TCoord, TCoord), end_line: (TCoord, TCoord), limit: f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -219,40 +219,33 @@ where
         let end_normal      = TCoord::from_components(&[end_tangent.y(), -end_tangent.x()]);
 
         // Center of the circle is where the lines defined by the normals meet
-        let line_1          = (start_line.0, start_line.0 + start_normal);
-        let line_2          = (end_line.0, end_line.0 + end_normal);
-        let center_point    = ray_intersects_ray(&line_1, &line_2);
+        let center_point    = join_point;
 
-        if let Some(center_point) = center_point {
-            // Radius of the circle is the distance between the center point and either of the two points
-            let radius = center_point.distance_to(&start_line.0);
+        // Radius of the circle is the distance between the center point and either of the two points
+        let radius = center_point.distance_to(&start_line.0);
 
-            let angle_1 = f64::atan2(start_normal.x(), start_normal.y());
-            let angle_2 = f64::atan2(end_normal.x(), end_normal.y());
+        let angle_1 = f64::atan2(start_normal.x(), start_normal.y());
+        let angle_2 = f64::atan2(end_normal.x(), end_normal.y());
 
-            let circle  = Circle::new(center_point, radius);
-            let arc     = circle.arc(angle_1, angle_2);
+        let circle  = Circle::new(center_point, radius);
+        let arc     = circle.arc(angle_1, angle_2);
 
-            let arc_curve = arc.to_bezier_curve::<Curve<_>>();
-            debug_assert!((center_point.distance_to(&end_line.0)-center_point.distance_to(&start_line.0)).abs() < 0.01, "Radius doesn't match: {} {}", radius, center_point.distance_to(&end_line.0));
+        let arc_curve = arc.to_bezier_curve::<Curve<_>>();
+        debug_assert!((center_point.distance_to(&end_line.0)-center_point.distance_to(&start_line.0)).abs() < 0.01, "Radius doesn't match: {} {}", radius, center_point.distance_to(&end_line.0));
 
-            vec![
-                arc_curve.all_points(),
-            ]
-        } else {
-            // Arc is too flat to represent a bend
-            bevel_join(start_line, end_line, limit)
-        }
+        vec![
+            arc_curve.all_points(),
+        ]
     } else {
         // Bevel join on the inside part of the corner
-        bevel_join(start_line, end_line, limit)
+        bevel_join(join_point, start_line, end_line, limit)
     }
 }
 
 ///
 /// Generates the edges for a single curve
 ///
-fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn((TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
+fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
     TCoord: Coordinate + Coordinate2D,
 {
@@ -267,7 +260,7 @@ where
             // Add a join to the existing curve using the join style
             let (last_point, last_tangent) = points.last().map(|(_, cp2, ep)| (*ep, *cp2)).unwrap_or((*start_point, *start_tangent));
 
-            for (_, (cp1, cp2), ep) in join((last_point, last_tangent), (initial_point, initial_tangent), width * 4.0) {
+            for (_, (cp1, cp2), ep) in join(curve.start_point(), (last_point, last_tangent), (initial_point, initial_tangent), width * 4.0) {
                 points.push((cp1, cp2, ep));
             }
 
@@ -367,31 +360,31 @@ mod test {
 
     #[test]
     fn bevel_join_90_degrees() {
-        let corner = bevel_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 2.0)), 20.0);
+        let corner = bevel_join(Coord2(2.5, 2.5), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 2.0)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
         debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 
     #[test]
     fn rounded_join_90_degrees() {
-        let corner = round_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 2.0)), 20.0);
+        let corner = round_join(Coord2(2.5, 2.0), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 2.5), Coord2(3.0, 2.5)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(ep.is_near_to(&Coord2(3.0, 2.5), 0.01), "End point is wrong (found {:?})", ep);
         debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 
     #[test]
     fn rounded_join_180_degrees() {
-        let corner = round_join((Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
+        let corner = round_join(Coord2(2.0, 2.5), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", sp);
+        debug_assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
         debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 }
