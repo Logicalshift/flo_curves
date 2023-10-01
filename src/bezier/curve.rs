@@ -10,6 +10,7 @@ use super::nearest_point::*;
 use super::characteristics::*;
 
 use crate::geo::*;
+use crate::line::*;
 
 ///
 /// Trait implemented by bezier curves that can create new versions of themselves
@@ -284,6 +285,14 @@ pub trait BezierCurve2D: BezierCurve {
     /// Computes the distance from a point to the closest point on this curve
     ///
     fn distance_to(&self, point: &Self::Point) -> f64;
+
+    ///
+    /// Calculates the 'flatness' of the curve, which is the maximum distance between the control points and the baseline
+    ///
+    /// A flatness value of 0 indicates the curve represents a straight line. Subdividing a curve will always reduce the
+    /// flatness value.
+    ///
+    fn flatness(&self) -> f64;
 }
 
 impl<T: BezierCurve> BezierCurve2D for T
@@ -321,5 +330,13 @@ where
     #[inline]
     fn distance_to(&self, point: &Self::Point) -> f64 {
         self.nearest_point(point).distance_to(point)
+    }
+
+    #[inline]
+    fn flatness(&self) -> f64 {
+        let (sp, (cp1, cp2), ep)    = self.all_points();
+        let coefficents             = (sp, ep).coefficients();
+
+        coefficents.distance_to(&cp1).max(coefficents.distance_to(&cp2))
     }
 }
