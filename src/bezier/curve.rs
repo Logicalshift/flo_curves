@@ -337,6 +337,6 @@ where
         let (sp, (cp1, cp2), ep)    = self.all_points();
         let coefficents             = (sp, ep).coefficients();
 
-        coefficents.distance_to(&cp1).max(coefficents.distance_to(&cp2))
+        coefficents.distance_to(&cp1).abs().max(coefficents.distance_to(&cp2).abs())
     }
 }
