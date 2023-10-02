@@ -11,6 +11,7 @@ use std::ops::{Range};
 ///
 /// Provides an implementation of the `SampledContour` interface for a bezier path
 ///
+#[derive(Clone)]
 pub struct PathContour {
     /// The size of this contour
     size: ContourSize,

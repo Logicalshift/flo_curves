@@ -13,6 +13,7 @@ use std::cell::{RefCell};
 ///
 /// Approximates a distance field generated from a path
 ///
+#[derive(Clone)]
 pub struct PathDistanceField {
     path_contour:           Rc<PathContour>,
     approx_distance_field:  RefCell<SampledApproxDistanceFieldCache>,

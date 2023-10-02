@@ -22,6 +22,7 @@ use std::ops::{Range};
 ///
 /// This provides the most general purpose approach to generating vectors from brush strokes or other patterns.
 ///
+#[derive(Clone)]
 pub struct DaubBrushDistanceField<TDaub> {
     /// The size of this distance field, sufficient to contain all of the 'daubs'
     size: ContourSize,
