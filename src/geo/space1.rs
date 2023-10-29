@@ -149,7 +149,7 @@ impl<TData> Space1D<TData> {
     }
 
     ///
-    /// Returns the first point that overlaps a point
+    /// Returns the index of the first range that overlaps a point
     ///
     #[inline]
     fn search(&self, point: f64) -> Result<usize, usize> {
