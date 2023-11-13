@@ -45,3 +45,8 @@ harness     = false
 name        = "nearest_point"
 path        = "benches/nearest_point.rs"
 harness     = false
+
+[[bench]]
+name        = "space"
+path        = "benches/space.rs"
+harness     = false
