@@ -6,6 +6,7 @@ members = [
     "arithmetic",
     "curve_intersections",
     "brush",
+    "curve_fit",
 ]
 
 [patch.crates-io]
@@ -18,5 +19,5 @@ flo_render_canvas       = { git = "https://github.com/Logicalshift/flo_draw", br
 flo_render_gl_offscreen = { git = "https://github.com/Logicalshift/flo_draw", branch = "v0.4" }
 
 flo_binding             = { git = "https://github.com/Logicalshift/flo_binding", branch = "v3.0" }
-flo_scene               = { git = "https://github.com/Logicalshift/flo_scene", branch = "v0.1" }
+flo_scene               = { git = "https://github.com/Logicalshift/flo_scene", branch = "v0.2" }
 desync                  = { git = "https://github.com/Logicalshift/desync", branch = "v0.9" }
