@@ -174,14 +174,14 @@ pub fn fit_curve_cubic<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::P
         fit_line(&points[0], &points[1])
     } else {
         // Perform an initial estimate of the 't' values corresponding to the chords of the curve
-        let mut chords                  = chords_for_points(points);
+        let mut chords  = chords_for_points(points);
 
         // Use the least-squares method to fit against the initial set of chords
-        let mut curve                   = generate_bezier(points, &chords, start_tangent, end_tangent);
+        let mut curve   = generate_bezier(points, &chords, start_tangent, end_tangent);
 
         // Reparameterise the chords (which will probably be quite a bad estimate initially)
-        chords                          = reparameterize(points, &chords, &curve);
-        curve                           = generate_bezier(points, &chords, start_tangent, end_tangent);
+        chords          = reparameterize(points, &chords, &curve);
+        curve           = generate_bezier(points, &chords, start_tangent, end_tangent);
 
         // Estimate the error after the reparameterization
         let (mut error, mut split_pos)  = max_error_for_curve(points, &chords, &curve);
