@@ -193,7 +193,7 @@ fn main() {
                 gc.bezier_curve_to(ep.x() as _, ep.y() as _, cp1.x() as _, cp1.y() as _, cp2.x() as _, cp2.y() as _);
             }
 
-            gc.fill_color(Color::Rgba(0.0, 0.0, 0.0, 1.0));
+            gc.stroke_color(Color::Rgba(0.0, 0.0, 0.0, 1.0));
             gc.line_width_pixels(2.0);
             gc.stroke();
         });
