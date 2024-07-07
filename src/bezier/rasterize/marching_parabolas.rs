@@ -145,6 +145,7 @@ impl Parabola {
         if denom != 0.0 {
             (other.ypos - self.ypos - squared(self.xpos) + squared(other.xpos))/denom
         } else {
+            // TODO: if two overlapped parabolas are at different y positions, then the lower one occludes the upper one (this isn't accounted for by the current algorithm)
             self.xpos
         }
     }
@@ -257,7 +258,7 @@ mod test {
 
     #[test]
     fn marching_parabolas_overlapped_1() {
-        // Basic test of the algorithm, 'filled shape'
+        // As for marching_parabolas_1 except we double up the parabolas (as can happen when merging in extra data sets to improve precision)
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 4.0, ypos: 0.0 },
@@ -296,14 +297,17 @@ mod test {
 
     #[test]
     fn marching_parabolas_overlapped_2() {
-        // Basic test of the algorithm, 'filled shape'
+        // As for marching_parabolas_1 except we put parabolas at the same x coordinate
+        // Note: this case isn't fully handled: we pick the parabola to use semi-arbitrarily, and instead should see that 'higher' y positions are occluded by 'lower' ones
+        // However, if the distances are generated accurately the y positions should be the same in any case two parabolas share an x position, so if this is an issue,
+        // look into there are two different distances for the same x position
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 4.0, ypos: 1.0 },
             Parabola { xpos: 5.0, ypos: 2.0 },
             Parabola { xpos: 5.0, ypos: 0.0 },
-            Parabola { xpos: 6.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 3.0 },
+            Parabola { xpos: 6.0, ypos: 0.0 },
         ], vec![
             1.0,
             2.0,
