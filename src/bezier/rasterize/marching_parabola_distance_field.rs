@@ -93,7 +93,6 @@ impl MarchingParabolaDistanceField {
         }
 
         // Use the marching parabolas algorithm to fill in the remaining distance field
-        // TODO: incorporate the y intercepts in here to make the distances more precise
         let mut squared_distance_field = Vec::with_capacity(width * height);
 
         for y in 0..height {
@@ -104,7 +103,7 @@ impl MarchingParabolaDistanceField {
             // Use the marching parabolas algorithm to generate the 2D distance field
             let marching_parabolas = MarchingParabolasIterator::new(
                 input_row.iter().enumerate()
-                    .flat_map(|(x_pos, distance)| {
+                    .flat_map(|(x_pos, distance)| {     // <-- Distances from the first pass
                         if distance.is_infinite() {
                             None
                         } else {
@@ -114,7 +113,7 @@ impl MarchingParabolaDistanceField {
                             })
                         }
                     })
-                    .merge_by(
+                    .merge_by(                          // <-- Intercepts computed along a column
                         y_intercepts.flat_map(|intercept| [
                             Parabola {
                                 xpos: intercept.start,
