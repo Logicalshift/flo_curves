@@ -23,6 +23,7 @@ pub struct MarchingParabolasIterator<TXposIterator> {
 ///
 /// Square of the distance to a point
 ///
+#[derive(Copy, Clone, PartialEq, PartialOrd, Debug)]
 pub struct DistanceSquared(pub f64);
 
 ///
@@ -107,7 +108,27 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        if let Some(x_pos) = self.x_positions.next() {
+            // Consume parabolas until we get one that intercepts its following parabola after the current x position
+            loop {
+                if let Some(next_intercept) = &self.next_intercept {
+                    if next_intercept.intercept_xpos >= x_pos {
+                        break;
+                    } else {
+                        // Move the intercept on
+                        self.current_intercept  = *next_intercept;
+                        self.next_intercept     = self.following_intercepts.next();
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            Some(self.current_intercept.parabola.distance_squared(x_pos))
+        } else {
+            // Finished: no more x positions
+            None
+        }
     }
 }
 
@@ -122,6 +143,14 @@ impl Parabola {
         let denom = 2.0*other.xpos - 2.0*self.xpos;
 
         (other.ypos - self.ypos - squared(self.xpos) + squared(other.xpos))/denom
+    }
+
+    ///
+    /// Return the squared distance at a particular x position
+    ///
+    #[inline]
+    pub fn distance_squared(&self, x_pos: f64) -> DistanceSquared {
+        DistanceSquared(squared(x_pos - self.xpos) + self.ypos)
     }
 }
 
@@ -143,6 +172,7 @@ mod test {
 
     #[test]
     fn parabola_intercepts_1() {
+        // Two parabolas that don't occlude each other
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 0.0 },
@@ -156,6 +186,7 @@ mod test {
 
     #[test]
     fn parabola_intercepts_2() {
+        // Three parabolas where the center one is occluded by those on either side
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 5.0, ypos: 6.0 },
@@ -170,6 +201,7 @@ mod test {
 
     #[test]
     fn parabola_intercepts_3() {
+        // Three parabolas where none of them are occluded (reverse of parabola_intercepts_2)
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 6.0 },
             Parabola { xpos: 5.0, ypos: 0.0 },
@@ -181,5 +213,41 @@ mod test {
         assert!(parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", parabola_intercepts);
         assert!(parabola_intercepts[1].parabola.xpos == 5.0, "{:?}", parabola_intercepts);
         assert!(parabola_intercepts[2].parabola.xpos == 6.0, "{:?}", parabola_intercepts);
+    }
+
+    #[test]
+    fn marching_parabolas_1() {
+        // Basic test of the algorithm, 'filled shape'
+        let iterator = MarchingParabolasIterator::new(vec![
+            Parabola { xpos: 4.0, ypos: 0.0 },
+            Parabola { xpos: 5.0, ypos: 0.0 },
+            Parabola { xpos: 6.0, ypos: 0.0 },
+        ], vec![
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0
+        ]);
+
+        // Convert to a bunch of squared distances
+        let distances = iterator.collect::<Vec<_>>();
+
+        assert!(distances.len() == 10, "{:?}", distances);
+        assert!((distances[0].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 1.0, distance = 4-1 = 3, 3^2 = 9
+        assert!((distances[1].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 2.0
+        assert!((distances[2].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 3.0
+        assert!((distances[3].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 4.0 (hits parabola)
+        assert!((distances[4].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 5.0
+        assert!((distances[5].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 6.0
+        assert!((distances[6].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 7.0 (outside again)
+        assert!((distances[7].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 8.0
+        assert!((distances[8].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 9.0
+        assert!((distances[9].0 - 16.0).abs() < 0.01, "{:?}", distances);   // x = 10.0
     }
 }
