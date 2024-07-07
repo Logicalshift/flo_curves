@@ -1,3 +1,5 @@
+use std::vec;
+
 #[inline]
 fn squared(val: f64) -> f64 { val * val }
 
@@ -5,7 +7,14 @@ fn squared(val: f64) -> f64 { val * val }
 /// Iterator that generates 1 dimensional distance field from a series of parabolas
 ///
 pub struct MarchingParabolasIterator {
-    parabola_intercepts: Vec<ParabolaIntercept>,
+    /// The intercept that we're currently processing
+    current_intercept:      ParabolaIntercept,
+
+    /// The intercept that we'll process next (or None if the current intercept is the only one left)
+    next_intercept:         Option<ParabolaIntercept>,
+
+    /// Intercepts following the next intercept
+    following_intercepts:   vec::IntoIter<ParabolaIntercept>,
 }
 
 ///
@@ -68,8 +77,13 @@ impl MarchingParabolasIterator {
             parabola_intercepts.push(ParabolaIntercept { intercept_xpos: intercept, parabola: current_parabola });
         }
 
+        // We'll interate through the intercepts in a left-to-right fashion
+        let mut following_intercepts    = parabola_intercepts.into_iter();
+        let current_intercept           = following_intercepts.next().unwrap();
+        let next_intercept              = following_intercepts.next();
+
         MarchingParabolasIterator {
-            parabola_intercepts
+            following_intercepts, current_intercept, next_intercept
         }
     }
 }
@@ -100,16 +114,29 @@ impl Parabola {
 mod test {
     use super::*;
 
+    fn all_remaining_intercepts(iterator: MarchingParabolasIterator) -> Vec<ParabolaIntercept> {
+        let mut result = vec![];
+
+        result.push(iterator.current_intercept);
+        if let Some(next_intercept) = &iterator.next_intercept {
+            result.push(*next_intercept);
+        }
+        result.extend(iterator.following_intercepts);
+
+        result
+    }
+
     #[test]
     fn parabola_intercepts_1() {
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 0.0 },
         ]);
+        let parabola_intercepts = all_remaining_intercepts(iterator); 
 
-        assert!(iterator.parabola_intercepts.len() == 2, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[1].parabola.xpos == 6.0, "{:?}", iterator.parabola_intercepts);
+        assert!(parabola_intercepts.len() == 2, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[1].parabola.xpos == 6.0, "{:?}", parabola_intercepts);
     }
 
     #[test]
@@ -119,10 +146,11 @@ mod test {
             Parabola { xpos: 5.0, ypos: 6.0 },
             Parabola { xpos: 6.0, ypos: 0.0 },
         ]);
+        let parabola_intercepts = all_remaining_intercepts(iterator); 
 
-        assert!(iterator.parabola_intercepts.len() == 2, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[1].parabola.xpos == 6.0, "{:?}", iterator.parabola_intercepts);
+        assert!(parabola_intercepts.len() == 2, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[1].parabola.xpos == 6.0, "{:?}", parabola_intercepts);
     }
 
     #[test]
@@ -132,10 +160,11 @@ mod test {
             Parabola { xpos: 5.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 6.0 },
         ]);
+        let parabola_intercepts = all_remaining_intercepts(iterator); 
 
-        assert!(iterator.parabola_intercepts.len() == 3, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[1].parabola.xpos == 5.0, "{:?}", iterator.parabola_intercepts);
-        assert!(iterator.parabola_intercepts[2].parabola.xpos == 6.0, "{:?}", iterator.parabola_intercepts);
+        assert!(parabola_intercepts.len() == 3, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[0].parabola.xpos == 4.0, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[1].parabola.xpos == 5.0, "{:?}", parabola_intercepts);
+        assert!(parabola_intercepts[2].parabola.xpos == 6.0, "{:?}", parabola_intercepts);
     }
 }
