@@ -6,7 +6,10 @@ fn squared(val: f64) -> f64 { val * val }
 ///
 /// Iterator that generates 1 dimensional distance field from a series of parabolas
 ///
-pub struct MarchingParabolasIterator {
+pub struct MarchingParabolasIterator<TXposIterator> {
+    /// An iterator of x positions in this item
+    x_positions:            TXposIterator,
+
     /// The intercept that we're currently processing
     current_intercept:      ParabolaIntercept,
 
@@ -46,14 +49,21 @@ pub struct ParabolaIntercept {
     pub parabola: Parabola
 }
 
-impl MarchingParabolasIterator {
+impl<TXposIterator> MarchingParabolasIterator<TXposIterator> 
+where
+    TXposIterator: Iterator<Item = f64>
+{
     ///
-    /// Creates a new marching parabolas iterator from a list of parabolas
+    /// Creates a new marching parabolas iterator from a list of parabolas. This will calculate distance squared values at each x position
+    /// from the `ordered_x_positions` list, as the minimum value from the parabolas supplied in the `ordered_parabolas` list.
     ///
-    /// The input parabolas should be in x position order
+    /// The input parabolas should be in x position order, and the x positions that we should calculate distance values for should
+    /// also be in 
     ///
-    #[inline]
-    pub fn new(ordered_parabolas: impl IntoIterator<Item=impl Into<Parabola>>) -> Self {
+    pub fn new<TIntoXposIterator>(ordered_parabolas: impl IntoIterator<Item=impl Into<Parabola>>, ordered_x_postions: TIntoXposIterator) -> Self
+    where
+        TIntoXposIterator: IntoIterator<IntoIter=TXposIterator>
+    {
         // Collect the parabolas into a single vec
         let mut ordered_parabolas = ordered_parabolas.into_iter().map(|p| p.into());
 
@@ -81,16 +91,21 @@ impl MarchingParabolasIterator {
         let mut following_intercepts    = parabola_intercepts.into_iter();
         let current_intercept           = following_intercepts.next().unwrap();
         let next_intercept              = following_intercepts.next();
+        let x_positions                 = ordered_x_postions.into_iter();
 
         MarchingParabolasIterator {
-            following_intercepts, current_intercept, next_intercept
+            following_intercepts, current_intercept, next_intercept, x_positions,
         }
     }
 }
 
-impl Iterator for MarchingParabolasIterator {
+impl<TXposIterator> Iterator for MarchingParabolasIterator<TXposIterator>
+where
+    TXposIterator: Iterator<Item = f64>
+{
     type Item = DistanceSquared;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         todo!()
     }
@@ -114,7 +129,7 @@ impl Parabola {
 mod test {
     use super::*;
 
-    fn all_remaining_intercepts(iterator: MarchingParabolasIterator) -> Vec<ParabolaIntercept> {
+    fn all_remaining_intercepts<T>(iterator: MarchingParabolasIterator<T>) -> Vec<ParabolaIntercept> {
         let mut result = vec![];
 
         result.push(iterator.current_intercept);
@@ -131,7 +146,7 @@ mod test {
         let iterator = MarchingParabolasIterator::new(vec![
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 0.0 },
-        ]);
+        ], vec![0.0]);
         let parabola_intercepts = all_remaining_intercepts(iterator); 
 
         assert!(parabola_intercepts.len() == 2, "{:?}", parabola_intercepts);
@@ -145,7 +160,7 @@ mod test {
             Parabola { xpos: 4.0, ypos: 0.0 },
             Parabola { xpos: 5.0, ypos: 6.0 },
             Parabola { xpos: 6.0, ypos: 0.0 },
-        ]);
+        ], vec![0.0]);
         let parabola_intercepts = all_remaining_intercepts(iterator); 
 
         assert!(parabola_intercepts.len() == 2, "{:?}", parabola_intercepts);
@@ -159,7 +174,7 @@ mod test {
             Parabola { xpos: 4.0, ypos: 6.0 },
             Parabola { xpos: 5.0, ypos: 0.0 },
             Parabola { xpos: 6.0, ypos: 6.0 },
-        ]);
+        ], vec![0.0]);
         let parabola_intercepts = all_remaining_intercepts(iterator); 
 
         assert!(parabola_intercepts.len() == 3, "{:?}", parabola_intercepts);
