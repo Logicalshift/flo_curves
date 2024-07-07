@@ -46,16 +46,15 @@ impl MarchingParabolasIterator {
     #[inline]
     pub fn new(ordered_parabolas: impl IntoIterator<Item=impl Into<Parabola>>) -> Self {
         // Collect the parabolas into a single vec
-        let ordered_parabolas = ordered_parabolas.into_iter().map(|p| p.into()).collect::<Vec<_>>();
+        let mut ordered_parabolas = ordered_parabolas.into_iter().map(|p| p.into());
 
         // Where each parabola intercepts with the following parabola
-        let mut parabola_intercepts = Vec::with_capacity(ordered_parabolas.len());
+        let mut parabola_intercepts = vec![];
 
-        parabola_intercepts.push(ParabolaIntercept { intercept_xpos: -f64::INFINITY, parabola: ordered_parabolas[0] });
+        parabola_intercepts.push(ParabolaIntercept { intercept_xpos: -f64::INFINITY, parabola: ordered_parabolas.next().unwrap() });
 
         // Figure out how the parabolas occlude each other to create the hull
-        for idx in 1..ordered_parabolas.len() {
-            let current_parabola    = &ordered_parabolas[idx];
+        for current_parabola in ordered_parabolas {
             let mut last_curve      = parabola_intercepts.last().unwrap();
             let mut intercept       = current_parabola.intercepts(&last_curve.parabola);
 
@@ -66,7 +65,7 @@ impl MarchingParabolasIterator {
                 intercept   = current_parabola.intercepts(&last_curve.parabola);
             }
 
-            parabola_intercepts.push(ParabolaIntercept { intercept_xpos: intercept, parabola: *current_parabola });
+            parabola_intercepts.push(ParabolaIntercept { intercept_xpos: intercept, parabola: current_parabola });
         }
 
         MarchingParabolasIterator {
