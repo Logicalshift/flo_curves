@@ -134,6 +134,16 @@ impl MarchingParabolaDistanceField {
     pub fn from_bitfield() -> Self {
         todo!()
     }
+
+    ///
+    /// True if the specified point is inside in the contour
+    ///
+    #[inline]
+    pub fn point_is_inside(&self, ContourPosition(x, y): ContourPosition) -> bool {
+        self.squared_distance_field.get(x + y * self.width)
+            .map(|distance| *distance <= 0.0)
+            .unwrap_or(false)
+    }
 }
 
 impl SampledSignedDistanceField for MarchingParabolaDistanceField {
@@ -166,12 +176,29 @@ impl SampledContour for MarchingParabolaDistanceField {
         ContourSize(self.width, self.height)
     }
 
-    ///
-    /// Given a y coordinate returns ranges indicating the filled pixels on that line
-    ///
-    /// The ranges must be provided in ascending order, and must also not overlap.
-    ///
     fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        todo!()
+        let width   = self.contour_size().width();
+        let y       = y.floor() as usize;
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for x in 0..width {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(x); },
+                (Some(start_x), false)  => {
+                    inside = None;
+                    ranges.push((start_x as f64)..(x as f64));
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_x) = inside {
+            ranges.push((start_x as f64)..(width as f64));
+        }
+
+        ranges
     }
 }
