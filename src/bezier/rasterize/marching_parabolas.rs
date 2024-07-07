@@ -142,7 +142,11 @@ impl Parabola {
     pub fn intercepts(&self, other: &Parabola) -> f64 {
         let denom = 2.0*other.xpos - 2.0*self.xpos;
 
-        (other.ypos - self.ypos - squared(self.xpos) + squared(other.xpos))/denom
+        if denom != 0.0 {
+            (other.ypos - self.ypos - squared(self.xpos) + squared(other.xpos))/denom
+        } else {
+            self.xpos
+        }
     }
 
     ///
