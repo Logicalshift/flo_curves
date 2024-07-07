@@ -2,6 +2,7 @@ use super::marching_parabolas::*;
 use crate::bezier::vectorize::*;
 
 use smallvec::*;
+use itertools::*;
 
 use std::ops::{Range};
 
@@ -97,7 +98,8 @@ impl MarchingParabolaDistanceField {
 
         for y in 0..height {
             // Get the row that we sampled before
-            let input_row = &x_distance_field[y*width..(y*width+width)];
+            let input_row    = &x_distance_field[y*width..(y*width+width)];
+            let y_intercepts = intercepts_for_y(y as _).into_iter();
 
             // Use the marching parabolas algorithm to generate the 2D distance field
             let marching_parabolas = MarchingParabolasIterator::new(
@@ -111,7 +113,19 @@ impl MarchingParabolaDistanceField {
                                 ypos: *distance
                             })
                         }
-                    }),
+                    })
+                    .merge_by(
+                        y_intercepts.flat_map(|intercept| [
+                            Parabola {
+                                xpos: intercept.start,
+                                ypos: 0.0,
+                            },
+                            Parabola {
+                                xpos: intercept.end,
+                                ypos: 0.0,
+                            }
+                        ]),
+                        |a, b| a.xpos < b.xpos),
                     (0..width).map(|x| x as f64))
                 .map(|DistanceSquared(distance)| distance);
 

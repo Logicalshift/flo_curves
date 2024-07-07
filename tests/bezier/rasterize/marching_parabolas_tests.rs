@@ -33,6 +33,7 @@ pub fn circular_path_outside_1() {
     // Check the outside distances are accurate to within 1 pixel
     let mut num_greater_than_1   = 0;
     let mut num_greater_than_0_5 = 0;
+    let mut num_greater_than_0_1 = 0;
 
     for y in 0..height {
         for x in 0..width {
@@ -54,10 +55,15 @@ pub fn circular_path_outside_1() {
                 if (expected - val).abs() >= 0.5 {
                     num_greater_than_0_5 += 1;
                 }
+
+                if (expected - val).abs() >= 0.1 {
+                    num_greater_than_0_1 += 1;
+                }
             }
         }
     }
 
+    println!("> 0.1 = {}", num_greater_than_0_1);
     println!("> 0.5 = {}", num_greater_than_0_5);
     println!("> 1.0 = {}", num_greater_than_1);
     assert!(num_greater_than_1 == 0);
