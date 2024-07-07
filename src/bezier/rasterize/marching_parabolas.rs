@@ -250,4 +250,82 @@ mod test {
         assert!((distances[8].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 9.0
         assert!((distances[9].0 - 16.0).abs() < 0.01, "{:?}", distances);   // x = 10.0
     }
+
+    #[test]
+    fn marching_parabolas_overlapped_1() {
+        // Basic test of the algorithm, 'filled shape'
+        let iterator = MarchingParabolasIterator::new(vec![
+            Parabola { xpos: 4.0, ypos: 0.0 },
+            Parabola { xpos: 4.0, ypos: 0.0 },
+            Parabola { xpos: 5.0, ypos: 0.0 },
+            Parabola { xpos: 5.0, ypos: 0.0 },
+            Parabola { xpos: 6.0, ypos: 0.0 },
+            Parabola { xpos: 6.0, ypos: 0.0 },
+        ], vec![
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0
+        ]);
+
+        // Convert to a bunch of squared distances
+        let distances = iterator.collect::<Vec<_>>();
+
+        assert!(distances.len() == 10, "{:?}", distances);
+        assert!((distances[0].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 1.0, distance = 4-1 = 3, 3^2 = 9
+        assert!((distances[1].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 2.0
+        assert!((distances[2].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 3.0
+        assert!((distances[3].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 4.0 (hits parabola)
+        assert!((distances[4].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 5.0
+        assert!((distances[5].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 6.0
+        assert!((distances[6].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 7.0 (outside again)
+        assert!((distances[7].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 8.0
+        assert!((distances[8].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 9.0
+        assert!((distances[9].0 - 16.0).abs() < 0.01, "{:?}", distances);   // x = 10.0
+    }
+
+    #[test]
+    fn marching_parabolas_overlapped_2() {
+        // Basic test of the algorithm, 'filled shape'
+        let iterator = MarchingParabolasIterator::new(vec![
+            Parabola { xpos: 4.0, ypos: 0.0 },
+            Parabola { xpos: 4.0, ypos: 1.0 },
+            Parabola { xpos: 5.0, ypos: 2.0 },
+            Parabola { xpos: 5.0, ypos: 0.0 },
+            Parabola { xpos: 6.0, ypos: 0.0 },
+            Parabola { xpos: 6.0, ypos: 3.0 },
+        ], vec![
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0
+        ]);
+
+        // Convert to a bunch of squared distances
+        let distances = iterator.collect::<Vec<_>>();
+
+        assert!(distances.len() == 10, "{:?}", distances);
+        assert!((distances[0].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 1.0, distance = 4-1 = 3, 3^2 = 9
+        assert!((distances[1].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 2.0
+        assert!((distances[2].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 3.0
+        assert!((distances[3].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 4.0 (hits parabola)
+        assert!((distances[4].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 5.0
+        assert!((distances[5].0 - 0.0).abs() < 0.01, "{:?}", distances);    // x = 6.0
+        assert!((distances[6].0 - 1.0).abs() < 0.01, "{:?}", distances);    // x = 7.0 (outside again)
+        assert!((distances[7].0 - 4.0).abs() < 0.01, "{:?}", distances);    // x = 8.0
+        assert!((distances[8].0 - 9.0).abs() < 0.01, "{:?}", distances);    // x = 9.0
+        assert!((distances[9].0 - 16.0).abs() < 0.01, "{:?}", distances);   // x = 10.0
+    }
 }
