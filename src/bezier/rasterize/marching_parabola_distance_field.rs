@@ -1,8 +1,11 @@
+use super::marching_parabolas::*;
 use crate::bezier::vectorize::*;
 
 use smallvec::*;
 
 use std::ops::{Range};
+
+#[inline] fn squared(val: f64) -> f64 { val * val }
 
 ///
 /// Distance field that's computed by following the marching parabolas algorithm
@@ -23,11 +26,102 @@ impl MarchingParabolaDistanceField {
     /// Computes a distance field using the marching parabolas algorithm given functions that calculate the X and Y intercepts against a
     /// shape.
     ///
+    /// This takes the width and height of the distance fields and two functions. `intercepts_for_x(xpos)` takes an x position and returns
+    /// where the shape intersects that column in ascending order, and `intercepts_for_y(ypos)` does the same except for a row along a y position.
+    ///
     /// Error can be up to 1 pixel for this function but is usually much less as we can compute the parabolas to a higher precision than
     /// one pixel.
     ///
-    pub fn from_intercepts() -> Self {
-        todo!()
+    pub fn from_intercepts<TXIterator, TYIterator>(width: usize, height: usize, intercepts_for_x: impl Fn(f64) -> TXIterator, intercepts_for_y: impl Fn(f64) -> TYIterator) -> Self 
+    where
+        TXIterator: IntoIterator<Item=Range<f64>>,
+        TYIterator: IntoIterator<Item=Range<f64>>,
+    {
+        // Create a 1D distance field for the columns
+        // TODO: generate the signed distance field, not just the exterior field 
+        let mut x_distance_field = vec![f64::INFINITY; width * height];
+
+        // Iterate over the columns to build the initial distance field
+        for x in 0..width {
+            let xpos            = x as f64;
+            let mut intercepts  = intercepts_for_x(xpos).into_iter();
+
+            if let Some(initial_intercept) = intercepts.next() {
+                let mut current_intercept   = initial_intercept;
+                let mut following_intercept = intercepts.next();
+
+                // Fill in a column via these intercepts
+                // TODO: doesn't handle multiple intercepts on one pixel
+                for (y, val) in x_distance_field.iter_mut().skip(x).step_by(width).enumerate() {
+                    let ypos = y as f64;
+
+                    if ypos >= current_intercept.start {
+                        if ypos > current_intercept.end {
+                            // Outside of the distance field
+                            let distance_1 = squared(ypos - current_intercept.end);
+
+                            if let Some(next_intercept) = &following_intercept {
+                                let distance_2 = squared(ypos - next_intercept.start);
+
+                                if distance_2 >= distance_1 {
+                                    // Move to the next intercept (next range is closer)
+                                    current_intercept   = next_intercept.clone();
+                                    following_intercept = intercepts.next();
+
+                                    // Set the value for this intercept
+                                    *val = distance_2;
+                                } else {
+                                    // Use the current distance
+                                    *val = distance_1;
+                                }
+                            } else {
+                                // The end is closer than the start of the next intercept
+                                *val = distance_1;
+                            }
+                        } else {
+                            // Inside the distance field, all values are 0.0 here (TODO: need to create an inverted distance field as we go for the 'inside' values)
+                            *val = 0.0
+                        }
+                    } else {
+                        // Outside of the distance field, but closer to the start of the current intercept than the next one
+                        let offset = squared(ypos - current_intercept.start);
+                        *val = offset;
+                    }
+                }
+            }
+        }
+
+        // Use the marching parabolas algorithm to fill in the remaining distance field
+        // TODO: incorporate the y intercepts in here to make the distances more precise
+        let mut squared_distance_field = Vec::with_capacity(width * height);
+
+        for y in 0..height {
+            // Get the row that we sampled before
+            let input_row = &x_distance_field[y*width..(y*width+width)];
+
+            // Use the marching parabolas algorithm to generate the 2D distance field
+            let marching_parabolas = MarchingParabolasIterator::new(
+                input_row.iter().enumerate()
+                    .flat_map(|(x_pos, distance)| {
+                        if distance.is_infinite() {
+                            None
+                        } else {
+                            Some(Parabola {
+                                xpos: x_pos as f64,
+                                ypos: *distance
+                            })
+                        }
+                    }),
+                    (0..width).map(|x| x as f64))
+                .map(|DistanceSquared(distance)| distance);
+
+            squared_distance_field.extend(marching_parabolas);
+        }
+
+        // Return this as the result
+        MarchingParabolaDistanceField {
+            width, height, squared_distance_field
+        }
     }
 
     ///
@@ -54,7 +148,11 @@ impl SampledSignedDistanceField for MarchingParabolaDistanceField {
     fn distance_at_point(&self, pos: ContourPosition) -> f64 {
         let distance_squared = self.squared_distance_field[pos.0 + pos.1 * self.width];
 
-        distance_squared.sqrt()
+        if distance_squared >= 0.0 {
+            distance_squared.sqrt()
+        } else {
+            -distance_squared.sqrt()
+        }
     }
 
     fn as_contour<'b>(&'b self) -> &'b Self::Contour {
