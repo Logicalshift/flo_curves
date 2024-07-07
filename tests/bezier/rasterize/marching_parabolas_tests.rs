@@ -67,4 +67,5 @@ pub fn circular_path_outside_1() {
     println!("> 0.5 = {}", num_greater_than_0_5);
     println!("> 1.0 = {}", num_greater_than_1);
     assert!(num_greater_than_1 == 0);
+    assert!(num_greater_than_0_5 == 0);
 }
