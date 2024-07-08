@@ -264,3 +264,31 @@ impl SampledContour for MarchingParabolaDistanceField {
         ranges
     }
 }
+
+impl ColumnSampledContour for MarchingParabolaDistanceField {
+    fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
+        let height  = self.contour_size().height();
+        let x       = x.floor() as usize;
+
+        let mut ranges = smallvec![];
+        let mut inside = None;
+
+        for y in 0..height {
+            // Transitioning from 'outside' to 'inside' sets a start position, and doing the opposite generates a range
+            match (inside, self.point_is_inside(ContourPosition(x, y))) {
+                (None, true)            => { inside = Some(y); },
+                (Some(start_y), false)  => {
+                    inside = None;
+                    ranges.push((start_y as f64)..(y as f64));
+                }
+                _ => { }
+            }
+        }
+
+        if let Some(start_y) = inside {
+            ranges.push((start_y as f64)..(height as f64));
+        }
+
+        ranges
+    }
+}
