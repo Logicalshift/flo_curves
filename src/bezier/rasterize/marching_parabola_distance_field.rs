@@ -1,5 +1,8 @@
 use super::marching_parabolas::*;
+use super::path_contour::*;
+use crate::bezier::path::*;
 use crate::bezier::vectorize::*;
+use crate::geo::*;
 
 use smallvec::*;
 use itertools::*;
@@ -145,6 +148,38 @@ impl MarchingParabolaDistanceField {
         MarchingParabolaDistanceField {
             width, height, squared_distance_field
         }
+    }
+
+    ///
+    /// Creates a distance field from a path (within a particular region)
+    ///
+    pub fn from_path_region(x_origin: f64, y_origin: f64, width: usize, height: usize, path: Vec<impl 'static + BezierPath<Point=impl Coordinate+Coordinate2D>>) -> Self {
+        let contour = PathContour::from_path(path, ContourSize(width, height));
+
+        Self::from_intercepts(width, height, 
+            |x| contour.intercepts_on_column(x).into_iter().map(|y| (y.start-y_origin)..(y.end-y_origin)), 
+            |y| contour.intercepts_on_line(y).into_iter().map(|x| (x.start-x_origin)..(x.end-x_origin)))
+    }
+
+    ///
+    /// Creates a distance field from a path
+    ///
+    /// This will calculate the bounds of the path. The two f64 values are the x and y coordinates of the origin of the resulting distance field
+    ///
+    pub fn from_path(path: Vec<impl 'static + BezierPath<Point=impl Coordinate+Coordinate2D>>) -> (Self, f64, f64) {
+        // Compute the bounding box of the path
+        let bounds = path.iter()
+            .map(|p| p.bounding_box::<Bounds<_>>())
+            .reduce(|bounds1, bounds2| bounds1.union_bounds(bounds2))
+            .unwrap_or(Bounds::empty());
+
+        // Decide on the range to calculate a distance field for
+        let origin_x = bounds.min().x() - 4.0;
+        let origin_y = bounds.min().y() - 4.0;
+        let width    = (bounds.max().x() - origin_x).ceil() + 4.0;
+        let height   = (bounds.max().y() - origin_y).ceil() + 4.0;
+
+        (Self::from_path_region(origin_x, origin_y, width as _, height as _, path), origin_x, origin_y)
     }
 
     ///
