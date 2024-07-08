@@ -69,3 +69,65 @@ pub fn circular_path_outside_1() {
     assert!(num_greater_than_1 == 0);
     assert!(num_greater_than_0_5 == 0);
 }
+
+#[test]
+pub fn rectangle_path_1() {
+    // Single rectangle path
+    let rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
+        |_x| {
+            vec![2.0..40.0]
+        }, 
+        |y| {
+            if y >= 2.0 && y <= 40.0 {
+                vec![8.0..60.0]
+            } else {
+                vec![]
+            }
+        });
+
+    assert!((rectangle.distance_at_point(ContourPosition(50, 41)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 41)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 42)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 42)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 20)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
+}
+
+#[test]
+pub fn rectangle_path_2() {
+    // Multiple rectangle paths
+    let rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
+        |_x| {
+            vec![2.0..40.0, 80.0..90.0]
+        }, 
+        |y| {
+            if (y >= 2.0 && y <= 40.0) || (y >= 80.0 && y <= 90.0) {
+                vec![8.0..60.0]
+            } else {
+                vec![]
+            }
+        });
+
+    assert!((rectangle.distance_at_point(ContourPosition(50, 41)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 41)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 42)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 42)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 20)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 79)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 79)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 92)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 92)));
+}
+
+#[test]
+pub fn multiple_intercepts_in_one_pixel_1() {
+    // Bunch of very thin slivers over single pixels
+    let x_ranges = vec![1.0..1.1, 1.2..1.3, 1.4..1.5, 2.0..40.0, 41.9..42.0, 42.1..42.2];
+
+    let weird_rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
+        |_x| {
+            x_ranges.clone()
+        }, 
+        |y| {
+            if x_ranges.iter().any(|range| range.contains(&y)) {
+                vec![2.0..40.0]
+            } else {
+                vec![]
+            }
+        });
+
+    assert!((weird_rectangle.distance_at_point(ContourPosition(20, 43)) - 0.8).abs() < 0.01, "{} != 0.8", weird_rectangle.distance_at_point(ContourPosition(20, 43)));
+}

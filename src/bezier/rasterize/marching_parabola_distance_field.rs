@@ -52,41 +52,46 @@ impl MarchingParabolaDistanceField {
                 let mut following_intercept = intercepts.next();
 
                 // Fill in a column via these intercepts
-                // TODO: doesn't handle multiple intercepts on one pixel
                 for (y, val) in x_distance_field.iter_mut().skip(x).step_by(width).enumerate() {
                     let ypos = y as f64;
 
-                    if ypos >= current_intercept.start {
-                        if ypos > current_intercept.end {
-                            // Outside of the distance field
-                            let distance_1 = squared(ypos - current_intercept.end);
+                    loop {
+                        if ypos >= current_intercept.start {
+                            if ypos > current_intercept.end {
+                                // Outside of the distance field
+                                let distance_1 = squared(ypos - current_intercept.end);
 
-                            if let Some(next_intercept) = &following_intercept {
-                                let distance_2 = squared(ypos - next_intercept.start);
+                                if let Some(next_intercept) = &following_intercept {
+                                    let distance_2 = squared(ypos - next_intercept.start);
 
-                                if distance_2 >= distance_1 {
-                                    // Move to the next intercept (next range is closer)
-                                    current_intercept   = next_intercept.clone();
-                                    following_intercept = intercepts.next();
+                                    if distance_2 >= distance_1 {
+                                        // Move to the next intercept (next range is closer)
+                                        current_intercept   = next_intercept.clone();
+                                        following_intercept = intercepts.next();
 
-                                    // Set the value for this intercept
-                                    *val = distance_2;
+                                        // In case the next parabola is also closer, keep trying
+                                        continue;
+                                    } else {
+                                        // Use the current distance
+                                        *val = distance_1;
+                                        break;
+                                    }
                                 } else {
-                                    // Use the current distance
+                                    // The end is closer than the start of the next intercept
                                     *val = distance_1;
+                                    break;
                                 }
                             } else {
-                                // The end is closer than the start of the next intercept
-                                *val = distance_1;
+                                // Inside the distance field, all values are 0.0 here (TODO: need to create an inverted distance field as we go for the 'inside' values)
+                                *val = 0.0;
+                                break;
                             }
                         } else {
-                            // Inside the distance field, all values are 0.0 here (TODO: need to create an inverted distance field as we go for the 'inside' values)
-                            *val = 0.0
+                            // Outside of the distance field, but closer to the start of the current intercept than the next one
+                            let offset = squared(ypos - current_intercept.start);
+                            *val = offset;
+                            break;
                         }
-                    } else {
-                        // Outside of the distance field, but closer to the start of the current intercept than the next one
-                        let offset = squared(ypos - current_intercept.start);
-                        *val = offset;
                     }
                 }
             }
