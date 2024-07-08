@@ -86,7 +86,7 @@ impl MarchingParabolaDistanceField {
                                 let distance_1 = squared(ypos - current_intercept.start);
                                 let distance_2 = squared(ypos - current_intercept.end);
 
-                                *val = -(distance_1.max(distance_2));
+                                *val = -(distance_1.min(distance_2));
                                 break;
                             }
                         } else {
