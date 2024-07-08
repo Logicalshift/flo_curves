@@ -74,8 +74,12 @@ pub fn circular_path_outside_1() {
 pub fn rectangle_path_1() {
     // Single rectangle path
     let rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
-        |_x| {
-            vec![2.0..40.0]
+        |x| {
+            if x >= 8.0 && x < 60.0 {
+                vec![2.0..40.0]
+            } else {
+                vec![]
+            }
         }, 
         |y| {
             if y >= 2.0 && y <= 40.0 {
@@ -94,11 +98,15 @@ pub fn rectangle_path_1() {
 pub fn rectangle_path_2() {
     // Multiple rectangle paths
     let rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
-        |_x| {
-            vec![2.0..40.0, 80.0..90.0]
+        |x| {
+            if x >= 8.0 && x < 60.0 {
+                vec![2.0..40.0, 80.0..90.0]
+            } else {
+                vec![]
+            }
         }, 
         |y| {
-            if (y >= 2.0 && y <= 40.0) || (y >= 80.0 && y <= 90.0) {
+            if (y >= 2.0 && y < 40.0) || (y >= 80.0 && y < 90.0) {
                 vec![8.0..60.0]
             } else {
                 vec![]
@@ -118,12 +126,16 @@ pub fn multiple_intercepts_in_one_pixel_1() {
     let x_ranges = vec![1.0..1.1, 1.2..1.3, 1.4..1.5, 2.0..40.0, 41.9..42.0, 42.1..42.2];
 
     let weird_rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
-        |_x| {
-            x_ranges.clone()
+        |x| {
+            if x >= 8.0 && x < 60.0 {
+                x_ranges.clone()
+            } else {
+                vec![]
+            }
         }, 
         |y| {
             if x_ranges.iter().any(|range| range.contains(&y)) {
-                vec![2.0..40.0]
+                vec![8.0..60.0]
             } else {
                 vec![]
             }
