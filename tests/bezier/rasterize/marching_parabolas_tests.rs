@@ -48,7 +48,7 @@ pub fn circular_path_outside_1() {
             if to_center > radius {
                 let expected = to_center - radius;
 
-                if (expected - val).abs() >= 1.0 {
+                if (expected - val).abs() >= 1.0 || val.is_nan() {
                     num_greater_than_1 += 1;
                 }
 
@@ -105,7 +105,7 @@ pub fn circular_path_inside_1() {
                     num_wrong_sign += 1;
                 }
 
-                if (expected - val.abs()).abs() >= 1.0 {
+                if (expected - val.abs()).abs() >= 1.0 || val.is_nan() {
                     num_greater_than_1 += 1;
                 }
 
