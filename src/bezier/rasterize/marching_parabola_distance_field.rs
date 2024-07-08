@@ -82,8 +82,11 @@ impl MarchingParabolaDistanceField {
                                     break;
                                 }
                             } else {
-                                // Inside the distance field, all values are 0.0 here (TODO: need to create an inverted distance field as we go for the 'inside' values)
-                                *val = 0.0;
+                                // Inside the distance field, these create negative distances (we assume the intercepts are non-overlapping so this is much simpler)
+                                let distance_1 = squared(ypos - current_intercept.start);
+                                let distance_2 = squared(ypos - current_intercept.end);
+
+                                *val = -(distance_1.max(distance_2));
                                 break;
                             }
                         } else {
