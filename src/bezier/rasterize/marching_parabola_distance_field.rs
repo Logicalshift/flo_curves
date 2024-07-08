@@ -182,7 +182,7 @@ impl SampledSignedDistanceField for MarchingParabolaDistanceField {
         if distance_squared >= 0.0 {
             distance_squared.sqrt()
         } else {
-            -distance_squared.sqrt()
+            -(-distance_squared).sqrt()
         }
     }
 
