@@ -71,6 +71,65 @@ pub fn circular_path_outside_1() {
 }
 
 #[test]
+pub fn circular_path_inside_1() {
+    let width    = 256;
+    let height   = 256;
+
+    let center_x = 128.0;
+    let center_y = 128.0;
+    let radius   = 80.0;
+
+    // Create a circular distance field
+    let circle = MarchingParabolaDistanceField::from_intercepts(width, height, circle_intercepts(center_y, center_x, radius), circle_intercepts(center_x, center_y, radius));
+
+    // Check the outside distances are accurate to within 1 pixel
+    let mut num_greater_than_1   = 0;
+    let mut num_greater_than_0_5 = 0;
+    let mut num_greater_than_0_1 = 0;
+    let mut num_wrong_sign       = 0;
+
+    for y in 0..height {
+        for x in 0..width {
+            let val = circle.distance_at_point(ContourPosition(x, y));
+
+            let x = x as f64;
+            let y = y as f64;
+            let x = x - center_x;
+            let y = y - center_y;
+            let to_center = (x*x + y*y).sqrt();
+
+            if to_center < radius {
+                let expected = (to_center - radius).abs();
+
+                if val > 0.0 || (val == 0.0 && expected != 0.0) {
+                    num_wrong_sign += 1;
+                }
+
+                if (expected - val.abs()).abs() >= 1.0 {
+                    num_greater_than_1 += 1;
+                }
+
+                if (expected - val.abs()).abs() >= 0.5 {
+                    num_greater_than_0_5 += 1;
+                }
+
+                if (expected - val.abs()).abs() >= 0.1 {
+                    num_greater_than_0_1 += 1;
+                }
+            }
+        }
+    }
+
+    println!("> 0.1 = {}", num_greater_than_0_1);
+    println!("> 0.5 = {}", num_greater_than_0_5);
+    println!("> 1.0 = {}", num_greater_than_1);
+    println!("wrong sign = {}", num_wrong_sign);
+    assert!(num_greater_than_1 == 0);
+    assert!(num_greater_than_0_5 == 0);
+    assert!(num_wrong_sign == 0);
+}
+
+#[test]
 pub fn rectangle_path_1() {
     // Single rectangle path
     let rectangle = MarchingParabolaDistanceField::from_intercepts(128, 128, 
