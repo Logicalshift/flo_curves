@@ -150,7 +150,7 @@ pub fn rectangle_path_1() {
 
     assert!((rectangle.distance_at_point(ContourPosition(50, 41)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 41)));
     assert!((rectangle.distance_at_point(ContourPosition(50, 42)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 42)));
-    assert!((rectangle.distance_at_point(ContourPosition(50, 20)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 2)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
 }
 
 #[test]
@@ -174,7 +174,7 @@ pub fn rectangle_path_2() {
 
     assert!((rectangle.distance_at_point(ContourPosition(50, 41)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 41)));
     assert!((rectangle.distance_at_point(ContourPosition(50, 42)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 42)));
-    assert!((rectangle.distance_at_point(ContourPosition(50, 20)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
+    assert!((rectangle.distance_at_point(ContourPosition(50, 2)) - 0.0).abs() < 0.01, "{} != 0.0", rectangle.distance_at_point(ContourPosition(20, 20)));
     assert!((rectangle.distance_at_point(ContourPosition(50, 79)) - 1.0).abs() < 0.01, "{} != 1.0", rectangle.distance_at_point(ContourPosition(20, 79)));
     assert!((rectangle.distance_at_point(ContourPosition(50, 92)) - 2.0).abs() < 0.01, "{} != 2.0", rectangle.distance_at_point(ContourPosition(20, 92)));
 }
