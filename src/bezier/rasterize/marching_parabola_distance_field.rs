@@ -117,7 +117,7 @@ impl MarchingParabolaDistanceField {
                         } else {
                             Some(Parabola {
                                 xpos: x_pos as f64,
-                                ypos: *distance
+                                ypos: distance.abs()
                             })
                         }
                     })
