@@ -64,7 +64,7 @@ impl MarchingParabolaDistanceField {
                                 if let Some(next_intercept) = &following_intercept {
                                     let distance_2 = squared(ypos - next_intercept.start);
 
-                                    if distance_2 >= distance_1 {
+                                    if distance_2 <= distance_1 {
                                         // Move to the next intercept (next range is closer)
                                         current_intercept   = next_intercept.clone();
                                         following_intercept = intercepts.next();
