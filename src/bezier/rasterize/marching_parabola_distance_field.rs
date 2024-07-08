@@ -134,7 +134,9 @@ impl MarchingParabolaDistanceField {
                         ]),
                         |a, b| a.xpos < b.xpos),
                     (0..width).map(|x| x as f64))
-                .map(|DistanceSquared(distance)| distance);
+                .map(|DistanceSquared(distance)| distance)
+                .zip(input_row)
+                .map(|(val, original)| if original < &0.0 { -val } else { val });
 
             squared_distance_field.extend(marching_parabolas);
         }
