@@ -395,5 +395,5 @@ fn trace_chisel_paths() {
     let avg_error = total_error / (num_points as f64);
 
     debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})\n{}", max_error, avg_error, distance_field_as_string(&chisel_field));
-    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves\n{}", traced_chisel[0].to_curves::<Curve<_>>().len(), distance_field_as_string(&chisel_field));
 }
