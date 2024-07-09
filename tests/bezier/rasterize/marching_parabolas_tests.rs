@@ -67,6 +67,7 @@ pub fn circular_path_outside_1() {
 
     // Create a circular distance field
     let circle = MarchingParabolaDistanceField::from_intercepts(width, height, circle_intercepts(center_y, center_x, radius), circle_intercepts(center_x, center_y, radius));
+    println!("{}", distance_field_as_string(&circle));
 
     // Check the outside distances are accurate to within 1 pixel
     let mut num_greater_than_1   = 0;
