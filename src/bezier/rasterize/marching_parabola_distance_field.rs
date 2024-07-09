@@ -157,8 +157,8 @@ impl MarchingParabolaDistanceField {
         let contour = PathContour::from_path(path, ContourSize(width, height));
 
         Self::from_intercepts(width, height, 
-            |x| contour.intercepts_on_column(x).into_iter().map(|y| (y.start-y_origin)..(y.end-y_origin)), 
-            |y| contour.intercepts_on_line(y).into_iter().map(|x| (x.start-x_origin)..(x.end-x_origin)))
+            |x| contour.intercepts_on_column(x).into_iter().map(|y| (y.start-y_origin)..(y.end-y_origin)).sorted_by(|y1, y2| y1.start.total_cmp(&y2.start)), 
+            |y| contour.intercepts_on_line(y).into_iter().map(|x| (x.start-x_origin)..(x.end-x_origin)).sorted_by(|x1, x2| x1.start.total_cmp(&x2.start)))
     }
 
     ///
