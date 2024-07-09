@@ -6,6 +6,38 @@ use flo_curves::bezier::vectorize::*;
 
 use itertools::*;
 
+fn distance_field_as_string(field: &impl SampledSignedDistanceField) -> String {
+    let mut result = String::new();
+
+    for y in 0..field.field_size().0 {
+        for x in 0..field.field_size().1 {
+            let distance = field.distance_at_point(ContourPosition(x, y));
+
+            let symbol = if distance <= 0.0 {
+                '#'
+            } else if distance < 1.0 {
+                '@'
+            } else if distance < 2.0 {
+                '*'
+            } else if distance < 3.0 {
+                '|'
+            } else if distance < 4.0 {
+                '-'
+            } else if distance < 10.0 {
+                '.'
+            } else {
+                ' '
+            };
+
+            result.push(symbol);
+        }
+
+        result.push('\n');
+    }
+
+    result
+}
+
 #[test]
 fn corners_are_outside() {
     let radius          = 300.0;
@@ -274,7 +306,7 @@ fn trace_chisel_paths() {
     let (chisel_field, offset)  = PathDistanceField::center_path(vec![chisel.clone()], 4);
     let traced_chisel           = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
 
-    debug_assert!(traced_chisel.len() == 1);
+    debug_assert!(traced_chisel.len() == 1, "{}", distance_field_as_string(&chisel_field));
 
     let mut num_points  = 0;
     let mut max_error   = 0.0f64;
@@ -294,12 +326,12 @@ fn trace_chisel_paths() {
             max_error   = max_error.max(nearest_distance);
             total_error += nearest_distance;
 
-            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}", num_points, nearest_distance);
+            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}\n{}", num_points, nearest_distance, distance_field_as_string(&chisel_field));
         }
     }
 
     let avg_error = total_error / (num_points as f64);
 
-    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})", max_error, avg_error);
-    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
+    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})\n{}", max_error, avg_error, distance_field_as_string(&chisel_field));
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves\n{}", traced_chisel[0].to_curves::<Curve<_>>().len(), distance_field_as_string(&chisel_field));
 }
