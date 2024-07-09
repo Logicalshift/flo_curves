@@ -11,8 +11,8 @@ use std::ops::{Range};
 fn distance_field_as_string(field: &impl SampledSignedDistanceField) -> String {
     let mut result = String::new();
 
-    for y in 0..field.field_size().0 {
-        for x in 0..field.field_size().1 {
+    for y in 0..field.field_size().1 {
+        for x in 0..field.field_size().0 {
             let distance = field.distance_at_point(ContourPosition(x, y));
 
             let symbol = if distance <= 0.0 {
