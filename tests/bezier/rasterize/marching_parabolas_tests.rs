@@ -1,6 +1,44 @@
-use flo_curves::bezier::{rasterize::*, vectorize::{ContourPosition, SampledSignedDistanceField}};
+use flo_curves::arc::*;
+use flo_curves::bezier::*;
+use flo_curves::bezier::path::*;
+use flo_curves::bezier::rasterize::*;
+use flo_curves::bezier::vectorize::*;
+
+use itertools::*;
 
 use std::ops::{Range};
+
+fn distance_field_as_string(field: &impl SampledSignedDistanceField) -> String {
+    let mut result = String::new();
+
+    for y in 0..field.field_size().0 {
+        for x in 0..field.field_size().1 {
+            let distance = field.distance_at_point(ContourPosition(x, y));
+
+            let symbol = if distance <= 0.0 {
+                '#'
+            } else if distance < 1.0 {
+                '@'
+            } else if distance < 2.0 {
+                '*'
+            } else if distance < 3.0 {
+                '|'
+            } else if distance < 4.0 {
+                '-'
+            } else if distance < 10.0 {
+                '.'
+            } else {
+                ' '
+            };
+
+            result.push(symbol);
+        }
+
+        result.push('\n');
+    }
+
+    result
+}
 
 fn circle_intercepts(center_x: f64, center_y: f64, radius: f64) -> impl Fn(f64) -> Vec<Range<f64>> {
     move |xpos| {
@@ -201,4 +239,160 @@ pub fn multiple_intercepts_in_one_pixel_1() {
         });
 
     assert!((weird_rectangle.distance_at_point(ContourPosition(20, 43)) - 0.8).abs() < 0.01, "{} != 0.8", weird_rectangle.distance_at_point(ContourPosition(20, 43)));
+}
+
+#[test]
+fn trace_circle() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = MarchingParabolaDistanceField::from_path_region(0.0, 0.0, 1000, 1000, vec![circle_path.clone()]);
+    let traced_circle   = trace_paths_from_distance_field::<SimpleBezierPath>(&circle_field, 0.1);
+
+    debug_assert!(traced_circle.len() == 1);
+
+    // Test against the ideal circle
+    let mut num_points = 0;
+    for curve in traced_circle[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+
+            let distance    = point.distance_to(&Coord2(501.0, 501.0));
+
+            debug_assert!((distance - radius) < 0.2, "Point #{} at distance {:?}", num_points, distance);
+        }
+    }
+
+    // Test against the actual path
+    let mut num_points = 0;
+    for curve in traced_circle[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+            let point       = point - Coord2(1.0, 1.0);
+
+            let nearest_distance = circle_path.to_curves::<Curve<_>>().into_iter()
+                .map(|curve| curve.distance_to(&point))
+                .reduce(|d1, d2| d1.min(d2))
+                .unwrap();
+
+            debug_assert!(nearest_distance.abs() < 0.1, "Point #{} at distance {:?}", num_points, nearest_distance);
+        }
+    }
+
+    debug_assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 32, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
+}
+
+#[test]
+fn trace_chisel_contours() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let (chisel_field, ox, oy)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+    let traced_chisel           = trace_contours_from_distance_field::<Coord2>(&chisel_field);
+    let offset                  = Coord2(ox, oy);
+
+    debug_assert!(traced_chisel.len() == 1, "Generated {} paths in the result\n{}", traced_chisel.len(), distance_field_as_string(&chisel_field));
+
+    let mut num_points  = 0;
+    let mut max_error   = 0.0f64;
+    let mut total_error = 0.0f64;
+    let mut error_count = 0;
+    for point in traced_chisel[0].iter().copied() {
+        num_points += 1;
+
+        let point = point + offset - Coord2(1.0, 1.0);
+
+        let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
+            .map(|curve| curve.distance_to(&point))
+            .reduce(|d1, d2| d1.min(d2))
+            .unwrap()
+            .abs();
+        max_error   = max_error.max(nearest_distance);
+        total_error += nearest_distance;
+
+        if nearest_distance > 0.1 {
+            error_count += 1;
+        }
+    }
+
+    let avg_error = total_error / (num_points as f64);
+
+    debug_assert!(max_error < 0.1, "Max error was {} (average {}, num >0.1 {}/{})", max_error, avg_error, error_count, num_points);
+}
+
+#[test]
+fn chisel_no_very_close_points() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+    let (chisel_field, _, _) = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+
+    let chisel_points = trace_contours_from_distance_field::<Coord2>(&chisel_field);
+    assert!(chisel_points.len() > 0);
+
+    for subpath in chisel_points {
+        for (p1, p2) in subpath.iter().tuple_windows() {
+            let distance = p1.distance_to(p2);
+
+            assert!(distance > 0.1, "{:?} {:?} are very close", p1, p2);
+            assert!(distance < 2.0, "{:?} {:?} are very far apart", p1, p2);
+        }
+    }
+}
+
+#[test]
+fn trace_chisel_paths() {
+    let chisel = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(0.0, 0.0))
+        .line_to(Coord2(12.0, 36.0))
+        .line_to(Coord2(36.0, 48.0))
+        .line_to(Coord2(24.0, 12.0))
+        .line_to(Coord2(0.0, 0.0))
+        .build();
+
+    let (chisel_field, ox, oy)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+    let traced_chisel           = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
+    let offset                  = Coord2(ox, oy);
+
+    debug_assert!(traced_chisel.len() == 1, "Generated {} paths in the result\n{}", traced_chisel.len(), distance_field_as_string(&chisel_field));
+
+    let mut num_points  = 0;
+    let mut max_error   = 0.0f64;
+    let mut total_error = 0.0f64;
+    for curve in traced_chisel[0].to_curves::<Curve<_>>() {
+        for t in 0..100 {
+            num_points += 1;
+
+            let t           = (t as f64) / 100.0;
+            let point       = curve.point_at_pos(t);
+            let point       = point + offset - Coord2(1.0, 1.0);
+
+            let nearest_distance = chisel.to_curves::<Curve<_>>().into_iter()
+                .map(|curve| curve.distance_to(&point))
+                .reduce(|d1, d2| d1.min(d2))
+                .unwrap();
+            max_error   = max_error.max(nearest_distance);
+            total_error += nearest_distance;
+
+            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}\n{}", num_points, nearest_distance, distance_field_as_string(&chisel_field));
+        }
+    }
+
+    let avg_error = total_error / (num_points as f64);
+
+    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})\n{}", max_error, avg_error, distance_field_as_string(&chisel_field));
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
 }
