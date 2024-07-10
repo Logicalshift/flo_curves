@@ -166,7 +166,7 @@ impl MarchingParabolaDistanceField {
     ///
     /// This will calculate the bounds of the path. The two f64 values are the x and y coordinates of the origin of the resulting distance field
     ///
-    pub fn from_path(path: Vec<impl 'static + BezierPath<Point=impl Coordinate+Coordinate2D>>) -> (Self, f64, f64) {
+    pub fn from_path(path: Vec<impl 'static + BezierPath<Point=impl Coordinate+Coordinate2D>>) -> (Self, Coord2) {
         // Compute the bounding box of the path
         let bounds = path.iter()
             .map(|p| p.bounding_box::<Bounds<_>>())
@@ -179,7 +179,7 @@ impl MarchingParabolaDistanceField {
         let width    = (bounds.max().x() - origin_x).ceil() + 4.0;
         let height   = (bounds.max().y() - origin_y).ceil() + 4.0;
 
-        (Self::from_path_region(origin_x, origin_y, width as _, height as _, path), origin_x, origin_y)
+        (Self::from_path_region(origin_x, origin_y, width as _, height as _, path), Coord2(origin_x, origin_y))
     }
 
     ///

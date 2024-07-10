@@ -299,9 +299,8 @@ fn trace_chisel_contours() {
         .line_to(Coord2(0.0, 0.0))
         .build();
 
-    let (chisel_field, ox, oy)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+    let (chisel_field, offset)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
     let traced_chisel           = trace_contours_from_distance_field::<Coord2>(&chisel_field);
-    let offset                  = Coord2(ox, oy);
 
     debug_assert!(traced_chisel.len() == 1, "Generated {} paths in the result\n{}", traced_chisel.len(), distance_field_as_string(&chisel_field));
 
@@ -340,7 +339,7 @@ fn chisel_no_very_close_points() {
         .line_to(Coord2(24.0, 12.0))
         .line_to(Coord2(0.0, 0.0))
         .build();
-    let (chisel_field, _, _) = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+    let (chisel_field, _) = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
 
     let chisel_points = trace_contours_from_distance_field::<Coord2>(&chisel_field);
     assert!(chisel_points.len() > 0);
@@ -364,9 +363,8 @@ fn trace_chisel_paths() {
         .line_to(Coord2(0.0, 0.0))
         .build();
 
-    let (chisel_field, ox, oy)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
+    let (chisel_field, offset)  = MarchingParabolaDistanceField::from_path(vec![chisel.clone()]);
     let traced_chisel           = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
-    let offset                  = Coord2(ox, oy);
 
     debug_assert!(traced_chisel.len() == 1, "Generated {} paths in the result\n{}", traced_chisel.len(), distance_field_as_string(&chisel_field));
 
