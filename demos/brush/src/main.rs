@@ -274,9 +274,9 @@ fn draw_path_brush_stroke(gc: &mut (impl GraphicsPrimitives + GraphicsContext), 
     draw_path_outline(gc, preview, Color::Rgba(0.4, 0.85, 1.0, 1.0), Color::Rgba(0.1, 0.1, 0.1, 1.0));
 
     // Create a brush from the path
-    let (field, _)  = PathDistanceField::center_path(brush_head, 4);
-    let brush       = ScaledBrush::from_distance_field(&field);
-    let brush       = &brush;
+    let (field, _, _) = MarchingParabolaDistanceField::from_path(brush_head);
+    let brush         = ScaledBrush::from_distance_field(&field);
+    let brush         = &brush;
 
     // Use the brush to create a brush stroke path
     let brush_stroke_path = brush_stroke_from_path_intercepts::<SimpleBezierPath, _, _>(&brush, &brush_stroke, 0.5, 0.5);
