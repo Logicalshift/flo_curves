@@ -123,7 +123,7 @@ fn inside_point_distances() {
 }
 
 #[test]
-fn nearby_point_distances() {
+fn nearby_point_distances_outer() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
@@ -135,7 +135,7 @@ fn nearby_point_distances() {
             let field_distance  = circle_field.distance_at_point(ContourPosition(x, y));
             let to_center       = Coord2(x as _, y as _).distance_to(&center);
 
-            if field_distance.abs() < 1.0 {
+            if field_distance.abs() < 2.0 && field_distance > 0.0 {
                 let path_distance = circle_path.to_curves::<Curve<_>>()
                     .into_iter()
                     .map(|curve| curve.nearest_point(&Coord2(x as _, y as _)))
@@ -143,7 +143,34 @@ fn nearby_point_distances() {
                     .reduce(f64::min)
                     .unwrap();
 
-                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {})", x, y, field_distance, path_distance, to_center - radius);
+                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
+            }
+        }
+    }
+}
+
+#[test]
+fn nearby_point_distances_inner() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
+
+    for y in 0..1000 {
+        for x in 0..1000 {
+            let field_distance  = circle_field.distance_at_point(ContourPosition(x, y));
+            let to_center       = Coord2(x as _, y as _).distance_to(&center);
+
+            if field_distance.abs() < 2.0 && field_distance < 0.0 {
+                let path_distance = circle_path.to_curves::<Curve<_>>()
+                    .into_iter()
+                    .map(|curve| curve.nearest_point(&Coord2(x as _, y as _)))
+                    .map(|nearest| nearest.distance_to(&Coord2(x as _, y as _)))
+                    .reduce(f64::min)
+                    .unwrap();
+
+                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
             }
         }
     }
