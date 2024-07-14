@@ -76,7 +76,7 @@ where
         let low_x   = x.floor();
         let low_y   = y.floor();
 
-        if self.scale_factor >= 1.0 {
+        if self.scale_factor >= 1.0 && false {
             // Read the position without interpolating/resampling
             self.distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _))
         } else {
