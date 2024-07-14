@@ -131,6 +131,7 @@ fn trace_circle_and_a_half() {
     let traced_circle   = trace_paths_from_distance_field::<SimpleBezierPath>(&bigger_field, 0.1);
 
     assert!(traced_circle.len() == 1);
+    assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 256, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 
     let mut num_points = 0;
     for curve in traced_circle[0].to_curves::<Curve<_>>() {
@@ -140,7 +141,7 @@ fn trace_circle_and_a_half() {
             let t           = (t as f64) / 100.0;
             let point       = curve.point_at_pos(t);
 
-            let distance    = point.distance_to(&Coord2(751.0, 751.0));
+            let distance    = point.distance_to(&Coord2(500.0 * 1.5, 500.0 * 1.5));
 
             assert!((distance - (radius*1.5)) < 1.0, "Point #{} at distance {:?}", num_points, distance);
         }
