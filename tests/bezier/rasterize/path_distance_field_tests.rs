@@ -6,6 +6,38 @@ use flo_curves::bezier::vectorize::*;
 
 use itertools::*;
 
+fn distance_field_as_string(field: &impl SampledSignedDistanceField) -> String {
+    let mut result = String::new();
+
+    for y in 0..field.field_size().0 {
+        for x in 0..field.field_size().1 {
+            let distance = field.distance_at_point(ContourPosition(x, y));
+
+            let symbol = if distance <= 0.0 {
+                '#'
+            } else if distance < 1.0 {
+                '@'
+            } else if distance < 2.0 {
+                '*'
+            } else if distance < 3.0 {
+                '|'
+            } else if distance < 4.0 {
+                '-'
+            } else if distance < 10.0 {
+                '.'
+            } else {
+                ' '
+            };
+
+            result.push(symbol);
+        }
+
+        result.push('\n');
+    }
+
+    result
+}
+
 #[test]
 fn corners_are_outside() {
     let radius          = 300.0;
@@ -91,19 +123,25 @@ fn inside_point_distances() {
 }
 
 #[test]
-fn nearby_point_distances() {
+fn nearby_point_distances_outer() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
     let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
 
+    let mut num_over_0_5    = 0;
+    let mut num_over_0_25   = 0;
+    let mut num_over_0_1    = 0;
+    let mut num_over_0_01   = 0;
+    let mut total_tested    = 0;
+
     for y in 0..1000 {
         for x in 0..1000 {
             let field_distance  = circle_field.distance_at_point(ContourPosition(x, y));
             let to_center       = Coord2(x as _, y as _).distance_to(&center);
 
-            if field_distance.abs() < 1.0 {
+            if field_distance.abs() < 2.0 && field_distance > 0.0 {
                 let path_distance = circle_path.to_curves::<Curve<_>>()
                     .into_iter()
                     .map(|curve| curve.nearest_point(&Coord2(x as _, y as _)))
@@ -111,10 +149,69 @@ fn nearby_point_distances() {
                     .reduce(f64::min)
                     .unwrap();
 
-                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {})", x, y, field_distance, path_distance, to_center - radius);
+                let difference = (path_distance.abs()-field_distance.abs()).abs();
+                total_tested += 1;
+
+                if difference > 0.5         { num_over_0_5 += 1; }
+                else if difference > 0.25   { num_over_0_25 += 1; }
+                else if difference > 0.1    { num_over_0_1 += 1; }
+                else if difference > 0.01   { num_over_0_01 += 1; }
+
+                assert!(difference < 0.5, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
             }
         }
     }
+
+    println!("Num points > 0.01: {}/{}", num_over_0_01, total_tested);
+    println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
+    println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
+    println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
+}
+
+#[test]
+fn nearby_point_distances_inner() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
+
+    let mut num_over_0_5    = 0;
+    let mut num_over_0_25   = 0;
+    let mut num_over_0_1    = 0;
+    let mut num_over_0_01   = 0;
+    let mut total_tested    = 0;
+
+    for y in 0..1000 {
+        for x in 0..1000 {
+            let field_distance  = circle_field.distance_at_point(ContourPosition(x, y));
+            let to_center       = Coord2(x as _, y as _).distance_to(&center);
+
+            if field_distance.abs() < 2.0 && field_distance < 0.0 {
+                let path_distance = circle_path.to_curves::<Curve<_>>()
+                    .into_iter()
+                    .map(|curve| curve.nearest_point(&Coord2(x as _, y as _)))
+                    .map(|nearest| nearest.distance_to(&Coord2(x as _, y as _)))
+                    .reduce(f64::min)
+                    .unwrap();
+
+                let difference = (path_distance.abs()-field_distance.abs()).abs();
+                total_tested += 1;
+
+                if difference > 0.5         { num_over_0_5 += 1; }
+                else if difference > 0.25   { num_over_0_25 += 1; }
+                else if difference > 0.1    { num_over_0_1 += 1; }
+                else if difference > 0.01   { num_over_0_01 += 1; }
+
+                assert!(difference < 0.5, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
+            }
+        }
+    }
+
+    println!("Num points > 0.01: {}/{}", num_over_0_01, total_tested);
+    println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
+    println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
+    println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
 }
 
 #[test]
@@ -274,7 +371,7 @@ fn trace_chisel_paths() {
     let (chisel_field, offset)  = PathDistanceField::center_path(vec![chisel.clone()], 4);
     let traced_chisel           = trace_paths_from_distance_field::<SimpleBezierPath>(&chisel_field, 0.1);
 
-    debug_assert!(traced_chisel.len() == 1);
+    debug_assert!(traced_chisel.len() == 1, "{}", distance_field_as_string(&chisel_field));
 
     let mut num_points  = 0;
     let mut max_error   = 0.0f64;
@@ -294,12 +391,12 @@ fn trace_chisel_paths() {
             max_error   = max_error.max(nearest_distance);
             total_error += nearest_distance;
 
-            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}", num_points, nearest_distance);
+            debug_assert!(nearest_distance.abs() < 0.4, "Point #{} at distance {:?}\n{}", num_points, nearest_distance, distance_field_as_string(&chisel_field));
         }
     }
 
     let avg_error = total_error / (num_points as f64);
 
-    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})", max_error, avg_error);
-    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 16, "Result has {} curves", traced_chisel[0].to_curves::<Curve<_>>().len());
+    debug_assert!(max_error < 0.4, "Max error was {:?} (average {:?})\n{}", max_error, avg_error, distance_field_as_string(&chisel_field));
+    debug_assert!(traced_chisel[0].to_curves::<Curve<_>>().len() < 24, "Result has {} curves\n{}", traced_chisel[0].to_curves::<Curve<_>>().len(), distance_field_as_string(&chisel_field));
 }

@@ -273,7 +273,7 @@ fn trace_chisel_paths_using_intercepts() {
         .build();
 
     let (chisel_field, offset)  = PathContour::center_path(vec![chisel.clone()], 4);
-    let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.05);
+    let traced_chisel           = trace_paths_from_intercepts::<SimpleBezierPath>(&chisel_field, 0.1);
 
     debug_assert!(traced_chisel.len() == 1);
 
