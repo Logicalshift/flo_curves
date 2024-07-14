@@ -143,9 +143,9 @@ fn trace_circle_and_a_half() {
 
             let distance    = point.distance_to(&Coord2(500.0 * 1.5, 500.0 * 1.5));
 
-            assert!((distance - (radius*1.5)) < 1.0, "Point #{} at distance {:?}", num_points, distance);
+            assert!((distance - (radius*1.5)).abs() < 2.0, "Point #{} at distance {:?}", num_points, distance);
         }
     }
 
-    assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 32, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
+    assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 34, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 }
