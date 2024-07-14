@@ -78,6 +78,7 @@ where
 
         if self.scale_factor >= 1.0 && false {
             // Read the position without interpolating/resampling
+            // TODO: actually, want to use mip-mapping or similar when the scale factor is less than 1.0
             self.distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _))
         } else {
             // We want to read the distance between the low and high positions
