@@ -166,7 +166,6 @@ fn nearby_point_distances_outer() {
     println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
     println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
     println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
-    assert!(false);
 }
 
 #[test]
@@ -213,7 +212,6 @@ fn nearby_point_distances_inner() {
     println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
     println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
     println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
-    assert!(false);
 }
 
 #[test]
