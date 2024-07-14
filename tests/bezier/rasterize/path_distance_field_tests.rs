@@ -130,6 +130,12 @@ fn nearby_point_distances_outer() {
 
     let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
 
+    let mut num_over_0_5    = 0;
+    let mut num_over_0_25   = 0;
+    let mut num_over_0_1    = 0;
+    let mut num_over_0_01   = 0;
+    let mut total_tested    = 0;
+
     for y in 0..1000 {
         for x in 0..1000 {
             let field_distance  = circle_field.distance_at_point(ContourPosition(x, y));
@@ -143,10 +149,24 @@ fn nearby_point_distances_outer() {
                     .reduce(f64::min)
                     .unwrap();
 
-                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
+                let difference = (path_distance.abs()-field_distance.abs()).abs();
+                total_tested += 1;
+
+                if difference > 0.5         { num_over_0_5 += 1; }
+                else if difference > 0.25   { num_over_0_25 += 1; }
+                else if difference > 0.1    { num_over_0_1 += 1; }
+                else if difference > 0.01   { num_over_0_01 += 1; }
+
+                assert!(difference < 0.5, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
             }
         }
     }
+
+    println!("Num points > 0.01: {}/{}", num_over_0_01, total_tested);
+    println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
+    println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
+    println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
+    assert!(false);
 }
 
 #[test]
@@ -156,6 +176,12 @@ fn nearby_point_distances_inner() {
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
     let circle_field    = PathDistanceField::from_path(vec![circle_path.clone()], ContourSize(1000, 1000));
+
+    let mut num_over_0_5    = 0;
+    let mut num_over_0_25   = 0;
+    let mut num_over_0_1    = 0;
+    let mut num_over_0_01   = 0;
+    let mut total_tested    = 0;
 
     for y in 0..1000 {
         for x in 0..1000 {
@@ -170,10 +196,24 @@ fn nearby_point_distances_inner() {
                     .reduce(f64::min)
                     .unwrap();
 
-                assert!((path_distance.abs()-field_distance.abs()).abs() < 0.1, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
+                let difference = (path_distance.abs()-field_distance.abs()).abs();
+                total_tested += 1;
+
+                if difference > 0.5         { num_over_0_5 += 1; }
+                else if difference > 0.25   { num_over_0_25 += 1; }
+                else if difference > 0.1    { num_over_0_1 += 1; }
+                else if difference > 0.01   { num_over_0_01 += 1; }
+
+                assert!(difference < 0.5, "Point ({}, {}) has a distance of {} in the field but closest point has distance {} (perfect distance is {}, difference {})", x, y, field_distance, path_distance, to_center - radius, (path_distance.abs()-field_distance.abs()).abs());
             }
         }
     }
+
+    println!("Num points > 0.01: {}/{}", num_over_0_01, total_tested);
+    println!("Num points > 0.1: {}/{}", num_over_0_1, total_tested);
+    println!("Num points > 0.25: {}/{}", num_over_0_25, total_tested);
+    println!("Num points > 0.5: {}/{}", num_over_0_5, total_tested);
+    assert!(false);
 }
 
 #[test]
