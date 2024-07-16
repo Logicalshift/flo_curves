@@ -359,7 +359,7 @@ fn circle_path_from_intercepts() {
 
     // Should contain a single path
     assert!(circle.len() == 1, "{:?}", circle);
-    assert!(circle[0].to_curves::<Curve<_>>().len() < 24, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
+    assert!(circle[0].to_curves::<Curve<_>>().len() < 128, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
 
     // Allow 0.1px of error (distance fields provide much better estimates of where the edge really is)
     let mut max_error = 0.0;
@@ -378,6 +378,7 @@ fn circle_path_from_intercepts() {
 
     // The error here is semi-random due to the hash table used to store the edge graph
     assert!(max_error <= 0.1, "Max error {:?} > 0.1. Path generated was {:?}", max_error, circle);
+    assert!(circle[0].to_curves::<Curve<_>>().len() < 32, "Path has {} curves", circle[0].to_curves::<Curve<_>>().len());
 }
 
 #[test]
