@@ -175,8 +175,21 @@ fn find_intersection_on_line_end_to_start_2() {
 }
 
 #[test]
-fn find_intersection_on_straight_line_near_end() {
+fn find_intersection_on_straight_line_near_start() {
     // Intersection at the start of two curves
+    let curve1  = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(4.9, 5.1), Coord2(10.0, 10.0)));
+    let curve2  = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(5.1, 4.9), Coord2(0.0, 10.0)));
+
+    let intersections   = bezier::curve_intersects_curve_clip(&curve1, &curve2, 0.01);
+    println!("{:?} {:?}", intersections, intersections.iter().map(|(t1, t2)| (curve1.point_at_pos(*t1), curve2.point_at_pos(*t2))).collect::<Vec<_>>());
+
+    assert!(intersections.len() != 0);
+    assert!(intersections.len() == 1);
+}
+
+#[test]
+fn find_intersection_on_straight_line_near_end() {
+    // Intersection at the end of two curves
     let curve1  = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(10.0, 10.0), Coord2(4.9, 5.1)));
     let curve2  = line::line_to_bezier::<bezier::Curve<_>>(&(Coord2(0.0, 10.0), Coord2(5.100000001, 4.9)));
 
