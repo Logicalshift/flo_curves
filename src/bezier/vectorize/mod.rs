@@ -9,6 +9,7 @@ mod contour_edges_by_scanline;
 mod brush_stroke;
 mod intercept_scan_edge_iterator;
 mod scaled_contour;
+mod mip_map_distance_field;
 mod scaled_distance_field;
 mod scaled_brush;
 
@@ -23,5 +24,6 @@ pub use contour_edges_by_scanline::*;
 pub use brush_stroke::*;
 pub use intercept_scan_edge_iterator::*;
 pub use scaled_contour::*;
+pub use mip_map_distance_field::*;
 pub use scaled_distance_field::*;
 pub use scaled_brush::*;
