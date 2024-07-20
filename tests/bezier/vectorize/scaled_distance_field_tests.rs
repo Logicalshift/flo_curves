@@ -55,7 +55,7 @@ fn trace_half_circle() {
 
             let distance    = point.distance_to(&Coord2(251.0, 251.0));
 
-            assert!((distance - (radius/2.0)) < 0.3, "Point #{} at distance {:?}", num_points, distance);
+            assert!((distance - (radius/2.0)) < 0.3, "Point #{} at distance {:?} ({:?})", num_points, distance, (distance - (radius/2.0)));
         }
     }
 
