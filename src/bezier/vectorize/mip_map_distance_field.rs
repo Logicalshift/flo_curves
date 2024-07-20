@@ -44,6 +44,20 @@ impl DistanceFieldMipLevel {
                 .chunks(self.width)
                 .map(|row| row.iter().copied()))
     }
+
+    ///
+    /// Reads the distance at a point in this mip-map field
+    ///
+    #[inline]
+    pub fn distance_at_point(&self, ContourPosition(x, y): ContourPosition) -> f64 {
+        if x >= self.width {
+            1e20
+        } else if let Some(distance) = self.distances.get(x + y*self.width) {
+            *distance
+        } else {
+            1e20
+        }
+    }
 }
 
 ///
