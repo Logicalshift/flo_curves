@@ -1,26 +1,18 @@
 use super::column_sampled_contour::*;
 use super::distance_field::*;
-use super::mip_map_distance_field::*;
 use super::sampled_contour::*;
 use super::scaled_contour::*;
 
 use smallvec::*;
 
 use std::ops::{Range};
-use std::sync::*;
 
 ///
 /// A distance field that uses bilinear filtering in order to adjust its size by a scale factor
 ///
 pub struct ScaledDistanceField<TDistanceField> {
     /// The distance field that is being scaled
-    distance_field: Arc<MipMapDistanceField<TDistanceField>>,
-
-    /// The mip-map level to use for the distance field
-    mip_level: Option<Arc<DistanceFieldMipLevel>>,
-
-    /// Scale factor for the mip-map, when that's in use
-    mip_scale_factor: f64,
+    distance_field: TDistanceField,
 
     /// The scale factor to apply to the source distance field
     scale_factor: f64,
@@ -60,19 +52,9 @@ where
     /// Creates scaled version of another distance field
     ///
     #[inline]
-    pub fn from_distance_field(distance_field: impl Into<MipMapDistanceField<TDistanceField>>, scale_factor: f64, offset: (f64, f64)) -> Self {
-        Self::from_mip_map(Arc::new(distance_field.into()), scale_factor, offset)
-    }
-
-    ///
-    /// Creates scaled version of another distance field
-    ///
-    /// This can be used if a distance field needs to be scaled many times, as the mip-map will be cached and shared between the different usages
-    ///
-    #[inline]
-    pub fn from_mip_map(distance_field: Arc<MipMapDistanceField<TDistanceField>>, scale_factor: f64, offset: (f64, f64)) -> Self {
+    pub fn from_distance_field(distance_field: TDistanceField, scale_factor: f64, offset: (f64, f64)) -> Self {
         // Multiply the original size by the scale factor to get the new size
-        let ContourSize(width, height)  = distance_field.top_level_distance_field().field_size();
+        let ContourSize(width, height)  = distance_field.field_size();
 
         let width   = (width as f64) * scale_factor + offset.0;
         let height  = (height as f64) * scale_factor + offset.1;
@@ -84,17 +66,7 @@ where
         // The offset is added to the position to allow for aligning the distance field to non-integer grids (eg, when this is used as a brush)
         let (offset_x, offset_y) = offset;
 
-        // The mip level depends on the scale factor
-        let (mip_level, mip_scale_factor) = if scale_factor <= 0.5 {
-            let mip_level           = mip_level_for_scale_factor(scale_factor)-1;
-            let mip_scale_factor    = scale_factor * 2.0f64.powi((mip_level + 1) as _);
-
-            (Some(distance_field.mip_level(mip_level)), mip_scale_factor)
-        } else {
-            (None, scale_factor)
-        };
-
-        ScaledDistanceField { distance_field, mip_level, mip_scale_factor, scale_factor, size, offset_x, offset_y }
+        ScaledDistanceField { distance_field, scale_factor, size, offset_x, offset_y }
     }
 }
 
@@ -116,60 +88,31 @@ where
         let x = x as f64 - self.offset_x;
         let y = y as f64 - self.offset_y;
 
-        if self.scale_factor <= 0.5 && false {
-            // Use the mip-map to compute the position
-            let mip_map = self.mip_level.as_ref().unwrap();
+        let distance_field = &self.distance_field;
 
-            // Scale the x & y positions
-            let x = x / self.mip_scale_factor;
-            let y = y / self.mip_scale_factor;
+        // Scale the x & y positions
+        let x = x / self.scale_factor;
+        let y = y / self.scale_factor;
 
-            let low_x   = x.floor();
-            let low_y   = y.floor();
+        let low_x   = x.floor();
+        let low_y   = y.floor();
 
-            // We want to read the distance between the low and high positions
-            let high_x  = low_x + 1.0;
-            let high_y  = low_y + 1.0;
+        // We want to read the distance between the low and high positions
+        let high_x  = low_x + 1.0;
+        let high_y  = low_y + 1.0;
 
-            // Read the distances at the 4 corners
-            let distances = [
-                [mip_map.distance_at_point(ContourPosition(low_x as _, low_y as _)), mip_map.distance_at_point(ContourPosition(low_x as _, high_y as _))],
-                [mip_map.distance_at_point(ContourPosition(high_x as _, low_y as _)), mip_map.distance_at_point(ContourPosition(high_x as _, high_y as _))]
-            ];
+        // Read the distances at the 4 corners
+        let distances = [
+            [distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _)), distance_field.distance_at_point(ContourPosition(low_x as _, high_y as _))],
+            [distance_field.distance_at_point(ContourPosition(high_x as _, low_y as _)), distance_field.distance_at_point(ContourPosition(high_x as _, high_y as _))]
+        ];
 
-            // Interpolate the distances
-            let distance_x1 = ((high_x - x)/(high_x - low_x)) * distances[0][0] + ((x - low_x)/(high_x - low_x)) * distances[1][0];
-            let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
-            let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
+        // Interpolate the distances
+        let distance_x1 = ((high_x - x)/(high_x - low_x)) * distances[0][0] + ((x - low_x)/(high_x - low_x)) * distances[1][0];
+        let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
+        let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
 
-            distance * self.scale_factor
-        } else {
-            let distance_field = self.distance_field.top_level_distance_field();
-
-            // Scale the x & y positions
-            let x = x / self.scale_factor;
-            let y = y / self.scale_factor;
-
-            let low_x   = x.floor();
-            let low_y   = y.floor();
-
-            // We want to read the distance between the low and high positions
-            let high_x  = low_x + 1.0;
-            let high_y  = low_y + 1.0;
-
-            // Read the distances at the 4 corners
-            let distances = [
-                [distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _)), distance_field.distance_at_point(ContourPosition(low_x as _, high_y as _))],
-                [distance_field.distance_at_point(ContourPosition(high_x as _, low_y as _)), distance_field.distance_at_point(ContourPosition(high_x as _, high_y as _))]
-            ];
-
-            // Interpolate the distances
-            let distance_x1 = ((high_x - x)/(high_x - low_x)) * distances[0][0] + ((x - low_x)/(high_x - low_x)) * distances[1][0];
-            let distance_x2 = ((high_x - x)/(high_x - low_x)) * distances[0][1] + ((x - low_x)/(high_x - low_x)) * distances[1][1];
-            let distance    = ((high_y - y)/(high_y - low_y)) * distance_x1 + ((y - low_y)/(high_y - low_y)) * distance_x2;
-
-            distance * self.scale_factor
-        }
+        distance * self.scale_factor
     }
 
     #[inline]
