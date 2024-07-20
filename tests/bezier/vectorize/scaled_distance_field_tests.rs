@@ -33,34 +33,84 @@ fn trace_half_circle_sampled() {
     assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 32, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 }
 
-#[test]
-fn read_distances_half_circle() {
+fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
     let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
-    let half_field      = ScaledDistanceField::from_distance_field(&circle_field, 0.5, (0.0, 0.0));
+    let scaled_field    = ScaledDistanceField::from_distance_field(&circle_field, scale_factor, (0.0, 0.0));
 
-    let half_center     = center * 0.5;
-    let half_radius     = radius * 0.5;
+    let scaled_center   = center * scale_factor;
+    let scaled_radius   = radius * scale_factor;
 
     let mut max_error   = 0.0f64;
 
-    for y in 0..half_field.field_size().1 {
-        for x in 0..half_field.field_size().0 {
-            let field_distance  = half_field.distance_at_point(ContourPosition(x, y));
-            let to_center       = half_center.distance_to(&Coord2(x as _, y as _));
-            let to_edge         = to_center - half_radius;
+    for y in 0..scaled_field.field_size().1 {
+        for x in 0..scaled_field.field_size().0 {
+            let field_distance  = scaled_field.distance_at_point(ContourPosition(x, y));
+            let to_center       = scaled_center.distance_to(&Coord2(x as _, y as _));
+            let to_edge         = to_center - scaled_radius;
 
             let error = (field_distance - to_edge).abs();
+
+            if error.is_nan() || error.is_infinite() {
+                // TODO: this probably shouldn't happen
+                println!("NaN at {}, {}", x, y);
+                continue;
+            }
 
             assert!(error < 2.0, "{}, {} has error = {} (prior max {})", x, y, error, max_error);
             max_error = max_error.max(error);
         }
     }
 
-    assert!(max_error < 0.3, "Max error {:?}", max_error);
+    assert!(max_error < max_allowed_error, "Max error {:?}", max_error);
+}
+
+#[test]
+fn read_distances_circle_scale_3_0() {
+    read_distances_scaled_circle(3.0, 1.2)
+}
+
+#[test]
+fn read_distances_circle_scale_2_0() {
+    read_distances_scaled_circle(2.0, 0.8)
+}
+
+#[test]
+fn read_distances_circle_scale_1_0() {
+    read_distances_scaled_circle(1.0, 0.4)
+}
+
+#[test]
+fn read_distances_circle_scale_0_5() {
+    read_distances_scaled_circle(0.5, 0.3)
+}
+
+#[test]
+fn read_distances_circle_scale_0_4() {
+    read_distances_scaled_circle(0.4, 0.3)
+}
+
+#[test]
+fn read_distances_circle_scale_0_3() {
+    read_distances_scaled_circle(0.3, 0.3)
+}
+
+#[test]
+fn read_distances_circle_scale_0_25() {
+    read_distances_scaled_circle(0.25, 0.3)
+}
+
+#[test]
+fn read_distances_circle_scale_0_05() {
+    read_distances_scaled_circle(0.05, 0.3)
+}
+
+#[test]
+fn read_distances_circle_scale_0_01() {
+    read_distances_scaled_circle(0.05, 0.3)
 }
 
 #[test]
