@@ -56,11 +56,8 @@ fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
 
             let error = (field_distance - to_edge).abs();
 
-            if error.is_nan() || error.is_infinite() {
-                // TODO: this probably shouldn't happen
-                println!("NaN at {}, {}", x, y);
-                continue;
-            }
+            assert!(!error.is_nan());
+            assert!(!error.is_infinite());
 
             assert!(error < 2.0, "{}, {} has error = {} (prior max {})", x, y, error, max_error);
             max_error = max_error.max(error);

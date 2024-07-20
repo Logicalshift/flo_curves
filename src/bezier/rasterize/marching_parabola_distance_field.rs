@@ -213,8 +213,11 @@ impl SampledSignedDistanceField for MarchingParabolaDistanceField {
     }
 
     #[inline]
-    fn distance_at_point(&self, pos: ContourPosition) -> f64 {
-        let distance_squared = if pos.0 < self.width { self.squared_distance_field.get(pos.0 + pos.1 * self.width) } else { None };
+    fn distance_at_point(&self, ContourPosition(x, y): ContourPosition) -> f64 {
+        let x = if x >= self.width  { self.width-1 }  else { x };
+        let y = if y >= self.height { self.height-1 } else { y };
+
+        let distance_squared = self.squared_distance_field.get(x + y*self.width);
 
         if let Some(distance_squared) = distance_squared {
             if distance_squared >= &0.0 {
