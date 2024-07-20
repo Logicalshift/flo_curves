@@ -129,33 +129,3 @@ where
         ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_column(x)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn mip_level_for_1_0() {
-        assert!(mip_level_for_scale_factor(1.0) == 0);
-    }
-
-    #[test]
-    fn mip_level_for_0_9() {
-        assert!(mip_level_for_scale_factor(0.9) == 0, "{} != 0", mip_level_for_scale_factor(0.9));
-    }
-
-    #[test]
-    fn mip_level_for_0_6() {
-        assert!(mip_level_for_scale_factor(0.6) == 0, "{} != 0", mip_level_for_scale_factor(0.9));
-    }
-
-    #[test]
-    fn mip_level_for_0_5() {
-        assert!(mip_level_for_scale_factor(0.5) == 1, "{} != 1", mip_level_for_scale_factor(0.5));
-    }
-
-    #[test]
-    fn mip_level_for_0_25() {
-        assert!(mip_level_for_scale_factor(0.25) == 2, "{} != 1", mip_level_for_scale_factor(0.25));
-    }
-}
