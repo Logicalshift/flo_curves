@@ -16,6 +16,9 @@ pub struct ScaledDistanceField<TDistanceField> {
     /// The distance field that is being scaled
     distance_field: Arc<MipMapDistanceField<TDistanceField>>,
 
+    /// The mip-map level to use for the distance field
+    mip_level: Option<Arc<DistanceFieldMipLevel>>,
+
     /// The scale factor to apply to the source distance field
     scale_factor: f64,
 
@@ -27,6 +30,23 @@ pub struct ScaledDistanceField<TDistanceField> {
 
     /// The size of 
     size: ContourSize,
+}
+
+///
+/// Returns the mip level for a particular scale factor
+///
+fn mip_level_for_scale_factor(factor: f64) -> usize {
+    let pixel_step          = 1.0/factor;
+    let approx_pixel_step   = pixel_step.floor() as usize;
+
+    if approx_pixel_step == 0 {
+        0
+    } else {
+        // The mip level is the log2 of the pixel step
+        let level = approx_pixel_step.ilog2() as usize;
+
+        level
+    }
 }
 
 impl<TDistanceField> ScaledDistanceField<TDistanceField>
@@ -54,7 +74,14 @@ where
         // The offset is added to the position to allow for aligning the distance field to non-integer grids (eg, when this is used as a brush)
         let (offset_x, offset_y) = offset;
 
-        ScaledDistanceField { distance_field, scale_factor, size, offset_x, offset_y }
+        // The mip level depends on the scale factor
+        let mip_level = if scale_factor <= 0.5 {
+            Some(distance_field.mip_level(mip_level_for_scale_factor(scale_factor)-1))
+        } else {
+            None
+        };
+
+        ScaledDistanceField { distance_field, mip_level, scale_factor, size, offset_x, offset_y }
     }
 
     ///
@@ -77,7 +104,14 @@ where
         // The offset is added to the position to allow for aligning the distance field to non-integer grids (eg, when this is used as a brush)
         let (offset_x, offset_y) = offset;
 
-        ScaledDistanceField { distance_field, scale_factor, size, offset_x, offset_y }
+        // The mip level depends on the scale factor
+        let mip_level = if scale_factor <= 0.5 {
+            Some(distance_field.mip_level(mip_level_for_scale_factor(scale_factor)-1))
+        } else {
+            None
+        };
+
+        ScaledDistanceField { distance_field, mip_level, scale_factor, size, offset_x, offset_y }
     }
 }
 
@@ -104,7 +138,7 @@ where
         let low_x   = x.floor();
         let low_y   = y.floor();
 
-        if self.scale_factor < 1.0 && false {
+        if self.scale_factor <= 0.5 && false {
             // Read the position without interpolating/resampling
             // TODO: actually, want to use mip-mapping or similar when the scale factor is less than 1.0
             let distance_field = self.distance_field.top_level_distance_field();
@@ -160,5 +194,35 @@ where
     #[inline]
     fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
         ScaledContour::from_contour(self.distance_field.as_contour(), self.scale_factor, (self.offset_x, self.offset_y)).intercepts_on_column(x)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn mip_level_for_1_0() {
+        assert!(mip_level_for_scale_factor(1.0) == 0);
+    }
+
+    #[test]
+    fn mip_level_for_0_9() {
+        assert!(mip_level_for_scale_factor(0.9) == 0, "{} != 0", mip_level_for_scale_factor(0.9));
+    }
+
+    #[test]
+    fn mip_level_for_0_6() {
+        assert!(mip_level_for_scale_factor(0.6) == 0, "{} != 0", mip_level_for_scale_factor(0.9));
+    }
+
+    #[test]
+    fn mip_level_for_0_5() {
+        assert!(mip_level_for_scale_factor(0.5) == 1, "{} != 1", mip_level_for_scale_factor(0.5));
+    }
+
+    #[test]
+    fn mip_level_for_0_25() {
+        assert!(mip_level_for_scale_factor(0.25) == 2, "{} != 1", mip_level_for_scale_factor(0.25));
     }
 }
