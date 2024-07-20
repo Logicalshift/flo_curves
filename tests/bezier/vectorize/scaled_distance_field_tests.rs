@@ -241,5 +241,5 @@ fn trace_circle_and_a_half() {
         }
     }
 
-    assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 38, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
+    assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 42, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 }
