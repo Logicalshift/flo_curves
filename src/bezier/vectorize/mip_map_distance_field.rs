@@ -50,13 +50,19 @@ impl DistanceFieldMipLevel {
     ///
     #[inline]
     pub fn distance_at_point(&self, ContourPosition(x, y): ContourPosition) -> f64 {
-        if x >= self.width {
-            1e20
-        } else if let Some(distance) = self.distances.get(x + y*self.width) {
+        let x = if x >= self.width  { self.width - 1 }  else { x };
+        let y = if y >= self.height { self.height - 1 } else { y };
+
+        if let Some(distance) = self.distances.get(x + y*self.width) {
             *distance
         } else {
             1e20
         }
+    }
+
+    #[inline]
+    pub fn field_size(&self) -> ContourSize {
+        ContourSize(self.width, self.height)
     }
 }
 
