@@ -19,6 +19,9 @@ pub struct ScaledDistanceField<TDistanceField> {
     /// The mip-map level to use for the distance field
     mip_level: Option<Arc<DistanceFieldMipLevel>>,
 
+    /// Scale factor for the mip-map, when that's in use
+    mip_scale_factor: f64,
+
     /// The scale factor to apply to the source distance field
     scale_factor: f64,
 
@@ -58,30 +61,7 @@ where
     ///
     #[inline]
     pub fn from_distance_field(distance_field: impl Into<MipMapDistanceField<TDistanceField>>, scale_factor: f64, offset: (f64, f64)) -> Self {
-        let distance_field = distance_field.into();
-        let distance_field = Arc::new(distance_field);
-
-        // Multiply the original size by the scale factor to get the new size
-        let ContourSize(width, height)  = distance_field.top_level_distance_field().field_size();
-
-        let width   = (width as f64) * scale_factor + offset.0;
-        let height  = (height as f64) * scale_factor + offset.1;
-        let width   = width.ceil();
-        let height  = height.ceil();
-
-        let size = ContourSize(width as _, height as _);
-
-        // The offset is added to the position to allow for aligning the distance field to non-integer grids (eg, when this is used as a brush)
-        let (offset_x, offset_y) = offset;
-
-        // The mip level depends on the scale factor
-        let mip_level = if scale_factor <= 0.5 {
-            Some(distance_field.mip_level(mip_level_for_scale_factor(scale_factor)-1))
-        } else {
-            None
-        };
-
-        ScaledDistanceField { distance_field, mip_level, scale_factor, size, offset_x, offset_y }
+        Self::from_mip_map(Arc::new(distance_field.into()), scale_factor, offset)
     }
 
     ///
@@ -105,13 +85,16 @@ where
         let (offset_x, offset_y) = offset;
 
         // The mip level depends on the scale factor
-        let mip_level = if scale_factor <= 0.5 {
-            Some(distance_field.mip_level(mip_level_for_scale_factor(scale_factor)-1))
+        let (mip_level, mip_scale_factor) = if scale_factor <= 1.0 {
+            let mip_level           = mip_level_for_scale_factor(scale_factor);
+            let mip_scale_factor    = scale_factor / 2.0f64.powi((mip_level + 1) as _);
+
+            (Some(distance_field.mip_level(mip_level)), mip_scale_factor)
         } else {
-            None
+            (None, scale_factor)
         };
 
-        ScaledDistanceField { distance_field, mip_level, scale_factor, size, offset_x, offset_y }
+        ScaledDistanceField { distance_field, mip_level, mip_scale_factor, scale_factor, size, offset_x, offset_y }
     }
 }
 
@@ -129,22 +112,30 @@ where
     fn distance_at_point(&self, pos: super::ContourPosition) -> f64 {
         let ContourPosition(x, y) = pos;
 
-        // Scale the x & y positions
+        // Offset the x & y positions
         let x = x as f64 - self.offset_x;
         let y = y as f64 - self.offset_y;
-        let x = x / self.scale_factor;
-        let y = y / self.scale_factor;
 
-        let low_x   = x.floor();
-        let low_y   = y.floor();
+        if self.scale_factor <= 1.0 && false {
+            // Scale the x & y positions
+            let x = x / self.scale_factor;
+            let y = y / self.scale_factor;
 
-        if self.scale_factor <= 0.5 && false {
-            // Read the position without interpolating/resampling
-            // TODO: actually, want to use mip-mapping or similar when the scale factor is less than 1.0
+            let low_x   = x.floor();
+            let low_y   = y.floor();
+
+            // Read from the mip level
             let distance_field = self.distance_field.top_level_distance_field();
             distance_field.distance_at_point(ContourPosition(low_x as _, low_y as _))
         } else {
             let distance_field = self.distance_field.top_level_distance_field();
+
+            // Scale the x & y positions
+            let x = x / self.scale_factor;
+            let y = y / self.scale_factor;
+
+            let low_x   = x.floor();
+            let low_y   = y.floor();
 
             // We want to read the distance between the low and high positions
             let high_x  = low_x + 1.0;
