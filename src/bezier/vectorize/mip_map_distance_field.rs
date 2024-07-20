@@ -178,3 +178,36 @@ where
         self.top_level.as_contour()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::bezier::vectorize::*;
+
+    #[test]
+    pub fn mip_map_circular_distance_field() {
+        let distance_field  = CircularDistanceField::with_radius(100.0);
+        let mip_map_field   = MipMapDistanceField::new(distance_field);
+        let mip_map_0       = mip_map_field.mip_level(0);
+
+        let original_size   = distance_field.field_size();
+        let mip_size        = mip_map_0.field_size();
+
+        assert!(mip_size.0 == original_size.0/2);
+        assert!(mip_size.1 == original_size.1/2);
+
+        for y in 0..mip_size.1 {
+            for x in 0..mip_size.0 {
+                let a = distance_field.distance_at_point(ContourPosition(x*2, y*2));
+                let b = distance_field.distance_at_point(ContourPosition(x*2+1, y*2));
+                let c = distance_field.distance_at_point(ContourPosition(x*2+1, y*2+1));
+                let d = distance_field.distance_at_point(ContourPosition(x*2, y*2+1));
+
+                let expected    = (a+b+c+d)/4.0;
+                let actual      = mip_map_0.distance_at_point(ContourPosition(x, y));
+
+                assert!((expected-actual).abs() < 1e-10);
+            }
+        }
+    }
+}
