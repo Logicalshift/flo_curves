@@ -85,8 +85,8 @@ where
         let (offset_x, offset_y) = offset;
 
         // The mip level depends on the scale factor
-        let (mip_level, mip_scale_factor) = if scale_factor < 1.0 {
-            let mip_level           = mip_level_for_scale_factor(scale_factor);
+        let (mip_level, mip_scale_factor) = if scale_factor <= 0.5 {
+            let mip_level           = mip_level_for_scale_factor(scale_factor)-1;
             let mip_scale_factor    = scale_factor * 2.0f64.powi((mip_level + 1) as _);
 
             (Some(distance_field.mip_level(mip_level)), mip_scale_factor)
@@ -116,7 +116,7 @@ where
         let x = x as f64 - self.offset_x;
         let y = y as f64 - self.offset_y;
 
-        if self.scale_factor < 1.0 {
+        if self.scale_factor <= 0.5 {
             // Use the mip-map to compute the position
             let mip_map = self.mip_level.as_ref().unwrap();
 
