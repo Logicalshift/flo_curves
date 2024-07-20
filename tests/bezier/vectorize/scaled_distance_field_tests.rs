@@ -48,8 +48,13 @@ fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
     let mut total_error = 0.0f64;
     let mut num_points  = 0;
 
-    for y in 0..scaled_field.field_size().1 {
-        for x in 0..scaled_field.field_size().0 {
+    // The distance field is clamped at the edges, which means they'll be inaccurate, so trim those away
+    let ContourSize(w, h) = scaled_field.field_size();
+    let w = w - (scale_factor/2.0).ceil() as usize; 
+    let h = h - (scale_factor/2.0).ceil() as usize; 
+
+    for y in 0..w {
+        for x in 0..h {
             let field_distance  = scaled_field.distance_at_point(ContourPosition(x, y));
             let to_center       = scaled_center.distance_to(&Coord2(x as _, y as _));
             let to_edge         = to_center - scaled_radius;
