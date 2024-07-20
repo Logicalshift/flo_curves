@@ -87,7 +87,7 @@ where
         // The mip level depends on the scale factor
         let (mip_level, mip_scale_factor) = if scale_factor <= 1.0 {
             let mip_level           = mip_level_for_scale_factor(scale_factor);
-            let mip_scale_factor    = scale_factor / 2.0f64.powi((mip_level + 1) as _);
+            let mip_scale_factor    = scale_factor * 2.0f64.powi((mip_level + 1) as _);
 
             (Some(distance_field.mip_level(mip_level)), mip_scale_factor)
         } else {
