@@ -22,5 +22,12 @@ flo_curves = \"{}.{}\"
 ```", major_version, minor_version);
 
     println!("{}", expected);
-    assert!(readme().starts_with(&expected));
+
+    let readme = if !readme().starts_with(&expected) {
+        readme().to_string().replace("\r\n", "\n")
+    } else {
+        readme().into()
+    };
+
+    assert!(readme.starts_with(&expected));
 }
