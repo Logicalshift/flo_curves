@@ -116,7 +116,7 @@ where
         let x = x as f64 - self.offset_x;
         let y = y as f64 - self.offset_y;
 
-        if self.scale_factor <= 0.5 {
+        if self.scale_factor <= 0.5 && false {
             // Use the mip-map to compute the position
             let mip_map = self.mip_level.as_ref().unwrap();
 
