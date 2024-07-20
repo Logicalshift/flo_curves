@@ -183,17 +183,6 @@ impl MarchingParabolaDistanceField {
     }
 
     ///
-    /// Computes a distance field using the marching parabolas algorithm given an iterator that indicates whether or not a pixel is inside
-    /// or outside of the shape.
-    ///
-    /// Calculated distances may be up to 1 pixel out compared to the source shape, but this can be used as a way to vectorize and scale
-    /// silhouettes.
-    ///
-    pub fn from_bitfield() -> Self {
-        todo!()
-    }
-
-    ///
     /// True if the specified point is inside in the contour
     ///
     #[inline]
