@@ -45,6 +45,8 @@ fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
     let scaled_radius   = radius * scale_factor;
 
     let mut max_error   = 0.0f64;
+    let mut total_error = 0.0f64;
+    let mut num_points  = 0;
 
     for y in 0..scaled_field.field_size().1 {
         for x in 0..scaled_field.field_size().0 {
@@ -62,10 +64,15 @@ fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
 
             assert!(error < 2.0, "{}, {} has error = {} (prior max {})", x, y, error, max_error);
             max_error = max_error.max(error);
+            total_error += error;
+            num_points  += 1;
         }
     }
 
-    assert!(max_error < max_allowed_error, "Max error {:?} > {:?}", max_error, max_allowed_error);
+    let avg_error = total_error / (num_points as f64);
+
+    assert!(avg_error < max_allowed_error, "Avg error {:?} > {:?}", avg_error, max_allowed_error);
+    assert!(max_error < max_allowed_error, "Max error {:?} > {:?} (avg {:?})", max_error, max_allowed_error, avg_error);
 }
 
 #[test]
