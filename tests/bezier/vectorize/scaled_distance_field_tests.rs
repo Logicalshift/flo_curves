@@ -34,6 +34,36 @@ fn trace_half_circle_sampled() {
 }
 
 #[test]
+fn read_distances_half_circle() {
+    let radius          = 300.0;
+    let center          = Coord2(500.0, 500.0);
+    let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
+
+    let circle_field    = PathDistanceField::from_path(vec![circle_path], ContourSize(1000, 1000));
+    let half_field      = ScaledDistanceField::from_distance_field(&circle_field, 0.5, (0.0, 0.0));
+
+    let half_center     = center * 0.5;
+    let half_radius     = radius * 0.5;
+
+    let mut max_error   = 0.0f64;
+
+    for y in 0..half_field.field_size().1 {
+        for x in 0..half_field.field_size().0 {
+            let field_distance  = half_field.distance_at_point(ContourPosition(x, y));
+            let to_center       = half_center.distance_to(&Coord2(x as _, y as _));
+            let to_edge         = to_center - half_radius;
+
+            let error = (field_distance - to_edge).abs();
+            max_error = max_error.max(error);
+
+            assert!(error < 2.0, "{}, {} has error = {}", x, y, error);
+        }
+    }
+
+    assert!(max_error < 0.3, "Max error {:?}", max_error);
+}
+
+#[test]
 fn trace_half_circle() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
@@ -45,7 +75,8 @@ fn trace_half_circle() {
 
     assert!(traced_circle.len() == 1);
 
-    let mut num_points = 0;
+    let mut num_points  = 0;
+    let mut max_error   = 0.0f64;
     for curve in traced_circle[0].to_curves::<Curve<_>>() {
         for t in 0..100 {
             num_points += 1;
@@ -54,11 +85,15 @@ fn trace_half_circle() {
             let point       = curve.point_at_pos(t);
 
             let distance    = point.distance_to(&Coord2(251.0, 251.0));
+            let error       = (distance - (radius/2.0)).abs();
 
-            assert!((distance - (radius/2.0)) < 0.3, "Point #{} at distance {:?} ({:?})", num_points, distance, (distance - (radius/2.0)));
+            max_error       = max_error.max(error);
+
+            assert!(error < 1.0, "Point #{} at distance {:?} ({:?})", num_points, distance, (distance - (radius/2.0)));
         }
     }
 
+    assert!(max_error < 0.3, "max_error > 0.3 ({}, {} curves)", max_error, traced_circle[0].to_curves::<Curve<_>>().len());
     assert!(traced_circle[0].to_curves::<Curve<_>>().len() < 32, "Result has {} curves", traced_circle[0].to_curves::<Curve<_>>().len());
 }
 
