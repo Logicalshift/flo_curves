@@ -54,9 +54,9 @@ fn read_distances_half_circle() {
             let to_edge         = to_center - half_radius;
 
             let error = (field_distance - to_edge).abs();
-            max_error = max_error.max(error);
 
-            assert!(error < 2.0, "{}, {} has error = {}", x, y, error);
+            assert!(error < 2.0, "{}, {} has error = {} (prior max {})", x, y, error, max_error);
+            max_error = max_error.max(error);
         }
     }
 
