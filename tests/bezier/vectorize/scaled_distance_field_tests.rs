@@ -65,7 +65,7 @@ fn read_distances_scaled_circle(scale_factor: f64, max_allowed_error: f64) {
         }
     }
 
-    assert!(max_error < max_allowed_error, "Max error {:?}", max_error);
+    assert!(max_error < max_allowed_error, "Max error {:?} > {:?}", max_error, max_allowed_error);
 }
 
 #[test]
@@ -85,32 +85,32 @@ fn read_distances_circle_scale_1_0() {
 
 #[test]
 fn read_distances_circle_scale_0_5() {
-    read_distances_scaled_circle(0.5, 0.6 * 0.5)
+    read_distances_scaled_circle(0.5, 0.4 * 0.5)
 }
 
 #[test]
 fn read_distances_circle_scale_0_4() {
-    read_distances_scaled_circle(0.4, 0.6 * 0.4)
+    read_distances_scaled_circle(0.4, 0.4 * 0.4)
 }
 
 #[test]
 fn read_distances_circle_scale_0_3() {
-    read_distances_scaled_circle(0.3, 0.6 * 0.3)
+    read_distances_scaled_circle(0.3, 0.4 * 0.3)
 }
 
 #[test]
 fn read_distances_circle_scale_0_25() {
-    read_distances_scaled_circle(0.25, 0.6 * 0.25)
+    read_distances_scaled_circle(0.25, 0.4 * 0.25)
 }
 
 #[test]
 fn read_distances_circle_scale_0_05() {
-    read_distances_scaled_circle(0.05, 0.6 * 0.05)
+    read_distances_scaled_circle(0.05, 0.4 * 0.05)
 }
 
 #[test]
 fn read_distances_circle_scale_0_01() {
-    read_distances_scaled_circle(0.05, 0.1)
+    read_distances_scaled_circle(0.01, 0.4 * 0.01)
 }
 
 #[test]
