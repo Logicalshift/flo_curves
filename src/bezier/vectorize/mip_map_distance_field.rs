@@ -60,6 +60,16 @@ pub struct MipMapDistanceField<TDistanceField> {
     mip_levels: Mutex<Vec<Arc<DistanceFieldMipLevel>>>,
 }
 
+impl<TDistanceField> From<TDistanceField> for MipMapDistanceField<TDistanceField>
+where
+    TDistanceField: SampledSignedDistanceField,
+{
+    #[inline]
+    fn from(distance_field: TDistanceField) -> Self {
+        Self::new(distance_field)
+    }
+}
+
 impl<TDistanceField> MipMapDistanceField<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
@@ -124,5 +134,27 @@ where
         }
 
         Arc::clone(&mip_levels[level])
+    }
+}
+
+impl<TDistanceField> SampledSignedDistanceField for MipMapDistanceField<TDistanceField>
+where
+    TDistanceField: SampledSignedDistanceField,
+{
+    type Contour = TDistanceField::Contour;
+
+    #[inline]
+    fn field_size(&self) -> ContourSize {
+        self.top_level.field_size()
+    }
+
+    #[inline]
+    fn distance_at_point(&self, pos: ContourPosition) -> f64 {
+        self.top_level.distance_at_point(pos)
+    }
+
+    #[inline]
+    fn as_contour<'a>(&'a self) -> &'a Self::Contour {
+        self.top_level.as_contour()
     }
 }

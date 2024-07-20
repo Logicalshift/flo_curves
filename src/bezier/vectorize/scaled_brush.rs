@@ -1,14 +1,17 @@
 use super::brush_stroke::*;
 use super::distance_field::*;
+use super::mip_map_distance_field::*;
 use super::sampled_contour::*;
 use super::scaled_distance_field::*;
+
+use std::sync::*;
 
 ///
 /// Brush that returns a scaled version of a distance field for each daub
 ///
 pub struct ScaledBrush<TDistanceField> {
     /// The base distance field for the brush
-    distance_field: TDistanceField,
+    distance_field: Arc<MipMapDistanceField<TDistanceField>>,
 
     /// The x offset to the center of the distance field (point we scale around)
     center_x: f64,
@@ -27,7 +30,10 @@ where
     ///
     /// Creates a new scaled brush that will produce scaled versions of the supplied distance field
     ///
-    pub fn from_distance_field(distance_field: TDistanceField) -> Self {
+    pub fn from_distance_field(distance_field: impl Into<MipMapDistanceField<TDistanceField>>) -> Self {
+        let distance_field = distance_field.into();
+        let distance_field = Arc::new(distance_field);
+
         // Scale around the center of the distance field
         let size                        = distance_field.field_size();
         let ContourSize(width, height)  = size;
@@ -49,7 +55,7 @@ impl<'a, TDistanceField> DaubBrush for &'a ScaledBrush<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
 {
-    type DaubDistanceField = ScaledDistanceField<&'a TDistanceField>;
+    type DaubDistanceField = ScaledDistanceField<TDistanceField>;
 
     #[inline]
     fn create_daub(&self, pos: impl crate::Coordinate + crate::Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)> {
@@ -64,7 +70,7 @@ where
             let offset_x = x - x.floor();
             let offset_y = y - y.floor();
 
-            let distance_field  = ScaledDistanceField::from_distance_field(&self.distance_field, scale, (offset_x, offset_y));
+            let distance_field  = ScaledDistanceField::from_mip_map(Arc::clone(&self.distance_field), scale, (offset_x, offset_y));
             let position        = ContourPosition(x.floor() as usize, y.floor() as usize);
 
             Some((distance_field, position))
