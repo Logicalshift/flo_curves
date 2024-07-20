@@ -27,23 +27,6 @@ pub struct ScaledDistanceField<TDistanceField> {
     size: ContourSize,
 }
 
-///
-/// Returns the mip level for a particular scale factor
-///
-fn mip_level_for_scale_factor(factor: f64) -> usize {
-    let pixel_step          = 1.0/factor;
-    let approx_pixel_step   = pixel_step.floor() as usize;
-
-    if approx_pixel_step == 0 {
-        0
-    } else {
-        // The mip level is the log2 of the pixel step
-        let level = approx_pixel_step.ilog2() as usize;
-
-        level
-    }
-}
-
 impl<TDistanceField> ScaledDistanceField<TDistanceField>
 where
     TDistanceField: SampledSignedDistanceField,
