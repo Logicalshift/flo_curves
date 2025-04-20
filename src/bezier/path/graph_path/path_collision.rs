@@ -658,7 +658,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
     ///
     /// Checks that the following edges are consistent
     ///
-    #[cfg(any(test, extra_checks))]
+    #[cfg(any(test, feature="extra_checks"))]
     pub (crate) fn check_following_edge_consistency(&self) {
         let mut used_edges = vec![vec![]; self.points.len()];
 
@@ -677,7 +677,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         }
     }
 
-    #[cfg(not(any(test, extra_checks)))]
+    #[cfg(not(any(test, feature="extra_checks")))]
     pub (crate) fn check_following_edge_consistency(&self) {
 
     }
