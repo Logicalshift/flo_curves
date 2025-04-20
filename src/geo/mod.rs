@@ -23,7 +23,7 @@ mod space1;
 
 pub use self::geo::*;
 pub use self::sweep::*;
-pub use self::coord1::*;
+// pub use self::coord1::*;
 pub use self::coord2::*;
 pub use self::coord3::*;
 pub use self::has_bounds::*;
