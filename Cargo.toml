@@ -17,13 +17,13 @@ categories      = ["algorithms","rendering"]
 extra_checks    = []
 
 [dependencies]
-itertools   = "0.11"
+itertools   = "0.14"
 roots       = "0.0.8"
 smallvec    = { version = "1.10", features = ["const_generics"] }
-ouroboros   = "0.17"
+ouroboros   = "0.18"
 
 [dev-dependencies]
-rand        = "0.8"
+rand        = "0.9"
 criterion   = "0.5"
 
 [[bench]]
