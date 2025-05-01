@@ -97,50 +97,31 @@ impl<'a, Coord: Coordinate2D+Coordinate> CircularArc<'a, Coord> {
     /// be very inaccurate.
     /// 
     pub fn to_bezier_curve<Curve: BezierCurveFactory<Point=Coord>>(&self) -> Curve {
-        // Algorithm described here: https://www.tinaja.com/glib/bezcirc2.pdf
-        // Curve for the unit arc with its center at (1,0)
-        let theta       = self.end_radians - self.start_radians;
-        let (x0, y0)    = ((theta/2.0).cos(), (theta/2.0).sin());
-        let (x1, y1)    = ((4.0-x0)/3.0, ((1.0-x0)*(3.0-x0)/(3.0*y0)));
-        let (x2, y2)    = (x1, -y1);
-        let (x3, y3)    = (x0, -y0);
+        let theta           = self.end_radians - self.start_radians;
+        let center          = &self.circle.center;
+        let radius          = self.circle.radius;
+        let start_radians   = self.start_radians;
+        let end_radians     = self.end_radians;
 
-        // Rotate so the curve starts at start_radians
-        fn rotate(x: f64, y: f64, theta: f64) -> (f64, f64) {
-            let (cos_theta, sin_theta) = (theta.cos(), theta.sin());
+        // Normals from the center
+        let (nx0, ny0) = (start_radians.sin(), start_radians.cos());
+        let (nx1, ny1) = (end_radians.sin(), end_radians.cos());
 
-            (x*cos_theta + y*sin_theta, x*-sin_theta + y*cos_theta)
-        }
+        // Start and end tangents
+        let (tx0, ty0) = (ny0, -nx0);
+        let (tx1, ty1) = (ny1, -nx1);
 
-        let angle = -(f64::consts::PI/2.0-(theta/2.0));
-        let angle = angle + self.start_radians;
+        // Start and end points
+        let (x0, y0) = (center.x() + nx0*radius, center.y() + ny0*radius);
+        let (x3, y3) = (center.x() + nx1*radius, center.y() + ny1*radius);
 
-        let (x0, y0) = rotate(x0, y0, angle);
-        let (x1, y1) = rotate(x1, y1, angle);
-        let (x2, y2) = rotate(x2, y2, angle);
-        let (x3, y3) = rotate(x3, y3, angle);
+        // Control points
+        let ratio    = (4.0/3.0)*((theta/4.0).tan());
+        let (x1, y1) = (x0 + radius*ratio*tx0, y0 + radius*ratio*ty0);
+        let (x2, y2) = (x3 - radius*ratio*tx1, y3 - radius*ratio*ty1);
 
-        // Scale by radius
-        let radius = self.circle.radius;
-        let (x0, y0) = (x0*radius, y0*radius);
-        let (x1, y1) = (x1*radius, y1*radius);
-        let (x2, y2) = (x2*radius, y2*radius);
-        let (x3, y3) = (x3*radius, y3*radius);
-
-        // Translate by center
-        let center = &self.circle.center;
-        let (x0, y0) = (x0+center.x(), y0+center.y());
-        let (x1, y1) = (x1+center.x(), y1+center.y());
-        let (x2, y2) = (x2+center.x(), y2+center.y());
-        let (x3, y3) = (x3+center.x(), y3+center.y());
-
-        // Create the curve
-        let p0 = Coord::from_components(&[x0, y0]);
-        let p1 = Coord::from_components(&[x1, y1]);
-        let p2 = Coord::from_components(&[x2, y2]);
-        let p3 = Coord::from_components(&[x3, y3]);
-
-        Curve::from_points(p0, (p1, p2), p3)
+        // Build the curve
+        Curve::from_points(Coord::from_components(&[x0, y0]), (Coord::from_components(&[x1, y1]), Coord::from_components(&[x2, y2])), Coord::from_components(&[x3, y3]))
     }
 }
 
@@ -160,7 +141,7 @@ mod test {
     }
 
     #[test]
-    fn circle_is_roughly_circular() {
+    fn circle_is_roughly_circular_1() {
         let circle = Circle::new(Coord2(0.0, 0.0), 1.0);
 
         for curve in circle.to_curves::<Curve<_>>() {
@@ -173,6 +154,56 @@ mod test {
     }
 
     #[test]
+    fn circle_is_roughly_circular_2() {
+        let circle = Circle::new(Coord2(0.0, 0.0), 2.0);
+
+        for curve in circle.to_curves::<Curve<_>>() {
+            for t in 0..=10 {
+                let t = (t as f64)/10.0;
+                let p = curve.point_at_pos(t);
+                assert!((p.distance_to(&Coord2(0.0, 0.0))-2.0).abs() < 0.01);
+            }
+        }
+    }
+
+    #[test]
+    fn circle_is_roughly_circular_3() {
+        let circle = Circle::new(Coord2(2.0, 3.0), 1.0);
+
+        for curve in circle.to_curves::<Curve<_>>() {
+            for t in 0..=10 {
+                let t = (t as f64)/10.0;
+                let p = curve.point_at_pos(t);
+                assert!((p.distance_to(&Coord2(2.0, 3.0))-1.0).abs() < 0.01);
+            }
+        }
+    }
+
+    #[test]
+    fn circle_arc_is_circular() {
+        let circle = Circle::new(Coord2(4.0, 3.0), 3.0);
+
+        for start_angle in 0..10 {
+            let start_angle = (start_angle * 9) as f64;
+
+            for end_angle in 0..10 {
+                let end_angle = (end_angle * 9) as f64 + start_angle;
+
+                let start_radians   = (start_angle/360.0) * 2.0 * f64::consts::PI;
+                let end_radians     = (end_angle/360.0) * 2.0 * f64::consts::PI;
+                let arc             = circle.arc(start_radians, end_radians);
+                let curve           = arc.to_bezier_curve::<Curve<_>>();
+
+                for t in 0..=10 {
+                    let t = (t as f64)/10.0;
+                    let p = curve.point_at_pos(t);
+                    assert!((p.distance_to(&Coord2(4.0, 3.0))-3.0).abs() < 0.01);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn circle_path_is_roughly_circular() {
         let circle = Circle::new(Coord2(5.0, 5.0), 4.0);
 
@@ -180,7 +211,7 @@ mod test {
             for t in 0..=10 {
                 let t = (t as f64)/10.0;
                 let p = curve.point_at_pos(t);
-                assert!((p.distance_to(&Coord2(5.0, 5.0))-4.0).abs() < 0.01);
+                assert!((p.distance_to(&Coord2(5.0, 5.0))-4.0).abs() < 0.01, "Distance = {:?} at t = {:?} (curve {:?})", p.distance_to(&Coord2(5.0, 5.0)), t, curve);
             }
         }
     }
