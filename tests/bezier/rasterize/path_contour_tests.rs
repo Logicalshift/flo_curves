@@ -65,7 +65,7 @@ fn check_columns_vs_rows(contour: &impl ColumnSampledContour) {
 }
 
 #[test]
-fn basic_circle() {
+fn basic_circle_1() {
     let radius          = 300.0;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
@@ -73,6 +73,7 @@ fn basic_circle() {
     let circle_contour  = PathContour::from_path(vec![circle_path], ContourSize(1000, 1000));
 
     let mut num_intercepts = 0;
+    let mut max_error      = 0.0f64;
     for y in 0..1000 {
         let intercepts = circle_contour.intercepts_on_line(y as _);
 
@@ -85,11 +86,16 @@ fn basic_circle() {
             let d1 = p1.distance_to(&center);
             let d2 = p2.distance_to(&center);
 
+            max_error = max_error.max((d1-radius).abs());
+            max_error = max_error.max((d2-radius).abs());
+
             assert!((d1-radius).abs() < 2.0, "y={} d1={} d2={} p1={:?} p2={:?}", y, d1, d2, p1, p2);
             assert!((d2-radius).abs() < 2.0, "y={} d1={} d2={} p1={:?} p2={:?}", y, d1, d2, p1, p2);
         }
     }
 
+    println!("Max error: {:?}", max_error);
+    println!("Num intercepts: {:?}", num_intercepts);
     assert!(num_intercepts >= 600 && num_intercepts <= 602, "num_intercepts = {:?}", num_intercepts);
 }
 
