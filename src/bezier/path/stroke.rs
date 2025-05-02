@@ -222,7 +222,7 @@ where
         let end_normal      = TCoord::from_components(&[-end_tangent.y(), end_tangent.x()]);
 
         // Center point is where the lines along the normal vectors intercept
-        let center_point    = line_intersects_line(&(*start_point, *start_point + start_normal), &(*end_point, *end_point + end_normal));
+        let center_point    = ray_intersects_ray(&(*start_point, *start_point + start_normal), &(*end_point, *end_point + end_normal));
         let center_point    = if let Some(center_point) = center_point { center_point } else { return bevel_join(join_point, start_line, end_line, limit); };
         let radius          = center_point.distance_to(&start_point);
 
