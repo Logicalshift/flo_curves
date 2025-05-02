@@ -496,4 +496,25 @@ mod test {
         assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
         assert!(ep.is_near_to(&Coord2(2.0001, 2.0), 0.01), "End point is wrong (found {:?})", ep);
     }
+
+    #[test]
+    fn rounded_join_near_flat_3() {
+        let corner = round_join(Coord2(0.7801181077957153, -0.4963679909706116), (Coord2(0.7645138179983775, -0.49717221697902736), Coord2(0.8159842810030481, -1.495846734245832)), (Coord2(0.7644955725706675, -0.49609044332775987), Coord2(0.7822586211837961, 0.5037517812776866)), 20.0);
+        println!("{:?}", corner);
+
+        let (sp, (cp1, cp2), ep) = corner.last().unwrap();
+
+        // Check the distance from the center point around the curve (should be 1 px away all the way around)
+        let curve = Curve::from_points(*sp, (*cp1, *cp2), *ep);
+        for t in 0..100 {
+            let t           = (t as f64) / 100.0;
+            let p           = curve.point_at_pos(t);
+            let distance    = p.distance_to(&Coord2(0.7801181077957153, -0.4963679909706116));
+
+            assert!(distance < 0.1, "Distance at t={} is {:?}", t, distance);
+        }
+
+        assert!(sp.is_near_to(&Coord2(0.7645138179983775, -0.49717221697902736), 0.01), "Start point is wrong (found {:?})", sp);
+        assert!(ep.is_near_to(&Coord2(0.7644955725706675, -0.49609044332775987), 0.01), "End point is wrong (found {:?})", ep);
+    }
 }
