@@ -373,7 +373,7 @@ mod test {
 
     #[test]
     fn rounded_join_90_degrees() {
-        let corner = round_join(Coord2(2.0, 3.0), (Coord2(1.0, 2.0), Coord2(2.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 4.0)), 20.0);
+        let corner = round_join(Coord2(2.0, 3.0), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 4.0)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (cp1, cp2), ep) = corner.last().unwrap();
