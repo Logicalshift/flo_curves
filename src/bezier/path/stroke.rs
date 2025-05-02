@@ -385,7 +385,7 @@ mod test {
             let p           = curve.point_at_pos(t);
             let distance    = p.distance_to(&Coord2(2.0, 3.0));
 
-            assert!((distance-1.0).abs() < 0.01, "Distance is {:?}", distance);
+            assert!((distance-1.0).abs() < 0.01, "Distance at t={} is {:?}", t, distance);
         }
 
         assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
