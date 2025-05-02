@@ -215,4 +215,67 @@ mod test {
             }
         }
     }
+
+    #[test]
+    fn old_vs_new() {
+        fn old(radius: f64, start_radians: f64, end_radians: f64, center: Coord2) -> Curve<Coord2> {
+            // Algorithm described here: https://www.tinaja.com/glib/bezcirc2.pdf
+            // Curve for the unit arc with its center at (1,0)
+            let theta       = end_radians - start_radians;
+            let (x0, y0)    = ((theta/2.0).cos(), (theta/2.0).sin());
+            let (x1, y1)    = ((4.0-x0)/3.0, ((1.0-x0)*(3.0-x0)/(3.0*y0)));
+            let (x2, y2)    = (x1, -y1);
+            let (x3, y3)    = (x0, -y0);
+
+            // Rotate so the curve starts at start_radians
+            fn rotate(x: f64, y: f64, theta: f64) -> (f64, f64) {
+                let (cos_theta, sin_theta) = (theta.cos(), theta.sin());
+
+                (x*cos_theta + y*sin_theta, x*-sin_theta + y*cos_theta)
+            }
+
+            let angle = -(f64::consts::PI/2.0-(theta/2.0));
+            let angle = angle + start_radians;
+
+            let (x0, y0) = rotate(x0, y0, angle);
+            let (x1, y1) = rotate(x1, y1, angle);
+            let (x2, y2) = rotate(x2, y2, angle);
+            let (x3, y3) = rotate(x3, y3, angle);
+
+            // Scale by radius
+            let radius = radius;
+            let (x0, y0) = (x0*radius, y0*radius);
+            let (x1, y1) = (x1*radius, y1*radius);
+            let (x2, y2) = (x2*radius, y2*radius);
+            let (x3, y3) = (x3*radius, y3*radius);
+
+            // Translate by center
+            let center = &center;
+            let (x0, y0) = (x0+center.x(), y0+center.y());
+            let (x1, y1) = (x1+center.x(), y1+center.y());
+            let (x2, y2) = (x2+center.x(), y2+center.y());
+            let (x3, y3) = (x3+center.x(), y3+center.y());
+
+            // Create the curve
+            let p0 = Coord2::from_components(&[x0, y0]);
+            let p1 = Coord2::from_components(&[x1, y1]);
+            let p2 = Coord2::from_components(&[x2, y2]);
+            let p3 = Coord2::from_components(&[x3, y3]);
+
+            Curve::from_points(p0, (p1, p2), p3)
+        }
+
+        let old_curve = old(3.0, 1.0, 2.0, Coord2(2.0, 2.0));
+        let new_curve = Circle::new(Coord2(2.0, 2.0), 3.0).arc(1.0, 2.0).to_bezier_curve::<Curve<_>>();
+
+        println!("{:?} {:?}", old_curve, new_curve);
+
+        let (osp, (ocp1, ocp2), oep) = old_curve.all_points();
+        let (nsp, (ncp1, ncp2), nep) = old_curve.all_points();
+
+        assert!(osp.distance_to(&nsp) < 0.01);
+        assert!(ocp1.distance_to(&ncp1) < 0.01);
+        assert!(ocp2.distance_to(&ncp2) < 0.01);
+        assert!(oep.distance_to(&nep) < 0.01);
+    }
 }
