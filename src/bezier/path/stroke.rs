@@ -256,13 +256,24 @@ where
 
     // Offset this curve using the subdivision algorithm
     if let Some(offset_curve) = offset_lms_subdivisions(curve, |_| width, |_| 0.0, &subdivision_options) {
+        // Compute the initial point and its tangent
         let initial_point   = offset_curve[0].start_point();
-        let initial_tangent = offset_curve[0].control_points().0;
+        let initial_tangent = offset_curve[0].tangent_at_pos(0.0);
+        let initial_tangent = initial_point + initial_tangent;
 
-        if let Some((start_point, start_tangent)) = start_point {
+        if let Some((start_point, _)) = start_point {
+            // Get the curve that preceeds this line
+            let mut points_rev_iter = points.iter().rev();
+            let last_curve          = points_rev_iter.next().map(|(cp1, cp2, ep)| {
+                let sp = points_rev_iter.next().map(|(_, _, ep)| ep).unwrap_or(start_point);
+                Curve::from_points(*sp, (*cp1, *cp2), *ep)
+            }).unwrap_or(offset_curve[0]);
+
+            let last_point      = last_curve.end_point();
+            let last_tangent    = last_curve.tangent_at_pos(1.0);
+            let last_tangent    = last_point - last_tangent;
+
             // Add a join to the existing curve using the join style
-            let (last_point, last_tangent) = points.last().map(|(_, cp2, ep)| (*ep, *cp2)).unwrap_or((*start_point, *start_tangent));
-
             for (_, (cp1, cp2), ep) in join(curve.start_point(), (last_point, last_tangent), (initial_point, initial_tangent), width * 4.0) {
                 points.push((cp1, cp2, ep));
             }
