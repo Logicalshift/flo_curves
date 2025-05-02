@@ -414,7 +414,7 @@ mod test {
     }
 
     #[test]
-    fn rounded_join_reverse_direction() {
+    fn rounded_join_reverse_direction_1() {
         let corner = round_join(Coord2(2.0, 3.0), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
         println!("{:?}", corner);
 
@@ -427,7 +427,28 @@ mod test {
             let p           = curve.point_at_pos(t);
             let distance    = p.distance_to(&Coord2(2.0, 2.5));
 
-            assert!((distance-1.0).abs() < 0.01, "Distance at t={} is {:?}", t, distance);
+            assert!((distance-0.5).abs() < 0.01, "Distance at t={} is {:?}", t, distance);
+        }
+
+        assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+        assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
+    }
+
+    #[test]
+    fn rounded_join_reverse_direction_2() {
+        let corner = round_join(Coord2(2.0, 3.0), (Coord2(2.0, 2.0), Coord2(1.0, 1.99)), (Coord2(2.0, 3.0), Coord2(1.0, 3.01)), 20.0);
+        println!("{:?}", corner);
+
+        let (sp, (cp1, cp2), ep) = corner.last().unwrap();
+
+        // Check the distance from the center point around the curve (should be 1 px away all the way around)
+        let curve = Curve::from_points(*sp, (*cp1, *cp2), *ep);
+        for t in 0..100 {
+            let t           = (t as f64) / 100.0;
+            let p           = curve.point_at_pos(t);
+            let distance    = p.distance_to(&Coord2(2.0, 2.5));
+
+            assert!((distance-0.5).abs() < 0.01, "Distance at t={} is {:?}", t, distance);
         }
 
         assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
