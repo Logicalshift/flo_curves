@@ -2,7 +2,6 @@ use super::path::*;
 use super::arithmetic::*;
 
 use crate::geo::*;
-use crate::arc::*;
 use crate::bezier::*;
 use crate::line::*;
 
@@ -231,16 +230,15 @@ where
         let start_angle = f64::atan2(start_tangent.x(), start_tangent.y());
         let end_angle   = f64::atan2(end_tangent.x(), end_tangent.y());
 
-        // Construct an arc using these points
-        let circle      = Circle::new(center_point, radius);
-        let arc         = circle.arc(start_angle, end_angle);
-
-        // Convert to a bezier curve
-        let arc_curve   = arc.to_bezier_curve::<Curve<_>>();
+        // Construct an arc to join the two points
+        let theta   = end_angle - start_angle;
+        let ratio   = (4.0/3.0)*((theta/4.0).tan());
+        let cp1     = *start_point + start_tangent * radius * ratio;
+        let cp2     = *end_point - end_tangent * radius * ratio;
 
         debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.01, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
 
-        vec![arc_curve.all_points()]
+        vec![(*start_point, (cp1, cp2), *end_point)]
     } else {
         // Bevel join on the inside part of the corner
         bevel_join(join_point, start_line, end_line, limit)
@@ -380,6 +378,7 @@ mod test {
 
         let (sp, (cp1, cp2), ep) = corner.last().unwrap();
 
+        // Check the distance from the center point around the curve (should be 1 px away all the way around)
         let curve = Curve::from_points(*sp, (*cp1, *cp2), *ep);
         for t in 0..100 {
             let t           = (t as f64) / 100.0;
