@@ -210,32 +210,37 @@ where
 {
     const VERY_CLOSE: f64 = 1e-5;
 
-    // Must be the outer part of the corner
-    if !start_line.0.is_near_to(&end_line.0, VERY_CLOSE) && start_line.angle_to(&end_line) > f64::consts::PI {
-        // Get the normals at the start and end of the curve section
-        let start_tangent   = (start_line.0 - start_line.1).to_unit_vector();
+    // Must be the outer part of the corner, and not too flat
+    if !start_line.0.is_near_to(&end_line.0, VERY_CLOSE) && (start_line.angle_to(&end_line)-f64::consts::PI) > 0.01 {
+        // Curve goes between the start of the two lines (both of which are moving away from the corner)
+        let start_point = &start_line.0;
+        let end_point   = &end_line.0;
+
+        // Start/end tangents (recall that the lines are both moving away from the corner)
+        let start_tangent   = (start_line.1 - start_line.0).to_unit_vector();
         let end_tangent     = (end_line.0 - end_line.1).to_unit_vector();
-        let start_normal    = TCoord::from_components(&[start_tangent.y(), -start_tangent.x()]);
-        let end_normal      = TCoord::from_components(&[end_tangent.y(), -end_tangent.x()]);
+        let start_normal    = TCoord::from_components(&[-start_tangent.y(), start_tangent.x()]);
+        let end_normal      = TCoord::from_components(&[-end_tangent.y(), end_tangent.x()]);
 
-        // Center of the circle is where the lines defined by the normals meet
-        let center_point    = join_point;
+        // Center point is where the lines along the normal vectors intercept
+        let center_point    = line_intersects_line(&(*start_point, *start_point + start_normal), &(*end_point, *end_point + end_normal));
+        let center_point    = if let Some(center_point) = center_point { center_point } else { return bevel_join(join_point, start_line, end_line, limit); };
+        let radius          = center_point.distance_to(&start_point);
 
-        // Radius of the circle is the distance between the center point and either of the two points
-        let radius = center_point.distance_to(&start_line.0);
+        // Angles depend on the tangents
+        let start_angle = f64::atan2(start_tangent.x(), start_tangent.y());
+        let end_angle   = f64::atan2(end_tangent.x(), end_tangent.y());
 
-        let angle_1 = f64::atan2(start_normal.x(), start_normal.y());
-        let angle_2 = f64::atan2(end_normal.x(), end_normal.y());
+        // Construct an arc using these points
+        let circle      = Circle::new(center_point, radius);
+        let arc         = circle.arc(start_angle, end_angle);
 
-        let circle  = Circle::new(center_point, radius);
-        let arc     = circle.arc(angle_1, angle_2);
+        // Convert to a bezier curve
+        let arc_curve   = arc.to_bezier_curve::<Curve<_>>();
 
-        let arc_curve = arc.to_bezier_curve::<Curve<_>>();
-        debug_assert!((center_point.distance_to(&end_line.0)-center_point.distance_to(&start_line.0)).abs() < 0.01, "Radius doesn't match: {} {}", radius, center_point.distance_to(&end_line.0));
+        debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.01, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
 
-        vec![
-            arc_curve.all_points(),
-        ]
+        vec![arc_curve.all_points()]
     } else {
         // Bevel join on the inside part of the corner
         bevel_join(join_point, start_line, end_line, limit)
@@ -364,18 +369,28 @@ mod test {
         println!("{:?}", corner);
 
         let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
-        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+        assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
+        assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 
     #[test]
     fn rounded_join_90_degrees() {
-        let corner = round_join(Coord2(2.5, 2.0), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(3.0, 2.5), Coord2(3.0, 2.5)), 20.0);
+        let corner = round_join(Coord2(2.0, 3.0), (Coord2(1.0, 2.0), Coord2(2.0, 2.0)), (Coord2(3.0, 3.0), Coord2(3.0, 4.0)), 20.0);
         println!("{:?}", corner);
 
-        let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(3.0, 2.5), 0.01), "End point is wrong (found {:?})", ep);
-        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+        let (sp, (cp1, cp2), ep) = corner.last().unwrap();
+
+        let curve = Curve::from_points(*sp, (*cp1, *cp2), *ep);
+        for t in 0..100 {
+            let t           = (t as f64) / 100.0;
+            let p           = curve.point_at_pos(t);
+            let distance    = p.distance_to(&Coord2(2.0, 3.0));
+
+            assert!((distance-1.0).abs() < 0.01, "Distance is {:?}", distance);
+        }
+
+        assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+        assert!(ep.is_near_to(&Coord2(3.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
     }
 
     #[test]
@@ -384,7 +399,7 @@ mod test {
         println!("{:?}", corner);
 
         let (sp, (_cp1, _cp2), ep) = corner.last().unwrap();
-        debug_assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
-        debug_assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
+        assert!(ep.is_near_to(&Coord2(2.0, 3.0), 0.01), "End point is wrong (found {:?})", ep);
+        assert!(sp.is_near_to(&Coord2(2.0, 2.0), 0.01), "Start point is wrong (found {:?})", sp);
     }
 }
