@@ -226,13 +226,9 @@ where
         let center_point    = if let Some(center_point) = center_point { center_point } else { return bevel_join(join_point, start_line, end_line, limit); };
         let radius          = center_point.distance_to(&start_point);
 
-        // Angles depend on the tangents
-        let start_angle = f64::atan2(start_tangent.x(), start_tangent.y());
-        let end_angle   = f64::atan2(end_tangent.x(), end_tangent.y());
-
         // Construct an arc to join the two points
-        let theta   = end_angle - start_angle;
-        let ratio   = (4.0/3.0)*((theta/4.0).tan());
+        let theta   = start_tangent.dot(&end_tangent).acos();
+        let ratio   = -(4.0/3.0)*((theta/4.0).tan());
         let cp1     = *start_point + start_tangent * radius * ratio;
         let cp2     = *end_point - end_tangent * radius * ratio;
 
