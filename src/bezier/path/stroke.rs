@@ -210,7 +210,7 @@ where
     const VERY_CLOSE: f64 = 1e-5;
 
     // Must be the outer part of the corner, and not too flat
-    if !start_line.0.is_near_to(&end_line.0, VERY_CLOSE) && (start_line.angle_to(&end_line)-f64::consts::PI) > 0.01 {
+    if !start_line.0.is_near_to(&end_line.0, VERY_CLOSE) {
         // Curve goes between the start of the two lines (both of which are moving away from the corner)
         let start_point = &start_line.0;
         let end_point   = &end_line.0;
