@@ -218,12 +218,9 @@ where
         // Start/end tangents (recall that the lines are both moving away from the corner)
         let start_tangent   = (start_line.1 - start_line.0).to_unit_vector();
         let end_tangent     = (end_line.0 - end_line.1).to_unit_vector();
-        let start_normal    = TCoord::from_components(&[-start_tangent.y(), start_tangent.x()]);
-        let end_normal      = TCoord::from_components(&[-end_tangent.y(), end_tangent.x()]);
 
         // Center point is where the lines along the normal vectors intercept
-        let center_point    = ray_intersects_ray(&(*start_point, *start_point + start_normal), &(*end_point, *end_point + end_normal));
-        let center_point    = if let Some(center_point) = center_point { center_point } else { return bevel_join(join_point, start_line, end_line, limit); };
+        let center_point    = join_point;
         let radius          = center_point.distance_to(&start_point);
 
         // Construct an arc to join the two points
@@ -411,7 +408,7 @@ mod test {
 
     #[test]
     fn rounded_join_reverse_direction_1() {
-        let corner = round_join(Coord2(2.0, 3.0), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
+        let corner = round_join(Coord2(2.0, 2.5), (Coord2(2.0, 2.0), Coord2(1.0, 2.0)), (Coord2(2.0, 3.0), Coord2(1.0, 3.0)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (cp1, cp2), ep) = corner.last().unwrap();
@@ -432,7 +429,7 @@ mod test {
 
     #[test]
     fn rounded_join_reverse_direction_2() {
-        let corner = round_join(Coord2(2.0, 3.0), (Coord2(2.0, 2.0), Coord2(1.0, 1.99)), (Coord2(2.0, 3.0), Coord2(1.0, 3.01)), 20.0);
+        let corner = round_join(Coord2(2.0, 2.5), (Coord2(2.0, 2.0), Coord2(1.0, 1.99)), (Coord2(2.0, 3.0), Coord2(1.0, 3.01)), 20.0);
         println!("{:?}", corner);
 
         let (sp, (cp1, cp2), ep) = corner.last().unwrap();
