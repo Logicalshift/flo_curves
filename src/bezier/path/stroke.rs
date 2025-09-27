@@ -219,19 +219,24 @@ where
         let start_tangent   = (start_line.1 - start_line.0).to_unit_vector();
         let end_tangent     = (end_line.0 - end_line.1).to_unit_vector();
 
-        // Center point is where the lines along the normal vectors intercept
-        let center_point    = join_point;
-        let radius          = center_point.distance_to(&start_point);
+        let tangent_diff    = start_tangent + end_tangent;
+        if tangent_diff.x().abs() < 0.0001 && tangent_diff.y().abs() < 0.0001 {
+            bevel_join(join_point, start_line, end_line, limit)
+        } else {
+            // Center point is where the lines along the normal vectors intercept
+            let center_point    = join_point;
+            let radius          = center_point.distance_to(&start_point);
 
-        // Construct an arc to join the two points
-        let theta   = start_tangent.dot(&end_tangent).acos();
-        let ratio   = -(4.0/3.0)*((theta/4.0).tan());
-        let cp1     = *start_point + start_tangent * radius * ratio;
-        let cp2     = *end_point - end_tangent * radius * ratio;
+            // Construct an arc to join the two points
+            let theta   = start_tangent.dot(&end_tangent).acos();
+            let ratio   = -(4.0/3.0)*((theta/4.0).tan());
+            let cp1     = *start_point + start_tangent * radius * ratio;
+            let cp2     = *end_point - end_tangent * radius * ratio;
 
-        debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.01, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
+            debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.01, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
 
-        vec![(*start_point, (cp1, cp2), *end_point)]
+            vec![(*start_point, (cp1, cp2), *end_point)]
+        }
     } else {
         // Bevel join on the inside part of the corner
         bevel_join(join_point, start_line, end_line, limit)
