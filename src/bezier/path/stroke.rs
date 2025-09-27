@@ -526,7 +526,7 @@ mod test {
         let circle = circle.to_path::<SimpleBezierPath>();
 
         // Stroke the path to generate the circle
-        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default());
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default().with_accuracy(0.001));
 
         // Every point in the path must be w/2 away the point in the center
         for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
@@ -547,8 +547,6 @@ mod test {
                 assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
             }
         }
-
-        assert!(false);
     }
 
     #[test]
@@ -564,7 +562,7 @@ mod test {
         let circle = circle.to_path::<SimpleBezierPath>();
 
         // Stroke the path to generate the circle
-        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default());
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default().with_accuracy(0.001));
 
         // Every point in the path must be w/2 away the point in the center
         for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
