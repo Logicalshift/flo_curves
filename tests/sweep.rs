@@ -134,10 +134,10 @@ fn sweep_self_1000_random() {
     let mut rng     = StdRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
     let mut bounds  = (0..1000).into_iter()
         .map(|_| {
-            let x = rng.gen::<f64>() * 900.0;
-            let y = rng.gen::<f64>() * 900.0;
-            let w = rng.gen::<f64>() * 400.0;
-            let h = rng.gen::<f64>() * 400.0;
+            let x = rng.random::<f64>() * 900.0;
+            let y = rng.random::<f64>() * 900.0;
+            let w = rng.random::<f64>() * 400.0;
+            let h = rng.random::<f64>() * 400.0;
 
             Bounds::from_min_max(Coord2(x, y), Coord2(x+w, y+h))
         })

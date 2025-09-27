@@ -1,19 +1,20 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 use flo_curves::geo::*;
 use flo_curves::bezier::path::*;
 
 use rand::prelude::*;
 use std::cmp::{Ordering};
+use std::hint::{black_box};
 
 fn sweep(n: usize) {
     let mut rng     = StdRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
     let mut bounds  = (0..n).into_iter()
         .map(|_| {
-            let x = rng.gen::<f64>() * 900.0;
-            let y = rng.gen::<f64>() * 900.0;
-            let w = rng.gen::<f64>() * 400.0;
-            let h = rng.gen::<f64>() * 400.0;
+            let x = rng.random::<f64>() * 900.0;
+            let y = rng.random::<f64>() * 900.0;
+            let w = rng.random::<f64>() * 400.0;
+            let h = rng.random::<f64>() * 400.0;
 
             Bounds::from_min_max(Coord2(x, y), Coord2(x+w, y+h))
         })
@@ -27,10 +28,10 @@ fn sweep_slow(n: usize) {
     let mut rng     = StdRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
     let bounds      = (0..n).into_iter()
         .map(|_| {
-            let x = rng.gen::<f64>() * 900.0;
-            let y = rng.gen::<f64>() * 900.0;
-            let w = rng.gen::<f64>() * 400.0;
-            let h = rng.gen::<f64>() * 400.0;
+            let x = rng.random::<f64>() * 900.0;
+            let y = rng.random::<f64>() * 900.0;
+            let w = rng.random::<f64>() * 400.0;
+            let h = rng.random::<f64>() * 400.0;
 
             Bounds::from_min_max(Coord2(x, y), Coord2(x+w, y+h))
         })
@@ -55,8 +56,8 @@ fn create_graph_path(rng: &mut StdRng, n: usize) -> GraphPath<Coord2, ()> {
     let mut path_builder    = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(x, y));
 
     for _ in 0..n {
-        let xo = rng.gen::<f64>() * 50.0;
-        let yo = rng.gen::<f64>() * 50.0;
+        let xo = rng.random::<f64>() * 50.0;
+        let yo = rng.random::<f64>() * 50.0;
 
         x += xo;
         y += yo;

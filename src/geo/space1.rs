@@ -286,11 +286,11 @@ mod test {
         let mut rng = StdRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
 
         for _ in 0..2000 {
-            let num_sections    = rng.gen_range(10..100);
+            let num_sections    = rng.random_range(10..100);
             let sections        = (0..num_sections)
                 .map(|section| {
-                    let start = rng.gen_range(0.0..100.0);
-                    let len = rng.gen_range(0.0..100.0);
+                    let start = rng.random_range(0.0..100.0);
+                    let len = rng.random_range(0.0..100.0);
 
                     (start..(start+len), section)
                 })
