@@ -363,6 +363,8 @@ where
 
 #[cfg(test)]
 mod test {
+    use crate::arc::*;
+
     use super::*;
 
     #[test]
@@ -509,5 +511,73 @@ mod test {
 
         assert!(sp.is_near_to(&Coord2(0.7645138179983775, -0.49717221697902736), 0.01), "Start point is wrong (found {:?})", sp);
         assert!(ep.is_near_to(&Coord2(0.7644955725706675, -0.49609044332775987), 0.01), "End point is wrong (found {:?})", ep);
+    }
+
+    #[test]
+    fn circle1() {
+        // Found errors at these coordinates/widths
+        let w = 3.0;
+        let r = 20.0;
+        let x = 100.0;
+        let y = 200.0;
+
+        // Create a circle path
+        let circle = Circle::new(Coord2(x, y), r);
+        let circle = circle.to_path::<SimpleBezierPath>();
+
+        // Stroke the path to generate the circle
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default());
+
+        // Every point in the path must be w/2 away the point in the center
+        for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
+            // Don't test the end lines
+            if curve.characteristics() == CurveCategory::Linear {
+                continue;
+            }
+
+            // Check points on the curve
+            for t in 0..100 {
+                let t = t as f64;
+                let p = curve.point_at_pos(t);
+
+                let d = p.distance_to(&Coord2(x, y));
+
+                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r-(w+2.0));
+            }
+        }
+    }
+
+    #[test]
+    fn circle2() {
+        // Found errors at these coordinates/widths
+        let w = 11.449928283691406;
+        let r = 20.0;
+        let x = 172.17343139648438;
+        let y = 215.4249267578125;
+
+        // Create a circle path
+        let circle = Circle::new(Coord2(x, y), r);
+        let circle = circle.to_path::<SimpleBezierPath>();
+
+        // Stroke the path to generate the circle
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default());
+
+        // Every point in the path must be w/2 away the point in the center
+        for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
+            // Don't test the end lines
+            if curve.characteristics() == CurveCategory::Linear {
+                continue;
+            }
+
+            // Check points on the curve
+            for t in 0..100 {
+                let t = t as f64;
+                let p = curve.point_at_pos(t);
+
+                let d = p.distance_to(&Coord2(x, y));
+
+                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r-(w+2.0));
+            }
+        }
     }
 }
