@@ -535,16 +535,20 @@ mod test {
                 continue;
             }
 
+            println!("{:?}", curve);
+
             // Check points on the curve
             for t in 0..100 {
-                let t = t as f64;
+                let t = (t as f64)/100.0;
                 let p = curve.point_at_pos(t);
 
                 let d = p.distance_to(&Coord2(x, y));
 
-                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r-(w+2.0));
+                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
             }
         }
+
+        assert!(false);
     }
 
     #[test]
@@ -569,14 +573,16 @@ mod test {
                 continue;
             }
 
+            println!("{:?}", curve);
+
             // Check points on the curve
             for t in 0..100 {
-                let t = t as f64;
+                let t = (t as f64)/100.0;
                 let p = curve.point_at_pos(t);
 
                 let d = p.distance_to(&Coord2(x, y));
 
-                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r-(w+2.0));
+                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
             }
         }
     }
