@@ -219,8 +219,8 @@ where
         let start_tangent   = (start_line.1 - start_line.0).to_unit_vector();
         let end_tangent     = (end_line.0 - end_line.1).to_unit_vector();
 
-        let tangent_diff    = start_tangent + end_tangent;
-        if tangent_diff.x().abs() < 0.0001 && tangent_diff.y().abs() < 0.0001 {
+        let tangent_diff    = start_tangent.dot(&end_tangent);
+        if tangent_diff < 0.0001 {
             bevel_join(join_point, start_line, end_line, limit)
         } else {
             // Center point is where the lines along the normal vectors intercept
