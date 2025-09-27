@@ -24,7 +24,7 @@ ouroboros   = "0.18"
 
 [dev-dependencies]
 rand        = "0.9"
-criterion   = "0.5"
+criterion   = "0.7"
 
 [[bench]]
 name        = "rasterize"
