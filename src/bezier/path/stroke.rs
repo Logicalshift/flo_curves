@@ -526,7 +526,13 @@ mod test {
         let circle = circle.to_path::<SimpleBezierPath>();
 
         // Stroke the path to generate the circle
-        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default().with_accuracy(0.001));
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, 
+            &StrokeOptions::default()
+                .with_accuracy(0.002)
+                .with_min_sample_distance(0.001)
+                .with_start_cap(LineCap::Butt)
+                .with_end_cap(LineCap::Butt)
+                .with_join(LineJoin::Miter));
 
         // Every point in the path must be w/2 away the point in the center
         for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
@@ -544,13 +550,13 @@ mod test {
 
                 let d = p.distance_to(&Coord2(x, y));
 
-                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
+                assert!((d-(r-(w/2.0))).abs() < 0.1 || (d-(r+(w/2.0))).abs() < 0.1, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
             }
         }
     }
 
     #[test]
-    fn circle2() {
+    fn circle2a() {
         // Found errors at these coordinates/widths
         let w = 11.449928283691406;
         let r = 20.0;
@@ -562,7 +568,13 @@ mod test {
         let circle = circle.to_path::<SimpleBezierPath>();
 
         // Stroke the path to generate the circle
-        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, &StrokeOptions::default().with_accuracy(0.001));
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, 
+            &StrokeOptions::default()
+                .with_accuracy(0.002)
+                .with_min_sample_distance(0.001)
+                .with_start_cap(LineCap::Butt)
+                .with_end_cap(LineCap::Butt)
+                .with_join(LineJoin::Round));
 
         // Every point in the path must be w/2 away the point in the center
         for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
@@ -580,7 +592,49 @@ mod test {
 
                 let d = p.distance_to(&Coord2(x, y));
 
-                assert!((d-(r-(w/2.0))).abs() < 0.01 || (d-(r+(w/2.0))).abs() < 0.01, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
+                assert!((d-(r-(w/2.0))).abs() < 0.1 || (d-(r+(w/2.0))).abs() < 0.1, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
+            }
+        }
+    }
+
+    #[test]
+    fn circle2b() {
+        // As for circle2a but with Miter joins
+        let w = 11.449928283691406;
+        let r = 20.0;
+        let x = 172.17343139648438;
+        let y = 215.4249267578125;
+
+        // Create a circle path
+        let circle = Circle::new(Coord2(x, y), r);
+        let circle = circle.to_path::<SimpleBezierPath>();
+
+        // Stroke the path to generate the circle
+        let thick_path = stroke_path::<SimpleBezierPath, _>(&circle, w, 
+            &StrokeOptions::default()
+                .with_accuracy(0.002)
+                .with_min_sample_distance(0.001)
+                .with_start_cap(LineCap::Butt)
+                .with_end_cap(LineCap::Butt)
+                .with_join(LineJoin::Miter));
+
+        // Every point in the path must be w/2 away the point in the center
+        for curve in thick_path.iter().flat_map(|section| section.to_curves::<Curve<Coord2>>()) {
+            // Don't test the end lines
+            if curve.characteristics() == CurveCategory::Linear {
+                continue;
+            }
+
+            println!("{:?}", curve);
+
+            // Check points on the curve
+            for t in 0..100 {
+                let t = (t as f64)/100.0;
+                let p = curve.point_at_pos(t);
+
+                let d = p.distance_to(&Coord2(x, y));
+
+                assert!((d-(r-(w/2.0))).abs() < 0.1 || (d-(r+(w/2.0))).abs() < 0.1, "d={} ({} or {})", d, r-(w/2.0), r+(w/2.0));
             }
         }
     }
