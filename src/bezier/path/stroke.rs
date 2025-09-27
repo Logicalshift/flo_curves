@@ -326,6 +326,7 @@ where
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if !added_end_cap {
+            // TODO: support other cap types (eg, by implementing join functions for them)
             added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
         } else {
             stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
