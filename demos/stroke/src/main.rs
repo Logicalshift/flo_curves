@@ -52,7 +52,19 @@ fn main() {
                 .curve_to((Coord2(120.0, 150.0), Coord2(170.0, 50.0)), Coord2(200.0, 100.0))
                 .curve_to((Coord2(220.0, 150.0), Coord2(280.0, 50.0)), Coord2(300.0, 100.0))
                 .build();
-            show_stroke_path(gc, sample_path, StrokeOptions::default().with_start_cap(flo_curves::bezier::path::LineCap::Square).with_end_cap(flo_curves::bezier::path::LineCap::Round));
+            let options = StrokeOptions::default()
+                .with_start_cap(flo_curves::bezier::path::LineCap::Square)
+                .with_end_cap(flo_curves::bezier::path::LineCap::Square);
+            show_stroke_path(gc, sample_path, options);
+
+            let sample_path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(100.0, 200.0))
+                .curve_to((Coord2(120.0, 250.0), Coord2(170.0, 150.0)), Coord2(200.0, 200.0))
+                .curve_to((Coord2(220.0, 250.0), Coord2(280.0, 150.0)), Coord2(300.0, 200.0))
+                .build();
+            let options = StrokeOptions::default()
+                .with_start_cap(flo_curves::bezier::path::LineCap::Round)
+                .with_end_cap(flo_curves::bezier::path::LineCap::Round);
+            show_stroke_path(gc, sample_path, options);
         })
     });
 }
