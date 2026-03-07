@@ -4,6 +4,7 @@ use super::arithmetic::*;
 use crate::geo::*;
 use crate::bezier::*;
 use crate::line::*;
+use crate::arc::*;
 
 use std::f64;
 
@@ -355,7 +356,29 @@ where
     let radius   = diameter / 2.0;
     let tangent  = *ep - *cp2;
 
-    // TODO: draw a half-circle, with the tangent indicating the direction of the mid-point
+    // Center point is the midpoint between from_coord and to_coord
+    let mid_x   = (from_coord.x() + to_coord.x()) / 2.0;
+    let mid_y   = (from_coord.y() + to_coord.y()) / 2.0;
+    let center  = TCoord::from_components(&[mid_x, mid_y]);
+
+    // Calculate start angle based on the tangent direction
+    let tangent_angle   = f64::atan2(tangent.y(), tangent.x());
+    let start_angle     = tangent_angle - f64::consts::PI / 2.0;
+    let end_angle       = start_angle + f64::consts::PI;
+
+    // Create a circle at the center with the calculated radius
+    let circle  = Circle::new(center, radius);
+    let arc1    = circle.arc(start_angle, start_angle + (f64::consts::PI / 2.0));
+    let curve1  = arc1.to_bezier_curve::<Curve<_>>();
+    let arc2    = circle.arc(start_angle + (f64::consts::PI / 2.0), end_angle);
+    let curve2  = arc2.to_bezier_curve::<Curve<_>>();
+
+    // Add the control points and end point
+    let (_, (cp1, cp2), ep) = curve1.all_points();
+    points.push((cp1, cp2, ep));
+
+    let (_, (cp1, cp2), ep) = curve2.all_points();
+    points.push((cp1, cp2, ep));
 
     true
 }
@@ -376,11 +399,26 @@ where
         return false;
     }
 
-    // Draw a line between the start point and the end point
-    let cp1 = (to_coord - from_coord) * (1.0/3.0) + from_coord;
-    let cp2 = (to_coord - from_coord) * (2.0/3.0) + from_coord;
+    // The most recent point added to the list defines the tangent (use a butt endcap if the curve has no coordinates)
+    let Some((_, cp2, ep)) = points.last() else { return butt_end_cap(points, from_coord, to_coord); };
 
-    points.push((cp1, cp2, to_coord));
+    let diameter = from_coord.distance_to(&to_coord);
+    let radius   = diameter / 2.0;
+    let tangent  = (*ep - *cp2).to_unit_vector();
+
+    // We draw three lines to create the endcap
+    let p1 = from_coord + (tangent*radius);
+    let p2 = to_coord + (tangent*radius);
+    let p3 = from_coord;
+
+    let l1 = line_to_bezier::<Curve<_>>(&(from_coord, p1));
+    let l2 = line_to_bezier::<Curve<_>>(&(p1, p2));
+    let l3 = line_to_bezier::<Curve<_>>(&(p2, p3));
+
+    for line in [l1, l2, l3] {
+        let (_, (cp1, cp2), ep) = line.all_points();
+        points.push((cp1, cp2, ep));
+    }
 
     true
 }
