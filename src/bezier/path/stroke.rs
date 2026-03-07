@@ -409,7 +409,7 @@ where
     // We draw three lines to create the endcap
     let p1 = from_coord + (tangent*radius);
     let p2 = to_coord + (tangent*radius);
-    let p3 = from_coord;
+    let p3 = to_coord;
 
     let l1 = line_to_bezier::<Curve<_>>(&(from_coord, p1));
     let l2 = line_to_bezier::<Curve<_>>(&(p1, p2));
