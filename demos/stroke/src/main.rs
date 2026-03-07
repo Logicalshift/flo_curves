@@ -1,16 +1,11 @@
 use flo_curves::*;
-use flo_curves::bezier;
-use flo_curves::bezier::{NormalCurve};
 use flo_curves::bezier::path::*;
-use flo_curves::bezier::vectorize::*;
 use flo_draw::*;
 use flo_draw::canvas::*;
 
 use flo_curves::geo::{Coord2};
 
 use std::f64;
-use std::thread;
-use std::time::{Duration};
 
 ///
 /// Draws a self-intersecting loop
