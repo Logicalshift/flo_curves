@@ -293,6 +293,21 @@ where
 }
 
 ///
+/// Creates an endcap between the 'from' and 'to' points by assuming we've already reached the 'from' point
+///
+#[inline]
+fn end_cap<TCoord>(points: &mut Vec<(TCoord, TCoord, TCoord)>, from_coord: TCoord, to_coord: TCoord, end_cap_type: LineCap) -> bool 
+where
+    TCoord: Coordinate + Coordinate2D,
+{
+    match end_cap_type {
+        LineCap::Butt   => butt_end_cap(points, from_coord, to_coord),
+        LineCap::Round  => butt_end_cap(points, from_coord, to_coord),
+        LineCap::Square => butt_end_cap(points, from_coord, to_coord),
+    }
+}
+
+///
 /// Adds an endcap between the 'from' and 'to' points to the end of the points list (possibly updating the 'start' coordinate)
 ///
 /// We assume that we're already at 'from_coord'
