@@ -302,8 +302,8 @@ where
 {
     match end_cap_type {
         LineCap::Butt   => butt_end_cap(points, from_coord, to_coord),
-        LineCap::Round  => butt_end_cap(points, from_coord, to_coord),
-        LineCap::Square => butt_end_cap(points, from_coord, to_coord),
+        LineCap::Round  => round_end_cap(points, from_coord, to_coord),
+        LineCap::Square => square_end_cap(points, from_coord, to_coord),
     }
 }
 
@@ -313,6 +313,59 @@ where
 /// We assume that we're already at 'from_coord'
 ///
 fn butt_end_cap<TCoord>(points: &mut Vec<(TCoord, TCoord, TCoord)>, from_coord: TCoord, to_coord: TCoord) -> bool
+where 
+    TCoord: Coordinate + Coordinate2D,
+{
+    const VERY_CLOSE: f64 = 1e-5;
+
+    // If the start & end points are very close together, then we don't add any points
+    if from_coord.is_near_to(&to_coord, VERY_CLOSE) {
+        return false;
+    }
+
+    // Draw a line between the start point and the end point
+    let cp1 = (to_coord - from_coord) * (1.0/3.0) + from_coord;
+    let cp2 = (to_coord - from_coord) * (2.0/3.0) + from_coord;
+
+    points.push((cp1, cp2, to_coord));
+
+    true
+}
+
+///
+/// Adds a 'rounded' endcap between the 'from' and 'to' points to the end of the points list (possibly updating the 'start' coordinate)
+///
+/// We assume that we're already at 'from_coord'
+///
+fn round_end_cap<TCoord>(points: &mut Vec<(TCoord, TCoord, TCoord)>, from_coord: TCoord, to_coord: TCoord) -> bool
+where 
+    TCoord: Coordinate + Coordinate2D,
+{
+    const VERY_CLOSE: f64 = 1e-5;
+
+    // If the start & end points are very close together, then we don't add any points
+    if from_coord.is_near_to(&to_coord, VERY_CLOSE) {
+        return false;
+    }
+
+    // The most recent point added to the list defines the tangent (use a butt endcap if the curve has no coordinates)
+    let Some((_, cp2, ep)) = points.last() else { return butt_end_cap(points, from_coord, to_coord); };
+
+    let diameter = from_coord.distance_to(&to_coord);
+    let radius   = diameter / 2.0;
+    let tangent  = *ep - *cp2;
+
+    // TODO: draw a half-circle, with the tangent indicating the direction of the mid-point
+
+    true
+}
+
+///
+/// Adds an endcap between the 'from' and 'to' points to the end of the points list (possibly updating the 'start' coordinate)
+///
+/// We assume that we're already at 'from_coord'
+///
+fn square_end_cap<TCoord>(points: &mut Vec<(TCoord, TCoord, TCoord)>, from_coord: TCoord, to_coord: TCoord) -> bool
 where 
     TCoord: Coordinate + Coordinate2D,
 {
