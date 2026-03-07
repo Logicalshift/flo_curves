@@ -363,7 +363,7 @@ where
 
     // Calculate start angle based on the tangent direction
     let tangent_angle   = f64::atan2(tangent.y(), tangent.x());
-    let start_angle     = tangent_angle - f64::consts::PI / 2.0;
+    let start_angle     = tangent_angle;
     let end_angle       = start_angle + f64::consts::PI;
 
     // Create a circle at the center with the calculated radius
