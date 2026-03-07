@@ -241,7 +241,8 @@ where
 ///
 /// Generates the edges for a single curve, returning true if any extra points are added to the points list
 ///
-/// The start point is supplied as two coordinates: the initial point of the curve, and the tangent of the end point of the last point of the curve.
+/// The start point is supplied as two coordinates: the initial point of the curve, and the tangent at that point. It's
+/// updated by this call if it's not already set (as the points contain only the control points and the )
 ///
 fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
@@ -289,6 +290,31 @@ where
     }
 
     added_points
+}
+
+///
+/// Adds an endcap between the 'from' and 'to' points to the end of the points list (possibly updating the 'start' coordinate)
+///
+/// We assume that we're already at 'from_coord'
+///
+fn butt_end_cap<TCoord>(points: &mut Vec<(TCoord, TCoord, TCoord)>, from_coord: TCoord, to_coord: TCoord) -> bool
+where 
+    TCoord: Coordinate + Coordinate2D,
+{
+    const VERY_CLOSE: f64 = 1e-5;
+
+    // If the start & end points are very close together, then we don't add any points
+    if from_coord.is_near_to(&to_coord, VERY_CLOSE) {
+        return false;
+    }
+
+    // Draw a line between the start point and the end point
+    let cp1 = (to_coord - from_coord) * (1.0/3.0) + from_coord;
+    let cp2 = (to_coord - from_coord) * (2.0/3.0) + from_coord;
+
+    points.push((cp1, cp2, to_coord));
+
+    true
 }
 
 ///
