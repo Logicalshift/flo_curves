@@ -239,7 +239,9 @@ where
 }
 
 ///
-/// Generates the edges for a single curve
+/// Generates the edges for a single curve, returning true if any extra points are added to the points list
+///
+/// The start point is supplied as two coordinates: the initial point of the curve, and the tangent of the end point of the last point of the curve.
 ///
 fn stroke_edge<TCoord>(start_point: &mut Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, curve: &Curve<TCoord>, subdivision_options: &SubdivisionOffsetOptions, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>) -> bool
 where
