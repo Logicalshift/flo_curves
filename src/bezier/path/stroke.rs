@@ -342,6 +342,8 @@ where
     TPathFactory:   BezierPathFactory<Point=TCoord>,
     TCoord:         Coordinate + Coordinate2D,
 {
+    const VERY_CLOSE: f64 = 1e-5;
+
     // Half the width (we add and subtract this from the centerline)
     let half_width  = width/2.0;
     let join_fn     = options.join.join_function();
@@ -368,11 +370,32 @@ where
     // Draw backwards
     let mut added_end_cap = false;
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
-        if !added_end_cap {
-            // TODO: support other cap types (eg, by implementing join functions for them)
-            added_end_cap = stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
-        } else {
+        if added_end_cap {
+            // Add an offset edge to the curve
             stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
+        } else {
+            // Don't add an endcap to a very short curve (which we determine by measuring the length covered by the control polygon)
+            let (sp, (cp1, cp2), ep) = curve.all_points();
+            let polygon_length = sp.distance_to(&cp1) + cp1.distance_to(&cp2) + cp2.distance_to(&ep);
+
+            if polygon_length < VERY_CLOSE {
+                continue;
+            }
+
+            // Add an endcap to the first point of the curve
+            if let Some((_, _, last_point)) = points.last() {
+                // Use the normal at the start of the curve to calculate where the initial point of the reverse section of the curve should go
+                let last_point      = *last_point;
+                let initial_normal  = curve.normal_at_pos(0.0).to_unit_vector();
+                let curve_start     = curve.point_at_pos(0.0) + (initial_normal * half_width);
+
+                end_cap(&mut points, last_point, curve_start, options.end_cap);
+            }
+
+            added_end_cap = true;
+
+            // Stroke the curve as normal once this is done
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
         }
     }
 
