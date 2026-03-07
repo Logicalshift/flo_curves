@@ -377,10 +377,8 @@ where
     }
 
     // Add start cap
-    // TODO: support other cap types
     if let (Some(start_point), Some(end_point)) = (start_point, points.last().map(|(_, _, p)| p).copied()) {
-        let (_, (cp1, cp2), ep) = line_to_bezier::<Curve<_>>(&(end_point, start_point.0)).all_points();
-        points.push((cp1, cp2, ep));
+        end_cap(&mut points, end_point, start_point.0, options.start_cap);
     }
 
     // Result is the path if we generated at least 2 points
