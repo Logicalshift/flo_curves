@@ -65,6 +65,15 @@ fn main() {
                 .with_start_cap(flo_curves::bezier::path::LineCap::Round)
                 .with_end_cap(flo_curves::bezier::path::LineCap::Round);
             show_stroke_path(gc, sample_path, options);
+
+            let sample_path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(100.0, 300.0))
+                .curve_to((Coord2(120.0, 350.0), Coord2(170.0, 250.0)), Coord2(200.0, 300.0))
+                .curve_to((Coord2(220.0, 350.0), Coord2(280.0, 250.0)), Coord2(300.0, 300.0))
+                .build();
+            let options = StrokeOptions::default()
+                .with_start_cap(flo_curves::bezier::path::LineCap::Butt)
+                .with_end_cap(flo_curves::bezier::path::LineCap::Butt);
+            show_stroke_path(gc, sample_path, options);
         })
     });
 }
