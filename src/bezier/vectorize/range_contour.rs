@@ -180,6 +180,8 @@ impl RangeContour {
                             current_intercept.end   += offset.0;
                         } else {
                             // Entire new range fit before the old intercept
+                            new_intercepts.push(old_intercept);
+                            
                             while let Some(old_intercept) = old_intercepts.next() {
                                 new_intercepts.push(old_intercept);
                             }
