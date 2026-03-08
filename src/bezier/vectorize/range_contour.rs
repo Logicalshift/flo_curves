@@ -79,6 +79,18 @@ impl RangeContour {
     }
 
     ///
+    /// Retrieves the intercepts for a particular y position (as a reference, so this is faster than the SampledContour version which copies the intercepts)
+    ///
+    #[inline]
+    pub fn get_intercepts(&self, y_pos: i64) -> Option<&Vec<Range<f64>>> {
+        if y_pos < 0 {
+            None
+        } else {
+            self.intercepts.get(y_pos as usize)
+        }
+    }
+
+    ///
     /// Adds to the intercepts vec so we can cover the specified y range
     ///
     fn extend_y_range(&mut self, min_y: i64, max_y: i64) {
@@ -209,11 +221,8 @@ impl SampledContour for RangeContour {
     fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
         let y = y.round() as i64 - self.min_y;
 
-        if y < 0 || y >= self.intercepts.len() as i64 {
-            // Out of range
-            smallvec![]
-        } else {
-            self.intercepts[y as usize].iter().cloned().collect()
-        }
+        self.get_intercepts(y)
+            .map(|intercepts| intercepts.iter().cloned().collect())
+            .unwrap_or(smallvec![])
     }
 }
