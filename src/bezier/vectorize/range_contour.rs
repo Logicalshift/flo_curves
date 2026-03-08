@@ -1,4 +1,5 @@
 use super::sampled_contour::*;
+use super::column_sampled_contour::*;
 
 use smallvec::*;
 
@@ -27,6 +28,14 @@ pub struct RangeContour {
 
     /// The intercepts along each row (at y position min_y + index)
     intercepts: Vec<Vec<Range<f64>>>,
+}
+
+///
+/// A range contour that works both horizontally and vertically
+///
+pub struct ColumnRangeContour {
+    horizontal: RangeContour,
+    vertical:   RangeContour,
 }
 
 impl Default for RangeContour {
@@ -224,5 +233,81 @@ impl SampledContour for RangeContour {
         self.get_intercepts(y)
             .map(|intercepts| intercepts.iter().cloned().collect())
             .unwrap_or(smallvec![])
+    }
+}
+
+impl Default for ColumnRangeContour {
+    fn default() -> Self {
+        ColumnRangeContour { 
+            horizontal: RangeContour::default(), 
+            vertical:   RangeContour::default(),
+        }
+    }
+}
+
+impl ColumnRangeContour {
+    ///
+    /// Creates a range contour from an existing one
+    ///
+    pub fn from_contour(contour: &impl ColumnSampledContour) -> Self {
+        Self {
+            horizontal: RangeContour::from_contour(contour),
+            vertical:   RangeContour::from_contour(&RotatedContour(contour)),
+        }
+    }
+
+    ///
+    /// Retrieves the intercepts for a particular y position (as a reference, so this is faster than the SampledContour version which copies the intercepts)
+    ///
+    #[inline]
+    pub fn get_intercepts(&self, y_pos: i64) -> Option<&Vec<Range<f64>>> {
+        self.horizontal.get_intercepts(y_pos)
+    }
+
+    ///
+    /// Adds a contour into this contour, offsetting the x and y positions of the source by the specified amount
+    ///
+    #[inline]
+    pub fn add_contour(&mut self, contour: &impl ColumnSampledContour, offset: (f64, f64)) {
+        self.horizontal.add_contour(contour, offset);
+        self.vertical.add_contour(&RotatedContour(contour), (offset.1, offset.0));
+    }
+}
+
+impl SampledContour for ColumnRangeContour {
+    #[inline]
+    fn contour_size(&self) -> ContourSize {
+        self.horizontal.contour_size()
+    }
+
+    #[inline]
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        self.horizontal.intercepts_on_line(y)
+    }
+}
+
+impl ColumnSampledContour for ColumnRangeContour {
+    #[inline]
+    fn intercepts_on_column(&self, x: f64) -> SmallVec<[Range<f64>; 4]> {
+        self.vertical.intercepts_on_line(x)
+    }
+}
+
+// Rotates a contour 90 degrees so we can use its columns as a normal 'SampledContour', used for ColumnRangeContour
+struct RotatedContour<'a, TContour>(&'a TContour);
+
+impl<'a, TContour> SampledContour for RotatedContour<'a, TContour>
+where 
+    TContour: ColumnSampledContour
+{
+    #[inline]
+    fn contour_size(&self) -> ContourSize {
+        let size = self.0.contour_size();
+        ContourSize(size.1, size.0)
+    }
+
+    #[inline]
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        self.0.intercepts_on_column(y)
     }
 }
