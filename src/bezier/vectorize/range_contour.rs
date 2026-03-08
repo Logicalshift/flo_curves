@@ -38,6 +38,44 @@ impl Default for RangeContour {
 
 impl RangeContour {
     ///
+    /// Creates a range contour from an existing one
+    ///
+    pub fn from_contour(contour: &impl SampledContour) -> Self {
+        let source_size     = contour.contour_size();
+
+        let mut min_y       = 0;
+        let mut max_x       = 0.0f64;
+        let mut intercepts  = vec![];
+
+        // Iterate over every integer y position
+        for y in 0..source_size.1 {
+            let line_intercepts = contour.intercepts_on_line(y as _);
+
+            let last_intercept = if let Some(last_intercept) = line_intercepts.last() {
+                last_intercept.clone()
+            } else {
+                if intercepts.is_empty() {
+                    // No intercepts so far, we don't need to store intercepts for this line
+                    min_y += 1;
+                } else {
+                    // Just add an empty line
+                    intercepts.push(vec![]);
+                }
+                continue;
+            };
+
+            // Add these intercepts
+            max_x = max_x.max(last_intercept.end);
+            intercepts.push(line_intercepts.into_iter().collect::<Vec<_>>());
+        }
+
+        // Combine into the contour
+        RangeContour {
+            min_y, max_x, intercepts
+        }
+    }
+
+    ///
     /// Merges a contour into this contour, offsetting the x and y positions by the specified amount
     ///
     pub fn merge_contour(&mut self, contour: &impl SampledContour, offset: (f64, f64)) {
