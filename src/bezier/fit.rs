@@ -430,7 +430,7 @@ mod test {
     #[test]
     fn generate_basic_curve() {
         let curve       = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
-        let points      = (0..100).map(|t| t as f64/100.0).map(|t| curve.point_at_pos(t)).collect::<Vec<_>>();
+        let points      = (0..=100).map(|t| t as f64/100.0).map(|t| curve.point_at_pos(t)).collect::<Vec<_>>();
 
         let start_tangent   = start_tangent(&points);
         let end_tangent     = end_tangent(&points);
