@@ -103,11 +103,43 @@ fn merge_with_overlap_4() {
 
     // Add 3 rectangles to it (2 non overlapping, and then 1 that joins them together)
     contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (80.0, 32.0));
-    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (128.0, 32.0));
     contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (32.0, 32.0));
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (128.0, 32.0));
 
     // Check some intercepts (middle, bottom, top)
     assert!(contour.intercepts_on_line(48.0).into_iter().collect::<Vec<_>>() == vec![32.0..192.0], "Line 48 = {:?}", contour.intercepts_on_line(48.0));
+    assert!(contour.intercepts_on_line(16.0).into_iter().collect::<Vec<_>>() == vec![], "Line 16 = {:?}", contour.intercepts_on_line(16.0));
+    assert!(contour.intercepts_on_line(96.0).into_iter().collect::<Vec<_>>() == vec![], "Line 96 = {:?}", contour.intercepts_on_line(96.0));
+}
+
+#[test]
+fn merge_with_overlap_5() {
+    // Start with an empty contour
+    let mut contour = RangeContour::default();
+
+    // Add 3 rectangles, one overlapping to the right of another
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (32.0, 32.0));
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (128.0, 32.0));
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..32.0 }, (80.0, 32.0));
+
+    // Check some intercepts (middle, bottom, top)
+    assert!(contour.intercepts_on_line(48.0).into_iter().collect::<Vec<_>>() == vec![32.0..112.0, 128.0..192.0], "Line 48 = {:?}", contour.intercepts_on_line(48.0));
+    assert!(contour.intercepts_on_line(16.0).into_iter().collect::<Vec<_>>() == vec![], "Line 16 = {:?}", contour.intercepts_on_line(16.0));
+    assert!(contour.intercepts_on_line(96.0).into_iter().collect::<Vec<_>>() == vec![], "Line 96 = {:?}", contour.intercepts_on_line(96.0));
+}
+
+#[test]
+fn merge_with_overlap_6() {
+    // Start with an empty contour
+    let mut contour = RangeContour::default();
+
+    // Add 3 rectangles, one overlapping to the right of another
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..32.0 }, (80.0, 32.0));
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (32.0, 32.0));
+    contour.add_contour(&RectContour { size: ContourSize(64, 64), width: 0.0..64.0 }, (128.0, 32.0));
+
+    // Check some intercepts (middle, bottom, top)
+    assert!(contour.intercepts_on_line(48.0).into_iter().collect::<Vec<_>>() == vec![32.0..112.0, 128.0..192.0], "Line 48 = {:?}", contour.intercepts_on_line(48.0));
     assert!(contour.intercepts_on_line(16.0).into_iter().collect::<Vec<_>>() == vec![], "Line 16 = {:?}", contour.intercepts_on_line(16.0));
     assert!(contour.intercepts_on_line(96.0).into_iter().collect::<Vec<_>>() == vec![], "Line 96 = {:?}", contour.intercepts_on_line(96.0));
 }
