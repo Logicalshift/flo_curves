@@ -29,6 +29,7 @@ mod walk;
 mod distort;
 mod nearest_point_tests;
 mod flatness_tests;
+mod fit_tests;
 
 pub fn approx_equal(a: f64, b: f64) -> bool {
     f64::floor(f64::abs(a-b)*10000.0) == 0.0
