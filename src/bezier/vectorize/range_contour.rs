@@ -139,7 +139,7 @@ impl RangeContour {
             if intercepts.is_empty() { continue; }
 
             // Refill the intercepts on the line from the left (they're in ascending order)
-            let line                        = (y_pos as i64 - self.min_y) as usize;
+            let line                        = (y_pos as i64 + source_min_y - self.min_y) as usize;
             let mut intercepts              = intercepts.into_iter();
             let Some(mut current_intercept) = intercepts.next() else { continue; };
 
