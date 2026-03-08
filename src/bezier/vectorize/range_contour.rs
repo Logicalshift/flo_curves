@@ -167,6 +167,11 @@ impl RangeContour {
                     break;
                 }
             }
+
+            // Swap the new intercepts into the intercepts list (this also gives us a new empty vec for the next line from the one we just drained)
+            use std::mem;
+            drop(old_intercepts);
+            mem::swap(&mut new_intercepts, &mut self.intercepts[line]);
         }
     }
 }
