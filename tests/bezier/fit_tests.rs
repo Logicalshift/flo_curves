@@ -10,6 +10,16 @@ fn fit_basic_curve() {
     let fit_curve = fit_curve.unwrap();
 
     assert!(fit_curve.len() == 13, "{} curves: {:?}", fit_curve.len(), fit_curve);
+
+    for some_curve in fit_curve {
+        for t in 0..=20 {
+            let t = t as f64/20.0;
+            let p = some_curve.point_at_pos(t);
+            let d = curve.distance_to(&p);
+
+            assert!(d < 0.02, "Distance = {} at t={}", d, t);
+        }
+    }
 }
 
 #[test]
@@ -22,4 +32,14 @@ fn fit_basic_curve_degenerate() {
     let fit_curve = fit_curve.unwrap();
 
     assert!(fit_curve.len() == 8, "{} curves: {:?}", fit_curve.len(), fit_curve);
+
+    for some_curve in fit_curve {
+        for t in 0..=20 {
+            let t = t as f64/20.0;
+            let p = some_curve.point_at_pos(t);
+            let d = curve.distance_to(&p);
+
+            assert!(d < 0.02, "Distance = {} at t={}", d, t);
+        }
+    }
 }
