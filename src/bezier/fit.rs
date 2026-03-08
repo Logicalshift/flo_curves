@@ -5,9 +5,6 @@ use crate::geo::*;
 /// Maximum number of iterations to perform when trying to improve the curve fit
 const MAX_ITERATIONS: usize = 20;
 
-// How far out of the error bounds we can be (as a ratio of the maximum error) and still attempt to fit the curve
-const FIT_ATTEMPT_RATIO: f64 = 4.0;
-
 /// Maximum number of points to fit at once (curves with more points are divided before fitting)
 const MAX_POINTS_TO_FIT: usize = 200;
 
