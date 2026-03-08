@@ -100,9 +100,9 @@ impl RangeContour {
     }
 
     ///
-    /// Merges a contour into this contour, offsetting the x and y positions by the specified amount
+    /// Adds a contour into this contour, offsetting the x and y positions of the source by the specified amount
     ///
-    pub fn merge_contour(&mut self, contour: &impl SampledContour, offset: (f64, f64)) {
+    pub fn add_contour(&mut self, contour: &impl SampledContour, offset: (f64, f64)) {
         // Start with the size of the contour (they start at 0,0)
         let source_size = contour.contour_size();
 
@@ -128,6 +128,9 @@ impl RangeContour {
             let mut intercepts              = intercepts.into_iter();
             let Some(mut current_intercept) = intercepts.next() else { continue; };
 
+            current_intercept.start += offset.0;
+            current_intercept.end   += offset.0;
+
             // Drain the intercepts from the old line as we process them
             let mut old_intercepts = self.intercepts[line].drain(..);
 
@@ -147,6 +150,9 @@ impl RangeContour {
                         if let Some(next_intercept) = intercepts.next() {
                             // Inspect the next intercept
                             current_intercept = next_intercept;
+
+                            current_intercept.start += offset.0;
+                            current_intercept.end   += offset.0;
                         } else {
                             // Entire new range fit before the old intercept
                             while let Some(old_intercept) = old_intercepts.next() {
@@ -169,6 +175,9 @@ impl RangeContour {
 
                         let Some(next_intercept) = intercepts.next() else { break; };
                         current_intercept = next_intercept;
+
+                        current_intercept.start += offset.0;
+                        current_intercept.end   += offset.0;
                     }
 
                     break;
