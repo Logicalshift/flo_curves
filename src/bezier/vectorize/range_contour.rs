@@ -33,6 +33,7 @@ pub struct RangeContour {
 ///
 /// A range contour that works both horizontally and vertically
 ///
+#[derive(Clone)]
 pub struct ColumnRangeContour {
     horizontal: RangeContour,
     vertical:   RangeContour,
