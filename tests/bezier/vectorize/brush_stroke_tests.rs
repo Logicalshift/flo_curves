@@ -243,3 +243,19 @@ fn path_brush_check_contour_2() {
         assert!(path_is_smooth(&path));
     }
 }
+
+#[test]
+fn path_intercepts_is_smooth() {
+    for counter in 370..390 {
+        println!("counter = {}", counter);
+
+        let brush_curve = brush_curve(counter);
+        let brush_path  = BezierPathBuilder::<SimpleBezierPath3>::start(brush_curve.start_point()).curve_to(brush_curve.control_points(), brush_curve.end_point()).build();
+        let paths       = brush_stroke_from_path_intercepts::<SimpleBezierPath, _, _>(&CircularBrush, &brush_path, 0.5, 0.25);
+
+        assert!(paths.len() > 0);
+        for path in paths {
+            assert!(path_is_smooth(&path));
+        }
+    }
+}

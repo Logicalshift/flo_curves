@@ -3,6 +3,7 @@ use super::distance_field::*;
 use super::daub_brush_distance_field::*;
 use super::marching_squares::*;
 use super::sampled_contour::*;
+use super::range_contour::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 use crate::geo::*;
@@ -23,6 +24,26 @@ pub trait DaubBrush {
     /// The centered position will be chosen so that `centered_at.x()-radius` and `centered_at.y()-radius` is greater than 1.
     ///
     fn create_daub(&self, centered_at: impl Coordinate + Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)>;
+}
+
+///
+/// Creates a range contour from a set of brush daubs
+///
+fn contour_from_daubs<'a, TBrush>(daubs: impl 'a + Iterator<Item=(TBrush::DaubDistanceField, ContourPosition)>, _offset: Coord2) -> ColumnRangeContour 
+where 
+    TBrush:                     'a + DaubBrush,
+    TBrush::DaubDistanceField:  SampledSignedDistanceField,
+    <TBrush::DaubDistanceField as SampledSignedDistanceField>::Contour: ColumnSampledContour,
+{
+    let mut contour = ColumnRangeContour::default();
+
+    for (daub, pos) in daubs {
+        let pos = (pos.0 as f64, pos.1 as f64);
+
+        contour.add_contour(daub.as_contour(), pos);
+    }
+
+    contour
 }
 
 ///
@@ -260,7 +281,7 @@ where
     <TBrush::DaubDistanceField as SampledSignedDistanceField>::Contour: ColumnSampledContour,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
-    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
+    let distance_field  = contour_from_daubs::<TBrush>(daubs, offset);
     let mut paths       = trace_paths_from_intercepts::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
