@@ -76,6 +76,30 @@ impl RangeContour {
     }
 
     ///
+    /// Adds to the intercepts vec so we can cover the specified y range
+    ///
+    fn extend_y_range(&mut self, min_y: i64, max_y: i64) {
+        // If there are no intercepts, then set the initial minimum y position of the contour
+        if self.intercepts.is_empty() {
+            self.min_y = min_y;
+        }
+        
+        // Add extra lines to the start of the intercepts to accomodate the new contour
+        if min_y < self.min_y {
+            let extra_at_start = self.min_y - min_y;
+            self.intercepts.splice(0..0, (0..extra_at_start as usize).into_iter().map(|_| vec![]));
+
+            self.min_y = min_y;
+        }
+
+        // Add extra lines to the end of the intercepts to accomodate the new contour
+        if max_y > (self.min_y + self.intercepts.len() as i64) {
+            let extra_at_end = (max_y - self.min_y) - self.intercepts.len() as i64;
+            self.intercepts.extend((0..extra_at_end as usize).into_iter().map(|_| vec![]));
+        }
+    }
+
+    ///
     /// Merges a contour into this contour, offsetting the x and y positions by the specified amount
     ///
     pub fn merge_contour(&mut self, contour: &impl SampledContour, offset: (f64, f64)) {
@@ -86,24 +110,7 @@ impl RangeContour {
         let source_min_y = offset.1.floor() as i64;
         let source_max_y = (offset.1 + source_size.1 as f64).ceil() as i64;
 
-        // If there are no intercepts, then set the initial minimum y position of the contour
-        if self.intercepts.is_empty() {
-            self.min_y = source_min_y;
-        }
-        
-        // Add extra lines to the start of the intercepts to accomodate the new contour
-        if source_min_y < self.min_y {
-            let extra_at_start = self.min_y - source_min_y;
-            self.intercepts.splice(0..0, (0..extra_at_start as usize).into_iter().map(|_| vec![]));
-
-            self.min_y = source_min_y;
-        }
-
-        // Add extra lines to the end of the intercepts to accomodate the new contour
-        if source_max_y > (self.min_y + self.intercepts.len() as i64) {
-            let extra_at_end = (source_max_y - self.min_y) - self.intercepts.len() as i64;
-            self.intercepts.extend((0..extra_at_end as usize).into_iter().map(|_| vec![]));
-        }
+        self.extend_y_range(source_min_y, source_max_y);
 
         // Vec containing the new intercepts (which we swap around to avoid extra allocations)
         let mut new_intercepts = vec![];
