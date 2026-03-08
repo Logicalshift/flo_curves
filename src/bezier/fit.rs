@@ -458,6 +458,41 @@ mod test {
     }
 
     #[test]
+    fn generate_basic_curve_many_passes() {
+        let curve       = Curve::from_points(Coord2(412.0, 500.0), (Coord2(442.0, 520.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
+        let points      = (0..=100).map(|t| t as f64/100.0).map(|t| curve.point_at_pos(t)).collect::<Vec<_>>();
+
+        let start_tangent   = start_tangent(&points);
+        let end_tangent     = end_tangent(&points);
+
+        // Perform an initial estimate of the 't' values corresponding to the chords of the curve
+        let mut chords      = chords_for_points(&points);
+
+        // Use the least-squares method to fit against the initial set of chords
+        let mut fit_curve   = generate_bezier::<Curve<Coord2>>(&points, &chords, &start_tangent, &end_tangent);
+
+        // Reparameterise the chords, running multiple passes to reduce the error as low as we can
+        for pass in 0..10 {
+            chords          = reparameterize(&points, &chords, &fit_curve);
+            fit_curve       = generate_bezier(&points, &chords, &start_tangent, &end_tangent);
+
+            let (error, _)  = max_error_for_curve(&points, &chords, &fit_curve);
+            println!("Pass {}, new error = {}", pass, error);
+        }
+
+        // Estimate the error after the reparameterization
+        let (error, split_pos)  = max_error_for_curve(&points, &chords, &fit_curve);
+
+        println!("Error: {:?} Split pos: {:?}", error, split_pos);
+        println!("Original curve: {:?}", curve);
+        println!("Fit curve: {:?}", fit_curve);
+
+        assert!(fit_curve.start_point().distance_to(&curve.start_point()) < 0.01, "{:?} != {:?}", curve.start_point(), fit_curve.start_point());
+        assert!(fit_curve.end_point().distance_to(&curve.end_point()) < 0.01, "{:?} != {:?}", curve.end_point(), fit_curve.end_point());
+        assert!(error < 0.01, "Error = {:?}", error);
+    }
+
+    #[test]
     fn generate_basic_curve_degenerate() {
         let curve       = Curve::from_points(Coord2(412.0, 500.0), (Coord2(412.0, 500.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
         let points      = (0..=100).map(|t| t as f64/100.0).map(|t| curve.point_at_pos(t)).collect::<Vec<_>>();
