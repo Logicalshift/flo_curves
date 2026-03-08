@@ -93,6 +93,8 @@ impl RangeContour {
     ///
     #[inline]
     pub fn get_intercepts(&self, y_pos: i64) -> Option<&Vec<Range<f64>>> {
+        let y_pos = y_pos - self.min_y;
+
         if y_pos < 0 {
             None
         } else {
@@ -181,7 +183,7 @@ impl RangeContour {
                         } else {
                             // Entire new range fit before the old intercept
                             new_intercepts.push(old_intercept);
-                            
+
                             while let Some(old_intercept) = old_intercepts.next() {
                                 new_intercepts.push(old_intercept);
                             }
@@ -231,7 +233,7 @@ impl SampledContour for RangeContour {
     }
 
     fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
-        let y = y.round() as i64 - self.min_y;
+        let y = y.round() as i64;
 
         self.get_intercepts(y)
             .map(|intercepts| intercepts.iter().cloned().collect())
