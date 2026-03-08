@@ -419,7 +419,7 @@ fn newton_raphson_root_find<Curve: BezierCurve>(curve: &Curve, point: &Curve::Po
     if denominator == 0.0 {
         estimated_t
     } else {
-        estimated_t - (numerator/denominator)
+        (estimated_t - (numerator/denominator)).clamp(0.0, 1.0)
     }
 }
 
