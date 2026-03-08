@@ -1,4 +1,4 @@
-use super::ColumnSampledContour;
+use super::column_sampled_contour::*;
 use super::distance_field::*;
 use super::daub_brush_distance_field::*;
 use super::marching_squares::*;
