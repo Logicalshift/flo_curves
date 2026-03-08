@@ -1,5 +1,7 @@
 use super::sampled_contour::*;
 
+use smallvec::*;
+
 use std::ops::{Range};
 
 ///
@@ -15,6 +17,7 @@ use std::ops::{Range};
 /// region of a canvas is invalid, or as a way to add or subtract large numbers of vector shapes
 /// quickly (with less precision than the path arithmetic functions)
 ///
+#[derive(Clone)]
 pub struct RangeContour {
     /// The y position of the first line with intercepts on it
     min_y: i64,
@@ -188,6 +191,29 @@ impl RangeContour {
             use std::mem;
             drop(old_intercepts);
             mem::swap(&mut new_intercepts, &mut self.intercepts[line]);
+        }
+    }
+}
+
+impl SampledContour for RangeContour {
+    fn contour_size(&self) -> ContourSize {
+        // Use the maximum x/y coordinates to return a size (anything in the negative realm isn't included in the size)
+        let max_y = self.min_y + self.intercepts.len() as i64;
+        let max_y = (max_y as f64).max(0.0);
+
+        let max_x = self.max_x.max(0.0);
+
+        ContourSize(max_x.ceil() as _, max_y.ceil() as _)
+    }
+
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        let y = y.round() as i64 - self.min_y;
+
+        if y < 0 || y >= self.intercepts.len() as i64 {
+            // Out of range
+            smallvec![]
+        } else {
+            self.intercepts[y as usize].iter().cloned().collect()
         }
     }
 }
