@@ -281,7 +281,8 @@ where
     <TBrush::DaubDistanceField as SampledSignedDistanceField>::Contour: ColumnSampledContour,
 {
     let (daubs, offset) = brush_stroke_daubs_from_path(distance_field, path, step, max_error);
-    let distance_field  = contour_from_daubs::<TBrush>(daubs, offset);
+    let distance_field  = DaubBrushDistanceField::from_daubs(daubs);
+    // let distance_field  = contour_from_daubs::<TBrush>(daubs, offset);
     let mut paths       = trace_paths_from_intercepts::<TPath>(&distance_field, max_error);
 
     let offset = TPath::Point::from_components(&[offset.x(), offset.y()]);
