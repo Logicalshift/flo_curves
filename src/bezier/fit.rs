@@ -454,7 +454,7 @@ mod test {
 
         assert!(fit_curve.start_point().distance_to(&curve.start_point()) < 0.01, "{:?} != {:?}", curve.start_point(), fit_curve.start_point());
         assert!(fit_curve.end_point().distance_to(&curve.end_point()) < 0.01, "{:?} != {:?}", curve.end_point(), fit_curve.end_point());
-        assert!(error < 0.01, "{:?}", error);
+        assert!(error < 0.01, "Error = {:?}", error);
     }
 
 }
