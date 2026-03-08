@@ -3,7 +3,7 @@ use super::basis::*;
 use crate::geo::*;
 
 /// Maximum number of iterations to perform when trying to improve the curve fit
-const MAX_ITERATIONS: usize = 4;
+const MAX_ITERATIONS: usize = 20;
 
 // How far out of the error bounds we can be (as a ratio of the maximum error) and still attempt to fit the curve
 const FIT_ATTEMPT_RATIO: f64 = 4.0;
@@ -41,8 +41,8 @@ fn max_points_to_fit(num_points: usize) -> usize {
 /// 
 /// There are a few modifications from the original algorithm:
 /// 
-///   * The 'small' error used to determine if we should use Newton-Raphson is now 
-///     just a multiplier of the max error
+///   * We apply Newton-Raphson repeatedly until it stops improving the result
+///     significantly
 ///   * We only try to fit a certain number of points at once as the algorithm runs
 ///     in quadratic time otherwise
 /// 
@@ -187,7 +187,9 @@ pub fn fit_curve_cubic<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::P
         let (mut error, mut split_pos)  = max_error_for_curve(points, &chords, &curve);
 
         // Try iterating to improve the fit if we're not too far out
-        if error > max_error && error < max_error*FIT_ATTEMPT_RATIO {
+        if error > max_error {
+            let mut last_error = error;
+
             for _iteration in 1..MAX_ITERATIONS {
                 // Recompute the chords and the curve
                 chords = reparameterize(points, &chords, &curve);
@@ -198,9 +200,17 @@ pub fn fit_curve_cubic<Curve: BezierCurveFactory+BezierCurve>(points: &[Curve::P
                 error       = new_error;
                 split_pos   = new_split_pos;
 
+                // The improvement ratio
+                let improvement = error / last_error;
+                if improvement > 0.95 {
+                    break;
+                }
+
                 if error <= max_error {
                     break;
                 }
+
+                last_error = error;
             }
         }
 

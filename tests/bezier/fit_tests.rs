@@ -9,7 +9,7 @@ fn fit_basic_curve() {
     assert!(fit_curve.is_some());
     let fit_curve = fit_curve.unwrap();
 
-    assert!(fit_curve.len() == 17, "{} curves: {:?}", fit_curve.len(), fit_curve);
+    assert!(fit_curve.len() == 13, "{} curves: {:?}", fit_curve.len(), fit_curve);
 }
 
 #[test]
@@ -21,5 +21,5 @@ fn fit_basic_curve_degenerate() {
     assert!(fit_curve.is_some());
     let fit_curve = fit_curve.unwrap();
 
-    assert!(fit_curve.len() == 13, "{} curves: {:?}", fit_curve.len(), fit_curve);
+    assert!(fit_curve.len() == 8, "{} curves: {:?}", fit_curve.len(), fit_curve);
 }
