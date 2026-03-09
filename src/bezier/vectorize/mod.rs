@@ -12,6 +12,7 @@ mod range_contour;
 mod scaled_contour;
 mod scaled_distance_field;
 mod scaled_brush;
+mod rect_region;
 
 pub use sampled_contour::*;
 pub use column_sampled_contour::*;
@@ -27,3 +28,4 @@ pub use range_contour::*;
 pub use scaled_contour::*;
 pub use scaled_distance_field::*;
 pub use scaled_brush::*;
+pub use rect_region::*;
