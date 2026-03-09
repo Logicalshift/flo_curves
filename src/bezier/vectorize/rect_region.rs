@@ -3,10 +3,12 @@ use super::sampled_contour::*;
 use crate::geo::*;
 
 use itertools::*;
+use smallvec::*;
+
 use std::ops::{Range};
 
 #[derive(Clone)]
-struct RegionSlice {
+pub struct RegionSlice {
     /// The y range covered by this region
     y_range: Range<f64>,
 
@@ -24,8 +26,10 @@ pub struct RectRegion {
     /// The horizontal slices that make up this region
     slices: Vec<RegionSlice>,
 
-    /// The X coordinates covered by this
+    /// The X coordinates covered by this region
     x_region: Range<f64>,
+
+    /// The y coordinates covered by this region
     y_region: Range<f64>,
 }
 
@@ -147,14 +151,67 @@ impl RectRegion {
             last_y = end_y;
         }
     }
+
+    ///
+    /// Retrieves the bounds for everything in this region
+    ///
+    #[inline]
+    pub fn bounds<TCoord>(&self) -> Bounds<TCoord>
+    where 
+        TCoord: Coordinate + Coordinate2D,
+    {
+        Bounds(TCoord::from_components(&[self.x_region.start, self.y_region.start]), TCoord::from_components(&[self.x_region.end, self.y_region.end]))
+    }
+
+    ///
+    /// Returns the 'slices' that make up this region. These are ordered by y position (and are non-overlapping)
+    ///
+    #[inline]
+    pub fn slices(&self) -> &[RegionSlice] {
+        &*self.slices
+    }
+}
+
+impl RegionSlice {
+    ///
+    /// The x-ranges covered by this slice (ordered by x position and non-overlapping)
+    ///
+    #[inline]
+    pub fn x_ranges(&self) -> &[Range<f64>] {
+        &self.x_ranges
+    }
+
+    ///
+    /// The y range covered by this slice
+    ///
+    #[inline]
+    pub fn y_range(&self) -> Range<f64> {
+        self.y_range.clone()
+    }
 }
 
 impl SampledContour for RectRegion {
     fn contour_size(&self) -> ContourSize {
-        todo!()
+        let max_x = self.x_region.end.max(0.0).ceil();
+        let max_y = self.y_region.end.max(0.0).ceil();
+
+        ContourSize(max_x as _, max_y as _)
     }
 
-    fn intercepts_on_line(&self, y: f64) -> smallvec::SmallVec<[std::ops::Range<f64>; 4]> {
-        todo!()
+    fn intercepts_on_line(&self, y: f64) -> SmallVec<[Range<f64>; 4]> {
+        // Search by the end of the slice (so both indexes are the index of the first slice that contains y and ends after y)
+        let slice_idx = self.slices.binary_search_by(|slice| slice.y_range.end.total_cmp(&y));
+        let slice_idx = match slice_idx { Ok(slice) => slice + 1, Err(slice) => slice };
+
+        // Return the x ranges from the slice that we found
+        if let Some(slice) = self.slices.get(slice_idx) {
+            if slice.y_range.start <= y {
+                slice.x_ranges.iter().cloned().collect()
+            } else {
+                smallvec![]
+            }
+        } else {
+            smallvec![]
+        }
     }
 }
