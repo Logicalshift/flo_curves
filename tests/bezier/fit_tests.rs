@@ -66,3 +66,34 @@ fn fit_straight_line() {
         }
     }
 }
+
+#[test]
+fn fit_square() {
+    let points = (0..=100).map(|t| {
+        let p = (t%25) as f64 / 25.0 * 100.0;
+        if t < 25 {
+            Coord2(100.0 + p, 100.0)
+        } else if t < 50 {
+            Coord2(200.0, 100.0 + p)
+        } else if t < 75 {
+            Coord2(200.0 - p, 200.0)
+        } else {
+            Coord2(100.0, 200.0 - p)
+        }
+    }).collect::<Vec<_>>();
+    let fit_curve = fit_curve::<Curve<Coord2>>(&points, 0.01);
+
+    assert!(fit_curve.is_some());
+    let fit_curve = fit_curve.unwrap();
+
+    assert!(fit_curve.len() == 7, "{} curves: {:?}", fit_curve.len(), fit_curve);
+
+    for some_curve in fit_curve {
+        for t in 0..=20 {
+            let t = t as f64/20.0;
+            let p = some_curve.point_at_pos(t);
+
+            assert!((p.x()-100.0).abs() < 0.01 || (p.y()-100.0).abs() < 0.01 || (p.x()-200.0).abs() < 0.01 || (p.y()-200.0).abs() < 0.01, "{:?}", p);
+        }
+    }
+}
