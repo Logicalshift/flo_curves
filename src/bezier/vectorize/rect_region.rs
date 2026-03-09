@@ -80,6 +80,8 @@ impl RectRegion {
     where 
         TCoord: Coordinate + Coordinate2D,
     {
+        use std::iter;
+
         // Remove any bounds that have finished before min_y, so active_bounds only contains the bounding boxes that overlap this region somehow
         active_bounds.retain(|bounds| bounds.max().y() > min_y);
 
@@ -95,7 +97,8 @@ impl RectRegion {
         let y_positions = active_bounds.iter()
             .map(|bounds| bounds.max().y())
             .filter(|y_pos| *y_pos < max_y)
-            .sorted_by(|a, b| a.total_cmp(b));
+            .sorted_by(|a, b| a.total_cmp(b))
+            .chain(iter::once(max_y));
 
         // Create slices starting at min_y
         let mut last_y = min_y;
