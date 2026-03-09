@@ -3,7 +3,7 @@ use super::basis::*;
 use crate::geo::*;
 
 /// Maximum number of iterations to perform when trying to improve the curve fit
-const MAX_ITERATIONS: usize = 20;
+const MAX_ITERATIONS: usize = 8;
 
 /// Maximum number of points to fit at once (curves with more points are divided before fitting)
 const MAX_POINTS_TO_FIT: usize = 200;
