@@ -5,3 +5,4 @@ mod daub_brush_distance_field_tests;
 mod brush_stroke_tests;
 mod scaled_distance_field_tests;
 mod range_contour_tests;
+mod rect_region_tests;
