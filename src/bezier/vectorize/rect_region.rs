@@ -68,6 +68,7 @@ impl RectRegion {
         }
 
         // Process the bounds in 'active_bounds' (all the way to the end this time)
+        active_bounds.extend(pending_bounds);
         Self::process_slices(&mut slices, &mut active_bounds, last_y, f64::MAX);
 
         RectRegion { slices }
