@@ -54,7 +54,6 @@ impl RectRegion {
 
         // The set of active bounds for the current region
         let mut active_bounds: Vec<Bounds<TCoord>>  = vec![];
-        let mut pending_bounds: Vec<Bounds<TCoord>> = vec![];
         let mut last_bounds: Option<Bounds<TCoord>> = None;
 
         while let Some(next_bounds) = ordered_bounds.next() {
@@ -62,16 +61,13 @@ impl RectRegion {
             if let Some(last_bounds) = last_bounds {
                 if last_bounds.min().y() != next_bounds.min().y() {
                     // Generate a slice for the region from the last slice to 'last_bounds'
-                    Self::process_slices(&mut slices, &mut active_bounds, last_y, last_bounds.min().y());
-                    last_y = last_bounds.min().y();
+                    Self::process_slices(&mut slices, &mut active_bounds, last_y, next_bounds.min().y());
+                    last_y = next_bounds.min().y();
                 }
-
-                // Pending bounds get added to the active bounds
-                active_bounds.extend(pending_bounds.drain(..));
             }
 
             // This becomes part of the pending bounds
-            pending_bounds.push(next_bounds);
+            active_bounds.push(next_bounds);
             x_region.start  = x_region.start.min(next_bounds.min().x());
             x_region.end    = x_region.end.max(next_bounds.max().x());
             y_region.end    = y_region.end.max(next_bounds.max().y());
@@ -81,7 +77,6 @@ impl RectRegion {
         }
 
         // Process the bounds in 'active_bounds' (all the way to the end this time)
-        active_bounds.extend(pending_bounds);
         Self::process_slices(&mut slices, &mut active_bounds, last_y, f64::MAX);
 
         RectRegion { slices, x_region, y_region }
