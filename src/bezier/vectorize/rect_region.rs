@@ -119,7 +119,7 @@ impl RectRegion {
         for end_y in y_positions {
             // Get the slices in this region (last_y..end_y), ordered by x coordinate (because we sorted active_bounds earlier)
             let mut x_slices = active_bounds.iter()
-                .filter(|bounds| bounds.max().y() > end_y)
+                .filter(|bounds| bounds.max().y() > last_y)
                 .map(|bounds| bounds.min().x()..bounds.max().x());
 
             if let Some(mut current_region) = x_slices.next() {
