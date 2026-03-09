@@ -116,7 +116,7 @@ impl RectRegion {
                 while let Some(next_region) = x_slices.next() {
                     if next_region.start <= current_region.end {
                         // Bounds overlap
-                        current_region.end = next_region.end;
+                        current_region.end = current_region.end.max(next_region.end);
                     } else {
                         // Bounds do not overlap
                         x_ranges.push(current_region);
