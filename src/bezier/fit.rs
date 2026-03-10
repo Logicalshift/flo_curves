@@ -462,6 +462,39 @@ mod test {
         assert!(fit_curve.start_point().distance_to(&curve.start_point()) < 0.01, "{:?} != {:?}", curve.start_point(), fit_curve.start_point());
         assert!(fit_curve.end_point().distance_to(&curve.end_point()) < 0.01, "{:?} != {:?}", curve.end_point(), fit_curve.end_point());
         assert!(error < 190.00, "Error = {:?}", error);
+        assert!(error > 100.00, "Error = {:?}", error);
+    }
+
+    #[test]
+    fn generate_basic_curve_with_accurate_t_values() {
+        // As for 'generate_basic_curve' but instead of using chords_for_points we use the actual t values from the curve (this demonstrates how picking more accurate 't' values produces a better result)
+        let curve       = Curve::from_points(Coord2(412.0, 500.0), (Coord2(442.0, 520.0), Coord2(163.0, 504.0)), Coord2(308.0, 665.0));
+        let points      = (0..=100).map(|t| t as f64/100.0).map(|t| curve.point_at_pos(t)).collect::<Vec<_>>();
+
+        let start_tangent   = start_tangent(&points);
+        let end_tangent     = end_tangent(&points);
+
+        // Perform an initial estimate of the 't' values corresponding to the chords of the curve
+        let mut chords      = (0..=100).map(|t| t as f64/100.0).collect::<Vec<_>>();
+
+        // Use the least-squares method to fit against the initial set of chords
+        let mut fit_curve   = generate_bezier::<Curve<Coord2>>(&points, &chords, &start_tangent, &end_tangent);
+
+        // Reparameterise the chords (which will probably be quite a bad estimate initially)
+        chords              = reparameterize(&points, &chords, &fit_curve);
+        fit_curve           = generate_bezier(&points, &chords, &start_tangent, &end_tangent);
+
+        // Estimate the error after the reparameterization
+        let (error, split_pos)  = max_error_for_curve(&points, &chords, &fit_curve);
+
+        println!("Error: {:?} Split pos: {:?}", error, split_pos);
+        println!("Original curve: {:?}", curve);
+        println!("Fit curve: {:?}", fit_curve);
+
+        // Note: using chords_for_points for this curve we end up with an error > 100.0, and here we end up with one < 1.0
+        assert!(fit_curve.start_point().distance_to(&curve.start_point()) < 0.01, "{:?} != {:?}", curve.start_point(), fit_curve.start_point());
+        assert!(fit_curve.end_point().distance_to(&curve.end_point()) < 0.01, "{:?} != {:?}", curve.end_point(), fit_curve.end_point());
+        assert!(error < 1.0, "Error = {:?}", error);
     }
 
     #[test]
