@@ -18,7 +18,7 @@ mod bounds;
 mod deform;
 mod search;
 mod solve;
-mod offset;
+mod offset_tests;
 mod overlaps_tests;
 mod intersection;
 mod characteristics;

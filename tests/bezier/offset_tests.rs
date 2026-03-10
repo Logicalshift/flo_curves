@@ -83,7 +83,8 @@ fn simple_offset_1() {
     let offset      = offset(&c, 10.0, 10.0);
     let error       = max_error(&c, &offset, 10.0, 10.0);
 
-    assert!(error <= 2.0);
+    assert!(error <= 1.0);
+    assert!(offset.len() <= 5, "Number of curves = {:?}", offset.len());
 }
 
 #[test]
@@ -92,7 +93,8 @@ fn simple_offset_2() {
     let offset      = offset(&c, 10.0, 10.0);
     let error       = max_error(&c, &offset, 10.0, 10.0);
 
-    assert!(error <= 2.0);
+    assert!(error <= 1.0);
+    assert!(offset.len() <= 1, "Number of curves = {:?}", offset.len());
 }
 
 #[test]
@@ -102,7 +104,8 @@ fn simple_offset_3() {
     let offset      = offset(&c, 10.0, 10.0);
     let error       = max_error(&c, &offset, 10.0, 10.0);
 
-    assert!(error <= 2.0);
+    assert!(error <= 1.0);
+    assert!(offset.len() <= 2, "Number of curves = {:?}", offset.len());
 }
 
 #[test]
@@ -112,7 +115,8 @@ fn simple_offset_4() {
     let offset      = offset(&c, 10.0, 10.0);
     let error       = max_error(&c, &offset, 10.0, 10.0);
 
-    assert!(error <= 10.0);
+    assert!(error <= 1.0);
+    assert!(offset.len() <= 7, "Number of curves = {:?}", offset.len());
 }
 
 #[test]
@@ -123,12 +127,14 @@ fn simple_offset_5() {
     let c           = Curve::from_points(Coord2(170.83203, 534.28906), (Coord2(140.99219, 492.1289), Coord2(0.52734375, 478.67188)), Coord2(262.95313, 533.2656));
     let offset_1    = offset(&c, 10.0, 10.0);
     let error_1     = max_error(&c, &offset_1, 10.0, 10.0);
-    assert!(error_1 <= 12.0);
+    assert!(error_1 <= 3.0);
+    assert!(offset_1.len() <= 5, "Number of curves in 1 = {:?}", offset_1.len());
 
     // Offsetting too much 'inside' the curve starts to produce chaotic behaviour around the cusp with this algorithm
     let offset_2    = offset(&c, -2.0, -2.0);
     let error_2     = max_error(&c, &offset_2, 2.0, 2.0);
-    assert!(error_2 <= 4.0);
+    assert!(error_2 <= 2.5);
+    assert!(offset_2.len() <= 6, "Number of curves in 2 = {:?}", offset_2.len());
 }
 
 #[test]
@@ -138,12 +144,14 @@ fn simple_offset_6() {
     // This is a very tight curve, so there's no good solution in this direction for large offsets (the scaling algorithm produces a very chaotic curve)
     let offset_1    = offset(&c, 2.0, 2.0);
     let error_1     = max_error(&c, &offset_1, 2.0, 2.0);
-    assert!(error_1 <= 2.0);
+    assert!(error_1 <= 1.0);
+    assert!(offset_1.len() <= 10, "Number of curves in 1 = {:?}", offset_1.len());
 
     let offset_2    = offset(&c, -10.0, -10.0);
     let error_2     = max_error(&c, &offset_2, 10.0, 10.0);
 
     assert!(error_2 <= 1.0);
+    assert!(offset_2.len() <= 4, "Number of curves in 2 = {:?}", offset_2.len());
 }
 
 #[test]
