@@ -519,8 +519,6 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::arc::*;
-
     use super::*;
 
     #[test]
