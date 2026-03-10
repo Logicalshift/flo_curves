@@ -68,7 +68,7 @@ where
     };
 
     // Each section is subdivided in turn subdivisions times to produce a set of sample points to fit against
-    let sections            = sections.into_iter()
+    let sections = sections.into_iter()
         .filter(|(t1, t2)| t1 != t2)
         .flat_map(|(t1, t2)| {
             let step = (t2-t1)/(subdivisions as f64);
@@ -77,7 +77,7 @@ where
         .chain(iter::once(1.0));
 
     // Take a sample at each point
-    let sample_points       = sections
+    let (sample_points, predicted_t) = sections
         .map(|t| {
             let original_point  = curve.point_at_pos(t);
             let unit_tangent    = curve.tangent_at_pos(t).to_unit_vector();
@@ -86,12 +86,14 @@ where
             let normal_offset   = normal_offset_for_t(t);
             let tangent_offset  = tangent_offset_for_t(t);
 
-            original_point + (unit_normal * normal_offset) + (unit_tangent * tangent_offset)
+            let new_point       = original_point + (unit_normal * normal_offset) + (unit_tangent * tangent_offset);
+
+            (new_point, t)
         })
-        .collect::<Vec<_>>();
+        .unzip::<_, _, Vec<_>, Vec<_>>();
 
     // Generate a curve using the sample points
     let start_tangent   = curve.tangent_at_pos(0.0).to_unit_vector();
     let end_tangent     = curve.tangent_at_pos(1.0).to_unit_vector() * -1.0;
-    Some(fit_curve_cubic(&sample_points, &start_tangent, &end_tangent, max_error))
+    Some(fit_curve_cubic_with_predicted_t(&sample_points, &predicted_t, &start_tangent, &end_tangent, max_error))
 }
