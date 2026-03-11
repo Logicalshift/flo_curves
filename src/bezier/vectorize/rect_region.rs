@@ -229,24 +229,38 @@ impl RectRegion {
                     }
                 } else if ours.y_range.start < incoming.y_range.start {
                     // No overlap, ours is first
-                    y_pos = ours.y_range.end;
+                    let mut ours = maybe_ours.unwrap();
+                    ours.y_range.start = ours.y_range.start.max(y_pos);
 
-                    new_slices.push(maybe_ours.unwrap());
+                    if ours.y_range.end < y_pos {
+                        y_pos = ours.y_range.end;
+                        new_slices.push(ours);
+                    }
+
                     maybe_ours = our_slices.next();
                 } else {
                     // No overlap, incoming must be first
-                    y_pos = incoming.y_range.end;
+                    let mut incoming = maybe_incoming.unwrap();
+                    incoming.y_range.start = incoming.y_range.start.max(y_pos);
 
-                    new_slices.push(maybe_incoming.unwrap());
-                    maybe_incoming  = incoming_slices.next();
+                    if incoming.y_range.end < y_pos {
+                        y_pos = incoming.y_range.end;
+                        new_slices.push(incoming);
+                    }
+
+                    maybe_incoming = incoming_slices.next();
                 }
-            } else if let Some(ours) = maybe_ours {
+            } else if let Some(mut ours) = maybe_ours {
                 // Only 'ours' left
-                new_slices.push(ours);
+                ours.y_range.start = ours.y_range.start.max(y_pos);
+
+                if ours.y_range.start < ours.y_range.end { new_slices.push(ours); }
                 maybe_ours = our_slices.next();
-            } else if let Some(incoming) = maybe_incoming {
+            } else if let Some(mut incoming) = maybe_incoming {
                 // Only 'incoming' left
-                new_slices.push(incoming);
+                incoming.y_range.start = incoming.y_range.start.max(y_pos);
+
+                if incoming.y_range.start < incoming.y_range.end { new_slices.push(incoming); }
                 maybe_incoming = incoming_slices.next();
             } else {
                 // Both finished
