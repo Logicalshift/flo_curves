@@ -401,26 +401,6 @@ impl RegionSlice {
             x_ranges: self.x_ranges.clone(),
         }
     }
-
-    ///
-    /// Returns a split of this slice into two slices, given a y position that's somewhere in this slice
-    ///
-    fn split(&self, y_pos: f64) -> (Self, Self) {
-        debug_assert!(y_pos > self.y_range.start);
-        debug_assert!(y_pos < self.y_range.end);
-
-        let early_slice = Self {
-            y_range:    self.y_range.start..y_pos,
-            x_ranges:   self.x_ranges.clone(),
-        };
-
-        let later_slice = Self {
-            y_range:    y_pos..self.y_range.end,
-            x_ranges:   self.x_ranges.clone()
-        };
-
-        (early_slice, later_slice)
-    }
 }
 
 impl SampledContour for RectRegion {
