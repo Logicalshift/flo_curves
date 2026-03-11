@@ -211,6 +211,14 @@ fn merge_with_non_overlapping_y() {
 
     a.merge_with(b);
 
+    assert!(a.slices().len() == 2, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
+
+    assert!(a.slices()[0].x_ranges() == &[0.0..10.0]);
+    assert!(a.slices()[1].x_ranges() == &[0.0..10.0]);
+
+    assert!(a.slices()[0].y_range() == (0.0..10.0));
+    assert!(a.slices()[1].y_range() == (20.0..30.0));
+
     assert!(intercepts(&a,  5.0) == vec![0.0..10.0], "{:?}", intercepts(&a, 5.0));
     assert!(intercepts(&a, 15.0) == vec![], "{:?}", intercepts(&a, 15.0));
     assert!(intercepts(&a, 25.0) == vec![0.0..10.0], "{:?}", intercepts(&a, 25.0));
