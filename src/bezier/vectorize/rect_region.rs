@@ -660,4 +660,28 @@ mod test {
 
         assert_eq!(a.x_ranges, vec![2.0..5.0]);
     }
+
+    #[test]
+    fn merge_many_overlapping_ranges_1() {
+        let mut a = make_slice(vec![1.0..100.0]);
+        let b     = make_slice(vec![2.0..3.0, 4.0..5.0, 6.0..7.0, 8.0..9.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..100.0]);
+        assert!(scratch.is_empty());
+    }
+
+    #[test]
+    fn merge_many_overlapping_ranges_2() {
+        let mut a = make_slice(vec![2.0..3.0, 4.0..5.0, 6.0..7.0, 8.0..9.0]);
+        let b     = make_slice(vec![1.0..100.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..100.0]);
+        assert!(scratch.is_empty());
+    }
 }
