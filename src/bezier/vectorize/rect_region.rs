@@ -232,7 +232,7 @@ impl RectRegion {
                     let mut ours = maybe_ours.unwrap();
                     ours.y_range.start = ours.y_range.start.max(y_pos);
 
-                    if ours.y_range.end < y_pos {
+                    if ours.y_range.end > y_pos {
                         y_pos = ours.y_range.end;
                         new_slices.push(ours);
                     }
@@ -243,7 +243,7 @@ impl RectRegion {
                     let mut incoming = maybe_incoming.unwrap();
                     incoming.y_range.start = incoming.y_range.start.max(y_pos);
 
-                    if incoming.y_range.end < y_pos {
+                    if incoming.y_range.end > y_pos {
                         y_pos = incoming.y_range.end;
                         new_slices.push(incoming);
                     }
