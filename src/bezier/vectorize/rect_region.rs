@@ -150,7 +150,7 @@ impl RectRegion {
     ///
     /// Merges this region with another region
     ///
-    pub fn merge_with(&mut self, new_region: &RectRegion) {
+    pub fn merge_with(&mut self, new_region: RectRegion) {
         // Nothing to do if the new region is empty
         if new_region.slices.is_empty() {
             return;
@@ -173,8 +173,9 @@ impl RectRegion {
         let mut merge_scratch   = vec![];
         let mut new_slices      = Vec::with_capacity(self.slices.len().max(new_region.slices.len()));
 
+        let mut new_region      = new_region;
         let mut our_slices      = self.slices.drain(..);
-        let mut incoming_slices = new_region.slices.iter();
+        let mut incoming_slices = new_region.slices.drain(..);
 
         let mut maybe_ours      = our_slices.next();
         let mut maybe_incoming  = incoming_slices.next();
@@ -184,7 +185,7 @@ impl RectRegion {
 
         loop {
             // Ours and the incoming slices are in order, so 'last_slice' is the slice before both 'ours' and 'incoming'
-            if let (Some(ours), Some(incoming)) = (&maybe_ours, maybe_incoming) {
+            if let (Some(ours), Some(incoming)) = (&maybe_ours, &maybe_incoming) {
                 if ours.y_range.start < incoming.y_range.end && incoming.y_range.start < ours.y_range.end {
                     // Ranges overlap
                     let overlap_start   = ours.y_range.start.max(incoming.y_range.start);
@@ -236,7 +237,7 @@ impl RectRegion {
                     // No overlap, incoming must be first
                     y_pos = incoming.y_range.end;
 
-                    new_slices.push(incoming.clone());
+                    new_slices.push(maybe_incoming.unwrap());
                     maybe_incoming  = incoming_slices.next();
                 }
             } else if let Some(ours) = maybe_ours {
@@ -245,7 +246,7 @@ impl RectRegion {
                 maybe_ours = our_slices.next();
             } else if let Some(incoming) = maybe_incoming {
                 // Only 'incoming' left
-                new_slices.push(incoming.clone());
+                new_slices.push(incoming);
                 maybe_incoming = incoming_slices.next();
             } else {
                 // Both finished
