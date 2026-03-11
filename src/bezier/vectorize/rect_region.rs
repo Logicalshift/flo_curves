@@ -148,6 +148,13 @@ impl RectRegion {
     }
 
     ///
+    /// Merges this region with another region
+    ///
+    pub fn add_region(&mut self, new_region: &RectRegion) {
+        // TODO
+    }
+
+    ///
     /// Retrieves the bounds for everything in this region
     ///
     #[inline]
@@ -182,6 +189,100 @@ impl RegionSlice {
     #[inline]
     pub fn y_range(&self) -> Range<f64> {
         self.y_range.clone()
+    }
+
+    ///
+    /// Merges another slice with this slice. Scratch space should be empty when this is called (and will be 
+    /// empty once this returns). We don't consider the y-ranges with this operation
+    ///
+    fn merge(&mut self, other_slice: &RegionSlice, scratch: &mut Vec<Range<f64>>) {
+        use std::mem;
+
+        debug_assert!(scratch.is_empty());
+
+        // Iterate on the ranges in the other slice
+        let mut our_ranges      = self.x_ranges.iter();
+        let mut incoming_ranges = other_slice.x_ranges.iter();
+
+        let mut maybe_ours      = our_ranges.next();
+        let mut maybe_incoming  = incoming_ranges.next();
+
+        // The 'last_range' is the combined range that we're building
+        let mut last_range = if let (Some(ours), Some(incoming)) = (maybe_ours, maybe_incoming) {
+            if ours.start < incoming.start {
+                // 'Ours' is first
+                maybe_ours = our_ranges.next();
+                ours.clone()
+            } else {
+                // 'Incoming' is first
+                maybe_incoming = incoming_ranges.next();
+                incoming.clone()
+            }
+        } else if let Some(ours) = maybe_ours {
+            // No incoming
+            maybe_ours = our_ranges.next();
+            ours.clone()
+        } else if let Some(incoming) = maybe_incoming {
+            // No 'ours'
+            maybe_incoming = incoming_ranges.next();
+            incoming.clone()
+        } else {
+            return;
+        };
+
+        loop {
+            // Merge from the two sides into last_range if they overlap
+            if let Some(ours) = maybe_ours {
+                if ours.start <= last_range.end {
+                    // 'ours' overlaps the last_range, so consume it
+                    last_range.end = ours.end.max(last_range.end);
+                    maybe_ours = our_ranges.next();
+                    continue;
+                }
+            } else if let Some(incoming) = maybe_incoming {
+                if incoming.start <= last_range.end {
+                    // 'incoming' overlaps the last_range, so consume it
+                    last_range.end = incoming.end.max(last_range.end);
+                    maybe_incoming = incoming_ranges.next();
+                    continue;
+                }
+            } else {
+                // 'ours' and 'incoming' are both None so we're finished after adding the last_range to the end of the new list of ranges
+                scratch.push(last_range);
+                break;
+            }
+
+            // Ranges don't overlap: add the last range to the result
+            scratch.push(last_range);
+
+            // Pick a new last range
+            last_range = if let (Some(ours), Some(incoming)) = (maybe_ours, maybe_incoming) {
+                if ours.start < incoming.start {
+                    // 'ours' is first
+                    maybe_ours = our_ranges.next();
+                    ours.clone()
+                } else {
+                    // 'incoming' is first
+                    maybe_incoming = incoming_ranges.next();
+                    incoming.clone()
+                }
+            } else if let Some(ours) = maybe_ours {
+                // Only 'ours' is left
+                maybe_ours = our_ranges.next();
+                ours.clone()
+            } else if let Some(incoming) = maybe_incoming {
+                // Only 'incoming' is left
+                maybe_incoming = incoming_ranges.next();
+                incoming.clone()
+            } else {
+                // Unreachable: the 'None, None' case is dealt with above
+                unreachable!()
+            }
+        }
+
+        // Scratch now contains the merged ranges
+        mem::swap(scratch, &mut self.x_ranges);
+        scratch.clear();
     }
 }
 
