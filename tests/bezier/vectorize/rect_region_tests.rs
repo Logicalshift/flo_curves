@@ -356,6 +356,7 @@ fn merge_with_multiple_overlapping_regions_last_leaves_bounds() {
     assert!(a.slices()[3].x_ranges() == &[0.0..25.0], "a.slices()[3].x_ranges() = {:?}", a.slices()[3].x_ranges());
     assert!(a.slices()[4].x_ranges() == &[0.0..15.0], "a.slices()[4].x_ranges() = {:?}", a.slices()[4].x_ranges());
     assert!(a.slices()[5].x_ranges() == &[0.0..25.0], "a.slices()[5].x_ranges() = {:?}", a.slices()[5].x_ranges());
+    assert!(a.slices()[6].x_ranges() == &[10.0..25.0], "a.slices()[5].x_ranges() = {:?}", a.slices()[5].x_ranges());
 
     assert!(a.slices()[0].y_range() == (0.0..10.0), "a.slices()[0].y_range() = {:?}", a.slices()[0].y_range());
     assert!(a.slices()[1].y_range() == (10.0..15.0), "a.slices()[1].y_range() = {:?}", a.slices()[1].y_range());
@@ -363,8 +364,9 @@ fn merge_with_multiple_overlapping_regions_last_leaves_bounds() {
     assert!(a.slices()[3].y_range() == (20.0..25.0), "a.slices()[3].y_range() = {:?}", a.slices()[3].y_range());
     assert!(a.slices()[4].y_range() == (25.0..30.0), "a.slices()[4].y_range() = {:?}", a.slices()[4].y_range());
     assert!(a.slices()[5].y_range() == (30.0..100.0), "a.slices()[5].y_range() = {:?}", a.slices()[5].y_range());
+    assert!(a.slices()[6].y_range() == (100.0..105.0), "a.slices()[6].y_range() = {:?}", a.slices()[6].y_range());
 
-    assert!(a.slices().len() == 6);
+    assert!(a.slices().len() == 7, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
 
     assert!(intercepts(&a, 11.0) == vec![0.0..25.0], "{:?}", intercepts(&a, 5.0));
 }
