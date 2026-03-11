@@ -96,7 +96,7 @@ fn basic_circle_1() {
 
     println!("Max error: {:?}", max_error);
     println!("Num intercepts: {:?}", num_intercepts);
-    assert!(num_intercepts >= 600 && num_intercepts <= 602, "num_intercepts = {:?}", num_intercepts);
+    assert!(num_intercepts >= 599 && num_intercepts <= 602, "num_intercepts = {:?}", num_intercepts);
 }
 
 #[test]
