@@ -338,7 +338,7 @@ fn merge_with_multiple_overlapping_regions() {
 
 #[test]
 fn merge_with_multiple_overlapping_regions_last_leaves_bounds() {
-    // Many regions overlapping a single target region in the y axis
+    // Many regions overlapping a single target region in the y axis. Last one extends past the original region.
     let mut a = RectRegion::from_bounds(vec![
         Bounds(Coord2(0.0, 0.0), Coord2(15.0, 100.0)),
     ]);
@@ -367,6 +367,39 @@ fn merge_with_multiple_overlapping_regions_last_leaves_bounds() {
     assert!(a.slices()[6].y_range() == (100.0..105.0), "a.slices()[6].y_range() = {:?}", a.slices()[6].y_range());
 
     assert!(a.slices().len() == 7, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
+
+    assert!(intercepts(&a, 11.0) == vec![0.0..25.0], "{:?}", intercepts(&a, 5.0));
+}
+
+#[test]
+fn merge_with_multiple_overlapping_regions_last_matches_bounds() {
+    // Many regions overlapping a single target region in the y axis. Last one has a matching y coordinate
+    let mut a = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(15.0, 100.0)),
+    ]);
+    let b = RectRegion::from_bounds(vec![
+        Bounds(Coord2(10.0, 10.0), Coord2(25.0, 15.0)),
+        Bounds(Coord2(10.0, 20.0), Coord2(25.0, 25.0)),
+        Bounds(Coord2(10.0, 30.0), Coord2(25.0, 100.0)),
+    ]);
+
+    a.merge_with(b);
+
+    assert!(a.slices()[0].x_ranges() == &[0.0..15.0], "a.slices()[0].x_ranges() = {:?}", a.slices()[0].x_ranges());
+    assert!(a.slices()[1].x_ranges() == &[0.0..25.0], "a.slices()[1].x_ranges() = {:?}", a.slices()[1].x_ranges());
+    assert!(a.slices()[2].x_ranges() == &[0.0..15.0], "a.slices()[2].x_ranges() = {:?}", a.slices()[2].x_ranges());
+    assert!(a.slices()[3].x_ranges() == &[0.0..25.0], "a.slices()[3].x_ranges() = {:?}", a.slices()[3].x_ranges());
+    assert!(a.slices()[4].x_ranges() == &[0.0..15.0], "a.slices()[4].x_ranges() = {:?}", a.slices()[4].x_ranges());
+    assert!(a.slices()[5].x_ranges() == &[0.0..25.0], "a.slices()[5].x_ranges() = {:?}", a.slices()[5].x_ranges());
+
+    assert!(a.slices()[0].y_range() == (0.0..10.0), "a.slices()[0].y_range() = {:?}", a.slices()[0].y_range());
+    assert!(a.slices()[1].y_range() == (10.0..15.0), "a.slices()[1].y_range() = {:?}", a.slices()[1].y_range());
+    assert!(a.slices()[2].y_range() == (15.0..20.0), "a.slices()[2].y_range() = {:?}", a.slices()[2].y_range());
+    assert!(a.slices()[3].y_range() == (20.0..25.0), "a.slices()[3].y_range() = {:?}", a.slices()[3].y_range());
+    assert!(a.slices()[4].y_range() == (25.0..30.0), "a.slices()[4].y_range() = {:?}", a.slices()[4].y_range());
+    assert!(a.slices()[5].y_range() == (30.0..100.0), "a.slices()[5].y_range() = {:?}", a.slices()[5].y_range());
+
+    assert!(a.slices().len() == 6, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
 
     assert!(intercepts(&a, 11.0) == vec![0.0..25.0], "{:?}", intercepts(&a, 5.0));
 }
