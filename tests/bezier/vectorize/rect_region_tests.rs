@@ -207,17 +207,20 @@ fn merge_with_non_overlapping_y() {
     ]);
     let b = RectRegion::from_bounds(vec![
         Bounds(Coord2(0.0, 20.0), Coord2(10.0, 30.0)),
+        Bounds(Coord2(0.0, 40.0), Coord2(10.0, 50.0)),
     ]);
 
     a.merge_with(b);
 
-    assert!(a.slices().len() == 2, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
+    assert!(a.slices().len() == 3, "Slices: {:?}", a.slices().iter().map(|slice| format!("y range: {:?}", slice.y_range())).collect::<Vec<_>>());
 
     assert!(a.slices()[0].x_ranges() == &[0.0..10.0]);
     assert!(a.slices()[1].x_ranges() == &[0.0..10.0]);
+    assert!(a.slices()[2].x_ranges() == &[0.0..10.0]);
 
     assert!(a.slices()[0].y_range() == (0.0..10.0));
     assert!(a.slices()[1].y_range() == (20.0..30.0));
+    assert!(a.slices()[2].y_range() == (40.0..50.0));
 
     assert!(intercepts(&a,  5.0) == vec![0.0..10.0], "{:?}", intercepts(&a, 5.0));
     assert!(intercepts(&a, 15.0) == vec![], "{:?}", intercepts(&a, 15.0));
