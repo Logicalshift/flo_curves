@@ -187,7 +187,7 @@ impl RectRegion {
             // Ours and the incoming slices are in order, so 'last_slice' is the slice before both 'ours' and 'incoming'
             if let (Some(ours), Some(incoming)) = (&maybe_ours, &maybe_incoming) {
                 if ours.y_range.start < incoming.y_range.end && incoming.y_range.start < ours.y_range.end {
-                    // Ranges overlap
+                    // These two slices overlap, so we need to split them up
                     let overlap_start   = ours.y_range.start.max(incoming.y_range.start);
                     let overlap_end     = ours.y_range.end.min(incoming.y_range.end);
 
@@ -272,7 +272,8 @@ impl RectRegion {
         drop(our_slices);
         self.slices = new_slices;
 
-        // TODO: Combine slices if any end up containing the same values
+        // Combine slices if any end up containing the same values
+        self.combine_matching_slices();
     }
 
     ///
@@ -292,6 +293,38 @@ impl RectRegion {
     #[inline]
     pub fn slices(&self) -> &[RegionSlice] {
         &*self.slices
+    }
+
+    ///
+    /// If we contain any slices that have matching x-ranges, then combine them into a single slice
+    ///
+    fn combine_matching_slices(&mut self) {
+        if self.slices.is_empty() { return; }
+
+        // Drain the slices and build a new vec
+        let mut new_slices  = Vec::with_capacity(self.slices.len());
+        let mut slices      = self.slices.drain(..);
+
+        // The initial combined slice is the first in the list
+        let mut combined_slice = slices.next().unwrap();
+
+        while let Some(next_slice) = slices.next() {
+            if combined_slice.can_combine_with(&next_slice) {
+                // If the slices are combinable, then extend the y-range of the combined slice
+                combined_slice.y_range.end = next_slice.y_range.end;
+            } else {
+                // If the slices are not combinable, then push the combined slice and continue with the next slice
+                new_slices.push(combined_slice);
+                combined_slice = next_slice;
+            }
+        }
+
+        // Push the last slice
+        new_slices.push(combined_slice);
+
+        // Replace the slices with the combined set
+        drop(slices);
+        self.slices = new_slices;
     }
 }
 
@@ -407,10 +440,25 @@ impl RegionSlice {
     ///
     /// Clones this region with a new y range set
     ///
+    #[inline]
     fn clone_with_y_range(&self, new_y_range: Range<f64>) -> Self {
         Self {
             y_range: new_y_range,
             x_ranges: self.x_ranges.clone(),
+        }
+    }
+
+    ///
+    /// True if this slice can be combined with the other slice (joining their y ranges)
+    ///
+    #[inline]
+    fn can_combine_with(&self, other_region: &RegionSlice) -> bool {
+        if other_region.y_range.start != self.y_range.end {
+            false
+        } else if other_region.x_ranges.len() != self.x_ranges.len() {
+            false
+        } else {
+            self.x_ranges == other_region.x_ranges
         }
     }
 }
