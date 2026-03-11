@@ -432,4 +432,172 @@ impl SampledContour for RectRegion {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn make_slice(x_ranges: Vec<Range<f64>>) -> RegionSlice {
+        RegionSlice { y_range: 0.0..1.0, x_ranges }
+    }
+
+    #[test]
+    fn merge_both_empty() {
+        let mut a = make_slice(vec![]);
+        let b     = make_slice(vec![]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert!(a.x_ranges.is_empty());
+        assert!(scratch.is_empty(), "scratch should be cleared after merge");
+    }
+
+    #[test]
+    fn merge_self_empty() {
+        let mut a = make_slice(vec![]);
+        let b     = make_slice(vec![1.0..3.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..3.0]);
+        assert!(scratch.is_empty());
+    }
+
+    #[test]
+    fn merge_other_empty() {
+        let mut a = make_slice(vec![1.0..3.0]);
+        let b     = make_slice(vec![]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..3.0]);
+        assert!(scratch.is_empty());
+    }
+
+    #[test]
+    fn merge_non_overlapping_ours_first() {
+        let mut a = make_slice(vec![1.0..3.0]);
+        let b     = make_slice(vec![5.0..7.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..3.0, 5.0..7.0]);
+        assert!(scratch.is_empty());
+    }
+
+    #[test]
+    fn merge_non_overlapping_incoming_first() {
+        let mut a = make_slice(vec![5.0..7.0]);
+        let b     = make_slice(vec![1.0..3.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..3.0, 5.0..7.0]);
+        assert!(scratch.is_empty());
+    }
+
+    #[test]
+    fn merge_overlapping_ours_first() {
+        let mut a = make_slice(vec![1.0..5.0]);
+        let b     = make_slice(vec![3.0..7.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..7.0]);
+    }
+
+    #[test]
+    fn merge_overlapping_incoming_first() {
+        let mut a = make_slice(vec![3.0..7.0]);
+        let b     = make_slice(vec![1.0..5.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..7.0]);
+    }
+
+    #[test]
+    fn merge_ours_contains_incoming() {
+        let mut a = make_slice(vec![1.0..10.0]);
+        let b     = make_slice(vec![3.0..7.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..10.0]);
+    }
+
+    #[test]
+    fn merge_incoming_contains_ours() {
+        let mut a = make_slice(vec![3.0..7.0]);
+        let b     = make_slice(vec![1.0..10.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..10.0]);
+    }
+
+    /// Ranges touching at exactly one point (start == end of the other) should be merged
+    #[test]
+    fn merge_adjacent_ranges() {
+        let mut a = make_slice(vec![1.0..3.0]);
+        let b     = make_slice(vec![3.0..5.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..5.0]);
+    }
+
+    /// Two interleaved, non-overlapping ranges should all be preserved in sorted order
+    #[test]
+    fn merge_interleaved_non_overlapping() {
+        let mut a = make_slice(vec![1.0..2.0, 5.0..6.0]);
+        let b     = make_slice(vec![3.0..4.0, 7.0..8.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..2.0, 3.0..4.0, 5.0..6.0, 7.0..8.0]);
+    }
+
+    /// A single incoming range that bridges two of our ranges should collapse all three into one
+    #[test]
+    fn merge_incoming_bridges_two_of_ours() {
+        let mut a = make_slice(vec![1.0..4.0, 6.0..8.0]);
+        let b     = make_slice(vec![3.0..7.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..8.0]);
+    }
+
+    /// A single one-of-ours range that bridges two incoming ranges should collapse all three into one
+    #[test]
+    fn merge_ours_bridges_two_incoming() {
+        let mut a = make_slice(vec![3.0..7.0]);
+        let b     = make_slice(vec![1.0..4.0, 6.0..8.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![1.0..8.0]);
+    }
+
+    /// Identical ranges should produce a single copy
+    #[test]
+    fn merge_identical_ranges() {
+        let mut a = make_slice(vec![2.0..5.0]);
+        let b     = make_slice(vec![2.0..5.0]);
+        let mut scratch = vec![];
+
+        a.merge(&b, &mut scratch);
+
+        assert_eq!(a.x_ranges, vec![2.0..5.0]);
+    }
 }
