@@ -150,8 +150,114 @@ impl RectRegion {
     ///
     /// Merges this region with another region
     ///
-    pub fn add_region(&mut self, new_region: &RectRegion) {
-        // TODO
+    pub fn merge_with(&mut self, new_region: &RectRegion) {
+        // Nothing to do if the new region is empty
+        if new_region.slices.is_empty() {
+            return;
+        }
+
+        // Short circuit if we're empty too
+        if self.slices.is_empty() {
+            *self = new_region.clone();
+            return;
+        }
+
+        // Update the region covered by the new slices
+        self.x_region.start = self.x_region.start.min(new_region.x_region.start);
+        self.x_region.end   = self.x_region.end.max(new_region.x_region.end);
+
+        self.y_region.start = self.y_region.start.min(new_region.y_region.start);
+        self.y_region.end   = self.y_region.end.max(new_region.y_region.end);
+
+        // Merge/split each slice in turn
+        let mut merge_scratch   = vec![];
+        let mut new_slices      = Vec::with_capacity(self.slices.len().max(new_region.slices.len()));
+
+        let mut our_slices      = self.slices.drain(..);
+        let mut incoming_slices = new_region.slices.iter();
+
+        let mut maybe_ours      = our_slices.next();
+        let mut maybe_incoming  = incoming_slices.next();
+
+        // For the case where multiple slices overlap, we need to track the y position we've reached in the 'larger' side
+        let mut y_pos           = f64::MIN;
+
+        loop {
+            // Ours and the incoming slices are in order, so 'last_slice' is the slice before both 'ours' and 'incoming'
+            if let (Some(ours), Some(incoming)) = (&maybe_ours, maybe_incoming) {
+                if ours.y_range.start < incoming.y_range.end && incoming.y_range.start < ours.y_range.end {
+                    // Ranges overlap
+                    let overlap_start   = ours.y_range.start.max(incoming.y_range.start);
+                    let overlap_end     = ours.y_range.end.min(incoming.y_range.end);
+
+                    debug_assert!(y_pos <= overlap_start);
+
+                    // Copy the non-overlapping section from the start, if there is one (initial y positions can be the same, so this slice won't get generated)
+                    if ours.y_range.start < incoming.y_range.start {
+                        // Ours has a slice before incoming
+                        let start_y = y_pos.max(ours.y_range.start);
+                        let end_y   = incoming.y_range.start;
+
+                        if end_y > start_y { new_slices.push(ours.clone_with_y_range(start_y..end_y)) }
+                        // y_pos = end_y;
+                    } else if incoming.y_range.start < ours.y_range.start {
+                        // Incoming has a slice before ours
+                        let start_y = y_pos.max(incoming.y_range.start);
+                        let end_y   = ours.y_range.start;
+
+                        if end_y > start_y { new_slices.push(incoming.clone_with_y_range(start_y..end_y)) }
+                        // y_pos = end_y;
+                    }
+
+                    // Generate the overlap slice by merging the slices
+                    let mut overlap = ours.clone_with_y_range(overlap_start..overlap_end);
+                    overlap.merge(incoming, &mut merge_scratch);
+
+                    new_slices.push(overlap);
+                    y_pos = overlap_end;
+
+                    // The next item is whichever item ends first (or both if they both end at the same point)
+                    if ours.y_range.end < incoming.y_range.end {
+                        maybe_ours = our_slices.next();
+                    } else if incoming.y_range.end < ours.y_range.end {
+                        maybe_incoming = incoming_slices.next();
+                    } else {
+                        // End points are equal, so advance both
+                        maybe_ours      = our_slices.next();
+                        maybe_incoming  = incoming_slices.next();
+                    }
+                } else if ours.y_range.start < incoming.y_range.start {
+                    // No overlap, ours is first
+                    y_pos = ours.y_range.end;
+
+                    new_slices.push(maybe_ours.unwrap());
+                    maybe_ours = our_slices.next();
+                } else {
+                    // No overlap, incoming must be first
+                    y_pos = incoming.y_range.end;
+
+                    new_slices.push(incoming.clone());
+                    maybe_incoming  = incoming_slices.next();
+                }
+            } else if let Some(ours) = maybe_ours {
+                // Only 'ours' left
+                new_slices.push(ours);
+                maybe_ours = our_slices.next();
+            } else if let Some(incoming) = maybe_incoming {
+                // Only 'incoming' left
+                new_slices.push(incoming.clone());
+                maybe_incoming = incoming_slices.next();
+            } else {
+                // Both finished
+                break;
+            }
+        }
+
+        // new_slices now contains the merged set of slices
+        drop(our_slices);
+        self.slices = new_slices;
+
+        // TODO: Combine slices if any end up containing the same values
     }
 
     ///
@@ -284,6 +390,36 @@ impl RegionSlice {
         mem::swap(scratch, &mut self.x_ranges);
         scratch.clear();
     }
+
+    ///
+    /// Clones this region with a new y range set
+    ///
+    fn clone_with_y_range(&self, new_y_range: Range<f64>) -> Self {
+        Self {
+            y_range: new_y_range,
+            x_ranges: self.x_ranges.clone(),
+        }
+    }
+
+    ///
+    /// Returns a split of this slice into two slices, given a y position that's somewhere in this slice
+    ///
+    fn split(&self, y_pos: f64) -> (Self, Self) {
+        debug_assert!(y_pos > self.y_range.start);
+        debug_assert!(y_pos < self.y_range.end);
+
+        let early_slice = Self {
+            y_range:    self.y_range.start..y_pos,
+            x_ranges:   self.x_ranges.clone(),
+        };
+
+        let later_slice = Self {
+            y_range:    y_pos..self.y_range.end,
+            x_ranges:   self.x_ranges.clone()
+        };
+
+        (early_slice, later_slice)
+    }
 }
 
 impl SampledContour for RectRegion {
@@ -310,4 +446,9 @@ impl SampledContour for RectRegion {
             smallvec![]
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
 }
