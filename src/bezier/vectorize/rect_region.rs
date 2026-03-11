@@ -346,17 +346,15 @@ impl RegionSlice {
                     maybe_ours = our_ranges.next();
                     continue;
                 }
-            } else if let Some(incoming) = maybe_incoming {
+            }
+
+            if let Some(incoming) = maybe_incoming {
                 if incoming.start <= last_range.end {
                     // 'incoming' overlaps the last_range, so consume it
                     last_range.end = incoming.end.max(last_range.end);
                     maybe_incoming = incoming_ranges.next();
                     continue;
                 }
-            } else {
-                // 'ours' and 'incoming' are both None so we're finished after adding the last_range to the end of the new list of ranges
-                scratch.push(last_range);
-                break;
             }
 
             // Ranges don't overlap: add the last range to the result
@@ -382,8 +380,8 @@ impl RegionSlice {
                 maybe_incoming = incoming_ranges.next();
                 incoming.clone()
             } else {
-                // Unreachable: the 'None, None' case is dealt with above
-                unreachable!()
+                // 'ours' and 'incoming' are both None so we're finished
+                break;
             }
         }
 
