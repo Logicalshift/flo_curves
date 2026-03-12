@@ -141,3 +141,39 @@ impl<Point: Coordinate> BoundingBox for Bounds<Point> {
         self.1
     }
 }
+
+///
+/// Transforms a bounding box to create a new axis-aligned bounding box
+///
+pub fn transform_bounding_box_axis_aligned<TBoundingBox>(source: &TBoundingBox, transform_point: &impl Fn(TBoundingBox::Point) -> TBoundingBox::Point) -> TBoundingBox
+where
+    TBoundingBox:           BoundingBox,
+    TBoundingBox::Point:    Coordinate2D,
+{
+    // Compute the corners of the bounding box
+    let min = source.min();
+    let max = source.max();
+
+    let corners = (
+        min,
+        TBoundingBox::Point::from_components(&[min.x(), max.y()]),
+        max,
+        TBoundingBox::Point::from_components(&[max.x(), min.y()]),
+    );
+
+    // Transform them
+    let corners = [
+        transform_point(corners.0).coords(),
+        transform_point(corners.1).coords(),
+        transform_point(corners.2).coords(),
+        transform_point(corners.3).coords(),
+    ];
+
+    // Use the minimum/maximum values as the corners of the new bounding box
+    let min_x = corners[0].0.min(corners[1].0).min(corners[2].0).min(corners[3].0);
+    let min_y = corners[0].1.min(corners[1].1).min(corners[2].1).min(corners[3].1);
+    let max_x = corners[0].0.max(corners[1].0).max(corners[2].0).max(corners[3].0);
+    let max_y = corners[0].1.max(corners[1].1).max(corners[2].1).max(corners[3].1);
+
+    TBoundingBox::from_min_max(TBoundingBox::Point::from_components(&[min_x, min_y]), TBoundingBox::Point::from_components(&[max_x, max_y]))
+}
