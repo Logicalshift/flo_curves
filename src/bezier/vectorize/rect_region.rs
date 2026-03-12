@@ -314,6 +314,19 @@ impl RectRegion {
     }
 
     ///
+    /// Applies a transformation function to this RectRegion, returning a new axis-aligned region that covers the
+    /// area that would be covered by this region if the specified transformation was applied.
+    ///
+    /// (As the new region is axis-aligned, it will cover a greater area the origin region)
+    ///
+    pub fn transform_axis_aligned<TCoord>(&self, transform_point: &impl Fn(TCoord) -> TCoord) -> Self
+    where
+        TCoord: Coordinate + Coordinate2D,
+    {
+        Self::from_bounds(self.to_bounding_boxes().map(|bbox| transform_bounding_box_axis_aligned(&bbox, transform_point)))
+    }
+
+    ///
     /// If we contain any slices that have matching x-ranges, then combine them into a single slice
     ///
     fn combine_matching_slices(&mut self) {
