@@ -477,6 +477,81 @@ fn merge_with_multiple_overlapping_regions_first_matches_bounds() {
 }
 
 #[test]
+fn bounding_boxes_empty_region() {
+    let region = RectRegion::from_bounds::<Coord2>(vec![]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    assert!(boxes.is_empty(), "{:?}", boxes);
+}
+
+#[test]
+fn bounding_boxes_single_rect() {
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(10.0, 20.0), Coord2(50.0, 80.0)),
+    ]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    assert!(boxes.len() == 1, "{:?}", boxes);
+    assert!(boxes[0].min() == Coord2(10.0, 20.0), "min = {:?}", boxes[0].min());
+    assert!(boxes[0].max() == Coord2(50.0, 80.0), "max = {:?}", boxes[0].max());
+}
+
+#[test]
+fn bounding_boxes_two_non_overlapping_same_y() {
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(10.0, 10.0)),
+        Bounds(Coord2(20.0, 0.0), Coord2(30.0, 10.0)),
+    ]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    assert!(boxes.len() == 2, "{:?}", boxes);
+    assert!(boxes[0].min() == Coord2(0.0, 0.0) && boxes[0].max() == Coord2(10.0, 10.0), "boxes[0] = {:?}", boxes[0]);
+    assert!(boxes[1].min() == Coord2(20.0, 0.0) && boxes[1].max() == Coord2(30.0, 10.0), "boxes[1] = {:?}", boxes[1]);
+}
+
+#[test]
+fn bounding_boxes_two_overlapping_same_y_are_merged() {
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(15.0, 10.0)),
+        Bounds(Coord2(10.0, 0.0), Coord2(30.0, 10.0)),
+    ]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    assert!(boxes.len() == 1, "{:?}", boxes);
+    assert!(boxes[0].min() == Coord2(0.0, 0.0), "min = {:?}", boxes[0].min());
+    assert!(boxes[0].max() == Coord2(30.0, 10.0), "max = {:?}", boxes[0].max());
+}
+
+#[test]
+fn bounding_boxes_different_y_extents_produces_split_slices() {
+    // A tall rect and a short rect starting at the same y — the region splits into 2 slices
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(10.0, 20.0)),
+        Bounds(Coord2(20.0, 0.0), Coord2(30.0, 10.0)),
+    ]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    // Slice 0..10 has two x-ranges; slice 10..20 has one
+    assert!(boxes.len() == 3, "{:?}", boxes);
+    assert!(boxes[0].min() == Coord2(0.0, 0.0) && boxes[0].max() == Coord2(10.0, 10.0), "boxes[0] = {:?}", boxes[0]);
+    assert!(boxes[1].min() == Coord2(20.0, 0.0) && boxes[1].max() == Coord2(30.0, 10.0), "boxes[1] = {:?}", boxes[1]);
+    assert!(boxes[2].min() == Coord2(0.0, 10.0) && boxes[2].max() == Coord2(10.0, 20.0), "boxes[2] = {:?}", boxes[2]);
+}
+
+#[test]
+fn bounding_boxes_stacked_vertically() {
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(10.0, 10.0)),
+        Bounds(Coord2(0.0, 20.0), Coord2(10.0, 30.0)),
+    ]);
+
+    let boxes: Vec<Bounds<Coord2>> = region.to_bounding_boxes().collect();
+    assert!(boxes.len() == 2, "{:?}", boxes);
+    assert!(boxes[0].min() == Coord2(0.0, 0.0) && boxes[0].max() == Coord2(10.0, 10.0), "boxes[0] = {:?}", boxes[0]);
+    assert!(boxes[1].min() == Coord2(0.0, 20.0) && boxes[1].max() == Coord2(10.0, 30.0), "boxes[1] = {:?}", boxes[1]);
+}
+
+#[test]
 fn merge_with_adjacent_y_same_x_combines_slices() {
     // Two regions that are adjacent in y (touching, not overlapping) with identical x ranges.
     let mut a = RectRegion::from_bounds(vec![
