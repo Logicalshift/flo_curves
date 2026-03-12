@@ -296,6 +296,24 @@ impl RectRegion {
     }
 
     ///
+    /// Breaks this region down into a set of non-overlapping bounding boxes
+    ///
+    pub fn to_bounding_boxes<'a, TCoord>(&'a self) -> impl 'a + Iterator<Item=Bounds<TCoord>>
+    where
+        TCoord: Coordinate + Coordinate2D,
+    {
+        self.slices.iter()
+            .flat_map(|slice| {
+                slice.x_ranges.iter().map(move |x_range| {
+                    let min = TCoord::from_components(&[x_range.start, slice.y_range.start]);
+                    let max = TCoord::from_components(&[x_range.end, slice.y_range.end]);
+
+                    Bounds::from_min_max(min, max)
+                })
+            })
+    }
+
+    ///
     /// If we contain any slices that have matching x-ranges, then combine them into a single slice
     ///
     fn combine_matching_slices(&mut self) {
