@@ -552,6 +552,40 @@ fn bounding_boxes_stacked_vertically() {
 }
 
 #[test]
+fn transform_axis_aligned_translation() {
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(10.0, 20.0), Coord2(50.0, 80.0)),
+    ]);
+
+    let translated = region.transform_axis_aligned(&|p: Coord2| Coord2(p.x() + 5.0, p.y() + 10.0));
+
+    let bounds: Bounds<Coord2> = translated.bounds();
+    assert!(bounds.min() == Coord2(15.0, 30.0), "min = {:?}", bounds.min());
+    assert!(bounds.max() == Coord2(55.0, 90.0), "max = {:?}", bounds.max());
+
+    assert!(intercepts(&translated, 60.0) == vec![15.0..55.0], "{:?}", intercepts(&translated, 60.0));
+    assert!(intercepts(&translated, 25.0) == vec![], "{:?}", intercepts(&translated, 25.0));
+}
+
+#[test]
+fn transform_axis_aligned_90_degree_rotation() {
+    // Rotation by 90°: (x, y) -> (-y, x). A 10×20 rect becomes a 20×10 rect.
+    let region = RectRegion::from_bounds(vec![
+        Bounds(Coord2(0.0, 0.0), Coord2(10.0, 20.0)),
+    ]);
+
+    let rotated = region.transform_axis_aligned(&|p: Coord2| Coord2(-p.y(), p.x()));
+
+    // Corners (0,0),(10,0),(10,20),(0,20) rotate to (0,0),(0,10),(-20,10),(-20,0)
+    let bounds: Bounds<Coord2> = rotated.bounds();
+    assert!(bounds.min() == Coord2(-20.0, 0.0), "min = {:?}", bounds.min());
+    assert!(bounds.max() == Coord2(0.0, 10.0), "max = {:?}", bounds.max());
+
+    assert!(intercepts(&rotated, 5.0) == vec![-20.0..0.0], "{:?}", intercepts(&rotated, 5.0));
+    assert!(intercepts(&rotated, 15.0) == vec![], "{:?}", intercepts(&rotated, 15.0));
+}
+
+#[test]
 fn merge_with_adjacent_y_same_x_combines_slices() {
     // Two regions that are adjacent in y (touching, not overlapping) with identical x ranges.
     let mut a = RectRegion::from_bounds(vec![
