@@ -31,7 +31,7 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
     };
 
     // Remove any roots outside the range of the function
-    roots.retain(|r| *r > 0.0 && *r < 1.0);
+    roots.retain(|r| *r >= 0.0 && *r <= 1.0);
 
     // Add 0.0 and 1.0 if they are an exact match
     if w1 == p {
