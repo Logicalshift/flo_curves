@@ -13,6 +13,7 @@ pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 /// 
 pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec<[f64; 4]> {
     const TINY_T: f64 = 1e-6;
+    const TINIER_T: f64 = 1e-12;
 
     // There are no solutions if the point is not inside the control polygon for the bezier curve
     if p < w1.min(w2).min(w3).min(w4) {
@@ -38,7 +39,7 @@ pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec
     };
 
     // Remove any roots outside the range of the function
-    roots.retain(|r| *r >= 0.0 && *r <= 1.0);
+    roots.retain(|r| *r >= 0.0-TINIER_T && *r <= 1.0+TINIER_T);
 
     // Add 0.0 and 1.0 if they are an exact match
     if w1 == p {
