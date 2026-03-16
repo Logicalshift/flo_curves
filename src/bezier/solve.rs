@@ -14,6 +14,13 @@ pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec<[f64; 4]> {
     const TINY_T: f64 = 1e-6;
 
+    // There are no solutions if the point is not inside the control polygon for the bezier curve
+    if p < w1.min(w2).min(w3).min(w4) {
+        return smallvec![]
+    } else if p > w1.max(w2).max(w3).max(w4) {
+        return smallvec![]
+    }
+
     // Compute the coefficients for the cubic bezier function
     let d = w1-p;
     let c = 3.0*(w2-w1);
