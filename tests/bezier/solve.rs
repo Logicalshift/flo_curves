@@ -53,7 +53,7 @@ fn solve_t_for_start() {
 }
 
 #[test]
-fn solve_t_for_end() {
+fn solve_t_for_end_1() {
     let curve1  = Curve::from_points(Coord2(10.0, 100.0), (Coord2(90.0, 30.0), Coord2(40.0, 140.0)), Coord2(220.0, 220.0));
 
     let solved  = curve1.t_for_point(&Coord2(220.0, 220.0));
@@ -115,4 +115,37 @@ fn solve_t_for_close_to_start_3() {
     assert!(t.len() != 0);
     assert!(t.len() == 1);
     assert!((t[0]-0.0).abs() < 0.0001);
+}
+
+#[test]
+fn solve_t_for_end_2() {
+    // Exactly at end
+    let p = -0.22216796875;
+    let w = (-1.2783203125, -0.9262695312499991, -0.5742187500000008, -0.22216796875);
+    let t = solve_basis_for_t(w.0, w.1, w.2, w.3, p);
+
+    assert!(t.len() == 1, "{:?}", t);
+    assert!(t[0] == 1.0, "{:?}", t);
+}
+
+#[test]
+fn solve_t_for_end_3() {
+    // Same as solve_t_for_end_2 but *very* slightly past the end (still within the curve)
+    let p = -0.22216796875000006;
+    let w = (-1.2783203125, -0.9262695312499991, -0.5742187500000008, -0.22216796875);
+    let t = solve_basis_for_t(w.0, w.1, w.2, w.3, p);
+
+    assert!(t.len() == 1, "{:?}", t);
+    assert!((t[0]-1.0).abs() < 0.00001, "{:?}", t);
+}
+
+#[test]
+fn solve_t_for_end_4() {
+    // Continuing in the same direction as solve_t_for_end_3 but now further past the end (still quite close)
+    let p = -0.2221679687501;
+    let w = (-1.2783203125, -0.9262695312499991, -0.5742187500000008, -0.22216796875);
+    let t = solve_basis_for_t(w.0, w.1, w.2, w.3, p);
+
+    assert!(t.len() == 1, "{:?}", t);
+    assert!((t[0]-1.0).abs() < 0.00001, "{:?}", t);
 }
