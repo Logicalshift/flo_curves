@@ -9,7 +9,12 @@ pub (crate) const CLOSE_ENOUGH: f64 = SMALL_DISTANCE * 50.0;
 
 ///
 /// Solves for t in a single dimension for a bezier curve (finds the point(s) where the basis
-/// function evaluates to p)
+/// function evaluates to p). t values will be in the range 0.0-1.0 (if there are solutions
+/// outside that range, this function does not return them)
+///
+/// This will occasionally produce a value slightly higher or lower than 0.0 or 1.0 because this
+/// uses a numerical approach to solve for the t values. This can indicate a 'near miss' near 
+/// an end point, or a 'near hit', where there's actually a solution within the curve.
 /// 
 pub fn solve_basis_for_t(w1: f64, w2: f64, w3: f64, w4: f64, p: f64) -> SmallVec<[f64; 4]> {
     const TINY_T: f64 = 1e-6;
