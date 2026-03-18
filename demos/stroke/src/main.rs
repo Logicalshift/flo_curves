@@ -113,7 +113,7 @@ fn main() {
                 .build();
             let options = StrokeOptions::default()
                 .with_join(flo_curves::bezier::path::LineJoin::Round)
-                .with_remove_interior_points()
+                //.with_remove_interior_points()
                 .with_closed(true);
             show_stroke_path(gc, square, options);
         })
