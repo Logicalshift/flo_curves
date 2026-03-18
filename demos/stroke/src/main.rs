@@ -107,8 +107,8 @@ fn main() {
             // Closed path
             let square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(600.0, 100.0))
                 .line_to(Coord2(600.0, 300.0))
-                .line_to(Coord2(900.0, 300.0))
-                .line_to(Coord2(900.0, 100.0))
+                .line_to(Coord2(800.0, 300.0))
+                .line_to(Coord2(800.0, 100.0))
                 .line_to(Coord2(600.0, 100.0))
                 .build();
             let options = StrokeOptions::default()
