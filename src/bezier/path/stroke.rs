@@ -530,7 +530,7 @@ where
         // Follow the curve backwards so that this is a hole using the non-zero winding rule
         for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
             // Offset this curve using the subdivision algorithm
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &join_fn);
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
         }
 
         // Close the last part of the path
