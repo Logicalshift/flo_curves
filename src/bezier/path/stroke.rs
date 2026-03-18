@@ -526,9 +526,7 @@ where
         // Start a new path for the inner part of the stroke
         start_point = None;
         points      = vec![];
-    }
 
-    if options.closed {
         // Follow the curve backwards so that this is a hole using the non-zero winding rule
         for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
             // Offset this curve using the subdivision algorithm
