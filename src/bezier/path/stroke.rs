@@ -307,6 +307,50 @@ where
 }
 
 ///
+/// Closes a curve using the join function
+///
+fn close_stroke<TCoord>(start_point: &Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>)
+where 
+    TCoord: Coordinate + Coordinate2D,
+{
+    // Close by creating a join to the last point
+    let last_point          = points.last();
+    let last_start_point    = points.len().checked_sub(2).and_then(|idx| points.get(idx));
+
+    if let (Some((start_point, start_tangent)), Some((_, _, last_start_point)), Some((cp1, cp2, last_point))) = (start_point, last_start_point, last_point) {
+        // Create a join to the original start point
+        let last_tangent = Curve::from_points(*last_start_point, (*cp1, *cp2), *last_point).tangent_at_pos(1.0);
+
+        for (_, (cp1, cp2), ep) in join(*start_point, (*last_point, last_tangent), (*start_point, *start_tangent), width * 4.0) {
+            points.push((cp1, cp2, ep));
+        }
+    }
+}
+
+///
+/// Creates a path from a set of points we generated as part of a stroke
+///
+fn create_path<TPathFactory>(start_point: &Option<(TPathFactory::Point, TPathFactory::Point)>, points: Vec<(TPathFactory::Point, TPathFactory::Point, TPathFactory::Point)>) -> Option<TPathFactory> 
+where
+    TPathFactory:           BezierPathFactory,
+    TPathFactory::Point:    Coordinate + Coordinate2D,
+{
+    // Result is the path if we generated at least 2 points
+    if let Some(start_point) = start_point {
+        if points.len() > 0 {
+            let path = TPathFactory::from_points(start_point.0, points.into_iter());
+            Some(path)
+        } else {
+            // Only generated one point
+            None
+        }
+    } else {
+        // Never generated a curve
+        None
+    }
+}
+
+///
 /// Creates an endcap between the 'from' and 'to' points by assuming we've already reached the 'from' point
 ///
 #[inline]
@@ -453,8 +497,9 @@ where
     let join_fn     = options.join.join_function();
 
     // Create the list of points that make up the path
-    let mut start_point = None;
-    let mut points      = vec![];
+    let mut start_point                 = None;
+    let mut points                      = vec![];
+    let mut paths: Vec<TPathFactory>    = vec![];
 
     // Convert the path to curves
     let path_curves = path.to_curves::<Curve<TCoord>>();
@@ -471,8 +516,21 @@ where
         stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
     }
 
-    // Draw backwards
-    let mut added_end_cap = false;
+    if options.closed {
+        // Close the stroke
+        close_stroke(&start_point, &mut points, width, &join_fn);
+
+        // Create a subpath from these curves
+        paths.extend(create_path(&start_point, points));
+
+        // Start a new path for the inner part of the stroke
+        start_point = None;
+        points      = vec![];
+    }
+
+    // Draw backwards (only add the end cap if we're not closing the path)
+    let mut added_end_cap = if options.closed { true } else { false };
+
     for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
         if added_end_cap {
             // Add an offset edge to the curve
@@ -503,30 +561,26 @@ where
         }
     }
 
-    // Add start cap
-    if let (Some(start_point), Some(end_point)) = (start_point, points.last().map(|(_, _, p)| p).copied()) {
-        end_cap(&mut points, end_point, start_point.0, options.start_cap);
+    if options.closed {
+        // Close the last part of the path
+        close_stroke(&start_point, &mut points, width, &join_fn);
+    } else {
+        // Add start cap
+        if let (Some(start_point), Some(end_point)) = (start_point, points.last().map(|(_, _, p)| p).copied()) {
+            end_cap(&mut points, end_point, start_point.0, options.start_cap);
+        }
     }
 
-    // Result is the path if we generated at least 2 points
-    if let Some(start_point) = start_point {
-        if points.len() > 0 {
-            let path = TPathFactory::from_points(start_point.0, points.into_iter());
-
-            if options.remove_interior_points {
-                // Remove the interior points to generate the results (can have holes, so there can be more than one path)
-                path_remove_interior_points(&vec![path], options.accuracy)
-            } else {
-                // Just return the single path that we generated
-                vec![path]
-            }
+    // Generate the path
+    paths.extend(create_path(&start_point, points));
+    if !paths.is_empty() {
+        if options.remove_interior_points {
+            path_remove_interior_points(&paths, options.accuracy)
         } else {
-            // Only generated one point
-            vec![]
+            paths
         }
     } else {
-        // Never generated a curve
-        vec![]
+        paths
     }
 }
 
