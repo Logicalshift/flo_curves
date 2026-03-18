@@ -103,6 +103,19 @@ fn main() {
             // Self-intersecting loop: left = default (overlapping), right = with_remove_interior_points (clean)
             show_stroke_loop_demo(gc, 0.0,   StrokeOptions::default().with_start_cap(flo_curves::bezier::path::LineCap::Round).with_end_cap(flo_curves::bezier::path::LineCap::Round));
             show_stroke_loop_demo(gc, 500.0, StrokeOptions::default().with_start_cap(flo_curves::bezier::path::LineCap::Round).with_end_cap(flo_curves::bezier::path::LineCap::Round).with_remove_interior_points());
+
+            // Closed path
+            let square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(600.0, 100.0))
+                .line_to(Coord2(600.0, 300.0))
+                .line_to(Coord2(900.0, 300.0))
+                .line_to(Coord2(900.0, 100.0))
+                .line_to(Coord2(600.0, 100.0))
+                .build();
+            let options = StrokeOptions::default()
+                .with_join(flo_curves::bezier::path::LineJoin::Round)
+                .with_remove_interior_points()
+                .with_closed(true);
+            show_stroke_path(gc, square, options);
         })
     });
 }
