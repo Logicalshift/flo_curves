@@ -529,13 +529,14 @@ where
     }
 
     if options.closed {
-        for curve in path_curves.iter() {
+        // Follow the curve backwards so that this is a hole using the non-zero winding rule
+        for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
             // Offset this curve using the subdivision algorithm
             stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &join_fn);
         }
 
         // Close the last part of the path
-        close_stroke(&start_point, &mut points, path_curves.last().unwrap().point_at_pos(1.0), width, &join_fn);
+        close_stroke(&start_point, &mut points, path_curves[0].point_at_pos(0.0), width, &join_fn);
     } else {
         // Draw backwards (only add the end cap if we're not closing the path)
         let mut added_end_cap = false;
