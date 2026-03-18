@@ -24,6 +24,14 @@ fn show_stroke_loop_demo(gc: &mut impl GraphicsContext, x_offset: f64, options: 
 
     gc.new_path();
     gc.line_width(1.0);
+    gc.fill_color(Color::Rgba(0.8, 0.8, 0.8, 1.0));
+    for path in stroked_path.iter() {
+        gc.bezier_path(path);
+    }
+    gc.fill();
+
+    gc.new_path();
+    gc.line_width(1.0);
     gc.stroke_color(Color::Rgba(0.7, 0.2, 0.0, 1.0));
     gc.bezier_path(&sample_path);
     gc.stroke();
@@ -31,8 +39,8 @@ fn show_stroke_loop_demo(gc: &mut impl GraphicsContext, x_offset: f64, options: 
     gc.new_path();
     gc.line_width(1.0);
     gc.stroke_color(Color::Rgba(0.0, 0.2, 0.7, 1.0));
-    for path in stroked_path {
-        gc.bezier_path(&path);
+    for path in stroked_path.iter() {
+        gc.bezier_path(path);
     }
     gc.stroke();
 }
@@ -49,6 +57,14 @@ where
 
     gc.new_path();
     gc.line_width(1.0);
+    gc.fill_color(Color::Rgba(0.8, 0.8, 0.8, 1.0));
+    for path in stroked_path.iter() {
+        gc.bezier_path(path);
+    }
+    gc.fill();
+
+    gc.new_path();
+    gc.line_width(1.0);
     gc.stroke_color(Color::Rgba(0.7, 0.2, 0.0, 1.0));
     gc.bezier_path(&path);
     gc.stroke();
@@ -56,8 +72,8 @@ where
     gc.new_path();
     gc.line_width(1.0);
     gc.stroke_color(Color::Rgba(0.0, 0.2, 0.7, 1.0));
-    for path in stroked_path {
-        gc.bezier_path(&path);
+    for path in stroked_path.iter() {
+        gc.bezier_path(path);
     }
     gc.stroke();
 }
