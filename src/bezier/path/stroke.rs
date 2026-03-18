@@ -50,6 +50,9 @@ pub struct StrokeOptions {
 
     /// Set to true if the interior points should be removed from the resulting stroke (producing a path that is always non-overlapping)
     remove_interior_points: bool,
+
+    /// True if the path that's generated should be closed
+    closed: bool,
 }
 
 impl Default for StrokeOptions {
@@ -62,6 +65,7 @@ impl Default for StrokeOptions {
             start_cap:              LineCap::Butt,
             end_cap:                LineCap::Butt,
             remove_interior_points: false,
+            closed:                 false,
         }
     }
 }
@@ -127,6 +131,15 @@ impl StrokeOptions {
     #[inline]
     pub fn with_remove_interior_points(mut self) -> Self {
         self.remove_interior_points = true;
+        self
+    }
+
+    ///
+    /// Indicates that this path should be generated as a closed path (generated as two paths, one inside the other)
+    ///
+    #[inline]
+    pub fn with_closed(mut self, closed: bool) -> Self {
+        self.closed = closed;
         self
     }
 }
