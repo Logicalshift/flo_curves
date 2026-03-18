@@ -309,7 +309,7 @@ where
 ///
 /// Closes a curve using the join function
 ///
-fn close_stroke<TCoord>(start_point: &Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>)
+fn close_stroke<TCoord>(start_point: &Option<(TCoord, TCoord)>, points: &mut Vec<(TCoord, TCoord, TCoord)>, join_center_point: TCoord, width: f64, join: &impl Fn(TCoord, (TCoord, TCoord), (TCoord, TCoord), f64) -> Vec<(TCoord, (TCoord, TCoord), TCoord)>)
 where 
     TCoord: Coordinate + Coordinate2D,
 {
@@ -321,7 +321,7 @@ where
         // Create a join to the original start point
         let last_tangent = Curve::from_points(*last_start_point, (*cp1, *cp2), *last_point).tangent_at_pos(1.0);
 
-        for (_, (cp1, cp2), ep) in join(*start_point, (*last_point, last_tangent), (*start_point, *start_tangent), width * 4.0) {
+        for (_, (cp1, cp2), ep) in join(join_center_point, (*last_point, *last_point - last_tangent), (*start_point, *start_tangent), width * 4.0) {
             points.push((cp1, cp2, ep));
         }
     }
@@ -518,7 +518,7 @@ where
 
     if options.closed {
         // Close the stroke
-        close_stroke(&start_point, &mut points, width, &join_fn);
+        close_stroke(&start_point, &mut points, path_curves.last().unwrap().point_at_pos(1.0), width, &join_fn);
 
         // Create a subpath from these curves
         paths.extend(create_path(&start_point, points));
@@ -528,43 +528,48 @@ where
         points      = vec![];
     }
 
-    // Draw backwards (only add the end cap if we're not closing the path)
-    let mut added_end_cap = if options.closed { true } else { false };
-
-    for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
-        if added_end_cap {
-            // Add an offset edge to the curve
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
-        } else {
-            // Don't add an endcap to a very short curve (which we determine by measuring the length covered by the control polygon)
-            let (sp, (cp1, cp2), ep) = curve.all_points();
-            let polygon_length = sp.distance_to(&cp1) + cp1.distance_to(&cp2) + cp2.distance_to(&ep);
-
-            if polygon_length < VERY_CLOSE {
-                continue;
-            }
-
-            // Add an endcap to the first point of the curve
-            if let Some((_, _, last_point)) = points.last() {
-                // Use the normal at the start of the curve to calculate where the initial point of the reverse section of the curve should go
-                let last_point      = *last_point;
-                let initial_normal  = curve.normal_at_pos(0.0).to_unit_vector();
-                let curve_start     = curve.point_at_pos(0.0) + (initial_normal * half_width);
-
-                end_cap(&mut points, last_point, curve_start, options.end_cap);
-            }
-
-            added_end_cap = true;
-
-            // Stroke the curve as normal once this is done
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
-        }
-    }
-
     if options.closed {
+        for curve in path_curves.iter() {
+            // Offset this curve using the subdivision algorithm
+            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, -half_width, &join_fn);
+        }
+
         // Close the last part of the path
-        close_stroke(&start_point, &mut points, width, &join_fn);
+        close_stroke(&start_point, &mut points, path_curves.last().unwrap().point_at_pos(1.0), width, &join_fn);
     } else {
+        // Draw backwards (only add the end cap if we're not closing the path)
+        let mut added_end_cap = false;
+
+        for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
+            if added_end_cap {
+                // Add an offset edge to the curve
+                stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
+            } else {
+                // Don't add an endcap to a very short curve (which we determine by measuring the length covered by the control polygon)
+                let (sp, (cp1, cp2), ep) = curve.all_points();
+                let polygon_length = sp.distance_to(&cp1) + cp1.distance_to(&cp2) + cp2.distance_to(&ep);
+
+                if polygon_length < VERY_CLOSE {
+                    continue;
+                }
+
+                // Add an endcap to the first point of the curve
+                if let Some((_, _, last_point)) = points.last() {
+                    // Use the normal at the start of the curve to calculate where the initial point of the reverse section of the curve should go
+                    let last_point      = *last_point;
+                    let initial_normal  = curve.normal_at_pos(0.0).to_unit_vector();
+                    let curve_start     = curve.point_at_pos(0.0) + (initial_normal * half_width);
+
+                    end_cap(&mut points, last_point, curve_start, options.end_cap);
+                }
+
+                added_end_cap = true;
+
+                // Stroke the curve as normal once this is done
+                stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &bevel_join);
+            }
+        }
+
         // Add start cap
         if let (Some(start_point), Some(end_point)) = (start_point, points.last().map(|(_, _, p)| p).copied()) {
             end_cap(&mut points, end_point, start_point.0, options.start_cap);
