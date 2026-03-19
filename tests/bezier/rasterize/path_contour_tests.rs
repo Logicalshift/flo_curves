@@ -59,7 +59,10 @@ fn check_columns_vs_rows(contour: &impl ColumnSampledContour) {
     // Test all the pixels
     for y in 0..(contour.contour_size().height()) {
         for x in 0..(contour.contour_size().width()) {
-            assert!(pixels_from_rows[y][x] == pixels_from_columns[x][y], "Row/column mismatch at {}, {}", x, y);
+            let x_intercepts = contour.intercepts_on_line(y as _);
+            let y_intercepts = contour.intercepts_on_line(x as _);
+
+            assert!(pixels_from_rows[y][x] == pixels_from_columns[x][y], "Row/column mismatch at {}, {}.\nx_intercepts={:?}\ny_intercepts={:?}\n", x, y, x_intercepts, y_intercepts);
         }
     }
 }
