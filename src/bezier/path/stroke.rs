@@ -142,6 +142,28 @@ impl StrokeOptions {
         self.closed = closed;
         self
     }
+
+    /// The maximum allowed error for the curves in this stroke
+    #[inline] pub fn accuracy(&self) -> f64 { self.accuracy }
+
+    /// The minimum distance between samples used for the offsetting algorithm
+    #[inline] pub fn min_sample_distance(&self) -> f64 { self.min_sample_distance }
+
+    /// The line join style to generate
+    #[inline] pub fn join(&self) -> LineJoin { self.join }
+
+    /// The line cap style to use at the start of the line
+    #[inline] pub fn start_cap(&self) -> LineCap { self.start_cap }
+
+    /// The line cap style to use at the end of the line
+    #[inline] pub fn end_cap(&self) -> LineCap { self.end_cap }
+
+    /// If a closed path will be generated
+    #[inline] pub fn closed(&self) -> bool { self.closed }
+
+    /// If true, the path is trimmed so that all edges are exterior edges. Without this, the path may self-intersect and should be rendered using a non-zero winding rule.
+    /// With this, the path should be rendered using the even-odd winding rule.
+    #[inline] pub fn remove_interior_points(&self) -> bool { self.remove_interior_points }
 }
 
 impl LineJoin {
