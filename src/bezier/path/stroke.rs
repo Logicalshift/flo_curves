@@ -544,6 +544,16 @@ where
 
         // Close the last part of the path
         close_stroke(&inner_start_point, &mut points, path_curves[0].start_point(), width, &join_fn);
+
+        // Draw back to the original start point
+        let last_point = points.last()
+            .map(|(_, _, last_point)| *last_point);
+        if let (Some((start_point, _)), Some(last_point)) = (start_point, last_point) {
+            let cp1 = (last_point - start_point) * (1.0/3.0) + start_point;
+            let cp2 = (last_point - start_point) * (2.0/3.0) + start_point;
+
+            points.push((cp1, cp2, last_point));
+        }
     } else {
         // Draw backwards (only add the end cap if we're not closing the path)
         let mut added_end_cap = false;
