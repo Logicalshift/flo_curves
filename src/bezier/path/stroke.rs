@@ -578,7 +578,9 @@ where
     // Generate the path
     paths.extend(create_path(&start_point, points));
     if !paths.is_empty() {
-        if options.remove_interior_points {
+        if options.closed && options.remove_interior_points {
+            path_remove_overlapped_points(&paths, options.accuracy)
+        } else if options.remove_interior_points {
             path_remove_interior_points(&paths, options.accuracy)
         } else {
             paths
