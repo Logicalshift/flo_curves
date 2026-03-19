@@ -24,7 +24,12 @@ fn show_stroke_loop_demo(gc: &mut impl GraphicsContext, x_offset: f64, options: 
 
     gc.new_path();
     gc.line_width(1.0);
-    gc.fill_color(Color::Rgba(0.8, 0.8, 0.8, 1.0));
+    if options.remove_interior_points() {
+        gc.winding_rule(WindingRule::EvenOdd);
+    } else {
+        gc.winding_rule(WindingRule::NonZero);
+    }
+    gc.fill_color(Color::Rgba(0.9, 0.9, 0.9, 1.0));
     for path in stroked_path.iter() {
         gc.bezier_path(path);
     }
@@ -57,7 +62,12 @@ where
 
     gc.new_path();
     gc.line_width(1.0);
-    gc.fill_color(Color::Rgba(0.8, 0.8, 0.8, 1.0));
+    if options.remove_interior_points() {
+        gc.winding_rule(WindingRule::EvenOdd);
+    } else {
+        gc.winding_rule(WindingRule::NonZero);
+    }
+    gc.fill_color(Color::Rgba(0.9, 0.9, 0.9, 1.0));
     for path in stroked_path.iter() {
         gc.bezier_path(path);
     }
