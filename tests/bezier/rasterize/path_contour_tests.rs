@@ -104,7 +104,7 @@ fn basic_circle_1() {
 
 #[test]
 fn basic_circle_columns() {
-    let radius          = 300.0;
+    let radius          = 299.5;
     let center          = Coord2(500.0, 500.0);
     let circle_path     = Circle::new(center, radius).to_path::<SimpleBezierPath>();
 
