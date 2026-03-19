@@ -522,25 +522,28 @@ where
 
         // Draw a line to the initial inner point
         let end_point = path_curves.last()
-            .map(|curve| curve.end_point());
+            .map(|curve| (curve.end_point(), curve.reverse::<Curve<_>>().normal_at_pos(0.0).to_unit_vector()));
         let last_point = points.last()
             .map(|(_, _, last_point)| *last_point);
 
-        if let (Some(end_point), Some(last_point)) = (end_point, last_point) {
+        if let (Some((end_point, end_normal)), Some(last_point)) = (end_point, last_point) {
+            let end_point = end_point + (end_normal * half_width);
             let cp1 = (end_point - last_point) * (1.0/3.0) + last_point;
             let cp2 = (end_point - last_point) * (2.0/3.0) + last_point;
 
             points.push((cp1, cp2, end_point));
         }
 
+        let mut inner_start_point = None;
+
         // Follow the curve backwards so that this is a hole using the non-zero winding rule
         for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
             // Offset this curve using the subdivision algorithm
-            stroke_edge(&mut start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
+            stroke_edge(&mut inner_start_point, &mut points, &curve, &subdivision_options, half_width, &join_fn);
         }
 
         // Close the last part of the path
-        close_stroke(&start_point, &mut points, path_curves[0].point_at_pos(0.0), width, &join_fn);
+        close_stroke(&inner_start_point, &mut points, path_curves[0].start_point(), width, &join_fn);
     } else {
         // Draw backwards (only add the end cap if we're not closing the path)
         let mut added_end_cap = false;
