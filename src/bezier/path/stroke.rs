@@ -579,7 +579,8 @@ where
     paths.extend(create_path(&start_point, points));
     if !paths.is_empty() {
         if options.closed && options.remove_interior_points {
-            path_remove_overlapped_points(&paths, options.accuracy)
+            // TODO: currently, remove_interior_points does not work on this path
+            paths
         } else if options.remove_interior_points {
             path_remove_interior_points(&paths, options.accuracy)
         } else {
