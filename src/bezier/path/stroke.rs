@@ -520,12 +520,18 @@ where
         // Close the stroke
         close_stroke(&start_point, &mut points, path_curves.last().unwrap().point_at_pos(1.0), width, &join_fn);
 
-        // Create a subpath from these curves
-        paths.extend(create_path(&start_point, points));
+        // Draw a line to the initial inner point
+        let end_point = path_curves.last()
+            .map(|curve| curve.end_point());
+        let last_point = points.last()
+            .map(|(_, _, last_point)| *last_point);
 
-        // Start a new path for the inner part of the stroke
-        start_point = None;
-        points      = vec![];
+        if let (Some(end_point), Some(last_point)) = (end_point, last_point) {
+            let cp1 = (end_point - last_point) * (1.0/3.0) + last_point;
+            let cp2 = (end_point - last_point) * (2.0/3.0) + last_point;
+
+            points.push((cp1, cp2, end_point));
+        }
 
         // Follow the curve backwards so that this is a hole using the non-zero winding rule
         for curve in path_curves.iter().rev().map(|curve| curve.reverse()) {
@@ -579,8 +585,7 @@ where
     paths.extend(create_path(&start_point, points));
     if !paths.is_empty() {
         if options.closed && options.remove_interior_points {
-            // TODO: currently, remove_interior_points does not work on this path
-            paths
+            path_remove_interior_points(&paths, options.accuracy)
         } else if options.remove_interior_points {
             path_remove_interior_points(&paths, options.accuracy)
         } else {
