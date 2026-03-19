@@ -16,8 +16,8 @@ fn show_stroke_loop_demo(gc: &mut impl GraphicsContext, x_offset: f64, options: 
     // A path that creates a self-intersecting loop:
     // First curve is an arch from left to right, second curve sweeps below and loops back,
     // crossing through the interior of the arch.
-    let sample_path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(100.0 + ox, 650.0))
-        .curve_to((Coord2(800.0 + ox, 450.0), Coord2(-400.0 + ox, 450.0)), Coord2(300.0 + ox, 650.0))
+    let sample_path = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(100.0 + ox, 850.0))
+        .curve_to((Coord2(800.0 + ox, 650.0), Coord2(-400.0 + ox, 650.0)), Coord2(300.0 + ox, 850.0))
         .build();
 
     let stroked_path = stroke_path::<SimpleBezierPath, _>(&sample_path, 32.0, &options);
@@ -130,6 +130,17 @@ fn main() {
             let options = StrokeOptions::default()
                 .with_join(flo_curves::bezier::path::LineJoin::Round)
                 .with_remove_interior_points()
+                .with_closed(true);
+            show_stroke_path(gc, square, options);
+
+            let square = BezierPathBuilder::<SimpleBezierPath>::start(Coord2(600.0, 400.0))
+                .line_to(Coord2(600.0, 600.0))
+                .line_to(Coord2(800.0, 600.0))
+                .line_to(Coord2(800.0, 400.0))
+                .line_to(Coord2(600.0, 400.0))
+                .build();
+            let options = StrokeOptions::default()
+                .with_join(flo_curves::bezier::path::LineJoin::Round)
                 .with_closed(true);
             show_stroke_path(gc, square, options);
         })
