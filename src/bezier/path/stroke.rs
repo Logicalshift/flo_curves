@@ -574,7 +574,7 @@ where
             let cp1 = (last_point - start_point) * (1.0/3.0) + start_point;
             let cp2 = (last_point - start_point) * (2.0/3.0) + start_point;
 
-            points.push((cp1, cp2, last_point));
+            points.push((cp1, cp2, start_point));
         }
     } else {
         // Draw backwards (only add the end cap if we're not closing the path)
