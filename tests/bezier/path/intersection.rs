@@ -135,3 +135,28 @@ fn circle_intersects_circle() {
 
     assert!(intersections.len() == 2);
 }
+
+#[test]
+fn ray_intersects_circle() {
+    let center = Coord2(5.0, 5.0);
+    let radius = 4.0;
+
+    // Create a path from a circle
+    let circle: SimpleBezierPath = Circle::new(center, radius).to_path();
+
+    // Try various angles from the center to intersect it. Here we use a length < 4.0 so we should get no intersections
+    let length = 3.9999;
+
+    for angle in 0..=20 {
+        let angle       = angle as f64;
+        let radians     = (2.0*f64::consts::PI)*(angle/20.0);
+
+        let target      = Coord2(radians.sin()*length, radians.cos()*length);
+        let target      = target + center;
+
+        // Should be one intersection with the circle here
+        let line            = (center, target);
+        let intersection    = path_intersects_ray(&circle, &line).collect::<Vec<_>>();
+        assert!(intersection.len() == 2);
+    }
+}

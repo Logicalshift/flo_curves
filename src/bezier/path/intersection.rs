@@ -35,7 +35,7 @@ where
 {
     path_to_curves::<_, Curve<_>>(path)
         .enumerate()
-        .flat_map(move |(section_id, curve)| curve_intersects_line(&curve, line).into_iter().map(move |(t, s, _pos)| (section_id, t, s)))
+        .flat_map(move |(section_id, curve)| curve_intersects_ray(&curve, line).into_iter().map(move |(t, s, _pos)| (section_id, t, s)))
 }
 
 ///
