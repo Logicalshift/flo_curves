@@ -16,3 +16,4 @@ mod arithmetic_intersect;
 mod arithmetic_complicated_paths;
 mod rays;
 mod stroke_tests;
+mod exterior_paths_ordering;
