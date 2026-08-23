@@ -57,7 +57,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let bb1 = edge1.get_bounding_box::<Bounds<_>>();
             let bb2 = edge2.get_bounding_box::<Bounds<_>>();
 
-            bb1.min().x().partial_cmp(&bb2.min().x()).unwrap_or(Ordering::Equal)
+            bb1.min().x().total_cmp(&bb2.min().x())
         });
 
         ordered_edges
@@ -477,7 +477,7 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
             let x1 = point1.pos().x();
             let x2 = point2.pos().x();
 
-            x1.partial_cmp(&x2).unwrap_or(Ordering::Equal)
+            x1.total_cmp(&x2)
         });
 
         // Sweep to find the points that might be colliding

@@ -732,10 +732,10 @@ where
 
         if dx.abs() > SMALL_DISTANCE || dy.abs() > SMALL_DISTANCE {
             // Order by position on the ray
-            line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
+            line_t_a.total_cmp(line_t_b)
         } else if !edges_overlap(path, edge_a.edge(), edge_b.edge()) {
             // Only enforce edge ordering if the two edges overlap: otherwise, continue to use ordering along the ray
-            line_t_a.partial_cmp(line_t_b).unwrap_or(Ordering::Equal)
+            line_t_a.total_cmp(line_t_b)
         } else {
             // Position on the line is the same (stabilise ordering by checking the edges)
             let edge_a = edge_a.edge();
