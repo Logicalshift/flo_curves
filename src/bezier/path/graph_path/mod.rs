@@ -1047,25 +1047,29 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // problem to show up. Ordering like this reduces the incidence of this issue by making it so we find paths by working inwards
         // instead of randomly (though a most of the time this issue does not occur, so this is wasted effort, though having outer paths
         // come before inner paths is a side-benefit)
-        // Points whose x values are close together are treated as sharing an x value and are ordered by y instead. That grouping is
-        // done by quantising x rather than by comparing pairs of x values against a tolerance: a tolerance comparison is not
-        // transitive (`a` and `b` can be within the tolerance, and `b` and `c` within it, while `a` and `c` are not), which makes
-        // this an invalid strict weak ordering, and `sort_by` is documented as being allowed to panic when it detects one
-        const SAME_X_TOLERANCE: f64 = 0.01;
-
         let mut points = (0..self.points.len()).into_iter().collect::<Vec<_>>();
-        points.sort_by(|point_a, point_b| {
-            let x_a = (self.points[*point_a].position.x()/SAME_X_TOLERANCE).floor();
-            let x_b = (self.points[*point_b].position.x()/SAME_X_TOLERANCE).floor();
 
-            x_a.total_cmp(&x_b)
-                .then_with(|| {
-                    let y_a = self.points[*point_a].position.y();
-                    let y_b = self.points[*point_b].position.y();
+        // Order by x-coordinate first
+        points.sort_by(|point_a, point_b| self.points[*point_a].position.x().total_cmp(&self.points[*point_b].position.x()));
 
-                    y_a.total_cmp(&y_b)
-                })
-        });
+        // x-points that are close together are better distinguished by y coordinate (re-order within the points list)
+        // Points that are close in both x and y coordinates are possible overlaps
+        let mut idx = 0;
+        while idx < points.len()-1 {
+            // Find the group of points that are close to each other
+            // SMALL_DISTANCE is still quite large compared to the usual floating point error
+            let mut end_idx = idx + 1;
+            while end_idx < points.len() && (self.points[end_idx].position.x() - self.points[end_idx-1].position.x()).abs() < SMALL_DISTANCE {
+                end_idx += 1;
+            }
+
+            if end_idx > idx + 1 {
+                // Sort by y coordinate instead within this range
+                (&mut points[idx..end_idx]).sort_by(|point_a, point_b| self.points[*point_a].position.y().total_cmp(&self.points[*point_b].position.y()));
+            }
+
+            idx += 1;
+        }
 
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
         // Even a complex path very rarely has more than 2 edges per point
