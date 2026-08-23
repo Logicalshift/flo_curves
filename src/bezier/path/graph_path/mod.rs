@@ -1047,23 +1047,24 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
         // problem to show up. Ordering like this reduces the incidence of this issue by making it so we find paths by working inwards
         // instead of randomly (though a most of the time this issue does not occur, so this is wasted effort, though having outer paths
         // come before inner paths is a side-benefit)
+        // Points whose x values are close together are treated as sharing an x value and are ordered by y instead. That grouping is
+        // done by quantising x rather than by comparing pairs of x values against a tolerance: a tolerance comparison is not
+        // transitive (`a` and `b` can be within the tolerance, and `b` and `c` within it, while `a` and `c` are not), which makes
+        // this an invalid strict weak ordering, and `sort_by` is documented as being allowed to panic when it detects one
+        const SAME_X_TOLERANCE: f64 = 0.01;
+
         let mut points = (0..self.points.len()).into_iter().collect::<Vec<_>>();
         points.sort_by(|point_a, point_b| {
-            use std::cmp::{Ordering};
+            let x_a = (self.points[*point_a].position.x()/SAME_X_TOLERANCE).floor();
+            let x_b = (self.points[*point_b].position.x()/SAME_X_TOLERANCE).floor();
 
-            let x_a = self.points[*point_a].position.x();
-            let x_b = self.points[*point_b].position.x();
+            x_a.total_cmp(&x_b)
+                .then_with(|| {
+                    let y_a = self.points[*point_a].position.y();
+                    let y_b = self.points[*point_b].position.y();
 
-            if (x_a - x_b).abs() < 0.01 {
-                let y_a = self.points[*point_a].position.y();
-                let y_b = self.points[*point_b].position.y();
-
-                y_a.partial_cmp(&y_b).unwrap_or(Ordering::Equal)
-            } else if x_a < x_b {
-                Ordering::Less
-            } else {
-                Ordering::Greater
-            }
+                    y_a.total_cmp(&y_b)
+                })
         });
 
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
