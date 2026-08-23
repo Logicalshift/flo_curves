@@ -6,4 +6,4 @@ the crates that flo_curves depends on.
     "bluss" (https://github.com/bluss): the itertools crate
     "shi-yan" (https://https://github.com/shi-yan): suggestions
     "andrewvarga" (https://github.com/andrewvarga): bug reports
-
+    "whoistobias" (https://github.com/whoistobias): bug reports and fixes
