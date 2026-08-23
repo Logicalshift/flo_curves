@@ -178,7 +178,7 @@ where
                 let mut extremities = extremities;
                 extremities.insert(0, 0.0);
                 extremities.push(1.0);
-                extremities.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+                extremities.sort_by(|a, b| a.total_cmp(&b));
 
                 extremities
                     .into_iter()
