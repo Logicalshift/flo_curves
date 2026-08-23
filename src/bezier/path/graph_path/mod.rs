@@ -1054,21 +1054,26 @@ impl<Point: Coordinate+Coordinate2D, Label: Copy> GraphPath<Point, Label> {
 
         // x-points that are close together are better distinguished by y coordinate (re-order within the points list)
         // Points that are close in both x and y coordinates are possible overlaps
-        let mut idx = 0;
-        while idx < points.len()-1 {
-            // Find the group of points that are close to each other
-            // SMALL_DISTANCE is still quite large compared to the usual floating point error
-            let mut end_idx = idx + 1;
-            while end_idx < points.len() && (self.points[end_idx].position.x() - self.points[end_idx-1].position.x()).abs() < SMALL_DISTANCE {
-                end_idx += 1;
-            }
+        let num_points = points.len();
+        if num_points > 0 {
+            let mut idx = 0;
 
-            if end_idx > idx + 1 {
-                // Sort by y coordinate instead within this range
-                (&mut points[idx..end_idx]).sort_by(|point_a, point_b| self.points[*point_a].position.y().total_cmp(&self.points[*point_b].position.y()));
-            }
+            while idx < num_points-1 {
+                // Find the group of points that are close to each other
+                // SMALL_DISTANCE is still quite large compared to the usual floating point error
+                let mut end_idx = idx + 1;
+                while end_idx < num_points && (self.points[points[end_idx]].position.x() - self.points[points[end_idx-1]].position.x()).abs() < SMALL_DISTANCE {
+                    end_idx += 1;
+                }
 
-            idx += 1;
+                if end_idx > idx + 1 {
+                    // Sort by y coordinate instead within this range
+                    (&mut points[idx..end_idx]).sort_by(|point_a, point_b| self.points[*point_a].position.y().total_cmp(&self.points[*point_b].position.y()));
+                    idx = end_idx;
+                } else {
+                    idx += 1;
+                }
+            }
         }
 
         // Store a list of edges that have been visited or are already in a path (these are flags: up to 32 edges per point are allowed by this algorithm)
