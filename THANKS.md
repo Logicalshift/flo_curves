@@ -7,3 +7,5 @@ the crates that flo_curves depends on.
     "shi-yan" (https://https://github.com/shi-yan): suggestions
     "andrewvarga" (https://github.com/andrewvarga): bug reports
     "whoistobias" (https://github.com/whoistobias): bug reports and fixes
+    "drietsch" (https://github.com/drietsch): bug reports and fixes
+    
