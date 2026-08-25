@@ -8,8 +8,6 @@ use crate::bezier::{CurveSection};
 use smallvec::*;
 use itertools::*;
 
-use std::cmp::*;
-
 // This is loosely based on the algorithm described at: https://pomax.github.io/bezierinfo/#offsetting,
 // with numerous changes to allow for variable-width offsets and consistent behaviour (in particular,
 // a much more reliable method of subdividing the curve)
