@@ -3,7 +3,6 @@ use super::distance_field::*;
 use super::daub_brush_distance_field::*;
 use super::marching_squares::*;
 use super::sampled_contour::*;
-use super::range_contour::*;
 use crate::bezier::*;
 use crate::bezier::path::*;
 use crate::geo::*;
