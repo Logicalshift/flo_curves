@@ -26,6 +26,7 @@ pub trait DaubBrush {
     fn create_daub(&self, centered_at: impl Coordinate + Coordinate2D, radius: f64) -> Option<(Self::DaubDistanceField, ContourPosition)>;
 }
 
+/*
 ///
 /// Creates a range contour from a set of brush daubs
 ///
@@ -45,6 +46,7 @@ where
 
     contour
 }
+*/
 
 ///
 /// Creates the daubs making up a brush stroke from a bezier curve
