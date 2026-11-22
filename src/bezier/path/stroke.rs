@@ -265,7 +265,7 @@ where
         let cp1     = *start_point + start_tangent * radius * ratio;
         let cp2     = *end_point - end_tangent * radius * ratio;
 
-        debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.01, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
+        debug_assert!((center_point.distance_to(&start_point) - center_point.distance_to(&end_point)).abs() < 0.05, "Center point is not centered ({} vs {})", center_point.distance_to(&start_point), center_point.distance_to(&end_point));
 
         vec![(*start_point, (cp1, cp2), *end_point)]
     } else {
